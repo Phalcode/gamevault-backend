@@ -1,0 +1,20 @@
+name: Delete All Images
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete-all-images:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/delete-package-versions@v4
+      with:
+        # Name of the package.
+        # Required
+        package-name: crackpipe-backend
+        # Type of the package. Can be one of container, maven, npm, nuget, or rubygems.
+        # Required
+        package-type: container
+        # The number of old versions to delete starting from the oldest version.
+        # Defaults to 1.
+        num-old-versions-to-delete: 99999

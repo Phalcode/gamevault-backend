@@ -1,0 +1,21 @@
+version: "3.1"
+services:
+  crackpipe-backend:
+    image: phalcode/crackpipe-backend:latest
+    restart: unless-stopped
+    environment:
+      DB_HOST: "db"
+      DB_USERNAME: "default"
+      DB_PASSWORD: "default"
+    #volumes:
+    #  - /your/games/folder:/files
+    #  - /your/images/folder:/images
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: default
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: crackpipe
+    ports:
+      - 5432:5432
