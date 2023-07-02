@@ -104,10 +104,10 @@ export class GamesController {
       return games;
     }
 
-    // Typeorm Returns Bigints as Numbers so we need to convert them
-    for (const game of games.data) {
+    // TypeORM returns Bigints as Numbers so we need to convert them
+    games.data.forEach((game) => {
       game.size = game.size.toString();
-    }
+    });
 
     return games;
   }

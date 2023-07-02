@@ -112,7 +112,7 @@ export class BoxArtService {
     try {
       const results = await gis(searchQuery);
       this.logger.debug(
-        `Found ${results.length} matching Box Art Images for "${title}" | Search: "${searchQuery}"`,
+        `Found ${results.length} Box Art Images for "${title}" | Search: "${searchQuery}"`,
       );
       return results;
     } catch (error) {

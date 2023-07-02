@@ -58,9 +58,11 @@ export class ImagesService {
     });
 
     if (this.imageIsAvailableOnFileSystem(existingImage)) {
-      await this.imageRepository.recover(existingImage);
+      if (existingImage.deleted_at) {
+        await this.imageRepository.recover(existingImage);
+      }
       return existingImage;
-    } else if (existingImage && existingImage.id) {
+    } else if (existingImage?.id) {
       logger.warn(
         "Image was found in the database but not on the server's filesystem. Clearing Remains.",
         existingImage,
