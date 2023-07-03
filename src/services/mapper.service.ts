@@ -207,7 +207,10 @@ export class MapperService {
 
       entity.rawg_release_date =
         this.getReleaseDate(game) ?? entity.rawg_release_date;
-      entity.average_playtime = game.playtime * 60 ?? entity.average_playtime;
+
+      if (game.playtime) {
+        entity.average_playtime = game.playtime * 60;
+      }
 
       return entity;
     } catch (error) {
