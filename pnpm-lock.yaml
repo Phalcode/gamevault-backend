@@ -54,8 +54,8 @@ dependencies:
     specifier: ^4.18.2
     version: 4.18.2
   fastify:
-    specifier: ^4.18.0
-    version: 4.18.0
+    specifier: ^4.19.0
+    version: 4.19.0
   helmet:
     specifier: ^7.0.0
     version: 7.0.0
@@ -70,7 +70,7 @@ dependencies:
     version: 1.9.3(@nestjs/common@10.0.4)(winston@3.9.0)
   nestjs-paginate:
     specifier: 8.1.4
-    version: 8.1.4(@nestjs/common@10.0.4)(express@4.18.2)(fastify@4.18.0)(typeorm@0.3.17)
+    version: 8.1.4(@nestjs/common@10.0.4)(express@4.18.2)(fastify@4.19.0)(typeorm@0.3.17)
   passport:
     specifier: ^0.6.0
     version: 0.6.0
@@ -2566,8 +2566,8 @@ packages:
     resolution: {integrity: sha512-cIusKBIt/R/oI6z/1nyfe2FvGKVTohVRfvkOhvx0nCEW+xf5NoCXjAHcWp93uOUBchzYcsvPlrapAdX1uW+YGg==}
     dev: false
 
-  /fastify@4.18.0:
-    resolution: {integrity: sha512-L5o/2GEkBastQ3HV0dtKo7SUZ497Z1+q4fcqAoPyq6JCQ/8zdk1JQEoTQwnBWCp+EmA7AQa6mxNqSAEhzP0RwQ==}
+  /fastify@4.19.0:
+    resolution: {integrity: sha512-Fb7w46k3kum/V+OMiw2/LN1lo2xqhJqwTsv+LGie5n7YNdA9bmDUntXfcec9rG6VRDXIBfPf5xmFv2wooBdxzg==}
     dependencies:
       '@fastify/ajv-compiler': 3.5.0
       '@fastify/error': 3.2.0
@@ -3895,7 +3895,7 @@ packages:
       winston: 3.9.0
     dev: false
 
-  /nestjs-paginate@8.1.4(@nestjs/common@10.0.4)(express@4.18.2)(fastify@4.18.0)(typeorm@0.3.17):
+  /nestjs-paginate@8.1.4(@nestjs/common@10.0.4)(express@4.18.2)(fastify@4.19.0)(typeorm@0.3.17):
     resolution: {integrity: sha512-jFqPGnwn76yFAeN0RM5uPux7n39VulHZ8240FfIbKu6d4+oQ53mryTjAT4QO5a4TiZeAdW27P+krj4UjkEHBiQ==}
     peerDependencies:
       '@nestjs/common': ^9.4.2
@@ -3905,7 +3905,7 @@ packages:
     dependencies:
       '@nestjs/common': 10.0.4(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)(rxjs@7.8.1)
       express: 4.18.2
-      fastify: 4.18.0
+      fastify: 4.19.0
       lodash: 4.17.21
       typeorm: 0.3.17(better-sqlite3@8.4.0)(pg@8.11.1)(ts-node@10.9.1)
     dev: false

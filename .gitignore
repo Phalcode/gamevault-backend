@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /images
+/files
 
 # Logs
 logs
@@ -38,3 +39,5 @@ lerna-debug.log*
 .env
 
 *.sqlite
+
+__pycache__/

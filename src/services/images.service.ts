@@ -35,7 +35,7 @@ export class ImagesService {
    * @returns - Whether the image is available or not
    */
   public imageIsAvailableOnFileSystem(image: Image): boolean {
-    if (image && image.path) {
+    if (image?.path) {
       if (fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
         return true;
       }
@@ -58,9 +58,11 @@ export class ImagesService {
     });
 
     if (this.imageIsAvailableOnFileSystem(existingImage)) {
-      await this.imageRepository.recover(existingImage);
+      if (existingImage.deleted_at) {
+        await this.imageRepository.recover(existingImage);
+      }
       return existingImage;
-    } else if (existingImage && existingImage.id) {
+    } else if (existingImage?.id) {
       logger.warn(
         "Image was found in the database but not on the server's filesystem. Clearing Remains.",
         existingImage,

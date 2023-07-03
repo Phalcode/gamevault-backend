@@ -39,13 +39,13 @@ export class FilesService {
       );
 
       // If game exists and wasn't deleted, skip it
-      if (existingGame && !existingGame.deleted_at) {
+      if (!existingGame?.deleted_at) {
         this.logger.debug(`File "${file.name}" already exists in the database`);
         continue;
       }
 
       // If game exists but was deleted, restore it and index it with new info
-      if (existingGame && existingGame.deleted_at) {
+      if (existingGame?.deleted_at) {
         this.logger.debug(
           `File "${file.name}" was marked as deleted in the database and is now restored`,
         );
