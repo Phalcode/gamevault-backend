@@ -35,7 +35,7 @@ export class ImagesService {
    * @returns - Whether the image is available or not
    */
   public imageIsAvailableOnFileSystem(image: Image): boolean {
-    if (image && image.path) {
+    if (image?.path) {
       if (fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
         return true;
       }
