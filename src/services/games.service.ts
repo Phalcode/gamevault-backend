@@ -102,14 +102,38 @@ export class GamesService {
       return [GameExistance.EXISTS_BUT_DELETED, foundGame];
     }
 
-    if (
-      foundGame.file_path !== game.file_path ||
-      foundGame.title !== game.title ||
-      +foundGame.release_date !== +game.release_date ||
-      foundGame.early_access !== game.early_access ||
-      foundGame.version !== game.version ||
-      foundGame.size.toString() !== game.size.toString()
-    ) {
+    const differences: string[] = [];
+
+    if (foundGame.file_path !== game.file_path) {
+      differences.push(
+        `File Path: ${foundGame.file_path} -> ${game.file_path}`,
+      );
+    }
+    if (foundGame.title !== game.title) {
+      differences.push(`Title: ${foundGame.title} -> ${game.title}`);
+    }
+    if (+foundGame.release_date !== +game.release_date) {
+      differences.push(
+        `Release Date: ${foundGame.release_date} -> ${game.release_date}`,
+      );
+    }
+    if (foundGame.early_access !== game.early_access) {
+      differences.push(
+        `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
+      );
+    }
+    if (foundGame.version !== game.version) {
+      differences.push(`Version: ${foundGame.version} -> ${game.version}`);
+    }
+    if (foundGame.size.toString() !== game.size.toString()) {
+      differences.push(`Size: ${foundGame.size} -> ${game.size}`);
+    }
+
+    if (differences.length > 0) {
+      const message = `Game exists but has been altered. Differences: ${differences.join(
+        ", ",
+      )}`;
+      console.log(message);
       return [GameExistance.EXISTS_BUT_ALTERED, foundGame];
     }
 
