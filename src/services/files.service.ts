@@ -97,7 +97,7 @@ export class FilesService {
    * @param {Game} updatesToApply - The updates to apply to the game.
    * @returns {Promise<Game>} The updated game.
    */
-  private async updateGame(gameToUpdate, updatesToApply) {
+  private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path ?? gameToUpdate.file_path,
@@ -108,10 +108,9 @@ export class FilesService {
       early_access: updatesToApply.early_access ?? gameToUpdate.early_access,
     };
 
-    this.logger.log("Updated new Game Information", {
-      old: gameToUpdate,
-      new: updatedGame,
-    });
+    this.logger.log(
+      `Updated new Game Information for "${gameToUpdate.file_path}".`,
+    );
 
     return this.gamesService.saveGame(updatedGame);
   }

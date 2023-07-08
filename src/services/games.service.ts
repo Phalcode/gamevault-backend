@@ -130,10 +130,10 @@ export class GamesService {
     }
 
     if (differences.length > 0) {
-      const message = `Game exists but has been altered. Differences: ${differences.join(
-        ", ",
+      const message = `Game exists but has been altered. Differences:\n ${differences.join(
+        ",\n ",
       )}`;
-      console.log(message);
+      this.logger.debug(message);
       return [GameExistance.EXISTS_BUT_ALTERED, foundGame];
     }
 
