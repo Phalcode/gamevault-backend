@@ -89,22 +89,30 @@ export class FilesService {
     }
     this.logger.log("FINISHED FILE INDEXING");
   }
-  private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
-    const updatedGame = gameToUpdate;
 
-    updatedGame.file_path = updatesToApply.file_path ?? updatedGame.file_path;
-    updatedGame.title = updatesToApply.title ?? updatedGame.title;
-    updatedGame.release_date =
-      updatesToApply.release_date ?? updatedGame.release_date;
-    updatedGame.size = updatesToApply.size ?? updatedGame.size;
-    updatedGame.version = updatesToApply.version ?? updatedGame.version;
-    updatedGame.early_access =
-      updatesToApply.early_access ?? updatedGame.early_access;
+  /**
+   * Updates the game information with the provided updates.
+   *
+   * @param {Game} gameToUpdate - The game to update.
+   * @param {Game} updatesToApply - The updates to apply to the game.
+   * @returns {Promise<Game>} The updated game.
+   */
+  private async updateGame(gameToUpdate, updatesToApply) {
+    const updatedGame = {
+      ...gameToUpdate,
+      file_path: updatesToApply.file_path ?? gameToUpdate.file_path,
+      title: updatesToApply.title ?? gameToUpdate.title,
+      release_date: updatesToApply.release_date ?? gameToUpdate.release_date,
+      size: updatesToApply.size ?? gameToUpdate.size,
+      version: updatesToApply.version ?? gameToUpdate.version,
+      early_access: updatesToApply.early_access ?? gameToUpdate.early_access,
+    };
 
     this.logger.log("Updated new Game Information", {
       old: gameToUpdate,
       new: updatedGame,
     });
+
     return this.gamesService.saveGame(updatedGame);
   }
 
