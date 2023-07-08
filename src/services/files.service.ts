@@ -7,6 +7,7 @@ import { extname } from "path";
 import configuration from "../configuration";
 import mock from "../mock/games.mock";
 import mime from "mime";
+import { GameExistance } from "../models/game-existance.enum";
 
 @Injectable()
 export class FilesService {
@@ -27,39 +28,75 @@ export class FilesService {
   public async indexFiles(gamesInFileSystem: ICrackpipeFile[]): Promise<void> {
     this.logger.log("STARTED FILE INDEXING");
     for (const file of gamesInFileSystem) {
-      let game = new Game();
-      game.title = this.regexExtractTitle(file.name);
-      game.release_date = new Date(this.regexExtractReleaseYear(file.name));
-
-      // For each file, check if it is in the database. Either by path (Exists Scenario) or by title and release date (Update Scenario).
-      const existingGame = await this.gamesService.checkIfGameExists(
-        file.name,
-        game.title,
-        game.release_date,
-      );
-
-      // If game exists and wasn't deleted, skip it
-      if (existingGame && !existingGame.deleted_at) {
-        this.logger.debug(`File "${file.name}" already exists in the database`);
-        continue;
-      }
-
-      // If game exists but was deleted, restore it and index it with new info
-      if (existingGame?.deleted_at) {
-        this.logger.debug(
-          `File "${file.name}" was marked as deleted in the database and is now restored`,
+      const gameToIndex = new Game();
+      try {
+        gameToIndex.release_date = new Date(
+          this.regexExtractReleaseYear(gameToIndex.file_path),
         );
-        game = await this.gamesService.restoreGame(existingGame.id);
-      }
+        gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
+        gameToIndex.file_path = file.name;
+        gameToIndex.version = this.regexExtractVersion(gameToIndex.file_path);
+        gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
+          gameToIndex.file_path,
+        );
+        gameToIndex.size = file.size;
 
-      this.logger.debug(`Indexing file "${file.name}"`);
-      game.file_path = file.name;
-      game.version = this.regexExtractVersion(file.name);
-      game.early_access = this.regexExtractEarlyAccessFlag(file.name);
-      game.size = file.size;
-      await this.gamesService.saveGame(game);
+        // For each file, check if it already exists in the database.
+        const existingGameTuple: [
+          GameExistance,
+          Game,
+        ] = await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
+
+        switch (existingGameTuple[0]) {
+          case GameExistance.EXISTS: {
+            this.logger.debug(
+              `An identical copy of file "${gameToIndex.file_path}" is already present in the database. Skipping it.`,
+            );
+            continue;
+          }
+
+          case GameExistance.DOES_NOT_EXIST: {
+            this.logger.debug(`Indexing new file "${gameToIndex.file_path}"`);
+            await this.gamesService.saveGame(gameToIndex);
+            continue;
+          }
+
+          case GameExistance.EXISTS_BUT_DELETED: {
+            this.logger.debug(
+              `A duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
+            );
+            const restoredGame = await this.gamesService.restoreGame(
+              existingGameTuple[1].id,
+            );
+            await this.updateGame(restoredGame, gameToIndex);
+            continue;
+          }
+
+          case GameExistance.EXISTS_BUT_ALTERED: {
+            this.logger.debug(
+              `Detected changes in file "${gameToIndex.file_path}" in the database. Updating the information.`,
+            );
+            await this.updateGame(existingGameTuple[1], gameToIndex);
+            continue;
+          }
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to index "${gameToIndex.file_path}. Does this file really belong here and are you sure the format is correct?"`,
+          error,
+        );
+      }
     }
     this.logger.log("FINISHED FILE INDEXING");
+  }
+  private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
+    this.logger.log("Updating new Game Information", {
+      old: gameToUpdate,
+      new: { ...gameToUpdate, ...updatesToApply },
+    });
+
+    gameToUpdate = { ...gameToUpdate, ...updatesToApply };
+    return this.gamesService.saveGame(gameToUpdate);
   }
 
   /**
@@ -77,8 +114,8 @@ export class FilesService {
         .replace(/\.([^.]*)$/, "")
         //remove everything inside parentheses
         .replaceAll(/\([^)]*\)/g, "")
-        //remove remaining spaces at end of string
-        .trimEnd()
+        //remove remaining spaces at start and end of string
+        .trim()
     );
   }
 
@@ -92,9 +129,8 @@ export class FilesService {
    *   match.
    */
   private regexExtractVersion(fileName: string): string | undefined {
-    const regex = /\(v.*\)/;
-    const match = regex.exec(fileName);
-    if (match) {
+    const match = RegExp(/\((v[^)]+)\)/).exec(fileName);
+    if (match?.[1]) {
       return match[1];
     }
     return undefined;
@@ -110,7 +146,7 @@ export class FilesService {
    *   match for the regular expression.
    */
   private regexExtractReleaseYear(fileName: string) {
-    return fileName.match(/\((\d{4})\)/)[1];
+    return RegExp(/\((\d{4})\)/).exec(fileName)[1];
   }
 
   /**
@@ -150,18 +186,22 @@ export class FilesService {
       // If game is not in file system, mark it as deleted
       if (!gameInFileSystem) {
         await this.gamesService.deleteGame(gameInDatabase);
-        this.logger.log(`Game "${gameInDatabase.file_path}" marked as deleted`);
+        this.logger.log(
+          `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
+        );
       }
       // If game is in file system but has a different size, update it
       if (
         gameInFileSystem &&
         gameInFileSystem.size.toString() !== gameInDatabase.size.toString()
       ) {
+        this.logger.warn(
+          `Detected wrong file size for game "${
+            gameInDatabase.file_path
+          }" in database. Correcting it from ${gameInDatabase.size.toString()} bytes to ${gameInFileSystem.size.toString()} bytes.`,
+        );
         gameInDatabase.size = gameInFileSystem.size;
         await this.gamesService.saveGame(gameInDatabase);
-        this.logger.warn(
-          `Wrong size for game "${gameInDatabase.title}" detected. Corrected to ${gameInDatabase.size}.`,
-        );
       }
     }
     this.logger.log("FINISHED INTEGRITY CHECK");
