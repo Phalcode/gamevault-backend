@@ -10,6 +10,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Game } from "../database/entities/game.entity";
 import { RawgService } from "./rawg.service";
+import { GameExistance } from "../models/game-existance.enum";
 
 @Injectable()
 export class GamesService {
@@ -59,45 +60,59 @@ export class GamesService {
   }
 
   /**
-   * Check if a game already exists in the database, either by its file path or
-   * its title and release date
+   * Checks if a game exists in the database.
    *
-   * @param path - The file path of the game
-   * @param title - The title of the game
-   * @param release_date - The release date of the game
-   * @returns - A Promise that resolves with the existing game, or undefined if
-   *   it doesn't exist
-   * @throws {Error} - If there is an error while accessing the database
+   * @param {Game} game - The game object to check.
+   * @returns {Promise<[GameExistance, Game]>} A promise that resolves to a
+   *   tuple containing the game existence status and the found game.
+   * @throws {InternalServerErrorException} If the game does not have necessary
+   *   data for dupe-checking.
    */
-  public async checkIfGameExists(
-    path: string,
-    title: string,
-    release_date: Date,
-  ): Promise<Game> {
-    if (!path || !title || !release_date) {
+  public async checkIfGameExistsInDatabase(
+    game: Game,
+  ): Promise<[GameExistance, Game]> {
+    if (!game.file_path || (!game.title && !game.release_date)) {
       throw new InternalServerErrorException(
-        "Dupe-Checking Data not available!",
+        game,
+        "Dupe-Checking Data not available in indexed game!",
       );
     }
-
-    const gameByPath = await this.gamesRepository.findOne({
-      where: { file_path: path },
+    const existingGameByPath = await this.gamesRepository.findOne({
+      where: { file_path: game.file_path },
       withDeleted: true,
     });
 
-    if (gameByPath) {
-      return gameByPath;
+    const existingGameByTitleAndReleaseDate =
+      await this.gamesRepository.findOne({
+        where: {
+          title: game.title,
+          release_date: game.release_date,
+        },
+        withDeleted: true,
+      });
+
+    const foundGame = existingGameByPath ?? existingGameByTitleAndReleaseDate;
+
+    if (!foundGame) {
+      return [GameExistance.DOES_NOT_EXIST, undefined];
     }
 
-    const gameByTitleAndReleaseDate = await this.gamesRepository.findOne({
-      where: {
-        title,
-        release_date,
-      },
-      withDeleted: true,
-    });
+    if (foundGame.deleted_at) {
+      return [GameExistance.EXISTS_BUT_DELETED, foundGame];
+    }
 
-    return gameByTitleAndReleaseDate;
+    if (
+      foundGame.file_path !== game.file_path ||
+      foundGame.title !== game.title ||
+      foundGame.release_date !== game.release_date ||
+      foundGame.early_access !== game.early_access ||
+      foundGame.version !== game.version ||
+      foundGame.size !== game.size
+    ) {
+      return [GameExistance.EXISTS_BUT_ALTERED, foundGame];
+    }
+
+    return [GameExistance.EXISTS, foundGame];
   }
 
   /**
