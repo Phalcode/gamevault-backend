@@ -105,7 +105,7 @@ export class GamesService {
     if (
       foundGame.file_path !== game.file_path ||
       foundGame.title !== game.title ||
-      foundGame.release_date !== game.release_date ||
+      +foundGame.release_date !== +game.release_date ||
       foundGame.early_access !== game.early_access ||
       foundGame.version !== game.version ||
       foundGame.size.toString() !== game.size.toString()
