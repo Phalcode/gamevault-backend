@@ -1,4 +1,4 @@
-version: "3.1"
+version: "3.8"
 services:
   crackpipe-backend:
     image: phalcode/crackpipe-backend:latest
@@ -17,5 +17,7 @@ services:
       POSTGRES_USER: default
       POSTGRES_PASSWORD: default
       POSTGRES_DB: crackpipe
+    #volumes:
+    #  - /your/database/folder:/var/lib/postgresql
     ports:
       - 5432:5432
