@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -82,7 +82,7 @@ dependencies:
     version: 8.11.1
   prettier-plugin-jsdoc:
     specifier: ^0.4.2
-    version: 0.4.2(prettier@3.0.0)
+    version: 0.4.2(prettier@2.8.8)
   reflect-metadata:
     specifier: ^0.1.13
     version: 0.1.13
@@ -168,10 +168,10 @@ devDependencies:
     version: 2.27.5(@typescript-eslint/parser@5.61.0)(eslint@8.44.0)
   eslint-plugin-prettier:
     specifier: ^4.2.1
-    version: 4.2.1(eslint-config-prettier@8.8.0)(eslint@8.44.0)(prettier@3.0.0)
+    version: 4.2.1(eslint-config-prettier@8.8.0)(eslint@8.44.0)(prettier@2.8.8)
   prettier:
-    specifier: ^3.0.0
-    version: 3.0.0
+    specifier: ^2.8.8
+    version: 2.8.8
   simple-git-hooks:
     specifier: ^2.8.1
     version: 2.8.1
@@ -2302,7 +2302,7 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.8.0)(eslint@8.44.0)(prettier@3.0.0):
+  /eslint-plugin-prettier@4.2.1(eslint-config-prettier@8.8.0)(eslint@8.44.0)(prettier@2.8.8):
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -2315,7 +2315,7 @@ packages:
     dependencies:
       eslint: 8.44.0
       eslint-config-prettier: 8.8.0(eslint@8.44.0)
-      prettier: 3.0.0
+      prettier: 2.8.8
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -4386,7 +4386,7 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier-plugin-jsdoc@0.4.2(prettier@3.0.0):
+  /prettier-plugin-jsdoc@0.4.2(prettier@2.8.8):
     resolution: {integrity: sha512-w2jnAQm3z0GAG0bhzVJeehzDtrhGMSxJjit5ApCc2oxWfc7+jmLAkbtdOXaSpfwZz3IWkk+PiQPeRrLNpbM+Mw==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -4395,14 +4395,14 @@ packages:
       binary-searching: 2.0.5
       comment-parser: 1.3.1
       mdast-util-from-markdown: 1.3.0
-      prettier: 3.0.0
+      prettier: 2.8.8
     transitivePeerDependencies:
       - supports-color
     dev: false
 
-  /prettier@3.0.0:
-    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
-    engines: {node: '>=14'}
+  /prettier@2.8.8:
+    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
+    engines: {node: '>=10.13.0'}
     hasBin: true
 
   /process-nextick-args@2.0.1:
