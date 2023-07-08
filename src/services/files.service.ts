@@ -229,7 +229,10 @@ export class FilesService {
       return mock;
     }
 
-    const files = readdirSync("/files", "utf-8")
+    const files = readdirSync("/files", {
+      encoding: "utf8",
+      recursive: true,
+    })
       .filter((file) =>
         [
           ".zip",
