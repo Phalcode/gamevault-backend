@@ -30,16 +30,16 @@ export class FilesService {
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
+        gameToIndex.file_path = file.name;
+        gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
+        gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(
           this.regexExtractReleaseYear(gameToIndex.file_path),
         );
-        gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
-        gameToIndex.file_path = file.name;
         gameToIndex.version = this.regexExtractVersion(gameToIndex.file_path);
         gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
           gameToIndex.file_path,
         );
-        gameToIndex.size = file.size;
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [
@@ -82,7 +82,7 @@ export class FilesService {
         }
       } catch (error) {
         this.logger.error(
-          `Failed to index "${gameToIndex.file_path}. Does this file really belong here and are you sure the format is correct?"`,
+          `Failed to index "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?"`,
           error,
         );
       }
@@ -90,13 +90,22 @@ export class FilesService {
     this.logger.log("FINISHED FILE INDEXING");
   }
   private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
-    this.logger.log("Updating new Game Information", {
-      old: gameToUpdate,
-      new: { ...gameToUpdate, ...updatesToApply },
-    });
+    const updatedGame = gameToUpdate;
 
-    gameToUpdate = { ...gameToUpdate, ...updatesToApply };
-    return this.gamesService.saveGame(gameToUpdate);
+    updatedGame.file_path = updatesToApply.file_path ?? updatedGame.file_path;
+    updatedGame.title = updatesToApply.title ?? updatedGame.title;
+    updatedGame.release_date =
+      updatesToApply.release_date ?? updatedGame.release_date;
+    updatedGame.size = updatesToApply.size ?? updatedGame.size;
+    updatedGame.version = updatesToApply.version ?? updatedGame.version;
+    updatedGame.early_access =
+      updatesToApply.early_access ?? updatedGame.early_access;
+
+    this.logger.log("Updated new Game Information", {
+      old: gameToUpdate,
+      new: updatedGame,
+    });
+    return this.gamesService.saveGame(updatedGame);
   }
 
   /**
