@@ -92,7 +92,8 @@ export class FilesService {
    *   match.
    */
   private regexExtractVersion(fileName: string): string | undefined {
-    const regex = /\(v.*\)/;
+    const regex = 
+    ;
     const match = regex.exec(fileName);
     if (match) {
       return match[1];
