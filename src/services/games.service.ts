@@ -122,7 +122,7 @@ export class GamesService {
         `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
       );
     }
-    if (foundGame.version !== game.version) {
+    if (foundGame.version != game.version) {
       differences.push(`Version: ${foundGame.version} -> ${game.version}`);
     }
     if (foundGame.size.toString() !== game.size.toString()) {
