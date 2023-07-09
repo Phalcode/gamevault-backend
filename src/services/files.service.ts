@@ -124,6 +124,8 @@ export class FilesService {
   private regexExtractTitle(fileName: string): string {
     return (
       fileName
+        //remove directory
+        .replace(/^.*[\\/]/, "")
         //remove extension
         .replace(/\.([^.]*)$/, "")
         //remove everything inside parentheses
