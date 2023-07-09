@@ -45,7 +45,7 @@ export class GamesController {
   @ApiOperation({ summary: "get a list of games", operationId: "getGames" })
   @MinimumRole(Role.GUEST)
   async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
-    const games = await paginate(query, this.gamesRepository, {
+    return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
@@ -98,18 +98,6 @@ export class GamesController {
       },
       withDeleted: false,
     });
-
-    // Postgres Returns Bigints as Strings
-    if (configuration.DB.SYSTEM === "POSTGRES") {
-      return games;
-    }
-
-    // TypeORM returns Bigints as Numbers so we need to convert them
-    games.data.forEach((game) => {
-      game.size = game.size.toString();
-    });
-
-    return games;
   }
 
   /**
