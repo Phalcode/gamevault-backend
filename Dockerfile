@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:20-alpine
 ENV SERVER_TZ=UTC
 RUN apk add --no-cache tzdata && cp /usr/share/zoneinfo/$SERVER_TZ /etc/localtime
 WORKDIR /app
