@@ -1,9 +1,9 @@
-name: Build and Push Docker Images
+name: Build and Deploy for Develop
 
 on:
   push:
     branches:
-      - master
+      - develop
 
 jobs:
   docker:
@@ -38,9 +38,8 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            phalcode/crackpipe-backend:latest
-            phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
-            ghcr.io/phalcode/crackpipe-backend:latest
-            ghcr.io/phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
+            phalcode/crackpipe-backend:unstable
+            ghcr.io/phalcode/crackpipe-backend:unstable

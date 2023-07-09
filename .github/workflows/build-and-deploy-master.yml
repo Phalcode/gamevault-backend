@@ -1,9 +1,9 @@
-name: Build and Push Unstable Docker Images
+name: Build and Deploy for Master
 
 on:
   push:
     branches:
-      - develop
+      - master
 
 jobs:
   docker:
@@ -11,6 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         
       - name: Fetch Current Package Version
         id: package-version
@@ -38,7 +45,10 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            phalcode/crackpipe-backend:unstable
-            ghcr.io/phalcode/crackpipe-backend:unstable
+            phalcode/crackpipe-backend:latest
+            phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
+            ghcr.io/phalcode/crackpipe-backend:latest
+            ghcr.io/phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
