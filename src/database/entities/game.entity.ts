@@ -89,7 +89,10 @@ export class Game extends AbstractEntity {
     default: 0,
     transformer: {
       to: (value) => value,
-      from: (value) => BigInt(value).toString(),
+      from: (value) => {
+        if (value) return BigInt(value).toString();
+        return value;
+      },
     },
   })
   @ApiProperty({
