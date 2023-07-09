@@ -53,6 +53,13 @@ export class RawgService {
       );
       return;
     }
+
+    if (!configuration.RAWG_API.KEY) {
+      this.logger.warn(
+        "Skipping RAWG Cache Check because RAWG API Key is not set",
+      );
+      return;
+    }
     this.logger.log("STARTED RAWG CACHE CHECK");
 
     for (const gameInDB of gamesInDatabase) {
@@ -64,11 +71,14 @@ export class RawgService {
           `Game Cached Successfully`,
         );
       } catch (error) {
-        this.logger.error(`Game Caching Failed`, {
-          gameId: gameInDB.id,
-          title: gameInDB.title,
-          error: error,
-        });
+        this.logger.error(
+          {
+            gameId: gameInDB.id,
+            title: gameInDB.title,
+            error: error,
+          },
+          "Game Caching Failed!",
+        );
       }
     }
     this.logger.log("FINISHED RAWG CACHE CHECK");

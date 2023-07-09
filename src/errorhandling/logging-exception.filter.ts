@@ -31,18 +31,20 @@ export class LoggingExceptionFilter implements ExceptionFilter {
           response: exception.getResponse(),
         });
       } else {
-        this.logger.error(`${exception.name} occurred: ${exception.message}`, {
-          path: request.url,
-          exception,
-        });
+        this.logger.error(
+          {
+            path: request.url,
+            exception,
+          },
+          `${exception.name} occurred: ${exception.message}`,
+        );
       }
       response.status(httpStatusCode).json(exception.getResponse());
     } else {
       // All other unhandled Exceptions
       this.logger.error(
+        { url: request.url, error: exception },
         `Unhandled ${exception.name} occurred: ${exception.message}`,
-        request.url,
-        exception,
       );
       response.status(httpStatusCode).json({
         statusCode: httpStatusCode,

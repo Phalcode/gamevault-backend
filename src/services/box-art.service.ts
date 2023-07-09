@@ -91,7 +91,7 @@ export class BoxArtService {
     const matchingImage = await this.findMatchingImage(game, results);
 
     if (!matchingImage) {
-      this.logger.error("No Box Art Images found for " + game.title);
+      this.logger.error(`No Box Art Images found for "${game.title}"`);
       return;
     }
 
@@ -117,8 +117,8 @@ export class BoxArtService {
       return results;
     } catch (error) {
       this.logger.error(
-        `Box Art search failed for query: ${searchQuery}`,
         error,
+        `Box Art search failed for query: ${searchQuery}`,
       );
     }
   }

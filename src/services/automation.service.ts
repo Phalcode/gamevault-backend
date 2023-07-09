@@ -64,8 +64,8 @@ export class AutomationService implements OnApplicationBootstrap {
         }
       } else {
         this.logger.error(
-          "An error occurred while setting the server admin.",
           error,
+          "An error occurred while setting the server admin.",
         );
       }
     }

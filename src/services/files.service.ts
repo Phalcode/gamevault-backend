@@ -80,8 +80,8 @@ export class FilesService {
         }
       } catch (error) {
         this.logger.error(
-          `Failed to index "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?"`,
           error,
+          `Failed to index "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?"`,
         );
       }
     }
