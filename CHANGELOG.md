@@ -14,4 +14,4 @@
 - Various improvements have been made to indexing, restoring, and updating games.
 - Thanks to the use of Node 20 the `/files` directory is now readable recursively, allowing you to create sub-folders in `/files` for better organization.
 - Fixed File-Size being returned as a number when SQLITE is being used as Database.
-- The Game Indexer now has a failsafe mechanism. If it encounters any incorrect file, it will generate a log and skip it. ❤️
+- The Game Indexer now has a failsafe mechanism. If it encounters any incorrect file, it will generate a log and skip it. - Thanks @Zenkiel ❤️
