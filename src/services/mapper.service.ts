@@ -59,7 +59,7 @@ export class MapperService {
         );
       }
     } catch (error) {
-      this.logger.error("Error mapping stores to entity", error);
+      this.logger.error(error, "Error mapping stores to entity");
     }
     return entity;
   }
@@ -87,7 +87,7 @@ export class MapperService {
         );
       }
     } catch (error) {
-      this.logger.error("Error mapping developers to entity", error);
+      this.logger.error(error, "Error mapping developers to entity");
     }
     return entity;
   }
@@ -115,7 +115,7 @@ export class MapperService {
         );
       }
     } catch (error) {
-      this.logger.error("Error mapping publishers to entity", error);
+      this.logger.error(error, "Error mapping publishers to entity");
     }
     return entity;
   }
@@ -152,7 +152,7 @@ export class MapperService {
         }
       }
     } catch (error) {
-      this.logger.error("Error mapping tags to entity", error);
+      this.logger.error(error, "Error mapping tags to entity");
     }
 
     return entity;
@@ -175,7 +175,7 @@ export class MapperService {
         );
       }
     } catch (error) {
-      this.logger.error("Error mapping genres to entity", error);
+      this.logger.error(error, "Error mapping genres to entity");
     }
     return entity;
   }
@@ -214,7 +214,7 @@ export class MapperService {
 
       return entity;
     } catch (error) {
-      this.logger.error("Error mapping rawg game to entity", error);
+      this.logger.error(error, "Error mapping rawg game to entity");
       throw error;
     }
   }

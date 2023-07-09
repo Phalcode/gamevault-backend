@@ -165,7 +165,10 @@ export class ImagesService {
       }
       return await this.imageRepository.save(image);
     } catch (error) {
-      logger.error("Failed to download image. Clearing Remains.", image, error);
+      logger.error(
+        { image, error },
+        "Failed to download image. Clearing Remains.",
+      );
       if (image.id) {
         await this.hardDeleteImageById(image.id);
       }
