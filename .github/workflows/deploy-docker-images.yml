@@ -38,6 +38,7 @@ jobs:
       - name: Build and Push
         uses: docker/build-push-action@v4
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             phalcode/crackpipe-backend:latest
