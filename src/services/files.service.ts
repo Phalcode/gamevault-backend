@@ -206,19 +206,6 @@ export class FilesService {
           `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
         );
       }
-      // If game is in file system but has a different size, update it
-      if (
-        gameInFileSystem &&
-        gameInFileSystem.size.toString() !== gameInDatabase.size.toString()
-      ) {
-        this.logger.warn(
-          `Detected wrong file size for game "${
-            gameInDatabase.file_path
-          }" in database. Correcting it from ${gameInDatabase.size.toString()} bytes to ${gameInFileSystem.size.toString()} bytes.`,
-        );
-        gameInDatabase.size = gameInFileSystem.size;
-        await this.gamesService.saveGame(gameInDatabase);
-      }
     }
     this.logger.log("FINISHED INTEGRITY CHECK");
   }
