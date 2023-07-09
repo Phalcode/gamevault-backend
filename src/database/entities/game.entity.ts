@@ -84,13 +84,20 @@ export class Game extends AbstractEntity {
   })
   file_path: string;
 
-  @Column({ default: 0, type: "bigint" })
+  @Column({
+    type: "bigint",
+    default: 0,
+    transformer: {
+      to: (value) => value,
+      from: (value) => BigInt(value).toString(),
+    },
+  })
   @ApiProperty({
     description: "size of the game file in bytes",
     example: "1234567890",
-    type: "string",
+    type: String,
   })
-  size: bigint | string;
+  size: bigint;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
