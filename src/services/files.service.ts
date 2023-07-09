@@ -42,10 +42,8 @@ export class FilesService {
         );
 
         // For each file, check if it already exists in the database.
-        const existingGameTuple: [
-          GameExistance,
-          Game,
-        ] = await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
+        const existingGameTuple: [GameExistance, Game] =
+          await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
 
         switch (existingGameTuple[0]) {
           case GameExistance.EXISTS: {
@@ -63,7 +61,7 @@ export class FilesService {
 
           case GameExistance.EXISTS_BUT_DELETED: {
             this.logger.debug(
-              `A duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
+              `A soft-deleted duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
             );
             const restoredGame = await this.gamesService.restoreGame(
               existingGameTuple[1].id,
@@ -100,12 +98,12 @@ export class FilesService {
   private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
     const updatedGame = {
       ...gameToUpdate,
-      file_path: updatesToApply.file_path ?? gameToUpdate.file_path,
-      title: updatesToApply.title ?? gameToUpdate.title,
-      release_date: updatesToApply.release_date ?? gameToUpdate.release_date,
-      size: updatesToApply.size ?? gameToUpdate.size,
-      version: updatesToApply.version ?? gameToUpdate.version,
-      early_access: updatesToApply.early_access ?? gameToUpdate.early_access,
+      file_path: updatesToApply.file_path,
+      title: updatesToApply.title,
+      release_date: updatesToApply.release_date,
+      size: updatesToApply.size,
+      version: updatesToApply.version,
+      early_access: updatesToApply.early_access,
     };
 
     this.logger.log(
