@@ -123,12 +123,18 @@ export class UsersService {
       user.activated = true;
     }
 
-    user.background_image = await this.imagesService.findBySourceUrlOrDownload(
-      dto.background_image_url,
-    );
-    user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
-      dto.profile_picture_url,
-    );
+    if (dto.background_image_url) {
+      user.background_image =
+        await this.imagesService.findBySourceUrlOrDownload(
+          dto.background_image_url,
+        );
+    }
+
+    if (dto.profile_picture_url) {
+      user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
+        dto.profile_picture_url,
+      );
+    }
 
     if (user.username === configuration.SERVER.ADMIN_USERNAME) {
       user.role = Role.ADMIN;

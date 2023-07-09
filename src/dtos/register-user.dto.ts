@@ -4,6 +4,7 @@ import {
   IsAlphanumeric,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsUrl,
   MinLength,
 } from "class-validator";
@@ -42,7 +43,7 @@ export class RegisterUserDto {
   last_name: string;
 
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     pattern: "url",
     example: "https://example.com/profile-picture.png",
@@ -51,7 +52,7 @@ export class RegisterUserDto {
   profile_picture_url: string;
 
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     pattern: "url",
     example: "https://example.com/profile-art.png",
