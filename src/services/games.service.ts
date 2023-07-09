@@ -82,15 +82,14 @@ export class GamesService {
       withDeleted: true,
     });
 
-    const existingGameByTitleAndReleaseDate = await this.gamesRepository.findOne(
-      {
+    const existingGameByTitleAndReleaseDate =
+      await this.gamesRepository.findOne({
         where: {
           title: game.title,
           release_date: game.release_date,
         },
         withDeleted: true,
-      },
-    );
+      });
 
     const foundGame = existingGameByPath ?? existingGameByTitleAndReleaseDate;
 
