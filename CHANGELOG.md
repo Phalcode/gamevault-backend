@@ -17,3 +17,8 @@
 - The Game Indexer now has a failsafe mechanism. If it encounters any incorrect file, it will generate a log and skip it. - Thanks @mhbates ❤️
 - Images are now optional for registering a user
 - Improve Error Logs
+
+## 1.2.0
+
+- Enable Mounted Folder Check on Startup
+- Enable Docker Healthcheck on Health API
