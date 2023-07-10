@@ -124,6 +124,7 @@ export class AutomationService implements OnApplicationBootstrap {
       this.logger.warn(
         "Not checking or creating any folders because TESTING_MOCK_FILES is set to true",
       );
+      return;
     }
 
     this.createDirectoryIfNotExist(
