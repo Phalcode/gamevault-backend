@@ -3,21 +3,26 @@ services:
   crackpipe-backend:
     image: phalcode/crackpipe-backend:latest
     restart: unless-stopped
+    user: 1000:1000
     environment:
-      DB_HOST: "db"
-      DB_USERNAME: "default"
-      DB_PASSWORD: "default"
-    #volumes:
-    #  - /your/games/folder:/files
-    #  - /your/images/folder:/images
+      DB_HOST: db
+      DB_USERNAME: crackpipe
+      DB_PASSWORD: RANDOMPASSWORD
+      # The Following Line grants Admin Role to account with this username upon registration.
+      SERVER_ADMIN_USERNAME: admin
+      # Uncomment and Insert your RAWG API Key here if you have one (http://rawg.io/login?forward=developer)
+      # RAWG_API_KEY: YOURAPIKEYHERE
+    volumes:
+      - /your/games/folder:/files
+      - /your/images/folder:/images
+    ports:
+      - 8080:8080
   db:
-    image: postgres:15-alpine
+    image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: default
-      POSTGRES_PASSWORD: default
+      POSTGRES_USER: crackpipe
+      POSTGRES_PASSWORD: RANDOMPASSWORD
       POSTGRES_DB: crackpipe
-    #volumes:
-    #  - /your/database/folder:/var/lib/postgresql
-    ports:
-      - 5432:5432
+    volumes:
+      - /your/database/folder:/var/lib/postgresql
