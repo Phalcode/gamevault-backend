@@ -20,6 +20,6 @@
 
 ## 1.2.0
 
-- Enable Mounted Folder Check on Startup
-- Enable Docker Healthcheck on Health API
+- Check Mounted Folders on Startup
+- Implement Docker Healthchecks
 - Improve Logs
