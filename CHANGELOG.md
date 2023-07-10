@@ -22,3 +22,4 @@
 
 - Enable Mounted Folder Check on Startup
 - Enable Docker Healthcheck on Health API
+- Improve Logs
