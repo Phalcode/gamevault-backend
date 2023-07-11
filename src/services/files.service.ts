@@ -246,7 +246,7 @@ export class FilesService {
           ({
             name: file,
             size: BigInt(statSync(`/files/${file}`).size),
-          } as ICrackpipeFile),
+          }) as ICrackpipeFile,
       );
 
     return files;
