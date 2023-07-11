@@ -54,7 +54,7 @@ export class UtilityController {
     let game = await this.gamesService.getGameById(Number(params.id));
     game.cache_date = null;
     game = await this.gamesService.saveGame(game);
-    await this.rawgService.cacheCheck([game]);
+    await this.rawgService.cacheGames([game]);
     await this.boxartService.checkBoxArt(game);
     return await this.gamesService.getGameById(Number(params.id), true);
   }
@@ -75,7 +75,7 @@ export class UtilityController {
       game.cache_date = null;
       await this.gamesService.saveGame(game);
     }
-    await this.rawgService.cacheCheck(gamesInDatabase);
+    await this.rawgService.cacheGames(gamesInDatabase);
     await this.boxartService.checkBoxArts(gamesInDatabase);
     return "Recache successfuly completed";
   }

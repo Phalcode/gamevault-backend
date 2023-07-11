@@ -198,7 +198,7 @@ export class GamesService {
 
     game = await this.saveGame(game);
     // Recache the game
-    await this.rawgService.cacheCheck([game]);
+    await this.rawgService.cacheGames([game]);
     // Refetch the boxart
     await this.boxartService.checkBoxArt(game);
     // Return the new game object

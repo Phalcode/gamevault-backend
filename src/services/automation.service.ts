@@ -96,7 +96,7 @@ export class AutomationService implements OnApplicationBootstrap {
     //Check integrity of games in database with games in file system
     await this.filesService.integrityCheck(gamesInFileSystem, gamesInDatabase);
     //Check cache of games in database
-    await this.rawgService.cacheCheck(gamesInDatabase);
+    await this.rawgService.cacheGames(gamesInDatabase);
     //Check boxart of games in database
     await this.boxartService.checkBoxArts(gamesInDatabase);
   }
