@@ -50,6 +50,7 @@
     "typeorm-naming-strategies": "^4.1.0",
     "winston": "3.10.0",
     "winston-console-format": "^1.0.8",
+    "dotenv": "^16.3.1",
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
@@ -67,7 +68,6 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "better-sqlite3": "^8.4.0",
-    "dotenv": "^16.3.1",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.27.5",
@@ -75,7 +75,6 @@
     "prettier": "^3.0.0",
     "simple-git-hooks": "^2.8.1",
     "ts-node": "^10.9.1",
-    "tsconfig-paths": "4.2.0",
     "typescript": "^5.1.6"
   },
   "simple-git-hooks": {
