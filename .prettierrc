@@ -1,6 +1,4 @@
 {
   "singleQuote": false,
-  "endOfLine": "auto",
-  "trailingComma": "all",
-  "plugins": ["prettier-plugin-jsdoc"]
+  "endOfLine": "auto"
 }

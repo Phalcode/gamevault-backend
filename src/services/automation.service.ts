@@ -14,16 +14,18 @@ import * as fs from "fs";
 import { UsersService } from "./users.service";
 import { Role } from "../models/role.enum";
 import { UpdateUserDto } from "../dtos/update-user.dto";
+import { BoxArtService } from "./box-art.service";
 
 @Injectable()
 export class AutomationService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AutomationService.name);
   constructor(
-    private files: FilesService,
-    private rawg: RawgService,
-    private games: GamesService,
-    private images: ImagesService,
-    private users: UsersService,
+    private filesService: FilesService,
+    private rawgService: RawgService,
+    private gamesService: GamesService,
+    private imagesService: ImagesService,
+    private usersService: UsersService,
+    private boxartService: BoxArtService,
   ) {}
 
   /**
@@ -31,9 +33,16 @@ export class AutomationService implements OnApplicationBootstrap {
    * requests.
    */
   onApplicationBootstrap() {
-    this.autoindexGames();
-    this.autoGarbageCollect();
-    this.setServerAdmin();
+    this.autoindexGames().catch((e) =>
+      this.logger.error(e, "Error on Startup Automation: Autoindex"),
+    );
+    this.autoGarbageCollect().catch((e) =>
+      this.logger.error(e, "Error on Startup Automation: Garbage Collection"),
+    );
+    this.setServerAdmin().catch((e) =>
+      this.logger.error(e, "Error on Startup Automation: Server Admin Reset"),
+    );
+    this.checkFolders();
   }
 
   /**
@@ -42,7 +51,7 @@ export class AutomationService implements OnApplicationBootstrap {
    */
   private async setServerAdmin() {
     try {
-      const user = await this.users.getUserByUsernameOrFail(
+      const user = await this.usersService.getUserByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -52,7 +61,7 @@ export class AutomationService implements OnApplicationBootstrap {
         password: configuration.SERVER.ADMIN_PASSWORD || undefined,
       };
 
-      this.users.update(user.id, updateUserDto, true);
+      await this.usersService.update(user.id, updateUserDto, true);
     } catch (error) {
       if (error instanceof NotFoundException) {
         if (configuration.SERVER.ADMIN_USERNAME) {
@@ -79,15 +88,17 @@ export class AutomationService implements OnApplicationBootstrap {
   @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
   public async autoindexGames() {
     //Get all games in file system
-    const gamesInFileSystem = this.files.getFiles();
+    const gamesInFileSystem = this.filesService.getFiles();
     //Index all games in file system
-    await this.files.indexFiles(gamesInFileSystem);
+    await this.filesService.indexFiles(gamesInFileSystem);
     //Get all games in database
-    const gamesInDatabase = await this.games.getAllGames();
+    const gamesInDatabase = await this.gamesService.getAllGames();
     //Check integrity of games in database with games in file system
-    await this.files.integrityCheck(gamesInFileSystem, gamesInDatabase);
+    await this.filesService.integrityCheck(gamesInFileSystem, gamesInDatabase);
     //Check cache of games in database
-    await this.rawg.cacheCheck(gamesInDatabase);
+    await this.rawgService.cacheGames(gamesInDatabase);
+    //Check boxart of games in database
+    await this.boxartService.checkBoxArts(gamesInDatabase);
   }
 
   /**
@@ -103,33 +114,54 @@ export class AutomationService implements OnApplicationBootstrap {
       );
       return;
     }
-    this.images.garbageCollectImagesInDatabase();
+    await this.imagesService.garbageCollectImagesInDatabase();
   }
 
-  /** Creates necessary directories for file and database storage. */
-  createFolders() {
+  /**
+   * Checks and creates necessary folders if they do not exist.
+   *
+   * @private
+   */
+  private checkFolders() {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn(
-        "Not creating any folders because TESTING_MOCK_FILES is set to true",
+        "Not checking or creating any folders because TESTING_MOCK_FILES is set to true",
       );
+      return;
     }
 
-    if (!fs.existsSync(configuration.IMAGE.STORAGE_PATH)) {
-      fs.mkdirSync(configuration.IMAGE.STORAGE_PATH);
-      this.logger.log(
-        `Image directory ${configuration.IMAGE.STORAGE_PATH} created successfully`,
-      );
-    }
+    this.createDirectoryIfNotExist(
+      "/files",
+      `Directory "/files" does not exist. Did you forget to mount it? Creating a new one...`,
+    );
+
+    this.createDirectoryIfNotExist(
+      configuration.IMAGE.STORAGE_PATH,
+      `Directory "${configuration.IMAGE.STORAGE_PATH}" does not exist. Did you forget to mount it? Creating a new one...`,
+    );
 
     if (
       configuration.DB.SYSTEM === "SQLITE" &&
-      !configuration.TESTING.IN_MEMORY_DB &&
-      !fs.existsSync(configuration.DB.LOCATION)
+      !configuration.TESTING.IN_MEMORY_DB
     ) {
-      fs.mkdirSync(configuration.DB.LOCATION);
-      this.logger.log(
-        `Database directory ${configuration.DB.LOCATION} created successfully`,
+      this.createDirectoryIfNotExist(
+        configuration.DB.LOCATION,
+        `Directory "${configuration.DB.LOCATION}" does not exist. Did you forget to mount it? Creating a new one...`,
       );
+    }
+  }
+
+  /**
+   * Creates a directory if it does not exist.
+   *
+   * @param {string} path - The path of the directory.
+   * @param {string} errorMessage - The error message to log if the directory
+   *   does not exist.
+   */
+  private createDirectoryIfNotExist(path, errorMessage) {
+    if (!fs.existsSync(path)) {
+      this.logger.error(errorMessage);
+      fs.mkdirSync(path);
     }
   }
 }

@@ -42,11 +42,11 @@ export class RawgService {
    * be updated in the database or not.
    *
    * @async
-   * @param gamesInDatabase - An array of Game objects to check against the RAWG
+   * @param games - An array of Game objects to check against the RAWG
    *   API.
    * @returns Returns a Promise with no return value.
    */
-  public async cacheCheck(gamesInDatabase: Game[]): Promise<void> {
+  public async cacheGames(games: Game[]): Promise<void> {
     if (configuration.TESTING.RAWG_API_DISABLED) {
       this.logger.warn(
         "Skipping RAWG Cache Check because RAWG API is disabled",
@@ -60,24 +60,24 @@ export class RawgService {
       );
       return;
     }
+
     this.logger.log("STARTED RAWG CACHE CHECK");
 
-    for (const gameInDB of gamesInDatabase) {
+    for (const game of games) {
       try {
-        const cachedGameInDB = await this.cacheGame(gameInDB);
-        await this.boxartService.checkBoxArt(cachedGameInDB);
+        await this.cacheGame(game);
         this.logger.debug(
-          { gameId: cachedGameInDB.id, title: cachedGameInDB.title },
+          { gameId: game.id, title: game.title },
           `Game Cached Successfully`,
         );
       } catch (error) {
         this.logger.error(
           {
-            gameId: gameInDB.id,
-            title: gameInDB.title,
+            gameId: game.id,
+            title: game.title,
             error: error,
           },
-          "Game Caching Failed!",
+          "Game Caching Failed",
         );
       }
     }

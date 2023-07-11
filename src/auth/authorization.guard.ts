@@ -55,9 +55,8 @@ export class AuthorizationGuard implements CanActivate {
     const userRole: Role = request.crackpipeuser.role;
 
     if (userRole < requiredRole) {
-      const roleName = Role[requiredRole];
       throw new ForbiddenException(
-        `Insufficient Role. You need to be '${roleName}' to do this, but you are a '${userRole}'.`,
+        `Insufficient Role. You need to be '${Role[requiredRole]}' to do this, but you are a '${Role[userRole]}'.`,
       );
     }
     return true;

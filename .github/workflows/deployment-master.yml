@@ -52,3 +52,9 @@ jobs:
             phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
             ghcr.io/phalcode/crackpipe-backend:latest
             ghcr.io/phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
+      
+      - name: Create Github Tag & Release
+        id: release
+        uses: CupOfTea696/gh-action-auto-release@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

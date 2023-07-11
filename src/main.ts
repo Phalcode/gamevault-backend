@@ -31,7 +31,12 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
   app.use(helmet());
   app.use(cookieparser());
-  app.use(morgan(configuration.SERVER.REQUEST_LOG_FORMAT, { stream: stream }));
+  app.use(
+    morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
+      stream: stream,
+      skip: (req) => req.url.endsWith("/health"),
+    }),
+  );
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
