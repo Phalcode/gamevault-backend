@@ -2,7 +2,7 @@
 
 ## 1.2.0
 
-### 🛠️ Changes
+### Changes
 
 - Server inspects mounted folders during startup
 - Implemented Docker health checks
@@ -10,18 +10,18 @@
 - Introduced Rolling File Logger with retention period of 14 days
 - Boxarts now work independently from RAWG
 
-### ❤️ Thanks
+### Thanks
 
 - @Mr.Deathproof
 - @AbacchioJones
 
 ## 1.1.0
 
-### ⚠️ Breaking Changes
+### Breaking Changes
 
 - When adding the same game multiple times to your Crackpipe server, [follow this documentation.](https://crackpipe.de/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
 
-### 🛠️ Changes
+### Changes
 
 - Various improvements have been made to indexing, restoring, and updating games.
 - Thanks to the use of Node 20 the `/files` directory is now readable recursively, allowing you to create sub-folders in `/files` for better organization.
@@ -30,17 +30,17 @@
 - Images are now optional for registering a user
 - Improve Error Logs
 
-### ❤️ Thanks
+### Thanks
 
 - @mhbates
 
 ## 1.0.4
 
-### 🛠️ Changes
+### Changes
 
 - Fixed a bug where the first game indexing was skipped.
 
-### ❤️ Thanks
+### Thanks
 
 - @mhbates
 
