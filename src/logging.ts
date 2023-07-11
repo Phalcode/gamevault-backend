@@ -1,6 +1,7 @@
 import { WinstonModule } from "nest-winston";
 import winston from "winston";
 import { consoleFormat } from "winston-console-format";
+import DailyRotateFile from "winston-daily-rotate-file";
 
 import configuration from "./configuration";
 
@@ -11,16 +12,21 @@ const transports: winston.transport[] = [
       winston.format.colorize({ all: true }),
       winston.format.padLevels(),
       consoleFormat({
-        showMeta: true,
         inspectOptions: {
           depth: 3,
           colors: true,
           numericSeparator: true,
-          breakLength: 120,
           sorted: true,
         },
       }),
     ),
+  }),
+  new DailyRotateFile({
+    level: "debug",
+    filename: "logs/crackpipe-backend-%DATE%.log",
+    datePattern: "YYYY-MM-DD",
+    maxFiles: "14d",
+    maxSize: "20m",
   }),
 ];
 
@@ -28,6 +34,13 @@ const logger = WinstonModule.createLogger({
   exitOnError: false,
   transports: transports,
   handleExceptions: true,
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.ms(),
+    winston.format.errors({ stack: true }),
+    winston.format.splat(),
+    winston.format.json(),
+  ),
 });
 
 const stream = {

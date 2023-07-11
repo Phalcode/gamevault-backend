@@ -60,14 +60,14 @@ export class RawgService {
       );
       return;
     }
+
     this.logger.log("STARTED RAWG CACHE CHECK");
 
     for (const gameInDB of gamesInDatabase) {
       try {
-        const cachedGameInDB = await this.cacheGame(gameInDB);
-        await this.boxartService.checkBoxArt(cachedGameInDB);
+        await this.cacheGame(gameInDB);
         this.logger.debug(
-          { gameId: cachedGameInDB.id, title: cachedGameInDB.title },
+          { gameId: gameInDB.id, title: gameInDB.title },
           `Game Cached Successfully`,
         );
       } catch (error) {

@@ -20,6 +20,8 @@
 
 ## 1.2.0
 
-- Check Mounted Folders on Startup
-- Implement Docker Healthchecks
-- Improve Logs
+- Server inspects mounted folders during startup
+- Implemented Docker health checks
+- Improved Logging
+- Introduced Rolling File Logger with retention period of 14 days
+- Boxarts now function autonomously from RAWG

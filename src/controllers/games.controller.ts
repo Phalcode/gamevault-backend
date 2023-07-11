@@ -19,7 +19,6 @@ import { FilesService } from "../services/files.service";
 import { GamesService } from "../services/games.service";
 import { MinimumRole } from "../decorators/minimum-role.decorator";
 import { Role } from "../models/role.enum";
-import configuration from "../configuration";
 
 @ApiTags("game")
 @Controller("games")

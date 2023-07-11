@@ -19,6 +19,37 @@ export class BoxArtService {
     private imagesService: ImagesService,
   ) {}
 
+  public async checkBoxArts(games: Game[]): Promise<void> {
+    if (configuration.TESTING.GOOGLE_API_DISABLED) {
+      this.logger.warn(
+        "Skipping Box Art Search because Google API is disabled",
+      );
+      return;
+    }
+
+    this.logger.log("STARTED BOXART CHECK");
+
+    for (const game of games) {
+      try {
+        await this.checkBoxArt(game);
+        this.logger.debug(
+          { gameId: game.id, title: game.title },
+          `Checked BoxArt Successfully`,
+        );
+      } catch (error) {
+        this.logger.error(
+          {
+            gameId: game.id,
+            title: game.title,
+            error: error,
+          },
+          "Checking BoxArt Failed!",
+        );
+      }
+    }
+    this.logger.log("FINISHED BOXART CHECK");
+  }
+
   /**
    * Checks if the box art for the game is available and searches for it if
    * necessary.
@@ -88,7 +119,7 @@ export class BoxArtService {
       return;
     }
 
-    const matchingImage = await this.findMatchingImage(game, results);
+    const matchingImage = await this.findAndSaveMatchingImage(game, results);
 
     if (!matchingImage) {
       this.logger.error(`No Box Art Images found for "${game.title}"`);
@@ -127,7 +158,7 @@ export class BoxArtService {
    * Finds the matching image with the target aspect ratio from the given
    * images. Saves the first image that matches all criteria into the game.
    */
-  private async findMatchingImage(
+  private async findAndSaveMatchingImage(
     game: Game,
     images: Result[],
   ): Promise<boolean> {

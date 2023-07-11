@@ -10,6 +10,7 @@ import { ImagesService } from "../services/images.service";
 import { RawgService } from "../services/rawg.service";
 import { MinimumRole } from "../decorators/minimum-role.decorator";
 import { Role } from "../models/role.enum";
+import { BoxArtService } from "../services/box-art.service";
 
 @ApiTags("utility")
 @Controller("utility")
@@ -19,6 +20,7 @@ export class UtilityController {
     private rawgService: RawgService,
     private imagesService: ImagesService,
     private cronService: AutomationService,
+    private boxartService: BoxArtService,
   ) {}
 
   /** Manually triggers a reindex on all games. */
@@ -53,6 +55,7 @@ export class UtilityController {
     game.cache_date = null;
     game = await this.gamesService.saveGame(game);
     await this.rawgService.cacheCheck([game]);
+    await this.boxartService.checkBoxArt(game);
     return await this.gamesService.getGameById(Number(params.id), true);
   }
 
@@ -73,6 +76,7 @@ export class UtilityController {
       await this.gamesService.saveGame(game);
     }
     await this.rawgService.cacheCheck(gamesInDatabase);
+    await this.boxartService.checkBoxArts(gamesInDatabase);
     return "Recache successfuly completed";
   }
 

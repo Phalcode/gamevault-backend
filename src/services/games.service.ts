@@ -11,6 +11,7 @@ import { Repository } from "typeorm";
 import { Game } from "../database/entities/game.entity";
 import { RawgService } from "./rawg.service";
 import { GameExistance } from "../models/game-existance.enum";
+import { BoxArtService } from "./box-art.service";
 
 @Injectable()
 export class GamesService {
@@ -21,6 +22,7 @@ export class GamesService {
     private gamesRepository: Repository<Game>,
     @Inject(forwardRef(() => RawgService))
     private rawgService: RawgService,
+    private boxartService: BoxArtService,
   ) {}
 
   /**
@@ -197,6 +199,8 @@ export class GamesService {
     game = await this.saveGame(game);
     // Recache the game
     await this.rawgService.cacheCheck([game]);
+    // Refetch the boxart
+    await this.boxartService.checkBoxArt(game);
     // Return the new game object
     return game;
   }

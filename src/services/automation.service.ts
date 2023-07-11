@@ -14,17 +14,18 @@ import * as fs from "fs";
 import { UsersService } from "./users.service";
 import { Role } from "../models/role.enum";
 import { UpdateUserDto } from "../dtos/update-user.dto";
-import { error } from "console";
+import { BoxArtService } from "./box-art.service";
 
 @Injectable()
 export class AutomationService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AutomationService.name);
   constructor(
-    private files: FilesService,
-    private rawg: RawgService,
-    private games: GamesService,
-    private images: ImagesService,
-    private users: UsersService,
+    private filesService: FilesService,
+    private rawgService: RawgService,
+    private gamesService: GamesService,
+    private imagesService: ImagesService,
+    private usersService: UsersService,
+    private boxartService: BoxArtService,
   ) {}
 
   /**
@@ -50,7 +51,7 @@ export class AutomationService implements OnApplicationBootstrap {
    */
   private async setServerAdmin() {
     try {
-      const user = await this.users.getUserByUsernameOrFail(
+      const user = await this.usersService.getUserByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -60,7 +61,7 @@ export class AutomationService implements OnApplicationBootstrap {
         password: configuration.SERVER.ADMIN_PASSWORD || undefined,
       };
 
-      await this.users.update(user.id, updateUserDto, true);
+      await this.usersService.update(user.id, updateUserDto, true);
     } catch (error) {
       if (error instanceof NotFoundException) {
         if (configuration.SERVER.ADMIN_USERNAME) {
@@ -87,15 +88,17 @@ export class AutomationService implements OnApplicationBootstrap {
   @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
   public async autoindexGames() {
     //Get all games in file system
-    const gamesInFileSystem = this.files.getFiles();
+    const gamesInFileSystem = this.filesService.getFiles();
     //Index all games in file system
-    await this.files.indexFiles(gamesInFileSystem);
+    await this.filesService.indexFiles(gamesInFileSystem);
     //Get all games in database
-    const gamesInDatabase = await this.games.getAllGames();
+    const gamesInDatabase = await this.gamesService.getAllGames();
     //Check integrity of games in database with games in file system
-    await this.files.integrityCheck(gamesInFileSystem, gamesInDatabase);
+    await this.filesService.integrityCheck(gamesInFileSystem, gamesInDatabase);
     //Check cache of games in database
-    await this.rawg.cacheCheck(gamesInDatabase);
+    await this.rawgService.cacheCheck(gamesInDatabase);
+    //Check boxart of games in database
+    await this.boxartService.checkBoxArts(gamesInDatabase);
   }
 
   /**
@@ -111,7 +114,7 @@ export class AutomationService implements OnApplicationBootstrap {
       );
       return;
     }
-    await this.images.garbageCollectImagesInDatabase();
+    await this.imagesService.garbageCollectImagesInDatabase();
   }
 
   /**
