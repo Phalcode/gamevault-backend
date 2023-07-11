@@ -24,4 +24,4 @@
 - Implemented Docker health checks
 - Improved Logging
 - Introduced Rolling File Logger with retention period of 14 days
-- Boxarts now function autonomously from RAWG
+- Boxarts now work independently from RAWG
