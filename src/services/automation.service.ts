@@ -131,13 +131,18 @@ export class AutomationService implements OnApplicationBootstrap {
     }
 
     this.createDirectoryIfNotExist(
-      "/files",
-      `Directory "/files" does not exist. Did you forget to mount it? Creating a new one...`,
+      configuration.VOLUMES.FILES,
+      `Directory "${configuration.VOLUMES.FILES}" does not exist. Trying to create a new one...`,
     );
 
     this.createDirectoryIfNotExist(
-      configuration.IMAGE.STORAGE_PATH,
-      `Directory "${configuration.IMAGE.STORAGE_PATH}" does not exist. Did you forget to mount it? Creating a new one...`,
+      configuration.VOLUMES.IMAGES,
+      `Directory "${configuration.VOLUMES.IMAGES}" does not exist. Trying to create a new one...`,
+    );
+
+    this.createDirectoryIfNotExist(
+      configuration.VOLUMES.LOGS,
+      `Directory "${configuration.VOLUMES.LOGS}" does not exist. Trying to create a new one...`,
     );
 
     if (
@@ -145,8 +150,8 @@ export class AutomationService implements OnApplicationBootstrap {
       !configuration.TESTING.IN_MEMORY_DB
     ) {
       this.createDirectoryIfNotExist(
-        configuration.DB.LOCATION,
-        `Directory "${configuration.DB.LOCATION}" does not exist. Did you forget to mount it? Creating a new one...`,
+        configuration.VOLUMES.SQLITEDB,
+        `Directory "${configuration.VOLUMES.SQLITEDB}" does not exist. Trying to create a new one...`,
       );
     }
   }

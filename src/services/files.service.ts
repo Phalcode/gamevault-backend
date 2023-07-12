@@ -223,7 +223,7 @@ export class FilesService {
       return mock;
     }
 
-    const files = readdirSync("/files", {
+    const files = readdirSync(configuration.VOLUMES.FILES, {
       encoding: "utf8",
       recursive: true,
     })
@@ -245,7 +245,9 @@ export class FilesService {
         (file) =>
           ({
             name: file,
-            size: BigInt(statSync(`/files/${file}`).size),
+            size: BigInt(
+              statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
+            ),
           }) as ICrackpipeFile,
       );
 
@@ -264,7 +266,9 @@ export class FilesService {
    */
   public async downloadGame(gameId: number): Promise<StreamableFile> {
     const game = await this.gamesService.getGameById(gameId);
-    const file = createReadStream(`/files/${game.file_path}`);
+    const file = createReadStream(
+      `${configuration.VOLUMES.FILES}/${game.file_path}`,
+    );
     const type = mime.getType(game.file_path);
 
     return new StreamableFile(file, {

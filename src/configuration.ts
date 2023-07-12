@@ -28,6 +28,22 @@ export default {
     // Automatically Sets Password of the ADMIN_USERNAME Account to this value upon startup
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
   },
+  VOLUMES: {
+    // Location of the files
+    FILES: process.env.VOLUMES_FILES?.replace(/\/$/, "") || "/files",
+    // Location of the images
+    IMAGES:
+      process.env.IMAGE_STORAGE_PATH?.replace(/\/$/, "") ||
+      process.env.VOLUMES_IMAGES?.replace(/\/$/, "") ||
+      "/images",
+    // Location of the Log files
+    LOGS: process.env.VOLUMES_LOGS?.replace(/\/$/, "") || "/logs",
+    // Location of the SQLITE DB (not needed for POSTGRESQL)
+    SQLITEDB:
+      process.env.DB_LOCATION?.replace(/\/$/, "") ||
+      process.env.VOLUMES_SQLITEDB?.replace(/\/$/, "") ||
+      "/db",
+  },
   DB: {
     // The database system (POSTGRESQL or SQLITE)
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
@@ -49,9 +65,6 @@ export default {
 
     // Log all SQL Statements sent to the database
     DEBUG: process.env.DB_DEBUG === "true" || false,
-
-    // Location of the SQLITE DB (not needed for POSTGRESQL)
-    LOCATION: process.env.DB_DATABASE?.replace(/\/$/, "") || "/db",
 
     // Synchronize the database (use if create table failure occurs but watch out, it could break your db)
     // TODO: REMOVE ALWAYS TRUE AFTER IMPLEMENTING MIGRATIONS
@@ -80,9 +93,6 @@ export default {
     // Google Image Search API Cooldown in hours when hitting the rate limit
     GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
       Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
-    // Where to store images
-    STORAGE_PATH:
-      process.env.IMAGE_STORAGE_PATH?.replace(/\/$/, "") || "/images",
   },
   TESTING: {
     // If true, the API will accept any auth header
