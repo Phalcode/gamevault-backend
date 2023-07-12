@@ -15,7 +15,7 @@ WORKDIR /app
 
 FROM base AS dependencies
 # Copy package.json and pnpm-lock.yaml files
-COPY package.json pnpm-lock.yaml .
+COPY package.json pnpm-lock.yaml ./
 # Install project dependencies using pnpm
 RUN pnpm install
 
