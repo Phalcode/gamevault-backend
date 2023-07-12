@@ -116,7 +116,7 @@ export class ImagesService {
     const image = new Image();
     image.last_accessed_at = new Date();
     image.source = sourceUrl;
-    image.path = `${configuration.IMAGE.STORAGE_PATH}/${randomUUID()}`;
+    image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
 
     try {
       this.logger.debug(`Downloading image from '${image.source}'`);

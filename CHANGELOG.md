@@ -1,5 +1,11 @@
 # Crackpipe Backend Server Changelog
 
+## 1.3.1
+
+### Changes
+
+- hotfixed broken build because of Multi-Layer Build
+
 ## 1.3.0
 
 ### Changes
