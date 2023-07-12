@@ -15,8 +15,7 @@
 - Deprecated DB_STORAGE_PATH in favor of VOLUMES_SQLITEDB (will be removed in 2.0.0)
 
 ### Thanks
-
--
+- @super_n0bita
 
 ## 1.2.0
 
