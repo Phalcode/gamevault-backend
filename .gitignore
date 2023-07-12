@@ -3,6 +3,8 @@
 /node_modules
 /images
 /files
+/logs
+/db
 
 # Logs
 logs

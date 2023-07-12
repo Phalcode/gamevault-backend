@@ -1,5 +1,23 @@
 # Crackpipe Backend Server Changelog
 
+## 1.3.0
+
+### Changes
+
+- Fix `/logs` not being created due to permission error
+- Introduce Multi-Layer Docker Build
+- Use `node` user in Container instead of `root` (`user: 1000:1000` is not needed anymore in docker-compose)
+- Introduced new `VOLUME_*` configurations.
+
+### Deprecations
+
+- Deprecated IMAGE_STORAGE_PATH in favor of VOLUMES_IMAGES (will be removed in 2.0.0)
+- Deprecated DB_STORAGE_PATH in favor of VOLUMES_SQLITEDB (will be removed in 2.0.0)
+
+### Thanks
+
+-
+
 ## 1.2.0
 
 ### Changes

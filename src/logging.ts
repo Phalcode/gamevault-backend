@@ -23,7 +23,8 @@ const transports: winston.transport[] = [
   }),
   new DailyRotateFile({
     level: "debug",
-    filename: "logs/crackpipe-backend-%DATE%.log",
+    filename: "crackpipe-backend-%DATE%.log",
+    dirname: configuration.VOLUMES.LOGS,
     datePattern: "YYYY-MM-DD",
     maxFiles: "14d",
     maxSize: "20m",
