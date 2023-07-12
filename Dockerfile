@@ -11,7 +11,7 @@ RUN apk add --no-cache tzdata curl && cp /usr/share/zoneinfo/$SERVER_TZ /etc/loc
     && chown node:node /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB
 WORKDIR /app
 COPY . .
-RUN pnpm install
+RUN pnpm install && pnpm build
 USER node
 CMD [ "npm", "run", "start:prod" ]
 EXPOSE $SERVER_PORT
