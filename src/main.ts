@@ -59,7 +59,7 @@ async function bootstrap(): Promise<void> {
         .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
         .setExternalDoc("Documentation", "https://crackpipe.de")
         .setDescription(
-          "Backend for Crackpipe, the decentralized gaming platform for 'alternatively obtained' games",
+          "Backend for Crackpipe, the self-hosted gaming platform for 'alternatively obtained' games",
         )
         .setVersion(process.env.npm_package_version)
         .addBasicAuth()
