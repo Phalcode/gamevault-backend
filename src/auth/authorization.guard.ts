@@ -52,7 +52,7 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const userRole: Role = request.crackpipeuser.role;
+    const userRole: Role = request.gamevaultuser.role;
 
     if (userRole < requiredRole) {
       throw new ForbiddenException(

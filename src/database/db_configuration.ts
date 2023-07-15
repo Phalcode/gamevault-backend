@@ -25,7 +25,7 @@ const sqliteConfig: TypeOrmModuleOptions = {
   type: "better-sqlite3",
   database: configuration.TESTING.IN_MEMORY_DB
     ? ":memory:"
-    : `${configuration.VOLUMES.SQLITEDB}/crackpipe_db.sqlite`,
+    : `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
 };
 
 export function getDatabaseConfiguration(): TypeOrmModuleOptions {

@@ -48,10 +48,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            phalcode/crackpipe-backend:latest
-            phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
-            ghcr.io/phalcode/crackpipe-backend:latest
-            ghcr.io/phalcode/crackpipe-backend:${{steps.package-version.outputs.current-version}}
+            phalcode/gamevault-backend:latest
+            phalcode/gamevault-backend:${{steps.package-version.outputs.current-version}}
+            ghcr.io/phalcode/gamevault-backend:latest
+            ghcr.io/phalcode/gamevault-backend:${{steps.package-version.outputs.current-version}}
       
       - name: Create Github Tag & Release
         id: release

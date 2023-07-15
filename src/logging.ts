@@ -5,31 +5,40 @@ import DailyRotateFile from "winston-daily-rotate-file";
 
 import configuration from "./configuration";
 
-const transports: winston.transport[] = [
-  new winston.transports.Console({
-    level: configuration.SERVER.LOG_LEVEL,
-    format: winston.format.combine(
-      winston.format.colorize({ all: true }),
-      winston.format.padLevels(),
-      consoleFormat({
-        inspectOptions: {
-          depth: 3,
-          colors: true,
-          numericSeparator: true,
-          sorted: true,
-        },
-      }),
-    ),
-  }),
-  new DailyRotateFile({
-    level: "debug",
-    filename: "crackpipe-backend-%DATE%.log",
-    dirname: configuration.VOLUMES.LOGS,
-    datePattern: "YYYY-MM-DD",
-    maxFiles: "14d",
-    maxSize: "20m",
-  }),
-];
+const transports: winston.transport[] = [];
+
+if (configuration.SERVER.LOG_LEVEL != "off") {
+  transports.push(
+    new winston.transports.Console({
+      level: configuration.SERVER.LOG_LEVEL,
+      format: winston.format.combine(
+        winston.format.colorize({ all: true }),
+        winston.format.padLevels(),
+        consoleFormat({
+          inspectOptions: {
+            depth: 3,
+            colors: true,
+            numericSeparator: true,
+            sorted: true,
+          },
+        }),
+      ),
+    }),
+  );
+}
+
+if (configuration.SERVER.LOG_FILES_ENABLED) {
+  transports.push(
+    new DailyRotateFile({
+      level: "debug",
+      filename: "gamevault-backend-%DATE%.log",
+      dirname: configuration.VOLUMES.LOGS,
+      datePattern: "YYYY-MM-DD",
+      maxFiles: "14d",
+      maxSize: "20m",
+    }),
+  );
+}
 
 const logger = WinstonModule.createLogger({
   exitOnError: false,

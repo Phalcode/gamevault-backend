@@ -55,21 +55,21 @@ async function bootstrap(): Promise<void> {
     SwaggerModule.createDocument(
       app,
       new DocumentBuilder()
-        .setTitle("Crackpipe Backend Server")
+        .setTitle("GameVault Backend Server")
         .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
-        .setExternalDoc("Documentation", "https://crackpipe.de")
+        .setExternalDoc("Documentation", "https://gamevau.lt")
         .setDescription(
-          "Backend for Crackpipe, the self-hosted gaming platform for 'alternatively obtained' games",
+          "Backend for GameVault, the self-hosted gaming platform for 'alternatively obtained' games",
         )
         .setVersion(process.env.npm_package_version)
         .addBasicAuth()
         .addServer(
           `http://localhost:${configuration.SERVER.PORT}`,
-          "Local Crackpipe Server",
+          "Local GameVault Server",
         )
         .setLicense(
           "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
-          "https://github.com/Phalcode/crackpipe-backend/LICENSE",
+          "https://github.com/Phalcode/gamevault-backend/LICENSE",
         )
         .addTag("game", "apis for games")
         .addTag("progress", "apis for progresses")
@@ -86,7 +86,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(configuration.SERVER.PORT);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started Crackpipe Server with version ${process.env.npm_package_version} on port ${configuration.SERVER.PORT}.`,
+    `Started GameVault Server with version ${process.env.npm_package_version} on port ${configuration.SERVER.PORT}.`,
   );
 }
 bootstrap();

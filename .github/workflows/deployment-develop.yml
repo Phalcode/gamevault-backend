@@ -41,5 +41,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            phalcode/crackpipe-backend:unstable
-            ghcr.io/phalcode/crackpipe-backend:unstable
+            phalcode/gamevault-backend:unstable
+            ghcr.io/phalcode/gamevault-backend:unstable

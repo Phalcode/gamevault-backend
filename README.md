@@ -1,8 +1,9 @@
-# crackpipe-backend
+# gamevault-backend
 
-[You can find the official Website/Documentation here](https://crackpipe.de)
+[You can find the official Website/Documentation here](https://gamevau.lt)
 
 ### License
+
 [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 This work is licensed under a

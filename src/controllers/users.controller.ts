@@ -76,10 +76,10 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: CrackpipeUser })
   async getMe(
-    @Request() request: { crackpipeuser: CrackpipeUser },
+    @Request() request: { gamevaultuser: CrackpipeUser },
   ): Promise<CrackpipeUser> {
     return await this.usersService.getUserByUsernameOrFail(
-      request.crackpipeuser.username,
+      request.gamevaultuser.username,
     );
   }
 
@@ -105,7 +105,7 @@ export class UsersController {
     @Request() request,
   ): Promise<CrackpipeUser> {
     const user = await this.usersService.getUserByUsernameOrFail(
-      request.crackpipeuser.username,
+      request.gamevaultuser.username,
     );
     return await this.usersService.update(user.id, dto, false);
   }
@@ -122,7 +122,7 @@ export class UsersController {
   @MinimumRole(Role.USER)
   async deleteMe(@Request() request): Promise<CrackpipeUser> {
     const user = await this.usersService.getUserByUsernameOrFail(
-      request.crackpipeuser.username,
+      request.gamevaultuser.username,
     );
     return await this.usersService.delete(user.id);
   }

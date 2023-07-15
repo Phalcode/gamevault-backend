@@ -3,8 +3,11 @@ export default {
     // The port the server should listen on
     PORT: Number(process.env.SERVER_PORT) || 8080,
 
-    // The Log Level (debug, info, warn, error, fatal)
+    // The Log Level (debug, info, warn, error, fatal, off)
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
+
+    // Wheter or not the server logs to files
+    LOG_FILES_ENABLED: process.env.LOG_FILES_ENABLED === "true" || false,
 
     // Morgan Request Log Format
     REQUEST_LOG_FORMAT:
@@ -61,7 +64,7 @@ export default {
     PASSWORD: process.env.DB_PASSWORD || "default",
 
     // The database name (not needed for SQLITE)
-    DATABASE: process.env.DB_DATABASE || "crackpipe",
+    DATABASE: process.env.DB_DATABASE || "gamevault",
 
     // Log all SQL Statements sent to the database
     DEBUG: process.env.DB_DEBUG === "true" || false,

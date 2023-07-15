@@ -1,5 +1,5 @@
 import { Injectable, Logger, StreamableFile } from "@nestjs/common";
-import { ICrackpipeFile } from "../models/file.interface";
+import { IGameVaultFile } from "../models/file.interface";
 import { Game } from "../database/entities/game.entity";
 import { GamesService } from "./games.service";
 import { createReadStream, readdirSync, statSync } from "fs";
@@ -25,7 +25,7 @@ export class FilesService {
    * @returns
    * @throws {Error} - If there's an error during the process.
    */
-  public async indexFiles(gamesInFileSystem: ICrackpipeFile[]): Promise<void> {
+  public async indexFiles(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
     this.logger.log("STARTED FILE INDEXING");
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
@@ -191,7 +191,7 @@ export class FilesService {
    * @returns
    */
   public async integrityCheck(
-    gamesInFileSystem: ICrackpipeFile[],
+    gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
   ): Promise<void> {
     this.logger.log("STARTED INTEGRITY CHECK");
@@ -218,7 +218,7 @@ export class FilesService {
    * @throws {Error} - If there's an error during the process.
    * @public
    */
-  public getFiles(): ICrackpipeFile[] {
+  public getFiles(): IGameVaultFile[] {
     if (configuration.TESTING.MOCK_FILES) {
       return mock;
     }
@@ -248,7 +248,7 @@ export class FilesService {
             size: BigInt(
               statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
             ),
-          }) as ICrackpipeFile,
+          }) as IGameVaultFile,
       );
 
     return files;

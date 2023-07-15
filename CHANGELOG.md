@@ -1,10 +1,20 @@
-# Crackpipe Backend Server Changelog
+# GameVault Backend Server Changelog
 
 ## Upcoming
 
+## 1.4.0
+
+### Breaking Changes
+
+- Rebranded Crackpipe as GameVault
+  - Please ensure that if your previous `DB_DATABASE` or `DB_USERNAME` was named "Crackpipe" (by default), you make the necessary adjustments to GameVault's Environment Variables or manually via SQL, so the app continues to work.
+
 ### Changes
+
+- Introduced configuration `LOG_FILES_ENABLED` with false by default
 - Support of `contains` filter in API
 - Added non-root global npm packages
+- Introduced Log Level "off"
 
 ## 1.3.1
 
@@ -49,7 +59,7 @@
 
 ### Breaking Changes
 
-- When adding the same game multiple times to your Crackpipe server, [follow this documentation.](https://crackpipe.de/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
+- When adding the same game multiple times to your GameVault server, [follow this documentation.](https://gamevau.lt/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
 
 ### Changes
 

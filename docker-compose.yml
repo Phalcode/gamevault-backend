@@ -1,20 +1,20 @@
 version: "3.8"
 services:
-  crackpipe-backend:
-    image: phalcode/crackpipe-backend:latest
+  gamevault-backend:
+    image: phalcode/gamevault-backend:latest
     restart: unless-stopped
     environment:
       DB_HOST: db
-      DB_USERNAME: crackpipe
+      DB_USERNAME: gamevault
       DB_PASSWORD: RANDOMPASSWORD
       # The Following Line grants Admin Role to account with this username upon registration.
       SERVER_ADMIN_USERNAME: admin
-      # Uncomment and Insert your RAWG API Key here if you have one (https://crackpipe.de/docs/server-docs/indexing-and-metadata#rawg-api-key)
+      # Uncomment and Insert your RAWG API Key here if you have one (https://gamevau.lt/docs/server-docs/indexing-and-metadata#rawg-api-key)
       # RAWG_API_KEY: YOURAPIKEYHERE
     volumes:
       # Mount the folder where your games are
       - /your/games/folder:/files
-      # Mount the folder where crackpipe should store its images
+      # Mount the folder where gamevault should store its images
       - /your/images/folder:/images
     ports:
       - 8080:8080
@@ -22,9 +22,9 @@ services:
     image: postgres:15
     restart: unless-stopped
     environment:
-      POSTGRES_USER: crackpipe
+      POSTGRES_USER: gamevault
       POSTGRES_PASSWORD: RANDOMPASSWORD
-      POSTGRES_DB: crackpipe
+      POSTGRES_DB: gamevault
     volumes:
       # Mount the folder where your postgres database files should land
       - /your/database/folder:/var/lib/postgresql

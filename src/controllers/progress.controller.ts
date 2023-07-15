@@ -99,11 +99,11 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async deleteProgressById(
     @Param() params: IdDto,
-    @Request() req: { crackpipeuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: CrackpipeUser },
   ): Promise<Progress> {
     return await this.progressService.deleteProgressById(
       Number(params.id),
-      req.crackpipeuser.username,
+      req.gamevaultuser.username,
     );
   }
 
@@ -176,7 +176,7 @@ export class ProgressController {
    * @param params.gameId - The ID of the game.
    * @param progress - The progress data to set.
    * @param req - The request object.
-   * @param req.crackpipeuser.username - The username of the authenticated user.
+   * @param req.gamevaultuser.username - The username of the authenticated user.
    * @returns The created or updated progress object.
    * @throws {Error} If there was an error setting the progress.
    */
@@ -191,13 +191,13 @@ export class ProgressController {
   async setProgressForUser(
     @Param() params: UserIdGameIdDto,
     @Body() progress: ProgressDto,
-    @Request() req: { crackpipeuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: CrackpipeUser },
   ): Promise<Progress> {
     return await this.progressService.setProgress(
       Number(params.userId),
       Number(params.gameId),
       progress,
-      req.crackpipeuser.username,
+      req.gamevaultuser.username,
     );
   }
 
@@ -221,12 +221,12 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async incrementProgressForUser(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { crackpipeuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: CrackpipeUser },
   ): Promise<Progress> {
     return await this.progressService.incrementProgress(
       Number(params.userId),
       Number(params.gameId),
-      req.crackpipeuser.username,
+      req.gamevaultuser.username,
     );
   }
 
@@ -251,12 +251,12 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async incrementProgressForUserByMinutes(
     @Param() params: IncrementProgressByMinutesDto,
-    @Request() req: { crackpipeuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: CrackpipeUser },
   ): Promise<Progress> {
     return await this.progressService.incrementProgress(
       Number(params.userId),
       Number(params.gameId),
-      req.crackpipeuser.username,
+      req.gamevaultuser.username,
       Number(params.minutes),
     );
   }
