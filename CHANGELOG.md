@@ -4,10 +4,11 @@
 
 ## 2.0.0
 
-### Breaking Changes
+### Breaking Changes & Migration
 
 - Rebranded Crackpipe as GameVault
   - Please ensure that if your previous `DB_DATABASE` or `DB_USERNAME` was named "Crackpipe" (by default), you make the necessary adjustments to GameVault's Environment Variables or manually via SQL, so the app continues to work.
+  - Update your docker/ghcr images to "gamevault-backend" as there will be no updates for "crackpipe-backend" from this point
 
 ### Changes
 
