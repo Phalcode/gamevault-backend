@@ -24,12 +24,12 @@ export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
    * @returns - Whether or not the login worked
    */
   async validate(
-    req: { crackpipeuser: CrackpipeUser },
+    req: { gamevaultuser: CrackpipeUser },
     username: string,
     password: string,
   ) {
     const user = await this.usersService.login(username, password);
-    req.crackpipeuser = user;
+    req.gamevaultuser = user;
     return user ? true : false;
   }
 }
