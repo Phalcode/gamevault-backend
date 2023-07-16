@@ -140,10 +140,12 @@ export class AutomationService implements OnApplicationBootstrap {
       `Directory "${configuration.VOLUMES.IMAGES}" does not exist. Trying to create a new one...`,
     );
 
-    this.createDirectoryIfNotExist(
-      configuration.VOLUMES.LOGS,
-      `Directory "${configuration.VOLUMES.LOGS}" does not exist. Trying to create a new one...`,
-    );
+    if (configuration.SERVER.LOG_FILES_ENABLED) {
+      this.createDirectoryIfNotExist(
+        configuration.VOLUMES.LOGS,
+        `Directory "${configuration.VOLUMES.LOGS}" does not exist. Trying to create a new one...`,
+      );
+    }
 
     if (
       configuration.DB.SYSTEM === "SQLITE" &&
