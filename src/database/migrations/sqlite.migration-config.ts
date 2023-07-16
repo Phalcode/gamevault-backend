@@ -8,4 +8,5 @@ export const dataSource = new DataSource({
   entities: ["dist/database/entities/*.js"],
   migrations: ["dist/database/migrations/bettersqlite3/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
+  synchronize: false,
 });

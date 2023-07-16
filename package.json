@@ -6,10 +6,9 @@
   "private": true,
   "license": "CC BY-NC-SA 4.0",
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "rimraf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start --watch",
+    "start": "rimraf dist && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",

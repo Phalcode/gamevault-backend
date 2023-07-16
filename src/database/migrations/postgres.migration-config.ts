@@ -12,4 +12,5 @@ export const dataSource = new DataSource({
   entities: ["dist/database/entities/*.js"],
   migrations: ["dist/database/migrations/postgres/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
+  synchronize: false,
 });
