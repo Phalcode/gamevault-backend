@@ -1,9 +1,26 @@
+import { Logger } from "@nestjs/common";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Init1689516256708 implements MigrationInterface {
+  private readonly logger = new Logger(Init1689516256708.name);
   name = "Init1689516256708";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    if (
+      (await queryRunner.hasTable("crackpipe_user")) &&
+      (await queryRunner.hasTable("developer")) &&
+      (await queryRunner.hasTable("game")) &&
+      (await queryRunner.hasTable("genre")) &&
+      (await queryRunner.hasTable("image")) &&
+      (await queryRunner.hasTable("progress")) &&
+      (await queryRunner.hasTable("publisher")) &&
+      (await queryRunner.hasTable("store")) &&
+      (await queryRunner.hasTable("tag"))
+    ) {
+      this.logger.log("Dateabase already exists. Skipping initial Migration.");
+      return;
+    }
+
     await queryRunner.query(`
             CREATE TABLE "image" (
                 "id" SERIAL NOT NULL,
