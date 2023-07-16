@@ -1,10 +1,9 @@
 import { Logger } from "@nestjs/common";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Init1689521645837 implements MigrationInterface {
-  private readonly logger = new Logger(Init1689521645837.name);
-  name = "Init1689521645837";
-
+export class Init1689547815762 implements MigrationInterface {
+  name = "Init1689547815762";
+  private readonly logger = new Logger(Init1689547815762.name);
   public async up(queryRunner: QueryRunner): Promise<void> {
     if (
       (await queryRunner.hasTable("crackpipe_user")) &&
@@ -21,20 +20,6 @@ export class Init1689521645837 implements MigrationInterface {
       return;
     }
 
-    await queryRunner.query(`
-            CREATE TABLE "genre" (
-                "id" SERIAL NOT NULL,
-                "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-                "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-                "deleted_at" TIMESTAMP,
-                "entity_version" integer NOT NULL,
-                "rawg_id" integer NOT NULL,
-                "name" character varying NOT NULL,
-                CONSTRAINT "UQ_672bce67ec8cb2d7755c158ad65" UNIQUE ("rawg_id"),
-                CONSTRAINT "UQ_dd8cd9e50dd049656e4be1f7e8c" UNIQUE ("name"),
-                CONSTRAINT "PK_0285d4f1655d080cfcf7d1ab141" PRIMARY KEY ("id")
-            )
-        `);
     await queryRunner.query(`
             CREATE TABLE "image" (
                 "id" SERIAL NOT NULL,
@@ -58,52 +43,31 @@ export class Init1689521645837 implements MigrationInterface {
             CREATE INDEX "IDX_f03b89f33671086e6733828e79" ON "image" ("path")
         `);
     await queryRunner.query(`
-            CREATE TYPE "public"."crackpipe_user_role_enum" AS ENUM('0', '1', '2', '3')
-        `);
-    await queryRunner.query(`
-            CREATE TABLE "crackpipe_user" (
+            CREATE TABLE "developer" (
                 "id" SERIAL NOT NULL,
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "deleted_at" TIMESTAMP,
                 "entity_version" integer NOT NULL,
-                "username" character varying NOT NULL,
-                "password" character varying NOT NULL,
-                "email" character varying NOT NULL,
-                "first_name" character varying NOT NULL,
-                "last_name" character varying NOT NULL,
-                "activated" boolean NOT NULL DEFAULT false,
-                "role" "public"."crackpipe_user_role_enum" NOT NULL DEFAULT '1',
-                "profile_picture_id" integer,
-                "background_image_id" integer,
-                CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username"),
-                CONSTRAINT "UQ_d0e7d50057240e5752a2c303ffb" UNIQUE ("email"),
-                CONSTRAINT "PK_0e446a80433f350bae907fac18b" PRIMARY KEY ("id")
+                "rawg_id" integer NOT NULL,
+                "name" character varying NOT NULL,
+                CONSTRAINT "UQ_5c0cd47a75116720223e43db853" UNIQUE ("rawg_id"),
+                CONSTRAINT "UQ_5c2989f7bc37f907cfd937c0fd0" UNIQUE ("name"),
+                CONSTRAINT "PK_71b846918f80786eed6bfb68b77" PRIMARY KEY ("id")
             )
         `);
     await queryRunner.query(`
-            CREATE TYPE "public"."progress_state_enum" AS ENUM(
-                'UNPLAYED',
-                'INFINITE',
-                'PLAYING',
-                'COMPLETED',
-                'ABORTED_TEMPORARY',
-                'ABORTED_PERMANENT'
-            )
-        `);
-    await queryRunner.query(`
-            CREATE TABLE "progress" (
+            CREATE TABLE "genre" (
                 "id" SERIAL NOT NULL,
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "deleted_at" TIMESTAMP,
                 "entity_version" integer NOT NULL,
-                "minutes_played" integer NOT NULL DEFAULT '0',
-                "state" "public"."progress_state_enum" NOT NULL DEFAULT 'UNPLAYED',
-                "last_played_at" TIMESTAMP,
-                "user_id" integer,
-                "game_id" integer,
-                CONSTRAINT "PK_79abdfd87a688f9de756a162b6f" PRIMARY KEY ("id")
+                "rawg_id" integer NOT NULL,
+                "name" character varying NOT NULL,
+                CONSTRAINT "UQ_672bce67ec8cb2d7755c158ad65" UNIQUE ("rawg_id"),
+                CONSTRAINT "UQ_dd8cd9e50dd049656e4be1f7e8c" UNIQUE ("name"),
+                CONSTRAINT "PK_0285d4f1655d080cfcf7d1ab141" PRIMARY KEY ("id")
             )
         `);
     await queryRunner.query(`
@@ -179,24 +143,35 @@ export class Init1689521645837 implements MigrationInterface {
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
     await queryRunner.query(`
-            CREATE TABLE "developer" (
+            CREATE TYPE "public"."progress_state_enum" AS ENUM(
+                'UNPLAYED',
+                'INFINITE',
+                'PLAYING',
+                'COMPLETED',
+                'ABORTED_TEMPORARY',
+                'ABORTED_PERMANENT'
+            )
+        `);
+    await queryRunner.query(`
+            CREATE TABLE "progress" (
                 "id" SERIAL NOT NULL,
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "deleted_at" TIMESTAMP,
                 "entity_version" integer NOT NULL,
-                "rawg_id" integer NOT NULL,
-                "name" character varying NOT NULL,
-                CONSTRAINT "UQ_5c0cd47a75116720223e43db853" UNIQUE ("rawg_id"),
-                CONSTRAINT "UQ_5c2989f7bc37f907cfd937c0fd0" UNIQUE ("name"),
-                CONSTRAINT "PK_71b846918f80786eed6bfb68b77" PRIMARY KEY ("id")
+                "minutes_played" integer NOT NULL DEFAULT '0',
+                "state" "public"."progress_state_enum" NOT NULL DEFAULT 'UNPLAYED',
+                "last_played_at" TIMESTAMP,
+                "user_id" integer,
+                "game_id" integer,
+                CONSTRAINT "PK_79abdfd87a688f9de756a162b6f" PRIMARY KEY ("id")
             )
         `);
     await queryRunner.query(`
-            CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3')
+            CREATE TYPE "public"."crackpipe_user_role_enum" AS ENUM('0', '1', '2', '3')
         `);
     await queryRunner.query(`
-            CREATE TABLE "gamevault_user" (
+            CREATE TABLE "crackpipe_user" (
                 "id" SERIAL NOT NULL,
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
@@ -208,12 +183,12 @@ export class Init1689521645837 implements MigrationInterface {
                 "first_name" character varying NOT NULL,
                 "last_name" character varying NOT NULL,
                 "activated" boolean NOT NULL DEFAULT false,
-                "role" "public"."gamevault_user_role_enum" NOT NULL DEFAULT '1',
+                "role" "public"."crackpipe_user_role_enum" NOT NULL DEFAULT '1',
                 "profile_picture_id" integer,
                 "background_image_id" integer,
-                CONSTRAINT "UQ_4c835305e86b28e416cfe13dace" UNIQUE ("username"),
-                CONSTRAINT "UQ_284621e91b3886db5ebd901384a" UNIQUE ("email"),
-                CONSTRAINT "PK_c2a3f8b06558be9508161af22e2" PRIMARY KEY ("id")
+                CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username"),
+                CONSTRAINT "UQ_d0e7d50057240e5752a2c303ffb" UNIQUE ("email"),
+                CONSTRAINT "PK_0e446a80433f350bae907fac18b" PRIMARY KEY ("id")
             )
         `);
     await queryRunner.query(`
@@ -282,13 +257,13 @@ export class Init1689521645837 implements MigrationInterface {
             CREATE INDEX "IDX_ea273d6b68ec2073a7af5d7d28" ON "game_genres_genre" ("genre_id")
         `);
     await queryRunner.query(`
-            ALTER TABLE "crackpipe_user"
-            ADD CONSTRAINT "FK_3a56876605551fa369cbcd09c41" FOREIGN KEY ("profile_picture_id") REFERENCES "image"("id") ON DELETE
+            ALTER TABLE "game"
+            ADD CONSTRAINT "FK_52b4bb990c5a5fe76c6d675c002" FOREIGN KEY ("box_image_id") REFERENCES "image"("id") ON DELETE
             SET NULL ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE "crackpipe_user"
-            ADD CONSTRAINT "FK_4a135b04a00cf3e3653cd585334" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE
+            ALTER TABLE "game"
+            ADD CONSTRAINT "FK_0e88ada3f37f7cabfb6d59ed0d0" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE
             SET NULL ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
@@ -300,23 +275,13 @@ export class Init1689521645837 implements MigrationInterface {
             ADD CONSTRAINT "FK_feaddf361921db1df3a6fe3965a" FOREIGN KEY ("game_id") REFERENCES "game"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE "game"
-            ADD CONSTRAINT "FK_52b4bb990c5a5fe76c6d675c002" FOREIGN KEY ("box_image_id") REFERENCES "image"("id") ON DELETE
+            ALTER TABLE "crackpipe_user"
+            ADD CONSTRAINT "FK_3a56876605551fa369cbcd09c41" FOREIGN KEY ("profile_picture_id") REFERENCES "image"("id") ON DELETE
             SET NULL ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
-            ALTER TABLE "game"
-            ADD CONSTRAINT "FK_0e88ada3f37f7cabfb6d59ed0d0" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE
-            SET NULL ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "gamevault_user"
-            ADD CONSTRAINT "FK_c1779b9b22212754248aa404bad" FOREIGN KEY ("profile_picture_id") REFERENCES "image"("id") ON DELETE
-            SET NULL ON UPDATE NO ACTION
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "gamevault_user"
-            ADD CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE
+            ALTER TABLE "crackpipe_user"
+            ADD CONSTRAINT "FK_4a135b04a00cf3e3653cd585334" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE
             SET NULL ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
@@ -393,16 +358,10 @@ export class Init1689521645837 implements MigrationInterface {
             ALTER TABLE "game_publishers_publisher" DROP CONSTRAINT "FK_23c7fd8d5ba629387c0ee3beefe"
         `);
     await queryRunner.query(`
-            ALTER TABLE "gamevault_user" DROP CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68"
+            ALTER TABLE "crackpipe_user" DROP CONSTRAINT "FK_4a135b04a00cf3e3653cd585334"
         `);
     await queryRunner.query(`
-            ALTER TABLE "gamevault_user" DROP CONSTRAINT "FK_c1779b9b22212754248aa404bad"
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "game" DROP CONSTRAINT "FK_0e88ada3f37f7cabfb6d59ed0d0"
-        `);
-    await queryRunner.query(`
-            ALTER TABLE "game" DROP CONSTRAINT "FK_52b4bb990c5a5fe76c6d675c002"
+            ALTER TABLE "crackpipe_user" DROP CONSTRAINT "FK_3a56876605551fa369cbcd09c41"
         `);
     await queryRunner.query(`
             ALTER TABLE "progress" DROP CONSTRAINT "FK_feaddf361921db1df3a6fe3965a"
@@ -411,10 +370,10 @@ export class Init1689521645837 implements MigrationInterface {
             ALTER TABLE "progress" DROP CONSTRAINT "FK_ddcaca3a9db9d77105d51c02c24"
         `);
     await queryRunner.query(`
-            ALTER TABLE "crackpipe_user" DROP CONSTRAINT "FK_4a135b04a00cf3e3653cd585334"
+            ALTER TABLE "game" DROP CONSTRAINT "FK_0e88ada3f37f7cabfb6d59ed0d0"
         `);
     await queryRunner.query(`
-            ALTER TABLE "crackpipe_user" DROP CONSTRAINT "FK_3a56876605551fa369cbcd09c41"
+            ALTER TABLE "game" DROP CONSTRAINT "FK_52b4bb990c5a5fe76c6d675c002"
         `);
     await queryRunner.query(`
             DROP INDEX "public"."IDX_ea273d6b68ec2073a7af5d7d28"
@@ -462,13 +421,16 @@ export class Init1689521645837 implements MigrationInterface {
             DROP TABLE "game_publishers_publisher"
         `);
     await queryRunner.query(`
-            DROP TABLE "gamevault_user"
+            DROP TABLE "crackpipe_user"
         `);
     await queryRunner.query(`
-            DROP TYPE "public"."gamevault_user_role_enum"
+            DROP TYPE "public"."crackpipe_user_role_enum"
         `);
     await queryRunner.query(`
-            DROP TABLE "developer"
+            DROP TABLE "progress"
+        `);
+    await queryRunner.query(`
+            DROP TYPE "public"."progress_state_enum"
         `);
     await queryRunner.query(`
             DROP INDEX "public"."IDX_0152ed47a9e8963b5aaceb51e7"
@@ -486,16 +448,10 @@ export class Init1689521645837 implements MigrationInterface {
             DROP TABLE "publisher"
         `);
     await queryRunner.query(`
-            DROP TABLE "progress"
+            DROP TABLE "genre"
         `);
     await queryRunner.query(`
-            DROP TYPE "public"."progress_state_enum"
-        `);
-    await queryRunner.query(`
-            DROP TABLE "crackpipe_user"
-        `);
-    await queryRunner.query(`
-            DROP TYPE "public"."crackpipe_user_role_enum"
+            DROP TABLE "developer"
         `);
     await queryRunner.query(`
             DROP INDEX "public"."IDX_f03b89f33671086e6733828e79"
@@ -505,9 +461,6 @@ export class Init1689521645837 implements MigrationInterface {
         `);
     await queryRunner.query(`
             DROP TABLE "image"
-        `);
-    await queryRunner.query(`
-            DROP TABLE "genre"
         `);
   }
 }

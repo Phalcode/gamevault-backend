@@ -9,3 +9,10 @@ services:
       POSTGRES_DB: gamevault
     ports:
       - "5432:5432"
+  pgweb:
+    container_name: pgweb
+    image: sosedoff/pgweb:latest
+    environment:
+      PGWEB_DATABASE_URL: postgres://gamevault:gamevault@db:5432/gamevault?sslmode=disable
+    ports:
+      - 8081:8081
