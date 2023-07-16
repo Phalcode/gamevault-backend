@@ -1,9 +1,9 @@
 import { Logger } from "@nestjs/common";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Init1689547619393 implements MigrationInterface {
-  name = "Init1689547619393";
-  private readonly logger = new Logger(Init1689547619393.name);
+export class Init1689458400000 implements MigrationInterface {
+  name = "Init1689458400000";
+  private readonly logger = new Logger(Init1689458400000.name);
   public async up(queryRunner: QueryRunner): Promise<void> {
     if (
       (await queryRunner.hasTable("crackpipe_user")) &&

@@ -6,7 +6,7 @@ import { AbstractEntity } from "./abstract.entity";
 import { Role } from "../../models/role.enum";
 
 @Entity()
-export class CrackpipeUser extends AbstractEntity {
+export class GamevaultUser extends AbstractEntity {
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
   username: string;

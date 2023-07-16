@@ -11,7 +11,7 @@ import * as fs from "fs";
 import configuration from "../configuration";
 import sharp from "sharp";
 import logger from "../logging";
-import { CrackpipeUser } from "../database/entities/crackpipe-user.entity";
+import { GamevaultUser } from "../database/entities/gamevault-user.entity";
 import { Game } from "../database/entities/game.entity";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
@@ -235,12 +235,12 @@ export class ImagesService {
         "game.box_image_id = image.id OR game.background_image_id = image.id",
       )
       .leftJoin(
-        CrackpipeUser,
-        "crackpipe_user",
-        "crackpipe_user.profile_picture_id = image.id OR crackpipe_user.background_image_id = image.id",
+        GamevaultUser,
+        "gamevault_user",
+        "gamevault_user.profile_picture_id = image.id OR gamevault_user.background_image_id = image.id",
       )
       .where(
-        "game.box_image_id IS NULL AND game.background_image_id IS NULL AND crackpipe_user.profile_picture_id IS NULL AND crackpipe_user.background_image_id IS NULL",
+        "game.box_image_id IS NULL AND game.background_image_id IS NULL AND gamevault_user.profile_picture_id IS NULL AND gamevault_user.background_image_id IS NULL",
       )
       .select("image.id, image.last_accessed_at")
       .getRawMany();

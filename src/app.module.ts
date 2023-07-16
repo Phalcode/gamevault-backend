@@ -29,7 +29,7 @@ import { Progress } from "./database/entities/progress.entity";
 import { Publisher } from "./database/entities/publisher.entity";
 import { Store } from "./database/entities/store.entity";
 import { Tag } from "./database/entities/tag.entity";
-import { CrackpipeUser } from "./database/entities/crackpipe-user.entity";
+import { GamevaultUser } from "./database/entities/gamevault-user.entity";
 import { DefaultStrategy } from "./auth/basic-auth.strategy";
 import { GenresController } from "./controllers/genres.controller";
 import { ImagesService } from "./services/images.service";
@@ -54,7 +54,7 @@ import { AuthorizationGuard } from "./auth/authorization.guard";
       Progress,
       Store,
       Tag,
-      CrackpipeUser,
+      GamevaultUser,
       Image,
     ]),
   ],

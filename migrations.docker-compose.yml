@@ -9,6 +9,9 @@ services:
       POSTGRES_DB: gamevault
     ports:
       - "5432:5432"
+    healthcheck:
+      test: pg_isready -U pgweb -h 127.0.0.1
+      interval: 5s
   pgweb:
     container_name: pgweb
     image: sosedoff/pgweb:latest
@@ -16,3 +19,6 @@ services:
       PGWEB_DATABASE_URL: postgres://gamevault:gamevault@db:5432/gamevault?sslmode=disable
     ports:
       - 8081:8081
+    depends_on: 
+      db:
+        condition: service_healthy

@@ -17,7 +17,7 @@ import { Progress } from "../database/entities/progress.entity";
 import { ProgressService } from "../services/progress.service";
 import { MinimumRole } from "../decorators/minimum-role.decorator";
 import { Role } from "../models/role.enum";
-import { CrackpipeUser } from "../database/entities/crackpipe-user.entity";
+import { GamevaultUser } from "../database/entities/gamevault-user.entity";
 
 @Controller("progresses")
 @ApiTags("progress")
@@ -99,7 +99,7 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async deleteProgressById(
     @Param() params: IdDto,
-    @Request() req: { gamevaultuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
     return await this.progressService.deleteProgressById(
       Number(params.id),
@@ -191,7 +191,7 @@ export class ProgressController {
   async setProgressForUser(
     @Param() params: UserIdGameIdDto,
     @Body() progress: ProgressDto,
-    @Request() req: { gamevaultuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
     return await this.progressService.setProgress(
       Number(params.userId),
@@ -221,7 +221,7 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async incrementProgressForUser(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { gamevaultuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
     return await this.progressService.incrementProgress(
       Number(params.userId),
@@ -251,7 +251,7 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async incrementProgressForUserByMinutes(
     @Param() params: IncrementProgressByMinutesDto,
-    @Request() req: { gamevaultuser: CrackpipeUser },
+    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
     return await this.progressService.incrementProgress(
       Number(params.userId),

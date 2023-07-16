@@ -2,17 +2,17 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Entity, Column, ManyToOne } from "typeorm";
 import { State } from "../../models/state.enum";
 import { Game } from "./game.entity";
-import { CrackpipeUser } from "./crackpipe-user.entity";
+import { GamevaultUser } from "./gamevault-user.entity";
 import { AbstractEntity } from "./abstract.entity";
 
 @Entity()
 export class Progress extends AbstractEntity {
-  @ManyToOne(() => CrackpipeUser, (user) => user.progresses)
+  @ManyToOne(() => GamevaultUser, (user) => user.progresses)
   @ApiProperty({
     description: "user the progress belongs to",
-    type: () => CrackpipeUser,
+    type: () => GamevaultUser,
   })
-  user: CrackpipeUser;
+  user: GamevaultUser;
 
   @ManyToOne(() => Game, (game) => game.progresses)
   @ApiProperty({
