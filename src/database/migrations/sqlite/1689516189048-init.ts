@@ -17,7 +17,7 @@ export class Init1689516189048 implements MigrationInterface {
       (await queryRunner.hasTable("store")) &&
       (await queryRunner.hasTable("tag"))
     ) {
-      this.logger.log("Dateabase already exists. Skipping initial Migration.");
+      this.logger.log("Database already exists. Skipping initial Migration.");
       return;
     }
 
