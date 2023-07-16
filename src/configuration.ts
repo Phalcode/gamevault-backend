@@ -70,8 +70,7 @@ export default {
     DEBUG: process.env.DB_DEBUG === "true" || false,
 
     // Synchronize the database (use if create table failure occurs but watch out, it could break your db)
-    // TODO: REMOVE ALWAYS TRUE AFTER IMPLEMENTING MIGRATIONS
-    SYNCHRONIZE: process.env.DB_SYNCHRONIZE === "true" || true,
+    SYNCHRONIZE: process.env.DB_SYNCHRONIZE === "true" || false,
   },
   RAWG_API: {
     // Base URL of RAWG API

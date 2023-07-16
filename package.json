@@ -13,10 +13,9 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
-    "typeorm": "pnpm run build && pnpx typeorm -d dist/database/db_configuration.js",
-    "migration:generate": "pnpm run typeorm -- migration:generate",
-    "migration:run": "pnpm run typeorm -- migration:run",
-    "migration:revert": "pnpm run typeorm -- migration:revert"
+    "migration:generate": "pnpm run build && pnpx typeorm -d dist/database/db_configuration.js migration:generate",
+    "migration:run": "pnpm run build && pnpx typeorm -d dist/database/db_configuration.js migration:run",
+    "migration:revert": "pnpm run build && pnpx typeorm -d dist/database/db_configuration.js migration:revert"
   },
   "dependencies": {
     "@nestjs/axios": "^3.0.0",
