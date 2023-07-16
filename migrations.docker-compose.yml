@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gamevault
+      POSTGRES_PASSWORD: gamevault
+      POSTGRES_DB: gamevault
+    ports:
+      - "5432:5432"
