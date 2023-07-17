@@ -65,4 +65,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_BOT_WEBHOOK }}
         with:
-          args: '@Updates New Release: {{ EVENT_PAYLOAD.repository.full_name }} v${{steps.package-version.outputs.current-version}} has been deployed. Here are the changes: https://github.com/{{EVENT_PAYLOAD.repository.full_name}}/releases/latest'
+          args: '<@&1128857090090340382> New Release: {{ EVENT_PAYLOAD.repository.full_name }} v${{steps.package-version.outputs.current-version}} has been deployed. Here are the changes: https://github.com/{{EVENT_PAYLOAD.repository.full_name}}/releases/latest'
