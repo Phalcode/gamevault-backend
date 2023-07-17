@@ -1,4 +1,4 @@
-export interface ICrackpipeFile {
+export interface IGameVaultFile {
   name: string;
   size: bigint;
 }

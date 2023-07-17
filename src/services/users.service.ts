@@ -10,7 +10,7 @@ import { compareSync, hashSync } from "bcrypt";
 import { FindManyOptions, Repository } from "typeorm";
 import configuration from "../configuration";
 import { RegisterUserDto } from "../dtos/register-user.dto";
-import { CrackpipeUser } from "../database/entities/crackpipe-user.entity";
+import { GamevaultUser } from "../database/entities/gamevault-user.entity";
 import { ImagesService } from "./images.service";
 import { UpdateUserDto } from "../dtos/update-user.dto";
 import { Role } from "../models/role.enum";
@@ -20,8 +20,8 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
-    @InjectRepository(CrackpipeUser)
-    private userRepository: Repository<CrackpipeUser>,
+    @InjectRepository(GamevaultUser)
+    private userRepository: Repository<GamevaultUser>,
     private imagesService: ImagesService,
   ) {}
 
@@ -41,7 +41,7 @@ export class UsersService {
   public async getUserByIdOrFail(
     id: number,
     withDeleted = false,
-  ): Promise<CrackpipeUser> {
+  ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { id },
@@ -64,7 +64,7 @@ export class UsersService {
    */
   public async getUserByUsernameOrFail(
     username: string,
-  ): Promise<CrackpipeUser> {
+  ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { username },
@@ -86,8 +86,8 @@ export class UsersService {
   public async getUsers(
     includeDeleted = false,
     includeUnactivated = false,
-  ): Promise<CrackpipeUser[]> {
-    const query: FindManyOptions<CrackpipeUser> = {
+  ): Promise<GamevaultUser[]> {
+    const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
       withDeleted: includeDeleted,
     };
@@ -107,9 +107,9 @@ export class UsersService {
    * @throws {ForbiddenException} - If a user with the same email or username
    *   already exists
    */
-  public async register(dto: RegisterUserDto): Promise<CrackpipeUser> {
+  public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
     await this.checkForExistingUser(dto.username, dto.email);
-    const user = new CrackpipeUser();
+    const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
     user.email = dto.email;
@@ -157,7 +157,7 @@ export class UsersService {
   public async login(
     username: string,
     password: string,
-  ): Promise<CrackpipeUser> {
+  ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { username },
@@ -200,7 +200,7 @@ export class UsersService {
     id: number,
     dto: UpdateUserDto,
     admin = false,
-  ): Promise<CrackpipeUser> {
+  ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
@@ -254,7 +254,7 @@ export class UsersService {
    *
    * @param id - The ID of the user to delete.
    */
-  public async delete(id: number): Promise<CrackpipeUser> {
+  public async delete(id: number): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
@@ -264,7 +264,7 @@ export class UsersService {
    *
    * @param id - The ID of the user to recover.
    */
-  public async recover(id: number): Promise<CrackpipeUser> {
+  public async recover(id: number): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id, true);
     return this.userRepository.recover(user);
   }
@@ -281,7 +281,7 @@ export class UsersService {
   public async setProfilePicture(
     id: number,
     url: string,
-  ): Promise<CrackpipeUser> {
+  ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
     user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
       url,
@@ -298,7 +298,7 @@ export class UsersService {
    * @returns - The updated user object
    * @throws {NotFoundException} - If the user with specified ID is not found
    */
-  public async setProfileArt(id: number, url: string): Promise<CrackpipeUser> {
+  public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
     user.background_image = await this.imagesService.findBySourceUrlOrDownload(
       url,

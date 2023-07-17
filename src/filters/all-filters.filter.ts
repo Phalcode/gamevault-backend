@@ -1,15 +1,16 @@
 import { FilterOperator, FilterSuffix } from "nestjs-paginate/lib";
 
 export const all_filters = [
-  FilterOperator.BTW,
   FilterOperator.EQ,
+  FilterSuffix.NOT,
+  FilterOperator.NULL,
+  FilterOperator.IN,
   FilterOperator.GT,
   FilterOperator.GTE,
-  FilterOperator.IN,
   FilterOperator.LT,
   FilterOperator.LTE,
-  FilterOperator.NULL,
-  FilterOperator.ILIKE,
+  FilterOperator.BTW,
   FilterOperator.SW,
-  FilterSuffix.NOT,
+  FilterOperator.ILIKE,
+  FilterOperator.CONTAINS,
 ];

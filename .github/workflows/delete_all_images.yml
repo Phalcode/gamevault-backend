@@ -11,7 +11,7 @@ jobs:
       with:
         # Name of the package.
         # Required
-        package-name: crackpipe-backend
+        package-name: gamevault-backend
         # Type of the package. Can be one of container, maven, npm, nuget, or rubygems.
         # Required
         package-type: container

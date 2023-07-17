@@ -1,4 +1,21 @@
-# Crackpipe Backend Server Changelog
+# GameVault Backend Server Changelog
+
+## Upcoming
+
+## 2.0.0
+
+### Breaking Changes & Migration
+
+- Rebranded Crackpipe as GameVault
+  - Please ensure that if your previous `DB_DATABASE` or `DB_USERNAME` was named "Crackpipe" (by default), you make the necessary adjustments to GameVault's Environment Variables or manually via SQL, so the app continues to work.
+  - Update your docker/ghcr images to "gamevault-backend" as there will be no updates for "crackpipe-backend" from this point
+
+### Changes
+
+- Introduced configuration `LOG_FILES_ENABLED` with false by default
+- Support of `contains` filter in API
+- Added non-root global npm packages
+- Introduced Log Level "off"
 
 ## 1.3.1
 
@@ -21,6 +38,7 @@
 - Deprecated DB_STORAGE_PATH in favor of VOLUMES_SQLITEDB (will be removed in 2.0.0)
 
 ### Thanks
+
 - @super_n0bita
 
 ## 1.2.0
@@ -42,7 +60,7 @@
 
 ### Breaking Changes
 
-- When adding the same game multiple times to your Crackpipe server, [follow this documentation.](https://crackpipe.de/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
+- When adding the same game multiple times to your GameVault server, [follow this documentation.](https://gamevau.lt/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
 
 ### Changes
 

@@ -6,7 +6,7 @@ export class UserIdGameIdDto {
   @IsNotEmpty()
   @ApiProperty({
     example: "1",
-    description: "Unique crackpipe-identifier of the user",
+    description: "Unique gamevault-identifier of the user",
   })
   userId: string;
 
@@ -14,7 +14,7 @@ export class UserIdGameIdDto {
   @IsNotEmpty()
   @ApiProperty({
     example: "1",
-    description: "Unique crackpipe-identifier of the game",
+    description: "Unique gamevault-identifier of the game",
   })
   gameId: string;
 }

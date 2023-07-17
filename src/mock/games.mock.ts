@@ -1,4 +1,4 @@
-import { ICrackpipeFile } from "../models/file.interface";
+import { IGameVaultFile } from "../models/file.interface";
 
 export default [
   {
@@ -1241,4 +1241,4 @@ export default [
     name: "art of rally (2020).zip",
     size: 933198750n,
   },
-] as ICrackpipeFile[];
+] as IGameVaultFile[];

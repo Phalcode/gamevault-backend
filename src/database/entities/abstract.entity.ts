@@ -11,7 +11,7 @@ export abstract class AbstractEntity {
   @PrimaryGeneratedColumn()
   @ApiProperty({
     example: 1,
-    description: "Unique crackpipe-identifier of the entity",
+    description: "Unique gamevault-identifier of the entity",
   })
   id: number;
 

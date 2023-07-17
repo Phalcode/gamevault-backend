@@ -2,7 +2,7 @@ import { BasicStrategy } from "passport-http";
 import { Injectable, Logger } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { UsersService } from "../services/users.service";
-import { CrackpipeUser } from "../database/entities/crackpipe-user.entity";
+import { GamevaultUser } from "../database/entities/gamevault-user.entity";
 
 @Injectable()
 export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
@@ -24,12 +24,12 @@ export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
    * @returns - Whether or not the login worked
    */
   async validate(
-    req: { crackpipeuser: CrackpipeUser },
+    req: { gamevaultuser: GamevaultUser },
     username: string,
     password: string,
   ) {
     const user = await this.usersService.login(username, password);
-    req.crackpipeuser = user;
+    req.gamevaultuser = user;
     return user ? true : false;
   }
 }
