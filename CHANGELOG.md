@@ -6,16 +6,20 @@
 
 ### Breaking Changes & Migration
 
-- Rebranded Crackpipe as GameVault
-  - Please ensure that if your previous `DB_DATABASE` or `DB_USERNAME` was named "Crackpipe" (by default), you make the necessary adjustments to GameVault's Environment Variables or manually via SQL, so the app continues to work.
-  - Update your docker/ghcr images to "gamevault-backend" as there will be no updates for "crackpipe-backend" from this point
+- GameVault Rebranding:
+  - If your previous `DB_DATABASE` or `DB_USERNAME` was set as `Crackpipe` (default), please adjust the Environment Variables or make the necessary SQL modifications to ensure the app's functionality.
+  - Update your docker/ghcr images to "gamevault-backend" as there will be no further updates for `crackpipe-backend`
+  - For SQLITE users, rename your database file to `database.sqlite`, the new default
+  - Please switch off `DB_SYNCHRONIZE` if you had set it to true manually, because the migrations will take over controlled database changes from now on.
 
 ### Changes
 
-- Introduced configuration `LOG_FILES_ENABLED` with false by default
-- Support of `contains` filter in API
-- Added non-root global npm packages
-- Introduced Log Level "off"
+- Implemented database migrations for postgresql and sqlite.
+- `DB_SYNCHRONIZE` is now false by default.
+- New Configuration: `LOG_FILES_ENABLED` is now set to false by default.
+- Games API now supports the `contains` filter.
+- Non-root global npm packages have been added to the Dockerfile.
+- Introduced a new Log Level: `off`
 
 ## 1.3.1
 
