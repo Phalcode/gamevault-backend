@@ -28,31 +28,31 @@ export class Metadata<T> {
 export class Links {
   @ApiProperty({
     example:
-      "http://localhost:3000/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
+      "http://localhost:8080/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "first page",
   })
   first?: string;
   @ApiProperty({
     example:
-      "http://localhost:3000/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
+      "http://localhost:8080/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "previous page",
   })
   previous?: string;
   @ApiProperty({
     example:
-      "http://localhost:3000/games?limit=5&page=2&sortBy=title:DESC&search=i&filter.early_access=$not:true",
+      "http://localhost:8080/games?limit=5&page=2&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "current page",
   })
   current: string;
   @ApiProperty({
     example:
-      "http://localhost:3000/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
+      "http://localhost:8080/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "next page",
   })
   next?: string;
   @ApiProperty({
     example:
-      "http://localhost:3000/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
+      "http://localhost:8080/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "last page",
   })
   last?: string;

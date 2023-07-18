@@ -107,6 +107,7 @@ export class FilesService {
       size: updatesToApply.size,
       version: updatesToApply.version,
       early_access: updatesToApply.early_access,
+      direct_play: updatesToApply.direct_play,
     };
 
     this.logger.log(
