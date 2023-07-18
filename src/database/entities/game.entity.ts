@@ -162,6 +162,14 @@ export class Game extends AbstractEntity {
   })
   early_access: boolean;
 
+  @Column()
+  @ApiProperty({
+    description:
+      "indicates if the game is ready to play or needs an installation",
+    example: true,
+  })
+  direct_play: boolean;
+
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
     description: "progresses associated to the game",

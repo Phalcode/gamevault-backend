@@ -40,6 +40,9 @@ export class FilesService {
         gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
           gameToIndex.file_path,
         );
+        gameToIndex.direct_play = this.regexExtractDirectPlayFlag(
+          gameToIndex.file_path,
+        );
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistance, Game] =
@@ -176,6 +179,18 @@ export class FilesService {
    */
   private regexExtractEarlyAccessFlag(fileName: string): boolean {
     return /\(EA\)/.test(fileName);
+  }
+
+  /**
+   * This method extracts the direct play flag from a given file name string
+   * using a regular expression.
+   *
+   * @private
+   * @param fileName - A string representing the file name.
+   * @returns - A boolean value indicating if the game is direct-play or not.
+   */
+  private regexExtractDirectPlayFlag(fileName: string): boolean {
+    return /\(DP\)/.test(fileName);
   }
 
   /**

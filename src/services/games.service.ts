@@ -123,6 +123,11 @@ export class GamesService {
         `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
       );
     }
+    if (foundGame.direct_play !== game.direct_play) {
+      differences.push(
+        `Early Access: ${foundGame.direct_play} -> ${game.direct_play}`,
+      );
+    }
     if (foundGame.version != game.version) {
       differences.push(`Version: ${foundGame.version} -> ${game.version}`);
     }

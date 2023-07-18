@@ -2,6 +2,12 @@
 
 ## Upcoming
 
+## 2.1.0
+
+### Changes
+
+- Added Direct Play Flag. You can now mark games that don't need an installation as direct play to simplify the client installation process.
+
 ## 2.0.0
 
 ### Breaking Changes & Migration
