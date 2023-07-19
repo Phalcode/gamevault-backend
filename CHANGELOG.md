@@ -22,7 +22,7 @@
 
 - Implemented database migrations for postgresql and sqlite.
 - `DB_SYNCHRONIZE` is now false by default.
-- New Configuration: `LOG_FILES_ENABLED` is now set to false by default.
+- New Configuration: `SERVER_LOG_FILES_ENABLED` is now set to false by default.
 - Games API now supports the `contains` filter.
 - Non-root global npm packages have been added to the Dockerfile.
 - Introduced a new Log Level: `off`
