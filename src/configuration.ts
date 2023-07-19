@@ -7,7 +7,7 @@ export default {
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
 
     // Wheter or not the server logs to files
-    LOG_FILES_ENABLED: process.env.LOG_FILES_ENABLED === "true" || false,
+    LOG_FILES_ENABLED: process.env.SERVER_LOG_FILES_ENABLED === "true" || false,
 
     // Morgan Request Log Format
     REQUEST_LOG_FORMAT:
