@@ -1,9 +1,7 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: bug
-assignees: ''
+name: 🪲 Report a Bug
+about: Does something not work correctly?
+labels: ["🎛️ server", "🪲 bug"]
 projects: "Phalcode/3"
 ---
 
