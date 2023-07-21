@@ -68,7 +68,7 @@ export class GamesController {
         "metacritic_rating",
         "average_playtime",
         "early_access",
-        "direct_play"
+        "direct_play",
       ],
       searchableColumns: [
         "title",
