@@ -33,17 +33,15 @@ export class FilesService {
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
-        gameToIndex.file_path = file.name;
-        gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
-        gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
+        gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
+        gameToIndex.type = await this.extractGameType(file.name);
+        gameToIndex.title = this.regexExtractTitle(file.name);
         gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(
-          this.regexExtractReleaseYear(gameToIndex.file_path),
+          this.regexExtractReleaseYear(file.name),
         );
-        gameToIndex.version = this.regexExtractVersion(gameToIndex.file_path);
-        gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
-          gameToIndex.file_path,
-        );
+        gameToIndex.version = this.regexExtractVersion(file.name);
+        gameToIndex.early_access = this.regexExtractEarlyAccessFlag(file.name);
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistance, Game] =
