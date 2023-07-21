@@ -345,9 +345,7 @@ export class FilesService {
    */
   public async downloadGame(gameId: number): Promise<StreamableFile> {
     const game = await this.gamesService.getGameById(gameId);
-    const file = createReadStream(
-      `${configuration.VOLUMES.FILES}/${game.file_path}`,
-    );
+    const file = createReadStream(game.file_path);
     const type = mime.getType(game.file_path);
 
     return new StreamableFile(file, {
