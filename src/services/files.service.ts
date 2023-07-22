@@ -221,6 +221,11 @@ export class FilesService {
         return GameType.SETUP_NEEDED;
       }
 
+      // Failsafe for Mock-Files because we cant look into them
+      if (configuration.TESTING.MOCK_FILES) {
+        return GameType.SETUP_NEEDED;
+      }
+
       const promisifiedList = promisify(list);
       const executablesList = (await promisifiedList(path, {
         $cherryPick: ["*.exe"],
@@ -258,6 +263,12 @@ export class FilesService {
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
   ): Promise<void> {
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.log(
+        "Skipping Integrity Check because TESTING.MOCK_FILE is true",
+      );
+      return;
+    }
     this.logger.log("STARTED INTEGRITY CHECK");
     for (const gameInDatabase of gamesInDatabase) {
       const gameInFileSystem = gamesInFileSystem.find(

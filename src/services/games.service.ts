@@ -96,8 +96,6 @@ export class GamesService {
 
     const foundGame = existingGameByPath ?? existingGameByTitleAndReleaseDate;
 
-    this.logger.debug(foundGame, "Found Entry");
-
     if (!foundGame) {
       return [GameExistance.DOES_NOT_EXIST, undefined];
     }
