@@ -11,6 +11,11 @@
 - Added autodetection of Game Type (direct_play/setup_needed). Manually overridable by admins via Filename.
 - Added 7zip to the alpine container
 - Make GameVault support all archive formats, that 7zip does
+- Polished API Specification
+
+### Thanks
+
+- yodatak
 
 ## 2.1.0
 
