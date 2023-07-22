@@ -201,19 +201,19 @@ export class FilesService {
    *
    * @async
    * @private
-   * @param {string} fileName - The name of the file/archive to be analyzed.
+   * @param {string} path - The path of the file/archive to be analyzed.
    * @returns {Promise<GameType>} A promise that resolves to the determined
    *   GameType.
    * @throws {Error} If any error occurs during the process, it will be caught
    *   and logged.
    */
-  private async extractGameType(fileName: string): Promise<GameType> {
+  private async extractGameType(path: string): Promise<GameType> {
     try {
-      if (/\(DP\)/.test(fileName)) return GameType.DIRECT_PLAY;
-      if (/\(SN\)/.test(fileName)) return GameType.SETUP_NEEDED;
+      if (/\(DP\)/.test(path)) return GameType.DIRECT_PLAY;
+      if (/\(SN\)/.test(path)) return GameType.SETUP_NEEDED;
 
       const promisifiedList = promisify(list);
-      const executablesList = (await promisifiedList(fileName, {
+      const executablesList = (await promisifiedList(path, {
         $cherryPick: ["*.exe"],
         recursive: true,
       })) as string[];
