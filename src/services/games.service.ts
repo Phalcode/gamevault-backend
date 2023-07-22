@@ -12,6 +12,7 @@ import { Game } from "../database/entities/game.entity";
 import { RawgService } from "./rawg.service";
 import { GameExistance } from "../models/game-existance.enum";
 import { BoxArtService } from "./box-art.service";
+import { log } from "console";
 
 @Injectable()
 export class GamesService {
@@ -95,6 +96,8 @@ export class GamesService {
 
     const foundGame = existingGameByPath ?? existingGameByTitleAndReleaseDate;
 
+    this.logger.debug(foundGame, "Found Entry");
+
     if (!foundGame) {
       return [GameExistance.DOES_NOT_EXIST, undefined];
     }
@@ -135,7 +138,9 @@ export class GamesService {
 
     if (differences.length > 0) {
       this.logger.debug(
-        `Game exists but has been altered. Differences:\n ${differences.join(
+        `Game "${
+          game.file_path
+        }" exists but has been altered. Differences:\n ${differences.join(
           ",\n ",
         )}`,
       );
