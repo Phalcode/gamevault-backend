@@ -14,7 +14,7 @@ export class AddGameType1689984000000 implements MigrationInterface {
 
     await queryRunner.query(`
       ALTER TABLE "public"."game"
-      ADD COLUMN "type" "public"."type_enum" NOT NULL DEFAULT 'UNDETECTABLE';`);
+      ADD COLUMN "type" "public"."game_type_enum" NOT NULL DEFAULT 'UNDETECTABLE';`);
 
     await queryRunner.query(`
       UPDATE "public"."game"
