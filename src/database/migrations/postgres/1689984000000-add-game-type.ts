@@ -6,7 +6,7 @@ export class AddGameType1689984000000 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      CREATE TYPE IF NOT EXISTS "public"."game_type_enum" AS ENUM (
+      CREATE TYPE "public"."game_type_enum" AS ENUM (
         'UNDETECTABLE',
         'SETUP_NEEDED',
         'DIRECT_PLAY'
