@@ -18,10 +18,8 @@ export class AddGameType1689984000000 implements MigrationInterface {
 
     await queryRunner.query(`
       UPDATE "public"."game"
-      SET "type" = CASE
-                    WHEN "direct_play" = true THEN 'DIRECT_PLAY'::game_type_enum
-                    ELSE 'UNDETECTABLE'::game_type_enum
-                  END;
+      SET "type" = 'DIRECT_PLAY'
+      WHERE "direct_play" = true
       `);
 
     await new AddDirectPlay1689638400000().down(queryRunner);
@@ -31,11 +29,10 @@ export class AddGameType1689984000000 implements MigrationInterface {
     await new AddDirectPlay1689638400000().up(queryRunner);
 
     await queryRunner.query(`
-    UPDATE "public"."game"
-    SET "direct_play" = CASE
-                 WHEN type = "DIRECT_PLAY" THEN true
-                 ELSE false
-                 END;`);
+      UPDATE "public"."game"
+      SET "direct_play" = true
+      WHERE "type" = 'DIRECT_PLAY'
+      `);
 
     await queryRunner.query(`
       ALTER TABLE "public"."game" DROP COLUMN "type";`);
