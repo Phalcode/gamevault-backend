@@ -3,6 +3,12 @@
 ## Upcoming
 
 ## 2.2.0
+
+### Changes
+
+- Added Setup Needed Flag You can now mark games that need an installation as setup needed to simplify the client installation process.
+- Removed Direct Play Boolean and introduced broader Game Type Enum
+- Added autodetection of Game Type (direct_play/setup_needed). Manually overridable by admins via Filename.
 - Added 7zip to the alpine container
 - Make GameVault support all archive formats, that 7zip does
 

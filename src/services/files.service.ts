@@ -8,6 +8,10 @@ import configuration from "../configuration";
 import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
+import { GameType } from "../models/game-type.enum";
+import sevenzipbin from "7zip-bin";
+import { list as sevenziplist } from "node-7z";
+import { promisify } from "util";
 
 @Injectable()
 export class FilesService {
@@ -40,9 +44,8 @@ export class FilesService {
         gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
           gameToIndex.file_path,
         );
-        gameToIndex.direct_play = this.regexExtractDirectPlayFlag(
-          gameToIndex.file_path,
-        );
+
+        gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistance, Game] =
@@ -98,7 +101,10 @@ export class FilesService {
    * @param {Game} updatesToApply - The updates to apply to the game.
    * @returns {Promise<Game>} The updated game.
    */
-  private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
+  private async updateGame(
+    gameToUpdate: Game,
+    updatesToApply: Game,
+  ): Promise<Game> {
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path,
@@ -107,7 +113,7 @@ export class FilesService {
       size: updatesToApply.size,
       version: updatesToApply.version,
       early_access: updatesToApply.early_access,
-      direct_play: updatesToApply.direct_play,
+      type: updatesToApply.type,
     };
 
     this.logger.log(
@@ -182,16 +188,50 @@ export class FilesService {
     return /\(EA\)/.test(fileName);
   }
 
+  /** Checks if any of the executables match "setup.exe" or "setup_*.exe". */
+  private regexExtractSetupExecutable(executables: string[]): boolean {
+    return executables.some((executable) =>
+      /(^setup\.exe$|^setup_.*\.exe$)/.test(executable),
+    );
+  }
+
   /**
-   * This method extracts the direct play flag from a given file name string
-   * using a regular expression.
+   * Extracts the game type based on the provided file name and its contents.
+   * This function uses the node-7z library to list the contents of the archive
+   * (if applicable) and then determines the game type based on the presence of
+   * certain patterns in the file name and the listed files.
    *
+   * @async
    * @private
-   * @param fileName - A string representing the file name.
-   * @returns - A boolean value indicating if the game is direct-play or not.
+   * @param {string} fileName - The name of the file/archive to be analyzed.
+   * @returns {Promise<GameType>} A promise that resolves to the determined
+   *   GameType.
+   * @throws {Error} If any error occurs during the process, it will be caught
+   *   and logged.
    */
-  private regexExtractDirectPlayFlag(fileName: string): boolean {
-    return /\(DP\)/.test(fileName);
+  private async extractGameType(fileName: string): Promise<GameType> {
+    try {
+      if (/\(DP\)/.test(fileName)) return GameType.DIRECT_PLAY;
+      if (/\(SN\)/.test(fileName)) return GameType.SETUP_NEEDED;
+
+      const promisifiedList = promisify(sevenziplist);
+      const executablesList = (await promisifiedList(fileName, {
+        $bin: sevenzipbin.path7x,
+        $cherryPick: ["*.exe"],
+        recursive: true,
+      })) as string[];
+
+      this.logger.log(executablesList, "List of executables.");
+
+      if (this.regexExtractSetupExecutable(executablesList)) {
+        return GameType.SETUP_NEEDED;
+      }
+
+      return GameType.DIRECT_PLAY;
+    } catch (error) {
+      this.logger.error(error, "Error determining game type");
+      return GameType.UNDETECTABLE;
+    }
   }
 
   /**

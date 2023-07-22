@@ -17,6 +17,7 @@ import { Store } from "./store.entity";
 import { Tag } from "./tag.entity";
 import { Image } from "./image.entity";
 import { AbstractEntity } from "./abstract.entity";
+import { GameType } from "../../models/game-type.enum";
 
 @Entity()
 export class Game extends AbstractEntity {
@@ -162,13 +163,18 @@ export class Game extends AbstractEntity {
   })
   early_access: boolean;
 
-  @Column()
-  @ApiProperty({
-    description:
-      "indicates if the game is ready to play or needs an installation",
-    example: true,
+  @Column({
+    type: "simple-enum",
+    enum: GameType,
+    default: GameType.UNDETECTABLE,
   })
-  direct_play: boolean;
+  @ApiProperty({
+    description: "type of the game",
+    type: "enum",
+    enum: GameType,
+    example: GameType.DIRECT_PLAY,
+  })
+  type: GameType;
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({

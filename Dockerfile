@@ -12,7 +12,7 @@ ENV VOLUMES_LOGS="/logs"
 ENV VOLUMES_SQLITEDB="/db"
 
 # Sets timezone, installs pnpm, creates and chowns the needed volumes for the node user
-RUN apk add --no-cache tzdata curl 7zip && cp /usr/share/zoneinfo/$SERVER_TZ /etc/localtime \
+RUN apk add --no-cache tzdata curl && cp /usr/share/zoneinfo/$SERVER_TZ /etc/localtime \
     && npm i -g pnpm \
     && mkdir /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB \
     && chown node:node /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB
