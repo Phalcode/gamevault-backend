@@ -29,7 +29,7 @@ export class FilesService {
    * @throws {Error} - If there's an error during the process.
    */
   public async indexFiles(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
-    this.logger.log("STARTED FILE INDEXING");
+    this.logger.log(gamesInFileSystem, "STARTED FILE INDEXING");
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
