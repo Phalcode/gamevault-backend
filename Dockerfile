@@ -14,8 +14,7 @@ ENV VOLUMES_SQLITEDB="/db"
 # Sets timezone, installs pnpm, creates and chowns the needed volumes for the node user
 RUN apk add --no-cache tzdata curl 7zip && cp /usr/share/zoneinfo/$SERVER_TZ /etc/localtime \
     && npm i -g pnpm \
-    && mkdir /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB \
-    && chown node:node /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB
+    && mkdir /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB
 
 # Copies the entire repository into the container
 WORKDIR /app
@@ -23,6 +22,9 @@ COPY . .
 
 #Installs Dependencies & Builds Server
 RUN pnpm install && pnpm build
+
+# Permissions for node user
+RUN chown -R node:node /app $VOLUMES_FILES $VOLUMES_IMAGES $VOLUMES_LOGS $VOLUMES_SQLITEDB
 
 # Uses non-root user to run the container
 USER node
