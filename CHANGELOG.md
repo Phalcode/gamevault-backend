@@ -2,6 +2,10 @@
 
 ## Upcoming
 
+## 2.2.0
+- Added 7zip to the alpine container
+- Make GameVault support all archive formats, that 7zip does
+
 ## 2.1.0
 
 ### Changes
