@@ -284,7 +284,9 @@ export class FilesService {
     this.logger.log("STARTED INTEGRITY CHECK");
     for (const gameInDatabase of gamesInDatabase) {
       const gameInFileSystem = gamesInFileSystem.find(
-        (g) => g.name === gameInDatabase.file_path,
+        (g) =>
+          `${configuration.VOLUMES.FILES}/${g.name}` ===
+          gameInDatabase.file_path,
       );
       // If game is not in file system, mark it as deleted
       if (!gameInFileSystem) {
