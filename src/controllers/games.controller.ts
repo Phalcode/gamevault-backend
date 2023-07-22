@@ -112,7 +112,7 @@ export class GamesController {
     summary: "get a random game",
     operationId: "getRandomGame",
   })
-  @ApiOkResponse({ type: Game })
+  @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
   async getRandomGame(): Promise<Game> {
     return await this.gamesService.getRandomGame();
@@ -129,7 +129,7 @@ export class GamesController {
     summary: "get details on a game",
     operationId: "getGameById",
   })
-  @ApiOkResponse({ type: Game })
+  @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
   async getGameById(@Param() params: IdDto): Promise<Game> {
     return await this.gamesService.getGameById(Number(params.id), true);
@@ -146,7 +146,7 @@ export class GamesController {
   @Get(":id/download")
   @ApiOperation({ summary: "download a game", operationId: "downloadGame" })
   @MinimumRole(Role.USER)
-  @ApiOkResponse({ type: StreamableFile })
+  @ApiOkResponse({ type: () => StreamableFile })
   async downloadGame(@Param() params: IdDto): Promise<StreamableFile> {
     return await this.filesService.downloadGame(Number(params.id));
   }

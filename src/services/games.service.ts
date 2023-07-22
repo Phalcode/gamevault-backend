@@ -12,7 +12,6 @@ import { Game } from "../database/entities/game.entity";
 import { RawgService } from "./rawg.service";
 import { GameExistance } from "../models/game-existance.enum";
 import { BoxArtService } from "./box-art.service";
-import { log } from "console";
 
 @Injectable()
 export class GamesService {

@@ -37,7 +37,7 @@ export class ProgressController {
     operationId: "getIgnoreFile",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: String, isArray: true })
+  @ApiOkResponse({ type: () => String, isArray: true })
   getIgnoreFile(): string[] {
     return this.progressService.ignoreList;
   }
@@ -53,7 +53,7 @@ export class ProgressController {
     operationId: "getAllProgresses",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   async getAllProgresses(): Promise<Progress[]> {
     return await this.progressService.getAllProgresses();
   }
@@ -73,7 +73,7 @@ export class ProgressController {
     operationId: "getProgressById",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressById(@Param() params: IdDto): Promise<Progress> {
     return await this.progressService.getProgressById(Number(params.id));
   }
@@ -119,7 +119,7 @@ export class ProgressController {
     operationId: "getProgressesByUser",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByUser(@Param() params: IdDto) {
     return await this.progressService.getProgressesByUser(Number(params.id));
   }
@@ -137,7 +137,7 @@ export class ProgressController {
     operationId: "getProgressesByGame",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByGame(@Param() params: IdDto): Promise<Progress[]> {
     return await this.progressService.getProgressesByGame(Number(params.id));
   }
@@ -158,7 +158,7 @@ export class ProgressController {
     operationId: "getProgressByUserAndGame",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: Progress })
+  @ApiOkResponse({ type: () => Progress })
   async getProgressByUserAndGame(
     @Param() params: UserIdGameIdDto,
   ): Promise<Progress> {
@@ -181,12 +181,12 @@ export class ProgressController {
    * @throws {Error} If there was an error setting the progress.
    */
   @Put("/user/:userId/game/:gameId")
-  @ApiBody({ type: ProgressDto })
+  @ApiBody({ type: () => ProgressDto })
   @ApiOperation({
     summary: "create or update a progress",
     operationId: "setProgressForUser",
   })
-  @ApiOkResponse({ type: Progress })
+  @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
   async setProgressForUser(
     @Param() params: UserIdGameIdDto,
@@ -217,7 +217,7 @@ export class ProgressController {
     summary: "Increment a specific game progress for a user by a minute",
     operationId: "incrementProgressForUser",
   })
-  @ApiOkResponse({ type: Progress })
+  @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
   async incrementProgressForUser(
     @Param() params: UserIdGameIdDto,
@@ -247,7 +247,7 @@ export class ProgressController {
     summary: "Increment a specific game progress for a user by x minutes",
     operationId: "incrementProgressForUserByMinutes",
   })
-  @ApiOkResponse({ type: Progress })
+  @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
   async incrementProgressForUserByMinutes(
     @Param() params: IncrementProgressByMinutesDto,

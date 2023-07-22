@@ -29,7 +29,7 @@ export class UtilityController {
     summary: "manually triggers a reindex on all games",
     operationId: "reindexGames",
   })
-  @ApiOkResponse({ type: Game, isArray: true })
+  @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async reindexGames() {
     return await this.cronService.autoindexGames();
@@ -48,7 +48,7 @@ export class UtilityController {
       "manually triggers a recache from rawg-api for a specific game, also updates boxart",
     operationId: "recacheGame",
   })
-  @ApiOkResponse({ type: Game })
+  @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.ADMIN)
   async recacheGame(@Param() params: IdDto): Promise<Game> {
     let game = await this.gamesService.getGameById(Number(params.id));
@@ -67,7 +67,7 @@ export class UtilityController {
       "DANGER: This is a very expensive operation and should be used sparingly",
     operationId: "recacheAllGames",
   })
-  @ApiOkResponse({ type: Game, isArray: true })
+  @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async recacheAllGames(): Promise<string> {
     const gamesInDatabase = await this.gamesService.getAllGames();
@@ -92,8 +92,8 @@ export class UtilityController {
     summary: "manually remaps a database entry to a rawg game and recaches it",
     operationId: "remapGame",
   })
-  @ApiOkResponse({ type: Game })
-  @ApiBody({ type: OverwriteGameRawgIdDto })
+  @ApiOkResponse({ type: () => Game })
+  @ApiBody({ type: () => OverwriteGameRawgIdDto })
   @MinimumRole(Role.EDITOR)
   async remapGame(
     @Param() params: IdDto,
@@ -114,8 +114,8 @@ export class UtilityController {
     summary: "manually overwrites box art for a game",
     operationId: "remapBoxArt",
   })
-  @ApiOkResponse({ type: Game })
-  @ApiBody({ type: ImageUrlDto })
+  @ApiOkResponse({ type: () => Game })
+  @ApiBody({ type: () => ImageUrlDto })
   @MinimumRole(Role.EDITOR)
   async remapBoxArt(
     @Param() params: IdDto,

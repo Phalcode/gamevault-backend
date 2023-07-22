@@ -60,8 +60,8 @@ export class Links {
 
 export class PaginatedEntity<T> implements Paginated<T> {
   data: T[];
-  @ApiProperty({ description: "metadata of this list", type: Metadata })
+  @ApiProperty({ description: "metadata of this list", type: () => Metadata })
   meta: Metadata<T>;
-  @ApiProperty({ description: "links to related queries", type: Links })
+  @ApiProperty({ description: "links to related queries", type: () => Links })
   links: Links;
 }

@@ -35,17 +35,11 @@ export default {
     // Location of the files
     FILES: process.env.VOLUMES_FILES?.replace(/\/$/, "") || "/files",
     // Location of the images
-    IMAGES:
-      process.env.IMAGE_STORAGE_PATH?.replace(/\/$/, "") ||
-      process.env.VOLUMES_IMAGES?.replace(/\/$/, "") ||
-      "/images",
+    IMAGES: process.env.VOLUMES_IMAGES?.replace(/\/$/, "") || "/images",
     // Location of the Log files
     LOGS: process.env.VOLUMES_LOGS?.replace(/\/$/, "") || "/logs",
     // Location of the SQLITE DB (not needed for POSTGRESQL)
-    SQLITEDB:
-      process.env.DB_LOCATION?.replace(/\/$/, "") ||
-      process.env.VOLUMES_SQLITEDB?.replace(/\/$/, "") ||
-      "/db",
+    SQLITEDB: process.env.VOLUMES_SQLITEDB?.replace(/\/$/, "") || "/db",
   },
   DB: {
     // The database system (POSTGRESQL or SQLITE)

@@ -6,19 +6,19 @@ export function PaginateQueryOptions() {
     ApiQuery({
       name: "page",
       required: false,
-      type: Number,
+      type: () => Number,
       description: "page to retrieve",
     }),
     ApiQuery({
       name: "limit",
       required: false,
-      type: Number,
+      type: () => Number,
       description: `number of items per page to retrieve, default is ${Number.MAX_SAFE_INTEGER} (max safe integer)`,
     }),
     ApiQuery({
       name: "search",
       required: false,
-      type: String,
+      type: () => String,
       description: "search query",
     }),
     ApiQuery({

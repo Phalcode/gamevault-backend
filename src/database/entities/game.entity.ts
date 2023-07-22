@@ -99,7 +99,7 @@ export class Game extends AbstractEntity {
   @ApiProperty({
     description: "size of the game file in bytes",
     example: "1234567890",
-    type: String,
+    type: () => String,
   })
   size: bigint;
 

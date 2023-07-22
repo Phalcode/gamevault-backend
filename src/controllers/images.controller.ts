@@ -26,7 +26,7 @@ export class ImagesController {
     operationId: "getImage",
   })
   @ApiOkResponse({
-    type: Image,
+    type: () => Image,
     description: "The requested image",
   })
   @MinimumRole(Role.GUEST)
