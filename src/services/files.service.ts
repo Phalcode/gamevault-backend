@@ -10,8 +10,7 @@ import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
 import { list } from "node-7z";
-import { pipeline } from "node:stream/promises";
-
+import { pipeline } from "stream";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
