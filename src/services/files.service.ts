@@ -9,9 +9,7 @@ import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
-import { Data, list } from "node-7z";
-import { pipeline } from "stream";
-import logger from "src/logging";
+import _7z from "7zip-min";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -191,6 +189,25 @@ export class FilesService {
     );
   }
 
+  private listExeFilesIn7zipArchive(archivePath: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      _7z.list(archivePath, (error: Error, result: _7z.Result[]) => {
+        if (error) {
+          this.logger.error(error, "Error listing archive contents");
+          reject(error);
+          return;
+        }
+
+        // Filter out only the .exe files from the list
+        const exeFiles: string[] = result
+          .filter((entry) => entry.name.endsWith(".exe"))
+          .map((entry) => entry.name);
+
+        resolve(exeFiles);
+      });
+    });
+  }
+
   /**
    * Extracts the game type based on the provided file name and its contents.
    * This function uses the node-7z library to list the contents of the archive
@@ -226,14 +243,7 @@ export class FilesService {
         return GameType.SETUP_NEEDED;
       }
 
-      list(path, {
-        $cherryPick: ["*.exe"],
-        recursive: true,
-      }).on("end", function (data) {
-        logger.log(data);
-      });
-      return GameType.UNDETECTABLE;
-
+      const executablesList = await this.listExeFilesIn7zipArchive(path);
       this.logger.log("List of executables in archive:", executablesList);
 
       if (this.regexExtractSetupExecutable(executablesList)) {
