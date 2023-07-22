@@ -207,8 +207,19 @@ export class FilesService {
    */
   private async extractGameType(path: string): Promise<GameType> {
     try {
-      if (/\(DP\)/.test(path)) return GameType.DIRECT_PLAY;
-      if (/\(SN\)/.test(path)) return GameType.SETUP_NEEDED;
+      if (/\(DP\)/.test(path)) {
+        this.logger.debug(
+          `Manually overwrote game "${path}" as type: DIRECT_PLAY`,
+        );
+        return GameType.DIRECT_PLAY;
+      }
+
+      if (/\(SN\)/.test(path)) {
+        this.logger.debug(
+          `Manually overwrote game "${path}" as type: SETUP_NEEDED`,
+        );
+        return GameType.SETUP_NEEDED;
+      }
 
       const promisifiedList = promisify(list);
       const executablesList = (await promisifiedList(path, {
@@ -216,15 +227,17 @@ export class FilesService {
         recursive: true,
       })) as string[];
 
-      this.logger.log(executablesList, "List of executables.");
+      this.logger.log("List of executables in archive:", executablesList);
 
       if (this.regexExtractSetupExecutable(executablesList)) {
+        this.logger.debug(`Detected game "${path}" as type: SETUP_NEEDED`);
         return GameType.SETUP_NEEDED;
       }
 
+      this.logger.debug(`Detected game "${path}" as type: DIRECT_PLAY`);
       return GameType.DIRECT_PLAY;
     } catch (error) {
-      this.logger.error(error, "Error determining game type");
+      this.logger.error("Error determining game type:", error);
       return GameType.UNDETECTABLE;
     }
   }
