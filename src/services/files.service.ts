@@ -10,7 +10,7 @@ import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
 import { list } from "node-7z";
-import { promisify } from "util";
+import { pipeline } from "node:stream/promises";
 
 @Injectable()
 export class FilesService {
@@ -34,7 +34,7 @@ export class FilesService {
       const gameToIndex = new Game();
       try {
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
-        //gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
+        gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
         gameToIndex.title = this.regexExtractTitle(file.name);
         gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(
@@ -226,11 +226,14 @@ export class FilesService {
         return GameType.SETUP_NEEDED;
       }
 
-      const promisifiedList = promisify(list);
-      const executablesList = (await promisifiedList(path, {
-        $cherryPick: ["*.exe"],
-        recursive: true,
-      })) as string[];
+      let executablesList;
+      await pipeline(
+        list(path, {
+          $cherryPick: ["*.exe"],
+          recursive: true,
+        }),
+        executablesList,
+      );
 
       this.logger.log("List of executables in archive:", executablesList);
 
