@@ -31,7 +31,6 @@ export class UsersController {
    * @returns List of all activated and non-deleted users
    */
   @Get()
-  @ApiBody({ type: () => GamevaultUser, isArray: true })
   @ApiOperation({
     summary: "get an overview of all activated and non-deleted users",
     operationId: "getUsers",
@@ -49,7 +48,6 @@ export class UsersController {
    */
   @Get("all")
   @MinimumRole(Role.ADMIN)
-  @ApiBody({ type: () => GamevaultUser, isArray: true })
   @ApiOperation({
     summary: "get an overview of all users",
     operationId: "getAllUsers",
@@ -68,7 +66,6 @@ export class UsersController {
    * @throws {Error} If no user is found with the provided username.
    */
   @Get("me")
-  @ApiBody({ type: () => GamevaultUser })
   @ApiOperation({
     summary: "get details of your user",
     operationId: "getMe",
@@ -136,7 +133,6 @@ export class UsersController {
    *   exist.
    */
   @Get(":id")
-  @ApiBody({ type: () => GamevaultUser })
   @ApiOperation({
     summary: "get details on a user",
     operationId: "getUserById",
