@@ -34,7 +34,7 @@ export class FilesService {
       const gameToIndex = new Game();
       try {
         gameToIndex.file_path = file.name;
-        gameToIndex.type = await this.extractGameType(file.name);
+        gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
         gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
         gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(
