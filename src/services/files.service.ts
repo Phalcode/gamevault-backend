@@ -9,8 +9,9 @@ import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
-import { list } from "node-7z";
+import { Data, list } from "node-7z";
 import { pipeline } from "stream";
+import logger from "src/logging";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -225,14 +226,13 @@ export class FilesService {
         return GameType.SETUP_NEEDED;
       }
 
-      let executablesList;
-      await pipeline(
-        list(path, {
-          $cherryPick: ["*.exe"],
-          recursive: true,
-        }),
-        executablesList,
-      );
+      list(path, {
+        $cherryPick: ["*.exe"],
+        recursive: true,
+      }).on("end", function (data) {
+        logger.log(data);
+      });
+      return GameType.UNDETECTABLE;
 
       this.logger.log("List of executables in archive:", executablesList);
 
