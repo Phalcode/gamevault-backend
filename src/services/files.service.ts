@@ -9,8 +9,7 @@ import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
-import sevenzipbin from "7zip-bin";
-import { list as sevenziplist } from "node-7z";
+import { list } from "node-7z";
 import { promisify } from "util";
 
 @Injectable()
@@ -214,9 +213,8 @@ export class FilesService {
       if (/\(DP\)/.test(fileName)) return GameType.DIRECT_PLAY;
       if (/\(SN\)/.test(fileName)) return GameType.SETUP_NEEDED;
 
-      const promisifiedList = promisify(sevenziplist);
+      const promisifiedList = promisify(list);
       const executablesList = (await promisifiedList(fileName, {
-        $bin: sevenzipbin.path7x,
         $cherryPick: ["*.exe"],
         recursive: true,
       })) as string[];
