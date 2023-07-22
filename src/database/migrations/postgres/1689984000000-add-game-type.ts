@@ -19,9 +19,10 @@ export class AddGameType1689984000000 implements MigrationInterface {
     await queryRunner.query(`
       UPDATE "public"."game"
       SET "type" = CASE
-                   WHEN "direct_play" = true THEN 'DIRECT_PLAY'
-                   ELSE 'UNDETECTABLE'
-                   END;`);
+                    WHEN "direct_play" = true THEN 'DIRECT_PLAY'::game_type_enum
+                    ELSE 'UNDETECTABLE'::game_type_enum
+                  END;
+      `);
 
     await new AddDirectPlay1689638400000().down(queryRunner);
   }
