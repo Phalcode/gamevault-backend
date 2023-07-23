@@ -9,9 +9,8 @@ import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
-import { list } from "node-7z";
+import { list, test } from "node-7z";
 import { error } from "console";
-import { promisify } from "util";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -288,7 +287,18 @@ export class FilesService {
         this.logger.log(
           `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
         );
+        continue;
       }
+
+      // Check integrity of archive
+      test(`${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`, {
+        recursive: true,
+      }).on("error", (error) => {
+        this.logger.warn(
+          { error },
+          "Game archive appears to be damaged or corrupted. Please verify integrity.",
+        );
+      });
     }
     this.logger.log("FINISHED INTEGRITY CHECK");
   }
