@@ -10,8 +10,6 @@ import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
 import { list, test } from "node-7z";
-import { error } from "console";
-import { throwError } from "rxjs";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -305,13 +303,25 @@ export class FilesService {
           continue;
         }
 
-        test(`${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`, {
-          recursive: true,
-        }).on("error", (error) => {
-          this.logger.warn(
-            error,
-            `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
+        await new Promise<void>((resolve, reject) => {
+          const result = test(
+            `${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`,
+            {
+              recursive: true,
+            },
           );
+
+          result.on("error", (error) => {
+            this.logger.warn(
+              error,
+              `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
+            );
+            reject(error);
+          });
+
+          result.on("end", () => {
+            resolve();
+          });
         });
       } catch (error) {
         this.logger.error(
