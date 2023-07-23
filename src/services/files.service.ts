@@ -304,15 +304,16 @@ export class FilesService {
         continue;
       }
 
-      // Check integrity of archive
-      test(`${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`, {
-        recursive: true,
-      }).on("error", (error) => {
-        this.logger.warn(
-          error,
-          `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
-        );
-      });
+      try {
+        test(`${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`, {
+          recursive: true,
+        }).on("error", (error) => {
+          this.logger.warn(
+            error,
+            `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
+          );
+        });
+      } catch (error) {}
     }
     this.logger.log("FINISHED INTEGRITY CHECK");
   }
