@@ -243,17 +243,27 @@ export class FilesService {
   }
 
   async getListOfExecutables(path: string): Promise<string[]> {
-    const executablesList: string[] = [];
-    const listStream = list(path, {
-      recursive: true,
-      $cherryPick: ["*.exe"],
+    return new Promise<string[]>((resolve, reject) => {
+      const executablesList: string[] = [];
+      const listStream = list(path, {
+        recursive: true,
+        $cherryPick: ["*.exe"],
+      });
+
+      listStream.on("data", (data) => executablesList.push(data.file));
+
+      listStream.on("error", (error) => {
+        this.logger.error(
+          error,
+          `Error fetching Executables List for "${path}"`,
+        );
+        reject(error); // Reject the Promise with the error
+      });
+
+      listStream.on("end", () => {
+        resolve(executablesList); // Resolve the Promise with the list of executables
+      });
     });
-    listStream.on("data", (data) => executablesList.push(data.file));
-    listStream.on("error", (error) =>
-      this.logger.error(error, `Error fetching Executables List for "${path}"`),
-    );
-    await new Promise((resolve) => listStream.on("end", resolve));
-    return executablesList;
   }
 
   /**
