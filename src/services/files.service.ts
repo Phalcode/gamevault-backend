@@ -11,6 +11,7 @@ import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
 import { list, test } from "node-7z";
 import { error } from "console";
+import { throwError } from "rxjs";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -248,6 +249,9 @@ export class FilesService {
       $cherryPick: ["*.exe"],
     });
     listStream.on("data", (data) => executablesList.push(data.file));
+    listStream.on("error", (error) =>
+      this.logger.error(error, `Error fetching Executables List for "${path}"`),
+    );
     await new Promise((resolve) => listStream.on("end", resolve));
     return executablesList;
   }
@@ -295,8 +299,8 @@ export class FilesService {
         recursive: true,
       }).on("error", (error) => {
         this.logger.warn(
-          { error },
-          "Game archive appears to be damaged or corrupted. Please verify integrity.",
+          error,
+          `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
         );
       });
     }
