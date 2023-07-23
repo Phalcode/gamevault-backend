@@ -302,27 +302,6 @@ export class FilesService {
           );
           continue;
         }
-
-        await new Promise<void>((resolve, reject) => {
-          const result = test(
-            `${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`,
-            {
-              recursive: true,
-            },
-          );
-
-          result.on("error", (error) => {
-            this.logger.warn(
-              error,
-              `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
-            );
-            reject(error);
-          });
-
-          result.on("end", () => {
-            resolve();
-          });
-        });
       } catch (error) {
         this.logger.error(
           error,
