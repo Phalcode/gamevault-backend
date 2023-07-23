@@ -290,21 +290,21 @@ export class FilesService {
     }
     this.logger.log("STARTED INTEGRITY CHECK");
     for (const gameInDatabase of gamesInDatabase) {
-      const gameInFileSystem = gamesInFileSystem.find(
-        (g) =>
-          `${configuration.VOLUMES.FILES}/${g.name}` ===
-          gameInDatabase.file_path,
-      );
-      // If game is not in file system, mark it as deleted
-      if (!gameInFileSystem) {
-        await this.gamesService.deleteGame(gameInDatabase);
-        this.logger.log(
-          `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
-        );
-        continue;
-      }
-
       try {
+        const gameInFileSystem = gamesInFileSystem.find(
+          (g) =>
+            `${configuration.VOLUMES.FILES}/${g.name}` ===
+            gameInDatabase.file_path,
+        );
+        // If game is not in file system, mark it as deleted
+        if (!gameInFileSystem) {
+          await this.gamesService.deleteGame(gameInDatabase);
+          this.logger.log(
+            `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
+          );
+          continue;
+        }
+
         test(`${configuration.VOLUMES.FILES}/${gameInFileSystem.name}`, {
           recursive: true,
         }).on("error", (error) => {
@@ -313,7 +313,12 @@ export class FilesService {
             `Game archive for "${configuration.VOLUMES.FILES}/${gameInFileSystem.name}" appears to be damaged or corrupted. Please verify integrity.`,
           );
         });
-      } catch (error) {}
+      } catch (error) {
+        this.logger.error(
+          error,
+          `Error checking integrity of file "${gameInDatabase.file_path}"`,
+        );
+      }
     }
     this.logger.log("FINISHED INTEGRITY CHECK");
   }
