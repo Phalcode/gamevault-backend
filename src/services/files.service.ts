@@ -242,22 +242,15 @@ export class FilesService {
     }
   }
 
-  async getListOfExecutables(path: string): Promise<string[]> {
-    const executablesList: string[] = [];
-
-    const listStream = list(path, { recursive: true, $cherryPick: ["*.exe"] });
-
-    const onData = promisify(listStream.on.bind(listStream, "data"));
-    const onEnd = promisify(listStream.on.bind(listStream, "end"));
-
-    try {
-      await onData((data: any) => executablesList.push(data));
-      await onEnd();
-
-      return executablesList;
-    } catch (error) {
-      throw error;
-    }
+  async getListOfExecutables(path: string) {
+    const executablesList = [];
+    const listStream = list(path, {
+      recursive: true,
+      $cherryPick: ["*.exe"],
+    });
+    listStream.on("data", (data) => executablesList.push(data));
+    await new Promise((resolve) => listStream.on("end", resolve));
+    return executablesList;
   }
 
   /**
