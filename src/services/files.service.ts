@@ -242,13 +242,13 @@ export class FilesService {
     }
   }
 
-  async getListOfExecutables(path: string) {
-    const executablesList = [];
+  async getListOfExecutables(path: string): Promise<string[]> {
+    const executablesList: string[] = [];
     const listStream = list(path, {
       recursive: true,
       $cherryPick: ["*.exe"],
     });
-    listStream.on("data", (data) => executablesList.push(data));
+    listStream.on("data", (data) => executablesList.push(data.file));
     await new Promise((resolve) => listStream.on("end", resolve));
     return executablesList;
   }
