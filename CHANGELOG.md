@@ -6,13 +6,14 @@
 
 ### Changes
 
-- Added Direct Play Flag. You can now mark games that don't need an installation as direct play to simplify the client installation process.
-- Added Setup Needed Flag You can now mark games that need an installation as setup needed to simplify the client installation process.
-- Removed Direct Play Boolean and introduced broader Game Type Enum
-- Added autodetection of Game Type (direct_play/setup_needed). Manually overridable by admins via Filename.
-- Added 7zip to the alpine container
-- Make GameVault support all archive formats, that 7zip does
-- Polished API Specification
+- Added **7zip to the Alpine Container**: The Alpine container now includes 7zip support, enabling handling of a wider range of archive formats.
+- Added **Direct Play Override Flag (DP)**: You can now manually mark games that don't require an installation as "Direct Play" to simplify the client installation process.
+- Added **Setup Needed Override Flag (SN)**: You can now manually mark games that require an installation as "Setup Needed" to simplify the client installation process.
+- Removed **Direct Play Boolean** and introduced a broader **Game Type Enum**: Instead of a simple boolean, games now have a more flexible Game Type classification to allow better classification.
+- Added **Autodetection of Game Type** (direct_play/setup_needed): The system can automatically detect the Game Type (Direct Play or Setup Needed) based on the archive contents. However, administrators can still manually override the detected type by specifying it in the filename.
+- **Expanded GameVault Support to All Archive Formats Supported by 7zip**: GameVault can now work with any archive formats that 7zip supports, enhancing compatibility with various game archives.
+- **Polished API Specification**: The API specification has been refined and optimized for code generation.
+- **Custom List of Supported File Formats**: You can now provide your own comma-seperated-list of supported file formats through the Config GAMES_SUPPORTED_FILE_FORMATS. For example `.rar,.7z,.zip` This customization allows you to tailor the supported formats according to your needs. However, it's essential to be cautious about including file formats not supported by 7zip, as it could lead to loss of some functionalities (like auto-type-detection) or errors.
 
 ### Thanks
 

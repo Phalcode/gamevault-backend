@@ -3,13 +3,13 @@ import { IGameVaultFile } from "../models/file.interface";
 import { Game } from "../database/entities/game.entity";
 import { GamesService } from "./games.service";
 import { createReadStream, readdirSync, statSync } from "fs";
-import { extname } from "path";
+import { basename, extname } from "path";
 import configuration from "../configuration";
 import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
 import { GameType } from "../models/game-type.enum";
-import { list, test } from "node-7z";
+import { list } from "node-7z";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -33,13 +33,11 @@ export class FilesService {
       try {
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
         gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
-        gameToIndex.title = this.regexExtractTitle(file.name);
+        gameToIndex.title = this.extractTitle(file.name);
         gameToIndex.size = file.size;
-        gameToIndex.release_date = new Date(
-          this.regexExtractReleaseYear(file.name),
-        );
-        gameToIndex.version = this.regexExtractVersion(file.name);
-        gameToIndex.early_access = this.regexExtractEarlyAccessFlag(file.name);
+        gameToIndex.release_date = new Date(this.extractReleaseYear(file.name));
+        gameToIndex.version = this.extractVersion(file.name);
+        gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistance, Game] =
@@ -125,18 +123,13 @@ export class FilesService {
    * @param fileName - A string representing the file name.
    * @returns - The extracted game title string.
    */
-  private regexExtractTitle(fileName: string): string {
-    return (
-      fileName
-        //remove directory
-        .replace(/^.*[\\/]/, "")
-        //remove extension
-        .replace(/\.([^.]*)$/, "")
-        //remove everything inside parentheses
-        .replaceAll(/\([^)]*\)/g, "")
-        //remove remaining spaces at start and end of string
-        .trim()
-    );
+  private extractTitle(fileName: string): string {
+    const directoryRemoved = fileName.replace(/^.*[\\/]/, "");
+    const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
+    const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
+    const trimmedTitle = parenthesesRemoved.trim();
+
+    return trimmedTitle;
   }
 
   /**
@@ -148,7 +141,7 @@ export class FilesService {
    * @returns - The extracted game version string or undefined if there's no
    *   match.
    */
-  private regexExtractVersion(fileName: string): string | undefined {
+  private extractVersion(fileName: string): string | undefined {
     const match = RegExp(/\((v[^)]+)\)/).exec(fileName);
     if (match?.[1]) {
       return match[1];
@@ -165,7 +158,7 @@ export class FilesService {
    * @returns - The extracted game release year string or null if there's no
    *   match for the regular expression.
    */
-  private regexExtractReleaseYear(fileName: string) {
+  private extractReleaseYear(fileName: string) {
     return RegExp(/\((\d{4})\)/).exec(fileName)[1];
   }
 
@@ -178,7 +171,7 @@ export class FilesService {
    * @returns - A boolean value indicating if the game is in early access or
    *   not.
    */
-  private regexExtractEarlyAccessFlag(fileName: string): boolean {
+  private extractEarlyAccessFlag(fileName: string): boolean {
     return /\(EA\)/.test(fileName);
   }
 
@@ -187,18 +180,54 @@ export class FilesService {
    * executable pattern.
    *
    * @private
-   * @param {string[]} executables - An array of executable file paths.
+   * @param {string[]} files - An array of executable file paths.
    * @returns {boolean} - Returns true if at least one executable matches the
    *   setup executable pattern, false otherwise.
    */
-  private regexExtractSetupExecutable(executables: string[]): boolean {
-    return executables.some((executable) =>
-      /(^setup\.exe$|^setup_.*\.exe$)/.test(
-        executable.replace(/^.*[\\/]/, "").toLowerCase(),
-      ),
-    );
-  }
+  private detectSetupExecutable(files: string[]): boolean {
+    const installerPatterns: { regex: RegExp; description: string }[] = [
+      { regex: /^setup\.exe$/i, description: "setup.exe" },
+      { regex: /^autorun\.exe$/i, description: "autorun.exe" },
+      {
+        regex: /^(?!.*\bredist\b).*\.msi$/,
+        description: "*.msi (not containing 'redist')",
+      },
+      { regex: /^setup_.*\.exe$/i, description: "setup-*.exe" },
+      { regex: /^setup-.*\.exe$/i, description: "setup_*.exe" },
+      { regex: /^install\.exe$/i, description: "install.exe" },
+      { regex: /^unarc\.exe$/i, description: "unarc.exe" },
+      { regex: /^oalinst\.exe$/i, description: "oalinst.exe" },
+    ];
 
+    const detectedPatterns: string[] = [];
+    let detectedArchive: string | null = null;
+
+    for (const file of files) {
+      const fileExt = extname(file).toLowerCase();
+      const fileName = basename(file).toLowerCase();
+
+      if (configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(fileExt)) {
+        detectedArchive = file;
+      }
+
+      for (const pattern of installerPatterns) {
+        if (pattern.regex.test(fileName)) {
+          this.logger.debug(
+            `File "${file}" matched pattern "${pattern.description}"`,
+          );
+          detectedPatterns.push(pattern.description);
+        }
+      }
+    }
+
+    if (detectedArchive && detectedPatterns.length === 0) {
+      throw new Error(
+        `Found an archive file ("${detectedArchive}") but no executables inside archive which breaks your game type detection for this particular game. If this archive inside your archive actually contains the game files Please just directly feed it to GameVault with the correct naming structure instead of repacking it.`,
+      );
+    }
+
+    return detectedPatterns.length > 0;
+  }
   /**
    * Extracts the game type based on the provided file name and its contents.
    * This function uses the node-7z library to list the contents of the archive
@@ -237,7 +266,7 @@ export class FilesService {
       const executablesList = await this.getListOfExecutables(path);
 
       this.logger.debug(executablesList, "List of executables in archive");
-      if (this.regexExtractSetupExecutable(executablesList)) {
+      if (this.detectSetupExecutable(executablesList)) {
         this.logger.debug(`Detected game "${path}" as type: SETUP_NEEDED`);
         return GameType.SETUP_NEEDED;
       }
@@ -255,7 +284,9 @@ export class FilesService {
       const executablesList: string[] = [];
       const listStream = list(path, {
         recursive: true,
-        $cherryPick: ["*.exe"],
+        $cherryPick: ["*.exe", ".msi"].concat(
+          configuration.GAMES.SUPPORTED_FILE_FORMATS,
+        ),
       });
 
       listStream.on("data", (data) => executablesList.push(data.file));
@@ -340,46 +371,9 @@ export class FilesService {
       recursive: true,
     })
       .filter((file) =>
-        [
-          ".7z",
-          ".xz",
-          ".bz2",
-          ".gz",
-          ".tar",
-          ".zip",
-          ".wim",
-          ".ar",
-          ".arj",
-          ".cab",
-          ".chm",
-          ".cpio",
-          ".cramfs",
-          ".dmg",
-          ".ext",
-          ".fat",
-          ".gpt",
-          ".hfs",
-          ".ihex",
-          ".iso",
-          ".lzh",
-          ".lzma",
-          ".mbr",
-          ".msi",
-          ".nsis",
-          ".ntfs",
-          ".qcow2",
-          ".rar",
-          ".rpm",
-          ".squashfs",
-          ".udf",
-          ".uefi",
-          ".vdi",
-          ".vhd",
-          ".vmdk",
-          ".wim",
-          ".xar",
-          ".z",
-        ].includes(extname(file).toLowerCase()),
+        configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+          extname(file).toLowerCase(),
+        ),
       )
       .map(
         (file) =>

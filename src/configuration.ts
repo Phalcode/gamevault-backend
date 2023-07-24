@@ -1,3 +1,5 @@
+import globals from "./globals";
+
 export default {
   SERVER: {
     // The port the server should listen on
@@ -80,6 +82,13 @@ export default {
     // index interval (in minutes)
     INDEX_INTERVAL_IN_MINUTES:
       Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 5,
+
+    // Supported file formats
+    SUPPORTED_FILE_FORMATS: process.env.GAMES_SUPPORTED_FILE_FORMATS
+      ? process.env.GAMES_SUPPORTED_FILE_FORMATS.split(",").map((item) =>
+          item.trim(),
+        )
+      : globals.SUPPORTED_FILE_FORMATS,
   },
   IMAGE: {
     // How long an image must be not accessed until it gets deleted.
