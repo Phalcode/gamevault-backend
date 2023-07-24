@@ -185,7 +185,7 @@ export class FilesService {
   /** Checks if any of the executables match "setup.exe" or "setup_*.exe". */
   private regexExtractSetupExecutable(executables: string[]): boolean {
     return executables.some((executable) =>
-      /(^setup\.exe$|^setup_.*\.exe$)/.test(executable),
+      /(^setup\.exe$|^setup_.*\.exe$)/.test(executable.toLowerCase()),
     );
   }
 
