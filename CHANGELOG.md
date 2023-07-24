@@ -2,10 +2,11 @@
 
 ## Upcoming
 
-## 2.2.0
+## 2.1.0
 
 ### Changes
 
+- Added Direct Play Flag. You can now mark games that don't need an installation as direct play to simplify the client installation process.
 - Added Setup Needed Flag You can now mark games that need an installation as setup needed to simplify the client installation process.
 - Removed Direct Play Boolean and introduced broader Game Type Enum
 - Added autodetection of Game Type (direct_play/setup_needed). Manually overridable by admins via Filename.
@@ -16,12 +17,6 @@
 ### Thanks
 
 - yodatak
-
-## 2.1.0
-
-### Changes
-
-- Added Direct Play Flag. You can now mark games that don't need an installation as direct play to simplify the client installation process.
 
 ## 2.0.0
 
