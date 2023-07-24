@@ -182,10 +182,20 @@ export class FilesService {
     return /\(EA\)/.test(fileName);
   }
 
-  /** Checks if any of the executables match "setup.exe" or "setup_*.exe". */
+  /**
+   * Checks if any of the executables in the given array match the setup
+   * executable pattern.
+   *
+   * @private
+   * @param {string[]} executables - An array of executable file paths.
+   * @returns {boolean} - Returns true if at least one executable matches the
+   *   setup executable pattern, false otherwise.
+   */
   private regexExtractSetupExecutable(executables: string[]): boolean {
     return executables.some((executable) =>
-      /(^setup\.exe$|^setup_.*\.exe$)/.test(executable.toLowerCase()),
+      /(^setup\.exe$|^setup_.*\.exe$)/.test(
+        executable.replace(/^.*[\\/]/, "").toLowerCase(),
+      ),
     );
   }
 
