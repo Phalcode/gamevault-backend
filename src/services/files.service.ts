@@ -32,7 +32,7 @@ export class FilesService {
       const gameToIndex = new Game();
       try {
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
-        gameToIndex.type = await this.extractGameType(gameToIndex.file_path);
+        gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
         gameToIndex.title = this.extractTitle(file.name);
         gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(this.extractReleaseYear(file.name));
@@ -175,17 +175,8 @@ export class FilesService {
     return /\(EA\)/.test(fileName);
   }
 
-  /**
-   * Checks if any of the executables in the given array match the setup
-   * executable pattern.
-   *
-   * @private
-   * @param {string[]} files - An array of executable file paths.
-   * @returns {boolean} - Returns true if at least one executable matches the
-   *   setup executable pattern, false otherwise.
-   */
-  private detectSetupExecutable(files: string[]): boolean {
-    const installerPatterns: { regex: RegExp; description: string }[] = [
+  private detectWindowsSetupExecutable(files: string[]): boolean {
+    const windowsInstallerPatterns: { regex: RegExp; description: string }[] = [
       { regex: /^setup\.exe$/i, description: "setup.exe" },
       { regex: /^autorun\.exe$/i, description: "autorun.exe" },
       {
@@ -200,17 +191,11 @@ export class FilesService {
     ];
 
     const detectedPatterns: string[] = [];
-    let detectedArchive: string | null = null;
 
     for (const file of files) {
-      const fileExt = extname(file).toLowerCase();
       const fileName = basename(file).toLowerCase();
 
-      if (configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(fileExt)) {
-        detectedArchive = file;
-      }
-
-      for (const pattern of installerPatterns) {
+      for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
           this.logger.debug(
             `File "${file}" matched pattern "${pattern.description}"`,
@@ -220,73 +205,60 @@ export class FilesService {
       }
     }
 
-    if (detectedArchive && detectedPatterns.length === 0) {
-      throw new Error(
-        `Found an archive file ("${detectedArchive}") but no executables inside archive which breaks your game type detection for this particular game. If this archive inside your archive actually contains the game files Please just directly feed it to GameVault with the correct naming structure instead of repacking it.`,
-      );
-    }
-
     return detectedPatterns.length > 0;
   }
-  /**
-   * Extracts the game type based on the provided file name and its contents.
-   * This function uses the node-7z library to list the contents of the archive
-   * (if applicable) and then determines the game type based on the presence of
-   * certain patterns in the file name and the listed files.
-   *
-   * @async
-   * @private
-   * @param {string} path - The path of the file/archive to be analyzed.
-   * @returns {Promise<GameType>} A promise that resolves to the determined
-   *   GameType.
-   * @throws {Error} If any error occurs during the process, it will be caught
-   *   and logged.
-   */
-  private async extractGameType(path: string): Promise<GameType> {
+  
+  private async detectGameType(path: string): Promise<GameType> {
     try {
-      if (/\(DP\)/.test(path)) {
+      if (/\(W_DP\)/.test(path)) {
         this.logger.debug(
-          `Manually overwrote game "${path}" as type: DIRECT_PLAY`,
+          `Detected game "${path}" type as "DIRECT_PLAY" because of (W_DP) override in filename.`,
         );
-        return GameType.DIRECT_PLAY;
+        return GameType.WINDOWS_DIRECT_PLAY;
       }
 
-      if (/\(SN\)/.test(path)) {
+      if (/\(W_SN\)/.test(path)) {
         this.logger.debug(
-          `Manually overwrote game "${path}" as type: SETUP_NEEDED`,
+          `Detected game "${path}" type as "SETUP_NEEDED" because of (W_SN) override in filename.`,
         );
-        return GameType.SETUP_NEEDED;
+        return GameType.WINDOWS_SETUP_NEEDED;
       }
 
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
-        return GameType.SETUP_NEEDED;
+        return GameType.WINDOWS_SETUP_NEEDED;
       }
 
-      const executablesList = await this.getListOfExecutables(path);
-
-      this.logger.debug(executablesList, "List of executables in archive");
-      if (this.detectSetupExecutable(executablesList)) {
-        this.logger.debug(`Detected game "${path}" as type: SETUP_NEEDED`);
-        return GameType.SETUP_NEEDED;
+      if (
+        this.detectWindowsSetupExecutable(
+          await this.getAllExecutablesFromArchive(path),
+        )
+      ) {
+        this.logger.debug(
+          `Detected game "${path}" type as "WINDOWS_SETUP_NEEDED"`,
+        );
+        return GameType.WINDOWS_SETUP_NEEDED;
       }
 
-      this.logger.debug(`Detected game "${path}" as type: DIRECT_PLAY`);
-      return GameType.DIRECT_PLAY;
+      // More Platforms and Game Types can be added here.
+
+      this.logger.debug(
+        `Detected game "${path}" type as "WINDOWS_DIRECT_PLAY"`,
+      );
+      return GameType.WINDOWS_DIRECT_PLAY;
     } catch (error) {
-      this.logger.error("Error determining game type:", error);
+      this.logger.error("Error detecting game type:", error);
       return GameType.UNDETECTABLE;
     }
   }
 
-  async getListOfExecutables(path: string): Promise<string[]> {
+  private async getAllExecutablesFromArchive(path: string): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
       const executablesList: string[] = [];
       const listStream = list(path, {
         recursive: true,
-        $cherryPick: ["*.exe", ".msi"].concat(
-          configuration.GAMES.SUPPORTED_FILE_FORMATS,
-        ),
+        // Further executable types of other platforms can be added here later
+        $cherryPick: ["*.exe", "*.msi"],
       });
 
       listStream.on("data", (data) => executablesList.push(data.file));
@@ -296,11 +268,21 @@ export class FilesService {
           error,
           `Error fetching Executables List for "${path}"`,
         );
-        reject(error); // Reject the Promise with the error
+        reject(error);
       });
 
       listStream.on("end", () => {
-        resolve(executablesList); // Resolve the Promise with the list of executables
+        if (executablesList.length) {
+          this.logger.debug(
+            executablesList,
+            `Found ${executablesList.length} executables in archive "${path}"`,
+          );
+        } else {
+          this.logger.warn(
+            `Could not detect any executables in archive "${path}". Be aware that Game Type Detection does not support nested archives.`,
+          );
+        }
+        resolve(executablesList);
       });
     });
   }
@@ -368,7 +350,7 @@ export class FilesService {
 
     const files = readdirSync(configuration.VOLUMES.FILES, {
       encoding: "utf8",
-      recursive: true,
+      recursive: configuration.GAMES.SEARCH_RECURSIVE,
     })
       .filter((file) =>
         configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(

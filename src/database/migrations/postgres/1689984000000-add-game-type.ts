@@ -8,8 +8,8 @@ export class AddGameType1689984000000 implements MigrationInterface {
     await queryRunner.query(`
       CREATE TYPE "public"."game_type_enum" AS ENUM (
         'UNDETECTABLE',
-        'SETUP_NEEDED',
-        'DIRECT_PLAY'
+        'WINDOWS_SETUP_NEEDED',
+        'WINDOWS_DIRECT_PLAY'
       );`);
 
     await queryRunner.query(`
@@ -18,7 +18,7 @@ export class AddGameType1689984000000 implements MigrationInterface {
 
     await queryRunner.query(`
       UPDATE "public"."game"
-      SET "type" = 'DIRECT_PLAY'
+      SET "type" = 'WINDOWS_DIRECT_PLAY'
       WHERE "direct_play" = true
       `);
 
@@ -31,7 +31,7 @@ export class AddGameType1689984000000 implements MigrationInterface {
     await queryRunner.query(`
       UPDATE "public"."game"
       SET "direct_play" = true
-      WHERE "type" = 'DIRECT_PLAY'
+      WHERE "type" = 'WINDOWS_DIRECT_PLAY'
       `);
 
     await queryRunner.query(`

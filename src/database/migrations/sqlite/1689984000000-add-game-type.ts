@@ -10,15 +10,15 @@ export class AddGameType1689984000000 implements MigrationInterface {
       ADD COLUMN "type" varchar CHECK(
         "type" IN (
             'UNDETECTABLE',
-            'DIRECT_PLAY',
-            'SETUP_NEEDED'
+            'WINDOWS_DIRECT_PLAY',
+            'WINDOWS_SETUP_NEEDED'
         )
     ) NOT NULL DEFAULT 'UNDETECTABLE';`);
 
     await queryRunner.query(`
       UPDATE "game"
       SET "type" = CASE
-                   WHEN "direct_play" = true THEN 'DIRECT_PLAY'
+                   WHEN "direct_play" = true THEN 'WINDOWS_DIRECT_PLAY'
                    ELSE 'UNDETECTABLE'
                    END;`);
 
@@ -31,7 +31,7 @@ export class AddGameType1689984000000 implements MigrationInterface {
     await queryRunner.query(`
     UPDATE "game"
     SET "direct_play" = CASE
-                 WHEN type = 'DIRECT_PLAY' THEN 1
+                 WHEN type = 'WINDOWS_DIRECT_PLAY' THEN 1
                  ELSE 0
                  END;`);
 
