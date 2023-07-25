@@ -172,7 +172,7 @@ export class Game extends AbstractEntity {
     description: "type of the game",
     type: "enum",
     enum: GameType,
-    example: GameType.DIRECT_PLAY,
+    example: GameType.WINDOWS_PORTABLE,
   })
   type: GameType;
 

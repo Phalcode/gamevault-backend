@@ -87,7 +87,7 @@ export class GamesController {
         metacritic_rating: all_filters,
         average_playtime: all_filters,
         early_access: all_filters,
-        direct_play: all_filters,
+        type: all_filters,
         "developers.name": all_filters,
         "genres.name": all_filters,
         "publishers.name": all_filters,

@@ -198,7 +198,7 @@ export class FilesService {
       for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
           this.logger.debug(
-            `File "${file}" matched pattern "${pattern.description}"`,
+            `File "${file}" matched windows installer pattern "${pattern.description}"`,
           );
           detectedPatterns.push(pattern.description);
         }
@@ -207,7 +207,7 @@ export class FilesService {
 
     return detectedPatterns.length > 0;
   }
-  
+
   private async detectGameType(path: string): Promise<GameType> {
     try {
       if (/\(W_P\)/.test(path)) {
