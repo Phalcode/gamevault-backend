@@ -187,7 +187,6 @@ export class FilesService {
       { regex: /^setup-.*\.exe$/i, description: "setup-*.exe" },
       { regex: /^install\.exe$/i, description: "install.exe" },
       { regex: /^unarc\.exe$/i, description: "unarc.exe" },
-      { regex: /^oalinst\.exe$/i, description: "oalinst.exe" },
     ];
 
     const detectedPatterns: string[] = [];
