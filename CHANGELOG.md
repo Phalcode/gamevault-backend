@@ -8,9 +8,9 @@
 
 - Added **7zip to the Alpine Container**: The Alpine container now includes 7zip support, enabling handling of a wider range of archive formats.
 - Removed **Direct Play Boolean** and introduced a broader **Game Type Enum**: Instead of a simple boolean, games now have a more flexible Game Type classification to allow better classification across different platforms and installation types.
-- Added **Windows Direct Play Override Flag (W_DP)**: You can now manually mark windows games that don't require an installation as "Direct Play" to simplify the client installation process.
-- Added **Windows Setup Needed Override Flag (W_SN)**: You can now manually mark windows games that require an installation as "Setup Needed" to simplify the client installation process.
-- Added **Autodetection of Game Type** (currently only supports W_DP/W_SN): The system can automatically detect the Game Type (Windows Direct Play or Windows Setup Needed) based on the archive contents. However, administrators can still manually override the detected type by specifying it in the filename.
+- Added **Windows Portable Override Flag (W_P)**: You can now manually mark windows games that don't require an installation to simplify the client installation process.
+- Added **Windows Setup Override Flag (W_S)**: You can now manually mark windows games that require an installation to simplify the client installation process.
+- Added **Autodetection of Game Type** (currently only supports Windows Portable and Windows Setup): The system can automatically detect the Game Type (Windows Portable or Windows Setup) based on the archive contents. However, administrators can still manually override the detected type by specifying it in the filename if gets detected wrong.
 - **Expanded GameVault Support to All Archive Formats Supported by 7zip**: GameVault can now work with any archive formats that 7zip supports, enhancing compatibility with various game archives.
 - **Custom List of Supported File Formats**: You can now provide your own comma-seperated-list of supported file formats through the Config GAMES_SUPPORTED_FILE_FORMATS. For example `.rar,.7z,.zip` This customization allows you to tailor the supported formats according to your needs. However, it's essential to be cautious about including file formats not supported by 7zip, as it could lead to loss of some functionalities (like auto-type-detection) or errors.
 - **Polished API Specification**: The API specification has been refined and optimized for code generation.

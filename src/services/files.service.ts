@@ -210,23 +210,23 @@ export class FilesService {
   
   private async detectGameType(path: string): Promise<GameType> {
     try {
-      if (/\(W_DP\)/.test(path)) {
+      if (/\(W_P\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as "DIRECT_PLAY" because of (W_DP) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE} because of (W_P) override in filename.`,
         );
-        return GameType.WINDOWS_DIRECT_PLAY;
+        return GameType.WINDOWS_PORTABLE;
       }
 
-      if (/\(W_SN\)/.test(path)) {
+      if (/\(W_S\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as "SETUP_NEEDED" because of (W_SN) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP} because of (W_S) override in filename.`,
         );
-        return GameType.WINDOWS_SETUP_NEEDED;
+        return GameType.WINDOWS_SETUP;
       }
 
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
-        return GameType.WINDOWS_SETUP_NEEDED;
+        return GameType.WINDOWS_SETUP;
       }
 
       if (
@@ -235,17 +235,17 @@ export class FilesService {
         )
       ) {
         this.logger.debug(
-          `Detected game "${path}" type as "WINDOWS_SETUP_NEEDED"`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}`,
         );
-        return GameType.WINDOWS_SETUP_NEEDED;
+        return GameType.WINDOWS_SETUP;
       }
 
       // More Platforms and Game Types can be added here.
 
       this.logger.debug(
-        `Detected game "${path}" type as "WINDOWS_DIRECT_PLAY"`,
+        `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}`,
       );
-      return GameType.WINDOWS_DIRECT_PLAY;
+      return GameType.WINDOWS_PORTABLE;
     } catch (error) {
       this.logger.error("Error detecting game type:", error);
       return GameType.UNDETECTABLE;
