@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:20.5-alpine AS base
 
 # Default Variables
 ENV PUID=1000
