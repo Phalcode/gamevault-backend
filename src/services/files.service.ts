@@ -33,6 +33,9 @@ export class FilesService {
       try {
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
         gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
+        this.logger.debug(
+          `Detected game "${gameToIndex.file_path}" type as ${gameToIndex.type}`,
+        );
         gameToIndex.title = this.extractTitle(file.name);
         gameToIndex.size = file.size;
         gameToIndex.release_date = new Date(this.extractReleaseYear(file.name));
@@ -179,14 +182,14 @@ export class FilesService {
     const windowsInstallerPatterns: { regex: RegExp; description: string }[] = [
       { regex: /^setup\.exe$/i, description: "setup.exe" },
       { regex: /^autorun\.exe$/i, description: "autorun.exe" },
-      {
-        regex: /^(?!.*\bredist\b).*\.msi$/,
-        description: "*.msi (not containing 'redist')",
-      },
       { regex: /^setup_.*\.exe$/i, description: "setup_*.exe" },
       { regex: /^setup-.*\.exe$/i, description: "setup-*.exe" },
       { regex: /^install\.exe$/i, description: "install.exe" },
       { regex: /^unarc\.exe$/i, description: "unarc.exe" },
+      {
+        regex: /^(?!.*\bredist\b).*\.msi$/,
+        description: "*.msi (except redistributables)",
+      },
     ];
 
     const detectedPatterns: string[] = [];
@@ -228,36 +231,33 @@ export class FilesService {
         return GameType.WINDOWS_SETUP;
       }
 
-      if (
-        this.detectWindowsSetupExecutable(
-          await this.getAllExecutablesFromArchive(path),
-        )
-      ) {
-        this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}`,
-        );
-        return GameType.WINDOWS_SETUP;
+      const windowsExecutablesInArchive =
+        await this.getAllExecutablesFromArchive(path, ["*.exe", "*.msi"]);
+
+      if (windowsExecutablesInArchive.length > 0) {
+        if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
+          return GameType.WINDOWS_SETUP;
+        }
+        return GameType.WINDOWS_PORTABLE;
       }
 
       // More Platforms and Game Types can be added here.
-
-      this.logger.debug(
-        `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}`,
-      );
-      return GameType.WINDOWS_PORTABLE;
+      return GameType.UNDETECTABLE;
     } catch (error) {
       this.logger.error("Error detecting game type:", error);
       return GameType.UNDETECTABLE;
     }
   }
 
-  private async getAllExecutablesFromArchive(path: string): Promise<string[]> {
+  private async getAllExecutablesFromArchive(
+    path: string,
+    matchers: string[],
+  ): Promise<string[]> {
     return new Promise<string[]>((resolve, reject) => {
       const executablesList: string[] = [];
       const listStream = list(path, {
         recursive: true,
-        // Further executable types of other platforms can be added here later
-        $cherryPick: ["*.exe", "*.msi"],
+        $cherryPick: matchers,
       });
 
       listStream.on("data", (data) => executablesList.push(data.file));
