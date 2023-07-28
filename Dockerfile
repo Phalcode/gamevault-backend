@@ -12,14 +12,12 @@ ENV PATH=$PATH:/home/node/.npm-global/bin
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 
-ENV SERVER_TZ=UTC
 ENV SERVER_PORT=8080
 
 VOLUME /files /images /logs /db
 
-# Sets timezone, installs pnpm, creates and chowns the needed volumes for the node user
+# Install pnpm and other needed tools
 RUN apk add --no-cache su-exec tzdata curl 7zip \
-    && cp /usr/share/zoneinfo/$SERVER_TZ /etc/localtime \
     && npm i -g pnpm
 
 WORKDIR /app
