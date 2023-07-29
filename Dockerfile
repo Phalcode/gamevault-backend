@@ -26,7 +26,7 @@ RUN pnpm install && pnpm build
 
 # Uses non-root user to run the container
 USER node
-CMD [ "npm", "run", "start:prod" ]
+CMD /app/start.sh
 EXPOSE $SERVER_PORT
 
 # Periodic Healthcheck on /api/v1/health
