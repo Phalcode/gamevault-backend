@@ -1,9 +1,11 @@
 #!/bin/sh
 set -e
 
-if [[ ! -z "$SERVER_COMPABILITY_MODE" ]] ; then
+
+# Ensures old CPU compability. See https://github.com/lovell/sharp/issues/3743.
+if ! cat /proc/cpuinfo | grep -q "avx\|sse4_2"; then
   echo "Force installing sharp@0.27.2 to ensure compability with older CPUs"
-  pnpm install --frozen-lockfile sharp@0.27.2
+  pnpm install sharp@0.27.2
 fi
 
 # If running as root, it means the --user directive for Docker CLI/Compose was not used
