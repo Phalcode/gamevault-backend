@@ -24,10 +24,10 @@ COPY . .
 RUN pnpm run build
 
 FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml deployment-scripts ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 # Enables compability mode for older CPUs
-RUN /bin/sh /app/deployment-scripts/old-cpu-compability-mode.sh
+RUN old-cpu-compability-mode.sh
 
 FROM base AS release
 ENV NODE_ENV=production
