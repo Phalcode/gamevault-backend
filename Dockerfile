@@ -24,17 +24,18 @@ WORKDIR /app
 
 FROM base AS build
 # Copy files only needed for install
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml deployment-scripts ./
 RUN pnpm install --frozen-lockfile
 # Copy everything for building
 COPY . .
 RUN pnpm run build
 
 FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml deployment/ ./
+COPY package.json pnpm-lock.yaml deployment-scripts ./
 RUN pnpm install --prod --frozen-lockfile
-# Optional compability mode for older CPUs
-RUN /bin/sh deployment/compability-mode.sh
+
+# Enables compability mode for older CPUs
+RUN /bin/sh deployment-scripts/old-cpu-compability-mode.sh
 
 FROM base AS release
 ENV NODE_ENV=production
