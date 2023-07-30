@@ -31,8 +31,10 @@ COPY . .
 RUN pnpm run build
 
 FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml deployment/ ./
 RUN pnpm install --prod --frozen-lockfile
+# Optional compability mode for older CPUs
+RUN /bin/sh deployment/compability-mode.sh
 
 FROM base AS release
 ENV NODE_ENV=production
