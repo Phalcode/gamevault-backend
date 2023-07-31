@@ -6,21 +6,16 @@
 
 ### Changes
 
-- **Added 7zip Support to the Alpine Container**: The Alpine container now includes 7zip support, enabling handling of a wider range of archive formats.
-
-- **Changed Game Type Handling**: Removed the Direct Play boolean and introduced a broader Game Type Enum. Instead of a simple boolean, games now have a more flexible Game Type classification to allow better classification across different platforms and installation types.
-
-- **Added Autodetection of Game Type**: The system can automatically detect the Game Type (Windows Portable or Windows Setup) based on the archive contents. However, administrators can still manually override the detected type by specifying it in the filename if it gets detected incorrectly.
-
-- **Added Game Type Override Flag (W_P) or (W_S)**: You can now manually set the type of wrongly detected games to simplify the client installation process.
-
-- **Expanded GameVault Support to All Archive Formats Supported by 7zip**: GameVault can now work with any archive formats that 7zip supports, enhancing compatibility with various game archives.
-
-- **Custom List of Supported File Formats**: You can now provide your own comma-separated list of supported file formats through the Config GAMES_SUPPORTED_FILE_FORMATS. For example, `.rar, .7z, .zip`. This customization allows you to tailor the supported formats according to your needs. However, it's essential to be cautious about including file formats not supported by 7zip, as it could lead to the loss of some functionalities (like auto-type-detection) or errors.
-
-- **Polished API Specification**: The API specification has been refined and optimized for code generation.
-
-- **Implemented `GAMES_SEARCH_RECURSIVE` Configuration Variable**: (default true), to toggle if the Indexer should look for games in subfolders of the `/files` directory.
+- Added 7zip support to the Alpine container, enabling handling of a wider range of archive formats.
+- Changed game type handling by introducing a broader Game Type Enum, allowing better classification across different platforms and installation types.
+- Implemented autodetection of the Game Type (Windows Portable or Windows Setup) based on the archive contents, with the ability to manually override it in the filename if detected incorrectly.
+- Added a Game Type Override Flag (W_P) or (W_S) to manually set the type of wrongly detected games, simplifying the client installation process.
+- Expanded GameVault support to all archive formats supported by 7zip, enhancing compatibility with various game archives.
+- Added the ability to provide a custom list of supported file formats through the Config GAMES_SUPPORTED_FILE_FORMATS, allowing tailoring of supported formats according to specific needs.
+- Polished the API specification for improved code generation.
+- Implemented the `GAMES_SEARCH_RECURSIVE` configuration variable (default true), toggling the Indexer's search for games in subfolders of the `/files` directory.
+- Changed the 404 error on the `/` path to a more descriptive message indicating that the web UI is not yet available.
+- Enhanced the response on `/api/v1/health` to return meaningful information.
 
 ### Thanks
 
