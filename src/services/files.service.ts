@@ -31,14 +31,14 @@ export class FilesService {
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
+        gameToIndex.size = file.size;
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
         gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
         this.logger.debug(
           `Detected game "${gameToIndex.file_path}" type as ${gameToIndex.type}`,
         );
         gameToIndex.title = this.extractTitle(file.name);
-        gameToIndex.size = file.size;
-        gameToIndex.release_date = new Date(this.extractReleaseYear(file.name));
+        gameToIndex.release_date = this.extractReleaseYear(file.name);
         gameToIndex.version = this.extractVersion(file.name);
         gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
 
@@ -131,7 +131,6 @@ export class FilesService {
     const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
     const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
     const trimmedTitle = parenthesesRemoved.trim();
-
     return trimmedTitle;
   }
 
@@ -161,8 +160,12 @@ export class FilesService {
    * @returns - The extracted game release year string or null if there's no
    *   match for the regular expression.
    */
-  private extractReleaseYear(fileName: string) {
-    return RegExp(/\((\d{4})\)/).exec(fileName)[1];
+  private extractReleaseYear(fileName: string): Date {
+    try {
+      return new Date(RegExp(/\((\d{4})\)/).exec(fileName)[1]);
+    } catch (error) {
+      return undefined;
+    }
   }
 
   /**

@@ -2,7 +2,6 @@ import globals from "./globals";
 
 export default {
   SERVER: {
-    PORT: Number(process.env.SERVER_PORT) || 8080,
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: process.env.SERVER_LOG_FILES_ENABLED === "true" || false,
     REQUEST_LOG_FORMAT:

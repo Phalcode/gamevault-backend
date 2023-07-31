@@ -29,7 +29,7 @@ async function bootstrap(): Promise<void> {
   app.set("json spaces", 2);
   app.enableCors({ origin: configuration.SERVER.CORS_ALLOWED_ORIGINS });
   app.use(compression());
-  app.use(helmet());
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieparser());
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
@@ -63,10 +63,7 @@ async function bootstrap(): Promise<void> {
         )
         .setVersion(process.env.npm_package_version)
         .addBasicAuth()
-        .addServer(
-          `http://localhost:${configuration.SERVER.PORT}`,
-          "Local GameVault Server",
-        )
+        .addServer(`http://localhost:8080`, "Local GameVault Server")
         .setLicense(
           "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
           "https://github.com/Phalcode/gamevault-backend/LICENSE",
@@ -92,10 +89,10 @@ async function bootstrap(): Promise<void> {
       );
     });
 
-  await app.listen(configuration.SERVER.PORT);
+  await app.listen(8080);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started GameVault Server with version ${process.env.npm_package_version} on port ${configuration.SERVER.PORT}.`,
+    `Started GameVault Server with version ${process.env.npm_package_version} on port 8080.`,
   );
 }
 bootstrap();

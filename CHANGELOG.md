@@ -2,25 +2,36 @@
 
 ## Upcoming
 
-## 2.1.0
+## 3.0.0
+
+### Deprecations
+
+- Removed (DP) Direct Play flag. (It wasn't officially implemented yet but some of you may saw it in the docs)
+- Removed `SERVER_PORT` Environment variable as it makes no sense to make it configurable inside the container.
 
 ### Changes
 
-- Added 7zip support to the Alpine container, enabling handling of a wider range of archive formats.
+- Upgraded Dependencies to the latest version.
+- Added 7zip support to the Alpine container, enabling the handling of a wider range of archive formats.
 - Changed game type handling by introducing a broader Game Type Enum, allowing better classification across different platforms and installation types.
 - Implemented autodetection of the Game Type (Windows Portable or Windows Setup) based on the archive contents, with the ability to manually override it in the filename if detected incorrectly.
 - Added a Game Type Override Flag (W_P) or (W_S) to manually set the type of wrongly detected games, simplifying the client installation process.
-- Expanded GameVault support to all archive formats supported by 7zip, enhancing compatibility with various game archives.
-- Added the ability to provide a custom list of supported file formats through the Config GAMES_SUPPORTED_FILE_FORMATS, allowing tailoring of supported formats according to specific needs.
+- Expanded GameVault support to all archive formats supported by 7zip, enhancing compatibility with various game archives. (Including .iso)
+- Added the ability to provide a custom list of file formats through a comma seperated list of format in the `GAMES_SUPPORTED_FILE_FORMATS` environment variable , allowing tailoring of supported formats according to specific needs.
 - Polished the API specification for improved code generation.
 - Implemented the `GAMES_SEARCH_RECURSIVE` configuration variable (default true), toggling the Indexer's search for games in subfolders of the `/files` directory.
 - Changed the 404 error on the `/` path to a more descriptive message indicating that the web UI is not yet available.
 - Enhanced the response on `/api/v1/health` to return meaningful information.
-- Server now supports custom PUID & PGID
+- The server now supports custom `PUID` & `PGID` via environment variables.
+- Implemented automatic compatibility mode for the image processing library `sharp` on older CPUs.
+- Disabled Content Security Policies on Web UI so `/api/docs` load for everyone.
 
 ### Thanks
 
 - @yodatak
+- @\_Ben2303
+- @sparten9999
+- @Sapd
 
 ## 2.0.0
 
