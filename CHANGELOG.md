@@ -16,6 +16,7 @@
 - Implemented the `GAMES_SEARCH_RECURSIVE` configuration variable (default true), toggling the Indexer's search for games in subfolders of the `/files` directory.
 - Changed the 404 error on the `/` path to a more descriptive message indicating that the web UI is not yet available.
 - Enhanced the response on `/api/v1/health` to return meaningful information.
+- Server now supports custom PUID & PGID
 
 ### Thanks
 
