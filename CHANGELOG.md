@@ -4,10 +4,10 @@
 
 ## 3.0.0
 
-### Deprecations
+### Breaking Changes & Migration
 
-- Removed (DP) Direct Play flag. (It wasn't officially implemented yet but some of you may saw it in the docs)
-- Removed `SERVER_PORT` Environment variable as it makes no sense to make it configurable inside the container.
+- Removed `(DP)` Direct Play flag. Use `(W_P)` instead. (It wasn't officially implemented yet but some of you may saw it in the docs)
+- Removed `SERVER_PORT` Environment variable as it makes no sense to make it configurable inside the container. Just map your desired port to the containers 8080.
 
 ### Changes
 
