@@ -23,14 +23,11 @@
 - Changed the 404 error on the `/` path to a more descriptive message indicating that the web UI is not yet available.
 - Enhanced the response on `/api/v1/health` to return meaningful information.
 - The server now supports custom `PUID` & `PGID` via environment variables.
-- Implemented automatic compatibility mode for the image processing library `sharp` on older CPUs.
 - Disabled Content Security Policies on Web UI so `/api/docs` load for everyone.
 
 ### Thanks
 
 - @yodatak
-- @\_Ben2303
-- @sparten9999
 - @Sapd
 
 ## 2.0.0

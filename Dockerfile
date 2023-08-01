@@ -1,4 +1,4 @@
-FROM node:20.5-alpine AS base
+FROM node:20.5 AS base
 # Default Variables
 ENV PUID=1000
 ENV PGID=1000
@@ -11,8 +11,7 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 VOLUME /files /images /logs /db
 # Install pnpm and other needed tools
-RUN apk add --no-cache su-exec tzdata curl 7zip \
-    && npm i -g pnpm
+RUN apt update && apt install su-exec tzdata curl p7zip-full && npm i -g pnpm
 WORKDIR /app
 
 FROM base AS build
