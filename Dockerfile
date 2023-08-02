@@ -11,7 +11,10 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 VOLUME /files /images /logs /db
 # Install pnpm and other needed tools
-RUN apt update && apt install su-exec tzdata curl p7zip-full && npm i -g pnpm
+RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list \ 
+    && apt update \
+    && apt install sudo tzdata curl p7zip-full \
+    && npm i -g pnpm
 WORKDIR /app
 
 FROM base AS build
