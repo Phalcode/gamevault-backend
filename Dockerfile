@@ -11,9 +11,9 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 VOLUME /files /images /logs /db
 # Install pnpm and other needed tools
-RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list \ 
+RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \ 
     && apt update \
-    && apt install sudo tzdata curl p7zip-full \
+    && apt install -y sudo tzdata curl p7zip-full p7zip-rar \
     && npm i -g pnpm
 WORKDIR /app
 
