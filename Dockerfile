@@ -32,11 +32,10 @@ RUN pnpm install --prod --frozen-lockfile
 FROM base AS release
 ENV NODE_ENV=production
 COPY package.json pnpm-lock.yaml ./
-COPY --from=build /app/dist ./dist
-COPY --from=prod-deps /app/node_modules ./node_modules
 # Chown /app to the original node user (1000)
 # As only read is needed this is fine when using --user or PUID
-RUN chown -R node:node /app
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 # Entry script for providing dynamic env changes like PUID
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
