@@ -6,7 +6,7 @@ set -e
 if [ "$(id -u)" = '0' ]; then
     groupmod -o -g "$PGID" node
     usermod -o -u "$PUID" node
-    sudo -u "#$PUID" -g "#$PGID" node \"${@}\"
+    sudo -u "#$PUID" -g "#$PGID" node "${@}"
 else # if using the user directive, run normally
-    exec node \"${@}\"
+    exec node "${@}"
 fi
