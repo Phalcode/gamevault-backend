@@ -31,12 +31,11 @@ export class UsersController {
    * @returns List of all activated and non-deleted users
    */
   @Get()
-  @ApiBody({ type: GamevaultUser, isArray: true })
   @ApiOperation({
     summary: "get an overview of all activated and non-deleted users",
     operationId: "getUsers",
   })
-  @ApiOkResponse({ type: GamevaultUser, isArray: true })
+  @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   @MinimumRole(Role.GUEST)
   async getUsers(): Promise<GamevaultUser[]> {
     return await this.usersService.getUsers();
@@ -49,12 +48,11 @@ export class UsersController {
    */
   @Get("all")
   @MinimumRole(Role.ADMIN)
-  @ApiBody({ type: GamevaultUser, isArray: true })
   @ApiOperation({
     summary: "get an overview of all users",
     operationId: "getAllUsers",
   })
-  @ApiOkResponse({ type: GamevaultUser, isArray: true })
+  @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   async getAllUsers(): Promise<GamevaultUser[]> {
     return await this.usersService.getUsers(true, true);
   }
@@ -68,13 +66,12 @@ export class UsersController {
    * @throws {Error} If no user is found with the provided username.
    */
   @Get("me")
-  @ApiBody({ type: GamevaultUser })
   @ApiOperation({
     summary: "get details of your user",
     operationId: "getMe",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   async getMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
@@ -93,13 +90,13 @@ export class UsersController {
    * @summary Update details of your user
    */
   @Put("me")
-  @ApiBody({ type: UpdateUserDto })
+  @ApiBody({ type: () => UpdateUserDto })
   @ApiOperation({
     summary: "update details of your user",
     operationId: "updateMe",
   })
   @MinimumRole(Role.USER)
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   async updateMe(
     @Body() dto: UpdateUserDto,
     @Request() request,
@@ -118,7 +115,7 @@ export class UsersController {
    */
   @Delete("me")
   @ApiOperation({ summary: "delete your own user", operationId: "deleteMe" })
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
   async deleteMe(@Request() request): Promise<GamevaultUser> {
     const user = await this.usersService.getUserByUsernameOrFail(
@@ -136,13 +133,12 @@ export class UsersController {
    *   exist.
    */
   @Get(":id")
-  @ApiBody({ type: GamevaultUser })
   @ApiOperation({
     summary: "get details on a user",
     operationId: "getUserById",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   async getUserById(@Param() params: IdDto): Promise<GamevaultUser> {
     return await this.usersService.getUserByIdOrFail(Number(params.id));
   }
@@ -155,13 +151,13 @@ export class UsersController {
    * @returns The updated user.
    */
   @Put(":id")
-  @ApiBody({ type: UpdateUserDto })
+  @ApiBody({ type: () => UpdateUserDto })
   @ApiOperation({
     summary: "update details of any user",
     operationId: "updateAnyUser",
   })
   @MinimumRole(Role.ADMIN)
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   async updateAnyUser(
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
@@ -177,7 +173,7 @@ export class UsersController {
    */
   @Delete(":id")
   @ApiOperation({ summary: "delete any user", operationId: "deleteAnyUser" })
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.ADMIN)
   async deleteAnyUser(@Param() params: IdDto): Promise<GamevaultUser> {
     return await this.usersService.delete(Number(params.id));
@@ -195,7 +191,7 @@ export class UsersController {
     summary: "recover a deleted user",
     operationId: "recoverUser",
   })
-  @ApiOkResponse({ type: GamevaultUser })
+  @ApiOkResponse({ type: () => GamevaultUser })
   async recoverUser(@Param() params: IdDto): Promise<GamevaultUser> {
     return await this.usersService.recover(Number(params.id));
   }
@@ -215,8 +211,8 @@ export class UsersController {
       "The user may has to be activated afterwards. This endpoint only works if registration is enabled",
     operationId: "register",
   })
-  @ApiOkResponse({ type: GamevaultUser })
-  @ApiBody({ type: RegisterUserDto })
+  @ApiOkResponse({ type: () => GamevaultUser })
+  @ApiBody({ type: () => RegisterUserDto })
   @Public()
   async register(@Body() dto: RegisterUserDto): Promise<GamevaultUser> {
     if (configuration.SERVER.REGISTRATION_DISABLED) {

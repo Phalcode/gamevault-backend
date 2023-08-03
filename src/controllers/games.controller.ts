@@ -68,6 +68,7 @@ export class GamesController {
         "metacritic_rating",
         "average_playtime",
         "early_access",
+        "type",
       ],
       searchableColumns: [
         "title",
@@ -86,6 +87,7 @@ export class GamesController {
         metacritic_rating: all_filters,
         average_playtime: all_filters,
         early_access: all_filters,
+        type: all_filters,
         "developers.name": all_filters,
         "genres.name": all_filters,
         "publishers.name": all_filters,
@@ -110,7 +112,7 @@ export class GamesController {
     summary: "get a random game",
     operationId: "getRandomGame",
   })
-  @ApiOkResponse({ type: Game })
+  @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
   async getRandomGame(): Promise<Game> {
     return await this.gamesService.getRandomGame();
@@ -127,7 +129,7 @@ export class GamesController {
     summary: "get details on a game",
     operationId: "getGameById",
   })
-  @ApiOkResponse({ type: Game })
+  @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
   async getGameById(@Param() params: IdDto): Promise<Game> {
     return await this.gamesService.getGameById(Number(params.id), true);
@@ -144,7 +146,7 @@ export class GamesController {
   @Get(":id/download")
   @ApiOperation({ summary: "download a game", operationId: "downloadGame" })
   @MinimumRole(Role.USER)
-  @ApiOkResponse({ type: StreamableFile })
+  @ApiOkResponse({ type: () => StreamableFile })
   async downloadGame(@Param() params: IdDto): Promise<StreamableFile> {
     return await this.filesService.downloadGame(Number(params.id));
   }

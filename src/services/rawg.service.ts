@@ -42,8 +42,7 @@ export class RawgService {
    * be updated in the database or not.
    *
    * @async
-   * @param games - An array of Game objects to check against the RAWG
-   *   API.
+   * @param games - An array of Game objects to check against the RAWG API.
    * @returns Returns a Promise with no return value.
    */
   public async cacheGames(games: Game[]): Promise<void> {

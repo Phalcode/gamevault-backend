@@ -14,7 +14,7 @@ export default [
     size: 5812597402n,
   },
   {
-    name: "A Total War Saga - Troy (2021).zip",
+    name: "A Total War Saga - Troy (W_P) (2021).zip",
     size: 10019848592n,
   },
   {
@@ -114,7 +114,7 @@ export default [
     size: 362207539n,
   },
   {
-    name: "Bakery Simulator (2022).zip",
+    name: "Bakery Simulator (W_P) (2022).zip",
     size: 4445754983n,
   },
   {
@@ -230,7 +230,7 @@ export default [
     size: 719532265n,
   },
   {
-    name: "Cultist Simulator (v2019.6.a.1) (2018).zip",
+    name: "Cultist Simulator (W_P) (v2019.6.a.1) (2018).zip",
     size: 221538929n,
   },
   {
@@ -346,7 +346,7 @@ export default [
     size: 5371942958n,
   },
   {
-    name: "Emily is Away Too (2017).zip",
+    name: "Emily is Away Too (W_P) (2017).zip",
     size: 28611063n,
   },
   {
@@ -434,7 +434,7 @@ export default [
     size: 4677651369n,
   },
   {
-    name: "Ghosts 'n Goblins Resurrection (2021).zip",
+    name: "Ghosts 'n Goblins Resurrection (W_P) (2021).zip",
     size: 4523147960n,
   },
   {
@@ -518,7 +518,7 @@ export default [
     size: 4377602231n,
   },
   {
-    name: "Hokko Life (2021).zip",
+    name: "Hokko Life (2021) (W_P).zip",
     size: 1068488302n,
   },
   {
@@ -602,7 +602,7 @@ export default [
     size: 3535605747n,
   },
   {
-    name: "Lemon Cake (2021).zip",
+    name: "Lemon Cake(W_P) (2021).zip",
     size: 196412995n,
   },
   {
@@ -614,7 +614,7 @@ export default [
     size: 2965537333n,
   },
   {
-    name: "Little Witch in the Woods (EA) (2022).zip",
+    name: "Little Witch in the Woods (EA)(W_P) (2022).zip",
     size: 173854369n,
   },
   {
@@ -690,7 +690,7 @@ export default [
     size: 1263858259n,
   },
   {
-    name: "My Summer Car (v03.08.2022) (EA) (2016).zip",
+    name: "My Summer Car (v03.08.2022) (W_P) (EA) (2016).zip",
     size: 407513745n,
   },
   {

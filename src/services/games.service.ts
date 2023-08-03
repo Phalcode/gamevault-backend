@@ -123,6 +123,9 @@ export class GamesService {
         `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
       );
     }
+    if (foundGame.type !== game.type) {
+      differences.push(`Game Type: ${foundGame.type} -> ${game.type}`);
+    }
     if (foundGame.version != game.version) {
       differences.push(`Version: ${foundGame.version} -> ${game.version}`);
     }
@@ -132,7 +135,9 @@ export class GamesService {
 
     if (differences.length > 0) {
       this.logger.debug(
-        `Game exists but has been altered. Differences:\n ${differences.join(
+        `Game "${
+          game.file_path
+        }" exists but has been altered. Differences:\n ${differences.join(
           ",\n ",
         )}`,
       );

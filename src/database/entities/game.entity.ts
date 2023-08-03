@@ -17,6 +17,7 @@ import { Store } from "./store.entity";
 import { Tag } from "./tag.entity";
 import { Image } from "./image.entity";
 import { AbstractEntity } from "./abstract.entity";
+import { GameType } from "../../models/game-type.enum";
 
 @Entity()
 export class Game extends AbstractEntity {
@@ -98,7 +99,7 @@ export class Game extends AbstractEntity {
   @ApiProperty({
     description: "size of the game file in bytes",
     example: "1234567890",
-    type: String,
+    type: () => String,
   })
   size: bigint;
 
@@ -161,6 +162,19 @@ export class Game extends AbstractEntity {
     example: true,
   })
   early_access: boolean;
+
+  @Column({
+    type: "simple-enum",
+    enum: GameType,
+    default: GameType.UNDETECTABLE,
+  })
+  @ApiProperty({
+    description: "type of the game",
+    type: "enum",
+    enum: GameType,
+    example: GameType.WINDOWS_PORTABLE,
+  })
+  type: GameType;
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({

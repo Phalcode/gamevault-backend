@@ -3,12 +3,13 @@ import { IGameVaultFile } from "../models/file.interface";
 import { Game } from "../database/entities/game.entity";
 import { GamesService } from "./games.service";
 import { createReadStream, readdirSync, statSync } from "fs";
-import { extname } from "path";
+import { basename, extname } from "path";
 import configuration from "../configuration";
 import mock from "../mock/games.mock";
 import mime from "mime";
 import { GameExistance } from "../models/game-existance.enum";
-
+import { GameType } from "../models/game-type.enum";
+import { list } from "node-7z";
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -30,16 +31,16 @@ export class FilesService {
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
-        gameToIndex.file_path = file.name;
-        gameToIndex.title = this.regexExtractTitle(gameToIndex.file_path);
         gameToIndex.size = file.size;
-        gameToIndex.release_date = new Date(
-          this.regexExtractReleaseYear(gameToIndex.file_path),
+        gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
+        gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
+        this.logger.debug(
+          `Detected game "${gameToIndex.file_path}" type as ${gameToIndex.type}`,
         );
-        gameToIndex.version = this.regexExtractVersion(gameToIndex.file_path);
-        gameToIndex.early_access = this.regexExtractEarlyAccessFlag(
-          gameToIndex.file_path,
-        );
+        gameToIndex.title = this.extractTitle(file.name);
+        gameToIndex.release_date = this.extractReleaseYear(file.name);
+        gameToIndex.version = this.extractVersion(file.name);
+        gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
 
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistance, Game] =
@@ -95,7 +96,10 @@ export class FilesService {
    * @param {Game} updatesToApply - The updates to apply to the game.
    * @returns {Promise<Game>} The updated game.
    */
-  private async updateGame(gameToUpdate: Game, updatesToApply: Game) {
+  private async updateGame(
+    gameToUpdate: Game,
+    updatesToApply: Game,
+  ): Promise<Game> {
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path,
@@ -104,6 +108,7 @@ export class FilesService {
       size: updatesToApply.size,
       version: updatesToApply.version,
       early_access: updatesToApply.early_access,
+      type: updatesToApply.type,
     };
 
     this.logger.log(
@@ -121,18 +126,12 @@ export class FilesService {
    * @param fileName - A string representing the file name.
    * @returns - The extracted game title string.
    */
-  private regexExtractTitle(fileName: string): string {
-    return (
-      fileName
-        //remove directory
-        .replace(/^.*[\\/]/, "")
-        //remove extension
-        .replace(/\.([^.]*)$/, "")
-        //remove everything inside parentheses
-        .replaceAll(/\([^)]*\)/g, "")
-        //remove remaining spaces at start and end of string
-        .trim()
-    );
+  private extractTitle(fileName: string): string {
+    const directoryRemoved = fileName.replace(/^.*[\\/]/, "");
+    const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
+    const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
+    const trimmedTitle = parenthesesRemoved.trim();
+    return trimmedTitle;
   }
 
   /**
@@ -144,7 +143,7 @@ export class FilesService {
    * @returns - The extracted game version string or undefined if there's no
    *   match.
    */
-  private regexExtractVersion(fileName: string): string | undefined {
+  private extractVersion(fileName: string): string | undefined {
     const match = RegExp(/\((v[^)]+)\)/).exec(fileName);
     if (match?.[1]) {
       return match[1];
@@ -161,8 +160,12 @@ export class FilesService {
    * @returns - The extracted game release year string or null if there's no
    *   match for the regular expression.
    */
-  private regexExtractReleaseYear(fileName: string) {
-    return RegExp(/\((\d{4})\)/).exec(fileName)[1];
+  private extractReleaseYear(fileName: string): Date {
+    try {
+      return new Date(RegExp(/\((\d{4})\)/).exec(fileName)[1]);
+    } catch (error) {
+      return undefined;
+    }
   }
 
   /**
@@ -174,8 +177,116 @@ export class FilesService {
    * @returns - A boolean value indicating if the game is in early access or
    *   not.
    */
-  private regexExtractEarlyAccessFlag(fileName: string): boolean {
+  private extractEarlyAccessFlag(fileName: string): boolean {
     return /\(EA\)/.test(fileName);
+  }
+
+  private detectWindowsSetupExecutable(files: string[]): boolean {
+    const windowsInstallerPatterns: { regex: RegExp; description: string }[] = [
+      { regex: /^setup\.exe$/i, description: "setup.exe" },
+      { regex: /^autorun\.exe$/i, description: "autorun.exe" },
+      { regex: /^setup_.*\.exe$/i, description: "setup_*.exe" },
+      { regex: /^setup-.*\.exe$/i, description: "setup-*.exe" },
+      { regex: /^install\.exe$/i, description: "install.exe" },
+      { regex: /^unarc\.exe$/i, description: "unarc.exe" },
+      {
+        regex: /^(?!.*\bredist\b).*\.msi$/,
+        description: "*.msi (except redistributables)",
+      },
+    ];
+
+    const detectedPatterns: string[] = [];
+
+    for (const file of files) {
+      const fileName = basename(file).toLowerCase();
+
+      for (const pattern of windowsInstallerPatterns) {
+        if (pattern.regex.test(fileName)) {
+          this.logger.debug(
+            `File "${file}" matched windows installer pattern "${pattern.description}"`,
+          );
+          detectedPatterns.push(pattern.description);
+        }
+      }
+    }
+
+    return detectedPatterns.length > 0;
+  }
+
+  private async detectGameType(path: string): Promise<GameType> {
+    try {
+      if (/\(W_P\)/.test(path)) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE} because of (W_P) override in filename.`,
+        );
+        return GameType.WINDOWS_PORTABLE;
+      }
+
+      if (/\(W_S\)/.test(path)) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP} because of (W_S) override in filename.`,
+        );
+        return GameType.WINDOWS_SETUP;
+      }
+
+      // Failsafe for Mock-Files because we cant look into them
+      if (configuration.TESTING.MOCK_FILES) {
+        return GameType.WINDOWS_SETUP;
+      }
+
+      const windowsExecutablesInArchive =
+        await this.getAllExecutablesFromArchive(path, ["*.exe", "*.msi"]);
+
+      if (windowsExecutablesInArchive.length > 0) {
+        if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
+          return GameType.WINDOWS_SETUP;
+        }
+        return GameType.WINDOWS_PORTABLE;
+      }
+
+      // More Platforms and Game Types can be added here.
+      return GameType.UNDETECTABLE;
+    } catch (error) {
+      this.logger.error("Error detecting game type:", error);
+      return GameType.UNDETECTABLE;
+    }
+  }
+
+  private async getAllExecutablesFromArchive(
+    path: string,
+    matchers: string[],
+  ): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+      const executablesList: string[] = [];
+      const listStream = list(path, {
+        recursive: true,
+        $cherryPick: matchers,
+      });
+
+      listStream.on("data", (data) => executablesList.push(data.file));
+
+      listStream.on("error", (error) => {
+        this.logger.error(
+          error,
+          `Error fetching Executables List for "${path}"`,
+        );
+        reject(error);
+      });
+
+      listStream.on("end", () => {
+        if (executablesList.length) {
+          this.logger.debug(
+            executablesList,
+            `Found ${executablesList.length} executables in archive "${path}"`,
+          );
+        } else {
+          this.logger.warn(
+            `Could not detect any executables in archive "${path}". Be aware that Game Type Detection does not support nested archives.`,
+          );
+        }
+        resolve(executablesList);
+      });
+    });
   }
 
   /**
@@ -194,16 +305,32 @@ export class FilesService {
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
   ): Promise<void> {
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.log(
+        "Skipping Integrity Check because TESTING.MOCK_FILE is true",
+      );
+      return;
+    }
     this.logger.log("STARTED INTEGRITY CHECK");
     for (const gameInDatabase of gamesInDatabase) {
-      const gameInFileSystem = gamesInFileSystem.find(
-        (g) => g.name === gameInDatabase.file_path,
-      );
-      // If game is not in file system, mark it as deleted
-      if (!gameInFileSystem) {
-        await this.gamesService.deleteGame(gameInDatabase);
-        this.logger.log(
-          `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
+      try {
+        const gameInFileSystem = gamesInFileSystem.find(
+          (g) =>
+            `${configuration.VOLUMES.FILES}/${g.name}` ===
+            gameInDatabase.file_path,
+        );
+        // If game is not in file system, mark it as deleted
+        if (!gameInFileSystem) {
+          await this.gamesService.deleteGame(gameInDatabase);
+          this.logger.log(
+            `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
+          );
+          continue;
+        }
+      } catch (error) {
+        this.logger.error(
+          error,
+          `Error checking integrity of file "${gameInDatabase.file_path}"`,
         );
       }
     }
@@ -225,21 +352,12 @@ export class FilesService {
 
     const files = readdirSync(configuration.VOLUMES.FILES, {
       encoding: "utf8",
-      recursive: true,
+      recursive: configuration.GAMES.SEARCH_RECURSIVE,
     })
       .filter((file) =>
-        [
-          ".zip",
-          ".7z",
-          ".rar",
-          ".tar",
-          ".tar.gz",
-          ".tar.bz2",
-          ".tar.xz",
-          ".tgz",
-          ".tbz2",
-          ".txz",
-        ].includes(extname(file)),
+        configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+          extname(file).toLowerCase(),
+        ),
       )
       .map(
         (file) =>
@@ -266,9 +384,7 @@ export class FilesService {
    */
   public async downloadGame(gameId: number): Promise<StreamableFile> {
     const game = await this.gamesService.getGameById(gameId);
-    const file = createReadStream(
-      `${configuration.VOLUMES.FILES}/${game.file_path}`,
-    );
+    const file = createReadStream(game.file_path);
     const type = mime.getType(game.file_path);
 
     return new StreamableFile(file, {

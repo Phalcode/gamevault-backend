@@ -22,7 +22,7 @@ export class Tag extends AbstractEntity {
   @ManyToMany(() => Game, (game) => game.tags)
   @ApiProperty({
     description: "games tagged with the tag",
-    type: () => Game,
+    type: Game,
     isArray: true,
   })
   games: Game[];

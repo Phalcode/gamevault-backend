@@ -33,7 +33,7 @@ export class RawgController {
   })
   @ApiQuery({ name: "query", description: "search query" })
   @ApiOkResponse({
-    type: Game,
+    type: () => Game,
     isArray: true,
     description: "These objects may have lost some data in conversion",
   })

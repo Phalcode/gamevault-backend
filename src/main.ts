@@ -29,7 +29,7 @@ async function bootstrap(): Promise<void> {
   app.set("json spaces", 2);
   app.enableCors({ origin: configuration.SERVER.CORS_ALLOWED_ORIGINS });
   app.use(compression());
-  app.use(helmet());
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieparser());
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
@@ -63,10 +63,7 @@ async function bootstrap(): Promise<void> {
         )
         .setVersion(process.env.npm_package_version)
         .addBasicAuth()
-        .addServer(
-          `http://localhost:${configuration.SERVER.PORT}`,
-          "Local GameVault Server",
-        )
+        .addServer(`http://localhost:8080`, "Local GameVault Server")
         .setLicense(
           "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
           "https://github.com/Phalcode/gamevault-backend/LICENSE",
@@ -83,10 +80,19 @@ async function bootstrap(): Promise<void> {
     ),
   );
 
-  await app.listen(configuration.SERVER.PORT);
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .get("/", (_request, response) => {
+      response.send(
+        "<p style='font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.5; text-align: center;''><strong>Web UI is in Another Castle!</strong><br/>The server is operational, but there is currently no Web UI available for GameVault.<br/><br/><strong>Simply connect to the server using the GameVault Client Application for now.</strong></p>",
+      );
+    });
+
+  await app.listen(8080);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started GameVault Server with version ${process.env.npm_package_version} on port ${configuration.SERVER.PORT}.`,
+    `Started GameVault Server with version ${process.env.npm_package_version} on port 8080.`,
   );
 }
 bootstrap();

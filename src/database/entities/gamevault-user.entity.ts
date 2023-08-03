@@ -59,7 +59,7 @@ export class GamevaultUser extends AbstractEntity {
   @OneToMany(() => Progress, (progress) => progress.user)
   @ApiProperty({
     description: "progresses of the user",
-    type: () => Progress,
+    type: [() => Progress],
     isArray: true,
   })
   progresses: Progress[];

@@ -2,6 +2,35 @@
 
 ## Upcoming
 
+## 3.0.0
+
+### Breaking Changes & Migration
+
+- Removed `(DP)` Direct Play flag. Use `(W_P)` instead. (It wasn't officially implemented yet but some of you may saw it in the docs)
+- Removed `SERVER_PORT` Environment variable as it makes no sense to make it configurable inside the container. Just map your desired port to the containers 8080.
+- Switched from an Alpine-based container to a Debian-based container, resulting in a fourfold increase in image size but enabling the server to use `7zip`.
+
+### Changes
+
+- Upgraded Dependencies to the latest version.
+- Introduced game types a broad Enum, allowing better classification across different platforms and installation types.
+- Implemented autodetection of the Game Type (Windows Portable or Windows Setup) based on the archive contents.
+- Added a Game Type Override Flag (W_P) or (W_S) to manually set the type of wrongly detected games, simplifying the client installation process.
+- Expanded GameVault support to all archive formats supported by `7zip`, enhancing compatibility with various game archives. (Including .iso)
+- Added the ability to provide a custom list of file formats through a comma seperated list of format in the `GAMES_SUPPORTED_FILE_FORMATS` environment variable , allowing tailoring of supported formats according to specific needs.
+- Polished the API specification for improved code generation.
+- Implemented the `GAMES_SEARCH_RECURSIVE` configuration variable (default true), toggling the Indexer's search for games in subfolders of the `/files` directory.
+- Changed the 404 error on the `/` path to a more descriptive message indicating that the web UI is not yet available.
+- Prettified the response of `/api/v1/health`.
+- Support for custom `PUID` & `PGID` via environment variables.
+- Disabled Content Security Policies on Web UI so `/api/docs` load for everyone.
+
+### Thanks
+
+- @yodatak
+- @Sapd
+- @Xwaffle
+
 ## 2.0.0
 
 ### Breaking Changes & Migration
@@ -16,7 +45,7 @@
 
 - Implemented database migrations for postgresql and sqlite.
 - `DB_SYNCHRONIZE` is now false by default.
-- New Configuration: `LOG_FILES_ENABLED` is now set to false by default.
+- New Configuration: `SERVER_LOG_FILES_ENABLED` is now set to false by default.
 - Games API now supports the `contains` filter.
 - Non-root global npm packages have been added to the Dockerfile.
 - Introduced a new Log Level: `off`
