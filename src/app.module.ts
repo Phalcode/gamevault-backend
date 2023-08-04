@@ -18,6 +18,8 @@ import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/auth/basic-auth.strategy";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { getDatabaseConfiguration } from "./modules/database/db_configuration";
+import { UtilityController } from "./deprecated/utility.controller";
+import { AutomationService } from "./deprecated/automation.service";
 @Module({
   imports: [
     TypeOrmModule.forRoot(getDatabaseConfiguration()),
@@ -36,9 +38,11 @@ import { getDatabaseConfiguration } from "./modules/database/db_configuration";
     GenresModule,
     GamesModule,
   ],
+  controllers: [UtilityController],
   providers: [
     { provide: APP_FILTER, useClass: LoggingExceptionFilter },
     DefaultStrategy,
+    AutomationService,
   ],
 })
 export class AppModule {}
