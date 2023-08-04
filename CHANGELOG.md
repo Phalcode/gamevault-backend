@@ -2,6 +2,8 @@
 
 ## Upcoming
 
+- Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
+
 ## 3.0.0
 
 ### Breaking Changes & Migration
