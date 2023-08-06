@@ -3,6 +3,7 @@
 ## Upcoming
 
 - Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
+- Implemented native Support for Single .exe files #144
 
 ## 3.0.0
 
