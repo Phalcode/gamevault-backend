@@ -10,6 +10,7 @@ import mime from "mime";
 import { GameExistence } from "../games/models/game-existence.enum";
 import { list } from "node-7z";
 import { GameType } from "../games/models/game-type.enum";
+
 @Injectable()
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
@@ -231,6 +232,11 @@ export class FilesService {
 
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
+        return GameType.WINDOWS_SETUP;
+      }
+
+      // Detect single File executable
+      if (path.toLowerCase().endsWith(".exe")) {
         return GameType.WINDOWS_SETUP;
       }
 

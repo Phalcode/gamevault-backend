@@ -38,5 +38,6 @@ export default {
     ".wim",
     ".xar",
     ".z",
+    ".exe",
   ],
 };
