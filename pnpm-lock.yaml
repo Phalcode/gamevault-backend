@@ -21,8 +21,8 @@ dependencies:
     specifier: ^10.1.3
     version: 10.1.3(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)
   '@nestjs/schedule':
-    specifier: ^3.0.1
-    version: 3.0.1(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)(reflect-metadata@0.1.13)
+    specifier: ^3.0.2
+    version: 3.0.2(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)(reflect-metadata@0.1.13)
   '@nestjs/swagger':
     specifier: ^7.1.6
     version: 7.1.6(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)
@@ -146,8 +146,8 @@ devDependencies:
     specifier: ^1.9.4
     version: 1.9.4
   '@types/node':
-    specifier: ^20.4.6
-    version: 20.4.6
+    specifier: ^20.4.8
+    version: 20.4.8
   '@types/node-7z':
     specifier: ^2.1.5
     version: 2.1.5
@@ -167,26 +167,26 @@ devDependencies:
     specifier: ^8.46.0
     version: 8.46.0
   eslint-config-prettier:
-    specifier: ^8.9.0
-    version: 8.9.0(eslint@8.46.0)
+    specifier: ^9.0.0
+    version: 9.0.0(eslint@8.46.0)
   eslint-plugin-import:
     specifier: ^2.28.0
     version: 2.28.0(@typescript-eslint/parser@6.2.1)(eslint@8.46.0)
   eslint-plugin-prettier:
     specifier: ^5.0.0
-    version: 5.0.0(eslint-config-prettier@8.9.0)(eslint@8.46.0)(prettier@3.0.0)
+    version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.46.0)(prettier@3.0.1)
   prettier:
-    specifier: ^3.0.0
-    version: 3.0.0
+    specifier: ^3.0.1
+    version: 3.0.1
   prettier-plugin-jsdoc:
     specifier: ^1.0.1
-    version: 1.0.1(prettier@3.0.0)
+    version: 1.0.1(prettier@3.0.1)
   simple-git-hooks:
     specifier: ^2.9.0
     version: 2.9.0
   ts-node:
     specifier: ^10.9.1
-    version: 10.9.1(@types/node@20.4.6)(typescript@5.1.6)
+    version: 10.9.1(@types/node@20.4.8)(typescript@5.1.6)
   typescript:
     specifier: ^5.1.6
     version: 5.1.6
@@ -618,8 +618,8 @@ packages:
       - supports-color
     dev: false
 
-  /@nestjs/schedule@3.0.1(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)(reflect-metadata@0.1.13):
-    resolution: {integrity: sha512-4CAFu4rE/QPYnz/icRg3GiuLmY1bXopG8bWTJ9d7bXzaHBaPKIjGvZ20wsK8P+MncrVCkmK0iYhQrNj0cwX9+A==}
+  /@nestjs/schedule@3.0.2(@nestjs/common@10.1.3)(@nestjs/core@10.1.3)(reflect-metadata@0.1.13):
+    resolution: {integrity: sha512-INhpzkyquosLbVrXx4v+rfAnomwBTgKQvs7e9BZ2LSZdWQOqCQD2PmvWDiu8c4wdJIH6wcWQh98w5KxIcKuVBA==}
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0
       '@nestjs/core': ^8.0.0 || ^9.0.0 || ^10.0.0
@@ -627,7 +627,7 @@ packages:
     dependencies:
       '@nestjs/common': 10.1.3(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)(rxjs@7.8.1)
       '@nestjs/core': 10.1.3(@nestjs/common@10.1.3)(@nestjs/platform-express@10.1.3)(reflect-metadata@0.1.13)(rxjs@7.8.1)
-      cron: 2.3.1
+      cron: 2.4.0
       reflect-metadata: 0.1.13
       uuid: 9.0.0
     dev: false
@@ -764,14 +764,14 @@ packages:
   /@types/bcrypt@5.0.0:
     resolution: {integrity: sha512-agtcFKaruL8TmcvqbndlqHPSJgsolhf/qPWchFlgnW1gECTN/nKbFcoFnvKAQRFfKbh+BO6A3SWdJu9t+xF3Lw==}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
   /@types/compression@1.7.2:
@@ -783,7 +783,7 @@ packages:
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
   /@types/cookie-parser@1.4.3:
@@ -819,7 +819,7 @@ packages:
   /@types/express-serve-static-core@4.17.33:
     resolution: {integrity: sha512-TPBqmR/HRYI3eC2E5hmiivIzv+bidAfXofM+sbonAGvyDhySGw9/PQZFt2BLOrjUUR++4eJVpx6KnLQK1Fk9tA==}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
     dev: true
@@ -854,7 +854,7 @@ packages:
   /@types/morgan@1.9.4:
     resolution: {integrity: sha512-cXoc4k+6+YAllH3ZHmx4hf7La1dzUk6keTR4bF4b4Sc0mZxU/zK4wO7l+ZzezXm/jkYj/qC+uYGZrarZdIVvyQ==}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
   /@types/ms@0.7.31:
@@ -864,11 +864,11 @@ packages:
   /@types/node-7z@2.1.5:
     resolution: {integrity: sha512-ZTcXeMhJPcGzZBjkpc6m3FsWpKlr5OotizwzRNyIjoMo57OQ7RkM5GganOHVE1brMX9tvyr6YEYvfj8LSrx0Nw==}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
-  /@types/node@20.4.6:
-    resolution: {integrity: sha512-q0RkvNgMweWWIvSMDiXhflGUKMdIxBo2M2tYM/0kEGDueQByFzK4KZAgu5YHGFNxziTlppNpTIBcqHQAxlfHdA==}
+  /@types/node@20.4.8:
+    resolution: {integrity: sha512-0mHckf6D2DiIAzh8fM8f3HQCvMKDpK94YQ0DSVkfWTG9BZleYIWudw9cJxX8oCk9bM+vAkDyujDV6dmKHbvQpg==}
 
   /@types/parse-json@4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
@@ -903,7 +903,7 @@ packages:
     resolution: {integrity: sha512-z5xyF6uh8CbjAu9760KDKsH2FcDxZ2tFCsA4HIMWE6IkiYMXfVoa+4f9KX+FN0ZLsaMw1WNG2ETLA6N+/YA+cg==}
     dependencies:
       '@types/mime': 3.0.1
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
     dev: true
 
   /@types/string-similarity@4.0.0:
@@ -1971,8 +1971,8 @@ packages:
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
 
-  /cron@2.3.1:
-    resolution: {integrity: sha512-1eRRlIT0UfIqauwbG9pkg3J6CX9A6My2ytJWqAXoK0T9oJnUZTzGBNPxao0zjodIbPgf8UQWjE62BMb9eVllSQ==}
+  /cron@2.4.0:
+    resolution: {integrity: sha512-Cx77ic1TyIAtUggr0oAhtS8MLzPBUqGNIvdDM7jE3oFIxfe8LXWI9q3iQN/H2CebAiMir53LQKWOhEKnzkJTAQ==}
     dependencies:
       luxon: 3.2.1
     dev: false
@@ -2335,8 +2335,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /eslint-config-prettier@8.9.0(eslint@8.46.0):
-    resolution: {integrity: sha512-+sbni7NfVXnOpnRadUA8S28AUlsZt9GjgFvABIRL9Hkn8KqNzOp+7Lw4QWtrwn20KzU3wqu1QoOj2m+7rKRqkA==}
+  /eslint-config-prettier@9.0.0(eslint@8.46.0):
+    resolution: {integrity: sha512-IcJsTkJae2S35pRsRAwoCE+925rJJStOdkKnLVgtE+tEpqU0EVVM7OqrwxqgptKdX29NUwC82I5pXsGFIgSevw==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
@@ -2419,7 +2419,7 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-prettier@5.0.0(eslint-config-prettier@8.9.0)(eslint@8.46.0)(prettier@3.0.0):
+  /eslint-plugin-prettier@5.0.0(eslint-config-prettier@9.0.0)(eslint@8.46.0)(prettier@3.0.1):
     resolution: {integrity: sha512-AgaZCVuYDXHUGxj/ZGu1u8H8CYgDY3iG6w5kUFw4AzMVXzB7VvbKgYR4nATIN+OvUrghMbiDLeimVjVY5ilq3w==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -2434,8 +2434,8 @@ packages:
         optional: true
     dependencies:
       eslint: 8.46.0
-      eslint-config-prettier: 8.9.0(eslint@8.46.0)
-      prettier: 3.0.0
+      eslint-config-prettier: 9.0.0(eslint@8.46.0)
+      prettier: 3.0.1
       prettier-linter-helpers: 1.0.0
       synckit: 0.8.5
     dev: true
@@ -3546,7 +3546,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
@@ -4708,7 +4708,7 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier-plugin-jsdoc@1.0.1(prettier@3.0.0):
+  /prettier-plugin-jsdoc@1.0.1(prettier@3.0.1):
     resolution: {integrity: sha512-07q74MfX9m+xHK2+Lr4c+igiEzAKVDWhqkvlm65WoYJUlRiaV6STXcEtcZMhrPPYgNeQRgb9FJmgE/n+OI4MpQ==}
     engines: {node: '>=14.13.1 || >=16.0.0'}
     peerDependencies:
@@ -4717,13 +4717,13 @@ packages:
       binary-searching: 2.0.5
       comment-parser: 1.3.1
       mdast-util-from-markdown: 1.3.0
-      prettier: 3.0.0
+      prettier: 3.0.1
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /prettier@3.0.0:
-    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
+  /prettier@3.0.1:
+    resolution: {integrity: sha512-fcOWSnnpCrovBsmFZIGIy9UqK2FaI7Hqax+DIO0A9UxeVoY4iweyaFjS5TavZN97Hfehph0nhsZnjlVKzEQSrQ==}
     engines: {node: '>=14'}
     hasBin: true
     dev: true
@@ -5540,7 +5540,7 @@ packages:
       typescript: 5.1.6
     dev: true
 
-  /ts-node@10.9.1(@types/node@20.4.6)(typescript@5.1.6):
+  /ts-node@10.9.1(@types/node@20.4.8)(typescript@5.1.6):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -5559,7 +5559,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 20.4.6
+      '@types/node': 20.4.8
       acorn: 8.8.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -5760,7 +5760,7 @@ packages:
       pg: 8.11.2
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
-      ts-node: 10.9.1(@types/node@20.4.6)(typescript@5.1.6)
+      ts-node: 10.9.1(@types/node@20.4.8)(typescript@5.1.6)
       tslib: 2.5.3
       uuid: 9.0.0
       yargs: 17.6.2
