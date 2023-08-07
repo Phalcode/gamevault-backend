@@ -59,7 +59,7 @@ async function bootstrap(): Promise<void> {
         .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
         .setExternalDoc("Documentation", "https://gamevau.lt")
         .setDescription(
-          "Backend for GameVault, the self-hosted gaming platform for 'alternatively obtained' games",
+          "Backend for GameVault, the self-hosted gaming platform for drm-free games",
         )
         .setVersion(process.env.npm_package_version)
         .addBasicAuth()

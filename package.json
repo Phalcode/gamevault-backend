@@ -1,7 +1,7 @@
 {
   "name": "gamevault-backend",
   "version": "3.0.0",
-  "description": "the self-hosted gaming platform for 'alternatively obtained' games",
+  "description": "the self-hosted gaming platform for drm-free games",
   "author": "Alkan Alper, Schäfer Philip GbR / Phalcode",
   "private": true,
   "license": "CC BY-NC-SA 4.0",
