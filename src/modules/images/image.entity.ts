@@ -28,11 +28,4 @@ export class Image extends DatabaseEntity {
     description: "the media type of the image on the filesystem",
   })
   mediaType: string;
-
-  @Column({ nullable: false })
-  @ApiProperty({
-    description: "date the image was last accessed",
-    example: "2021-03-01T00:00:00.000Z",
-  })
-  last_accessed_at: Date;
 }

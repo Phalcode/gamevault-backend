@@ -122,9 +122,7 @@ export class UtilityController {
     @Body() dto: ImageUrlDto,
   ): Promise<Game> {
     const game = await this.gamesService.getGameById(Number(params.id));
-    game.box_image = await this.imagesService.findBySourceUrlOrDownload(
-      dto.image_url,
-    );
+    game.box_image = await this.imagesService.downloadImage(dto.image_url);
     return await this.gamesService.saveGame(game);
   }
 }

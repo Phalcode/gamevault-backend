@@ -11,8 +11,6 @@ import * as fs from "fs";
 import configuration from "../../configuration";
 import sharp from "sharp";
 import logger from "../../logging";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Game } from "../games/game.entity";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
@@ -29,48 +27,18 @@ export class ImagesService {
   ) {}
 
   /**
-   * Checks if an image is available on the file system
+   * Checks if an image is available on the database and file system
    *
-   * @param image - The image object to check for availability
+   * @param id - The id of the image to check for availability
    * @returns - Whether the image is available or not
    */
-  public imageIsAvailableOnFileSystem(image: Image): boolean {
-    if (image?.path) {
-      if (fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
-        return true;
-      }
+  public async isImageAvailable(id: number): Promise<boolean> {
+    try {
+      await this.findByIdOrFail(id);
+      return true;
+    } catch (error) {
+      return false;
     }
-    return false;
-  }
-
-  /**
-   * Finds an image by its source URL, or downloads it if it doesn't exist
-   *
-   * @param sourceUrl - The source URL of the image
-   * @returns - A Promise that resolves to the found or downloaded image
-   */
-  public async findBySourceUrlOrDownload(sourceUrl: string): Promise<Image> {
-    const existingImage = await this.imageRepository.findOne({
-      where: {
-        source: sourceUrl,
-      },
-      withDeleted: true,
-    });
-
-    if (this.imageIsAvailableOnFileSystem(existingImage)) {
-      if (existingImage.deleted_at) {
-        await this.imageRepository.recover(existingImage);
-      }
-      return existingImage;
-    } else if (existingImage?.id) {
-      logger.warn(
-        "Image was found in the database but not on the server's filesystem. Clearing Remains.",
-        existingImage,
-      );
-      await this.hardDeleteImageById(existingImage.id);
-    }
-
-    return this.downloadImage(sourceUrl);
   }
 
   /**
@@ -92,8 +60,8 @@ export class ImagesService {
         );
       });
 
-    if (!fs.existsSync(image.path)) {
-      await this.softDeleteImageById(image.id);
+    if (!fs.existsSync(image.path) && !configuration.TESTING.MOCK_FILES) {
+      await this.deleteImageById(image.id);
       throw new NotFoundException(
         `Image with id ${image.id} was found in the database but not on the server's filesystem (${image.path}), so it was soft-deleted.`,
       );
@@ -112,9 +80,8 @@ export class ImagesService {
    * @throws {InternalServerErrorException} - If the image is not available or
    *   could not be downloaded.
    */
-  private async downloadImage(sourceUrl: string): Promise<Image> {
+  async downloadImage(sourceUrl: string): Promise<Image> {
     const image = new Image();
-    image.last_accessed_at = new Date();
     image.source = sourceUrl;
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
 
@@ -139,7 +106,7 @@ export class ImagesService {
       image.mediaType = response.headers["content-type"];
       if (!image.mediaType.startsWith("image/")) {
         throw new UnprocessableEntityException(
-          `Content Type Header '${image.mediaType}' is not a known image data type. Please choose a valid image.`,
+          `Content Type '${image.mediaType}' is not a known image data type. Please choose a valid image.`,
         );
       }
 
@@ -170,7 +137,7 @@ export class ImagesService {
         "Failed to download image. Clearing Remains.",
       );
       if (image.id) {
-        await this.hardDeleteImageById(image.id);
+        await this.deleteImageById(image.id);
       }
       throw new UnprocessableEntityException(
         `Failed to download image from '${sourceUrl}.'`,
@@ -178,11 +145,8 @@ export class ImagesService {
     }
   }
 
-  /**
-   * Asynchronously soft deletes an image from the database and using
-   * image.entity.subscriber.ts on the file system by its id
-   */
-  async softDeleteImageById(id: number) {
+  /** Soft deletes an image from the database and on the file system by its id */
+  async deleteImageById(id: number) {
     try {
       const image = await this.imageRepository.findOneOrFail({
         where: { id },
@@ -191,78 +155,15 @@ export class ImagesService {
       await this.imageRepository.softRemove(image);
       this.logger.debug(
         { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-        `Image successfully soft deleted from database.`,
+        `Image successfully soft-deleted from database.`,
       );
-    } catch (error) {
-      this.logger.error(error, `Failed to soft delete image from database`);
-    }
-  }
-
-  /**
-   * Asynchronously hard deletes an image from the database and using
-   * image.entity.subscriber.ts on the file system by its id
-   */
-  async hardDeleteImageById(id: number) {
-    try {
-      const image = await this.imageRepository.findOneOrFail({
-        where: { id },
-        withDeleted: true,
-      });
-      await this.imageRepository.remove(image);
+      fs.unlinkSync(image.path);
       this.logger.debug(
         { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-        `Image successfully hard deleted from database.`,
+        `Image successfully hard deleted from file system.`,
       );
     } catch (error) {
       this.logger.error(error, `Failed to hard delete image from database`);
     }
-  }
-
-  /**
-   * Asynchronously garbage collects images that are no longer in use and are
-   * older than a specified number of days. Images are considered "in use" if
-   * they are associated with a game or a user profile picture or background
-   * image.
-   */
-  async garbageCollectImagesInDatabase(): Promise<void> {
-    logger.log("Starting database image garbage collection...");
-
-    const unfilteredImagesToDelete: Image[] = await this.imageRepository
-      .createQueryBuilder("image")
-      .leftJoin(
-        Game,
-        "game",
-        "game.box_image_id = image.id OR game.background_image_id = image.id",
-      )
-      .leftJoin(
-        GamevaultUser,
-        "gamevault_user",
-        "gamevault_user.profile_picture_id = image.id OR gamevault_user.background_image_id = image.id",
-      )
-      .where(
-        "game.box_image_id IS NULL AND game.background_image_id IS NULL AND gamevault_user.profile_picture_id IS NULL AND gamevault_user.background_image_id IS NULL",
-      )
-      .select("image.id, image.last_accessed_at")
-      .getRawMany();
-
-    const now = new Date();
-    const daysAgo = new Date(
-      now.getTime() - configuration.IMAGE.GC_KEEP_DAYS * 24 * 60 * 60 * 1000,
-    );
-    const imagesToDelete = unfilteredImagesToDelete.filter((image) => {
-      return new Date(image.last_accessed_at) < daysAgo;
-    });
-
-    if (imagesToDelete.length === 0) {
-      logger.log("No images to delete!");
-      return;
-    }
-
-    logger.log(`Deleting ${imagesToDelete.length} images...`);
-    for (const image of imagesToDelete) {
-      await this.softDeleteImageById(image.id);
-    }
-
-    logger.log("Finished database image garbage collection.");
   }
 }

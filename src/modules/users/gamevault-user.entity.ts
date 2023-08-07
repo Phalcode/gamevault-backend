@@ -18,7 +18,12 @@ export class GamevaultUser extends DatabaseEntity {
   })
   password: string;
 
-  @ManyToOne(() => Image, { nullable: true, eager: true, onDelete: "SET NULL" })
+  @ManyToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
   @JoinColumn()
   @ApiProperty({
     type: () => Image,
@@ -26,7 +31,12 @@ export class GamevaultUser extends DatabaseEntity {
   })
   profile_picture: Image;
 
-  @ManyToOne(() => Image, { nullable: true, eager: true, onDelete: "SET NULL" })
+  @ManyToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
   @JoinColumn()
   @ApiProperty({
     type: () => Image,

@@ -112,7 +112,12 @@ export class Game extends DatabaseEntity {
   })
   description?: string;
 
-  @ManyToOne(() => Image, { nullable: true, eager: true, onDelete: "SET NULL" })
+  @ManyToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
   @JoinColumn()
   @ApiPropertyOptional({
     description: "box image of the game",
@@ -121,7 +126,12 @@ export class Game extends DatabaseEntity {
   })
   box_image?: Image;
 
-  @ManyToOne(() => Image, { nullable: true, eager: true, onDelete: "SET NULL" })
+  @ManyToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
   @JoinColumn()
   @ApiPropertyOptional({
     description: "background image of the game",

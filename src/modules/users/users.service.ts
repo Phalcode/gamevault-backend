@@ -124,14 +124,13 @@ export class UsersService {
     }
 
     if (dto.background_image_url) {
-      user.background_image =
-        await this.imagesService.findBySourceUrlOrDownload(
-          dto.background_image_url,
-        );
+      user.background_image = await this.imagesService.downloadImage(
+        dto.background_image_url,
+      );
     }
 
     if (dto.profile_picture_url) {
-      user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
+      user.profile_picture = await this.imagesService.downloadImage(
         dto.profile_picture_url,
       );
     }
@@ -226,16 +225,15 @@ export class UsersService {
     }
 
     if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
+      user.profile_picture = await this.imagesService.downloadImage(
         dto.profile_picture_url,
       );
     }
 
     if (dto.background_image_url != null) {
-      user.background_image =
-        await this.imagesService.findBySourceUrlOrDownload(
-          dto.background_image_url,
-        );
+      user.background_image = await this.imagesService.downloadImage(
+        dto.background_image_url,
+      );
     }
 
     if (admin && dto.activated != null) {
@@ -283,9 +281,7 @@ export class UsersService {
     url: string,
   ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.profile_picture = await this.imagesService.findBySourceUrlOrDownload(
-      url,
-    );
+    user.profile_picture = await this.imagesService.downloadImage(url);
     return await this.userRepository.save(user);
   }
 
@@ -300,9 +296,7 @@ export class UsersService {
    */
   public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.background_image = await this.imagesService.findBySourceUrlOrDownload(
-      url,
-    );
+    user.background_image = await this.imagesService.downloadImage(url);
     return await this.userRepository.save(user);
   }
 

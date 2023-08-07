@@ -36,9 +36,6 @@ export class AutomationService implements OnApplicationBootstrap {
     this.autoindexGames().catch((e) =>
       this.logger.error(e, "Error on Startup Automation: Autoindex"),
     );
-    this.autoGarbageCollect().catch((e) =>
-      this.logger.error(e, "Error on Startup Automation: Garbage Collection"),
-    );
     this.setServerAdmin().catch((e) =>
       this.logger.error(e, "Error on Startup Automation: Server Admin Reset"),
     );
@@ -99,22 +96,6 @@ export class AutomationService implements OnApplicationBootstrap {
     await this.rawgService.cacheGames(gamesInDatabase);
     //Check boxart of games in database
     await this.boxartService.checkBoxArts(gamesInDatabase);
-  }
-
-  /**
-   * Cron job that performs garbage collection of images in the database.
-   *
-   * @async
-   */
-  @Cron(`*/${configuration.IMAGE.GC_INTERVAL_MINUTES} * * * *`)
-  public async autoGarbageCollect() {
-    if (configuration.TESTING.MOCK_FILES) {
-      this.logger.log(
-        "Not collecting any garbage because TESTING_MOCK_FILES is set to true, so no garbage can exist",
-      );
-      return;
-    }
-    await this.imagesService.garbageCollectImagesInDatabase();
   }
 
   /**

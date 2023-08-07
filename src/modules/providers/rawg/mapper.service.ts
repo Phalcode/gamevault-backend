@@ -194,9 +194,8 @@ export class RawgMapperService {
     try {
       try {
         entity.background_image =
-          (await this.imagesService.findBySourceUrlOrDownload(
-            game.background_image,
-          )) ?? entity.background_image;
+          (await this.imagesService.downloadImage(game.background_image)) ??
+          entity.background_image;
       } catch (error) {}
 
       entity.rawg_title = game.name ?? entity.rawg_title;

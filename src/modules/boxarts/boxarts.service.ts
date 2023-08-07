@@ -57,7 +57,7 @@ export class BoxArtsService {
    * @param game - The game for which to check the box art.
    */
   public async checkBoxArt(game: Game): Promise<void> {
-    if (this.imagesService.imageIsAvailableOnFileSystem(game.box_image)) {
+    if (await this.imagesService.isImageAvailable(game.box_image.id)) {
       this.logger.debug(`Box Art for "${game.title}" is still available`);
       return;
     }
@@ -171,9 +171,7 @@ export class BoxArtsService {
 
       if (aspectRatioDifference <= tolerance) {
         try {
-          game.box_image = await this.imagesService.findBySourceUrlOrDownload(
-            image.url,
-          );
+          game.box_image = await this.imagesService.downloadImage(image.url);
           await this.gamesService.saveGame(game);
           this.logger.log(
             `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,

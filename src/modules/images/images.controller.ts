@@ -1,9 +1,13 @@
 import { Controller, Get, Param, Res } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+  ApiTags,
+} from "@nestjs/swagger";
 import { ImagesService } from "./images.service";
 import fs from "fs";
 import { Response } from "express";
-import { Image } from "./image.entity";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 
@@ -26,9 +30,10 @@ export class ImagesController {
     operationId: "getImage",
   })
   @ApiOkResponse({
-    type: () => Image,
+    type: Buffer,
     description: "The requested image",
   })
+  @ApiProduces("image/*")
   @MinimumRole(Role.GUEST)
   async getImage(@Param("id") id: string, @Res() res: Response): Promise<void> {
     const image = await this.imagesService.findByIdOrFail(Number(id));

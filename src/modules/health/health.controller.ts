@@ -3,7 +3,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../pagination/public.decorator";
 
 @Controller("health")
-@ApiTags("utility")
+@ApiTags("health")
 export class HealthController {
   /**
    * Returns a lifesign.
