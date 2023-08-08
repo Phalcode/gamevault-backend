@@ -23,18 +23,21 @@ export class RemoveImageDeduplication1691366400000
       DROP COLUMN IF EXISTS last_accessed_at;`);
 
     // Step 3: Change Foreign Keys
-    await queryRunner
-      .dropForeignKey("gamevault_user", "FK_3a56876605551fa369cbcd09c41")
-      .catch();
-    await queryRunner
-      .dropForeignKey("gamevault_user", "FK_4a135b04a00cf3e3653cd585334")
-      .catch();
-    await queryRunner
-      .dropForeignKey("gamevault_user", "FK_c1779b9b22212754248aa404bad")
-      .catch();
-    await queryRunner
-      .dropForeignKey("gamevault_user", "FK_4b83e27ed50c1e183a69fceef68")
-      .catch();
+    const gamevaultUserForeignKeysToDrop = [
+      "FK_3a56876605551fa369cbcd09c41",
+      "FK_4a135b04a00cf3e3653cd585334",
+      "FK_c1779b9b22212754248aa404bad",
+      "FK_4b83e27ed50c1e183a69fceef68",
+    ];
+
+    for (const foreignKey of gamevaultUserForeignKeysToDrop) {
+      try {
+        await queryRunner.dropForeignKey("gamevault_user", foreignKey);
+      } catch (error) {
+        // Handle the error or ignore it if the foreign key doesn't exist
+        console.error(`Error dropping foreign key ${foreignKey}`);
+      }
+    }
 
     await queryRunner.createForeignKeys("gamevault_user", [
       new TableForeignKey({
