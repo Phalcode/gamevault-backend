@@ -23,8 +23,14 @@ export class RemoveImageDeduplication1691366400000
       DROP COLUMN IF EXISTS last_accessed_at;`);
 
     // Step 3: Change Foreign Keys
-    await queryRunner.dropForeignKey("gamevault_user", "profile_picture_id");
-    await queryRunner.dropForeignKey("gamevault_user", "background_image_id");
+    await queryRunner.dropForeignKey(
+      "gamevault_user",
+      "FK_3a56876605551fa369cbcd09c41",
+    );
+    await queryRunner.dropForeignKey(
+      "gamevault_user",
+      "FK_4a135b04a00cf3e3653cd585334",
+    );
 
     await queryRunner.createForeignKeys("gamevault_user", [
       new TableForeignKey({
@@ -45,8 +51,8 @@ export class RemoveImageDeduplication1691366400000
       }),
     ]);
 
-    await queryRunner.dropForeignKey("game", "box_image_id");
-    await queryRunner.dropForeignKey("game", "background_image_id");
+    await queryRunner.dropForeignKey("game", "FK_52b4bb990c5a5fe76c6d675c002");
+    await queryRunner.dropForeignKey("game", "FK_0e88ada3f37f7cabfb6d59ed0d0");
 
     await queryRunner.createForeignKeys("game", [
       new TableForeignKey({
@@ -84,8 +90,14 @@ export class RemoveImageDeduplication1691366400000
     );
 
     // Step 3: Change Foreign Keys
-    await queryRunner.dropForeignKey("gamevault_user", "profile_picture_id");
-    await queryRunner.dropForeignKey("gamevault_user", "background_image_id");
+    await queryRunner.dropForeignKey(
+      "gamevault_user",
+      "FK_3a56876605551fa369cbcd09c41",
+    );
+    await queryRunner.dropForeignKey(
+      "gamevault_user",
+      "FK_4a135b04a00cf3e3653cd585334",
+    );
 
     await queryRunner.createForeignKeys("gamevault_user", [
       new TableForeignKey({
@@ -106,8 +118,8 @@ export class RemoveImageDeduplication1691366400000
       }),
     ]);
 
-    await queryRunner.dropForeignKey("game", "box_image_id");
-    await queryRunner.dropForeignKey("game", "background_image_id");
+    await queryRunner.dropForeignKey("game", "FK_52b4bb990c5a5fe76c6d675c002");
+    await queryRunner.dropForeignKey("game", "FK_0e88ada3f37f7cabfb6d59ed0d0");
 
     await queryRunner.createForeignKeys("game", [
       new TableForeignKey({
