@@ -57,7 +57,10 @@ export class BoxArtsService {
    * @param game - The game for which to check the box art.
    */
   public async checkBoxArt(game: Game): Promise<void> {
-    if (await this.imagesService.isImageAvailable(game.box_image.id)) {
+    if (
+      game.box_image?.id &&
+      (await this.imagesService.isImageAvailable(game.box_image.id))
+    ) {
       this.logger.debug(`Box Art for "${game.title}" is still available`);
       return;
     }
