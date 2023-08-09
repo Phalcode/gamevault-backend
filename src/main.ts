@@ -45,6 +45,7 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix("api/v1");
   const reflector = app.get(Reflector);
+
   app.useGlobalGuards(
     new AuthenticationGuard(reflector),
     new AuthorizationGuard(reflector),
@@ -61,7 +62,10 @@ async function bootstrap(): Promise<void> {
         .setDescription(
           "Backend for GameVault, the self-hosted gaming platform for drm-free games",
         )
-        .setVersion(process.env.npm_package_version)
+        .setVersion(
+          process.env.npm_package_version ||
+            (await import("../package.json")).version,
+        )
         .addBasicAuth()
         .addServer(`http://localhost:8080`, "Local GameVault Server")
         .setLicense(

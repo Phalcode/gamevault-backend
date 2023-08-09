@@ -36,7 +36,7 @@ export class ProgressService {
    */
   private readIgnoreFile() {
     try {
-      const filePath = path.join(__dirname, "../../static/.progressignore");
+      const filePath = path.join(__dirname, "../../../static/.progressignore");
       const fileContent = fs.readFileSync(filePath, "utf-8");
       this.ignoreList = fileContent.split("\n").map((line) => line.trim());
     } catch (error) {
