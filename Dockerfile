@@ -43,4 +43,4 @@ EXPOSE ${SERVER_PORT}/tcp
 # Periodic Healthcheck on /api/v1/health
 HEALTHCHECK CMD curl -f http://localhost:${SERVER_PORT}/api/v1/health || exit
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD [ "dist/main" ]
+CMD [ "dist/src/main" ]
