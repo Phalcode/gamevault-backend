@@ -28,8 +28,6 @@ import { GamesService } from "./games.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { ImageUrlDto } from "../images/models/image-url.dto";
-import { ImagesService } from "../images/images.service";
-import { RawgIdDto } from "./models/rawg_id.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiTags("game")
@@ -40,7 +38,6 @@ export class GamesController {
   constructor(
     private gamesService: GamesService,
     private filesService: FilesService,
-    private imagesService: ImagesService,
     @InjectRepository(Game)
     private readonly gamesRepository: Repository<Game>,
   ) {}
