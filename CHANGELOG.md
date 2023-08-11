@@ -1,9 +1,27 @@
 # GameVault Backend Server Changelog
 
-## Upcoming
+## 5.0.0
+
+### Changes
+
+- Removed Deprecated Utility APIs
+
+## 4.0.0
+
+### Breaking Changes & Migration
+
+- Deprecated Utility APIs and moved them to better designed places (Will be fully removed in v5.0.0). They were moved as follows:
+  - `/api/v1/utility/reindex` -> `/api/v1/files/reindex`
+  - `/api/v1/utility/recache/{id}` -> `/api/v1/rawg/{id}/recache` (Also now available for EDITOR Role)
+  - `/api/v1/utility/recache` -> `/api/v1/rawg/recache-all`
+  - `/api/v1/utility/overwrite/{id}/rawg_id` -> `/api/v1/games/rawg_id`
+  - `/api/v1/utility/overwrite/{id}/box_image` -> `/api/v1/games/box_image`
+
+### Changes
 
 - Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
 - Implemented native Support for Single .exe files #144
+- Fixed OpenAPI Spec again
 
 ## 3.0.0
 

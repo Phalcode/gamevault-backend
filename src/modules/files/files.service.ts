@@ -1,8 +1,19 @@
-import { Injectable, Logger, StreamableFile } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnApplicationBootstrap,
+  StreamableFile,
+} from "@nestjs/common";
 import { IGameVaultFile } from "./models/file.model";
 import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
-import { createReadStream, readdirSync, statSync } from "fs";
+import {
+  createReadStream,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  statSync,
+} from "fs";
 import { basename, extname } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
@@ -10,25 +21,49 @@ import mime from "mime";
 import { GameExistence } from "../games/models/game-existence.enum";
 import { list } from "node-7z";
 import { GameType } from "../games/models/game-type.enum";
+import { Cron } from "@nestjs/schedule";
+import { RawgService } from "../providers/rawg/rawg.service";
+import { BoxArtsService } from "../boxarts/boxarts.service";
 
 @Injectable()
-export class FilesService {
+export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(FilesService.name);
 
-  constructor(private gamesService: GamesService) {}
+  constructor(
+    private gamesService: GamesService,
+    private rawgService: RawgService,
+    private boxartService: BoxArtsService,
+  ) {}
 
-  /**
-   * This method indexes games files by extracting their relevant information
-   * and saving them in the database.
-   *
-   * @async
-   * @param gamesInFileSystem - An array of objects representing game files in
-   *   the file system.
-   * @returns
-   * @throws {Error} - If there's an error during the process.
-   */
-  public async indexFiles(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
-    this.logger.log("STARTED FILE INDEXING");
+  onApplicationBootstrap() {
+    try {
+      this.checkFolders();
+      this.index();
+    } catch (error) {
+      this.logger.error(error, "Error on FilesService Bootstrap");
+    }
+  }
+
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
+  public async index(): Promise<void> {
+    //Get all games in file system
+    const gamesInFileSystem = this.fetchFiles();
+    //Feed Game
+    await this.ingestGames(gamesInFileSystem);
+    //Get all games in database
+    const gamesInDatabase = await this.gamesService.getAllGames();
+    //Check integrity of games in database with games in file system
+    await this.integrityCheck(gamesInFileSystem, gamesInDatabase);
+    //Check cache of games in database
+    await this.rawgService.cacheGames(gamesInDatabase);
+    //Check boxart of games in database
+    await this.boxartService.checkBoxArts(gamesInDatabase);
+  }
+
+  private async ingestGames(
+    gamesInFileSystem: IGameVaultFile[],
+  ): Promise<void> {
+    this.logger.log("Started Game Ingestion");
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
@@ -87,7 +122,7 @@ export class FilesService {
         );
       }
     }
-    this.logger.log("FINISHED FILE INDEXING");
+    this.logger.log("Finished Game Ingestion");
   }
 
   /**
@@ -307,7 +342,7 @@ export class FilesService {
    *   the database.
    * @returns
    */
-  public async integrityCheck(
+  private async integrityCheck(
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
   ): Promise<void> {
@@ -317,7 +352,7 @@ export class FilesService {
       );
       return;
     }
-    this.logger.log("STARTED INTEGRITY CHECK");
+    this.logger.log("Started Integrity Check");
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
@@ -340,7 +375,7 @@ export class FilesService {
         );
       }
     }
-    this.logger.log("FINISHED INTEGRITY CHECK");
+    this.logger.log("Finished Integrity Check");
   }
 
   /**
@@ -351,7 +386,7 @@ export class FilesService {
    * @throws {Error} - If there's an error during the process.
    * @public
    */
-  public getFiles(): IGameVaultFile[] {
+  private fetchFiles(): IGameVaultFile[] {
     if (configuration.TESTING.MOCK_FILES) {
       return mock;
     }
@@ -398,5 +433,60 @@ export class FilesService {
       length: Number(game.size),
       type,
     });
+  }
+
+  /**
+   * Checks and creates necessary folders if they do not exist.
+   *
+   * @private
+   */
+  private checkFolders() {
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn(
+        "Not checking or creating any folders because TESTING_MOCK_FILES is set to true",
+      );
+      return;
+    }
+
+    this.createDirectoryIfNotExist(
+      configuration.VOLUMES.FILES,
+      `Directory "${configuration.VOLUMES.FILES}" does not exist. Trying to create a new one...`,
+    );
+
+    this.createDirectoryIfNotExist(
+      configuration.VOLUMES.IMAGES,
+      `Directory "${configuration.VOLUMES.IMAGES}" does not exist. Trying to create a new one...`,
+    );
+
+    if (configuration.SERVER.LOG_FILES_ENABLED) {
+      this.createDirectoryIfNotExist(
+        configuration.VOLUMES.LOGS,
+        `Directory "${configuration.VOLUMES.LOGS}" does not exist. Trying to create a new one...`,
+      );
+    }
+
+    if (
+      configuration.DB.SYSTEM === "SQLITE" &&
+      !configuration.TESTING.IN_MEMORY_DB
+    ) {
+      this.createDirectoryIfNotExist(
+        configuration.VOLUMES.SQLITEDB,
+        `Directory "${configuration.VOLUMES.SQLITEDB}" does not exist. Trying to create a new one...`,
+      );
+    }
+  }
+
+  /**
+   * Creates a directory if it does not exist.
+   *
+   * @param {string} path - The path of the directory.
+   * @param {string} errorMessage - The error message to log if the directory
+   *   does not exist.
+   */
+  private createDirectoryIfNotExist(path, errorMessage) {
+    if (!existsSync(path)) {
+      this.logger.error(errorMessage);
+      mkdirSync(path);
+    }
   }
 }

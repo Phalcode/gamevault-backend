@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Param, Put, Query } from "@nestjs/common";
 import {
   ApiOkResponse,
   ApiOperation,
@@ -11,13 +11,18 @@ import { Game } from "../../games/game.entity";
 import { MinimumRole } from "../../pagination/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
 import { RawgGame } from "./models/game.interface";
+import { IdDto } from "../../database/models/id.dto";
+import { GamesService } from "../../games/games.service";
+import { BoxArtsService } from "../../boxarts/boxarts.service";
 
 @ApiTags("rawg")
 @Controller("rawg")
 export class RawgController {
   constructor(
+    private gamesService: GamesService,
     private rawgService: RawgService,
     private mapper: RawgMapperService,
+    private boxartService: BoxArtsService,
   ) {}
 
   /**
@@ -48,5 +53,50 @@ export class RawgController {
       );
     }
     return games;
+  }
+
+  /**
+   * Manually triggers a recache from rawg-api for a specific game, also updates
+   * boxart.
+   *
+   * @param params - An object containing the game's ID.
+   * @returns - A promise that resolves with the updated game.
+   */
+  @Put(":id/recache")
+  @ApiOperation({
+    summary:
+      "manually triggers a recache from rawg-api for a specific game, also updates boxart",
+    operationId: "recacheGame",
+  })
+  @ApiOkResponse({ type: () => Game })
+  @MinimumRole(Role.EDITOR)
+  async recacheGame(@Param() params: IdDto): Promise<Game> {
+    let game = await this.gamesService.getGameById(Number(params.id));
+    game.cache_date = null;
+    game = await this.gamesService.saveGame(game);
+    await this.rawgService.cacheGames([game]);
+    await this.boxartService.checkBoxArt(game);
+    return await this.gamesService.getGameById(Number(params.id), true);
+  }
+
+  /** Manually triggers a recache from rawg-api for all games. */
+  @Put("recache-all")
+  @ApiOperation({
+    summary: "manually triggers a recache from rawg-api for all games",
+    description:
+      "DANGER: This is a very expensive operation and should be used sparingly",
+    operationId: "recacheAllGames",
+  })
+  @ApiOkResponse({ type: () => Game, isArray: true })
+  @MinimumRole(Role.ADMIN)
+  async recacheAllGames(): Promise<string> {
+    const gamesInDatabase = await this.gamesService.getAllGames();
+    for (const game of gamesInDatabase) {
+      game.cache_date = null;
+      await this.gamesService.saveGame(game);
+    }
+    await this.rawgService.cacheGames(gamesInDatabase);
+    await this.boxartService.checkBoxArts(gamesInDatabase);
+    return "Recache successfuly completed";
   }
 }

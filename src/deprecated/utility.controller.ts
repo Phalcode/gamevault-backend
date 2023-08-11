@@ -1,9 +1,8 @@
 import { Body, Controller, Param, Put } from "@nestjs/common";
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ImageUrlDto } from "../modules/images/models/image-url.dto";
-import { OverwriteGameRawgIdDto } from "../modules/games/models/overwrite-game-rawg_id.dto";
+import { RawgIdDto } from "../modules/games/models/rawg_id.dto";
 import { Game } from "../modules/games/game.entity";
-import { AutomationService } from "./automation.service";
 import { GamesService } from "../modules/games/games.service";
 import { ImagesService } from "../modules/images/images.service";
 import { RawgService } from "../modules/providers/rawg/rawg.service";
@@ -11,6 +10,7 @@ import { MinimumRole } from "../modules/pagination/minimum-role.decorator";
 import { Role } from "../modules/users/models/role.enum";
 import { BoxArtsService } from "../modules/boxarts/boxarts.service";
 import { IdDto } from "../modules/database/models/id.dto";
+import { FilesService } from "../modules/files/files.service";
 
 @ApiTags("utility")
 @Controller("utility")
@@ -19,8 +19,8 @@ export class UtilityController {
     private gamesService: GamesService,
     private rawgService: RawgService,
     private imagesService: ImagesService,
-    private cronService: AutomationService,
     private boxartService: BoxArtsService,
+    private filesService: FilesService,
   ) {}
 
   /** Manually triggers a reindex on all games. */
@@ -28,11 +28,12 @@ export class UtilityController {
   @ApiOperation({
     summary: "manually triggers a reindex on all games",
     operationId: "reindexGames",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async reindexGames() {
-    return await this.cronService.autoindexGames();
+    return await this.filesService.index();
   }
 
   /**
@@ -47,6 +48,7 @@ export class UtilityController {
     summary:
       "manually triggers a recache from rawg-api for a specific game, also updates boxart",
     operationId: "recacheGame",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.ADMIN)
@@ -66,6 +68,7 @@ export class UtilityController {
     description:
       "DANGER: This is a very expensive operation and should be used sparingly",
     operationId: "recacheAllGames",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
@@ -91,13 +94,14 @@ export class UtilityController {
   @ApiOperation({
     summary: "manually remaps a database entry to a rawg game and recaches it",
     operationId: "remapGame",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => Game })
-  @ApiBody({ type: () => OverwriteGameRawgIdDto })
+  @ApiBody({ type: () => RawgIdDto })
   @MinimumRole(Role.EDITOR)
   async remapGame(
     @Param() params: IdDto,
-    @Body() dto: OverwriteGameRawgIdDto,
+    @Body() dto: RawgIdDto,
   ): Promise<Game> {
     return await this.gamesService.remapGame(Number(params.id), dto.rawg_id);
   }
@@ -113,6 +117,7 @@ export class UtilityController {
   @ApiOperation({
     summary: "manually overwrites box art for a game",
     operationId: "remapBoxArt",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => Game })
   @ApiBody({ type: () => ImageUrlDto })

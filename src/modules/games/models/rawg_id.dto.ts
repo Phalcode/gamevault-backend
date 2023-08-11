@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumber, IsPositive } from "class-validator";
 
-export class OverwriteGameRawgIdDto {
+export class RawgIdDto {
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()

@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnApplicationBootstrap,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -16,7 +17,7 @@ import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
@@ -24,6 +25,48 @@ export class UsersService {
     private userRepository: Repository<GamevaultUser>,
     private imagesService: ImagesService,
   ) {}
+
+  async onApplicationBootstrap() {
+    try {
+      await this.setServerAdmin();
+    } catch (error) {
+      this.logger.error(error, "Error on FilesService Bootstrap");
+    }
+  }
+
+  private async setServerAdmin() {
+    try {
+      if (!configuration.SERVER.ADMIN_USERNAME) {
+        this.logger.warn(
+          "No admin user has been configured. Ensure to set up one as follows: https://gamevau.lt/docs/server-docs/user-management#initial-setup",
+        );
+        return;
+      }
+
+      const user = await this.getUserByUsernameOrFail(
+        configuration.SERVER.ADMIN_USERNAME,
+      );
+
+      const updateUserDto: UpdateUserDto = {
+        role: Role.ADMIN,
+        activated: true,
+        password: configuration.SERVER.ADMIN_PASSWORD || undefined,
+      };
+
+      await this.update(user.id, updateUserDto, true);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        this.logger.warn(
+          `The admin user wasn't configured as the "${configuration.SERVER.ADMIN_USERNAME}" user mentioned in the configuration wasn't located in the database. Make sure to register the user.`,
+        );
+      } else {
+        this.logger.error(
+          error,
+          "An error occurred while configuring the server admin.",
+        );
+      }
+    }
+  }
 
   /**
    * Retrieves a user by their ID or throws an exception if the user is not

@@ -6,12 +6,14 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { RawgModule } from "../providers/rawg/rawg.module";
 import { BoxartsModule } from "../boxarts/boxarts.module";
 import { FilesModule } from "../files/files.module";
+import { ImagesModule } from "../images/images.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Game]),
     RawgModule,
     BoxartsModule,
+    ImagesModule,
     forwardRef(() => FilesModule),
   ],
   controllers: [GamesController],
