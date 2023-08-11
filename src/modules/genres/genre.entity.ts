@@ -22,7 +22,7 @@ export class Genre extends DatabaseEntity {
   @ManyToMany(() => Game, (game) => game.genres)
   @ApiProperty({
     description: "games of the genre",
-    type: Game,
+    type: () => Game,
     isArray: true,
   })
   games?: Game[];

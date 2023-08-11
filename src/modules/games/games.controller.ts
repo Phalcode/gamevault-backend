@@ -30,6 +30,7 @@ import { Role } from "../users/models/role.enum";
 import { ImageUrlDto } from "../images/models/image-url.dto";
 import { ImagesService } from "../images/images.service";
 import { RawgIdDto } from "./models/rawg_id.dto";
+import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiTags("game")
 @Controller("games")
@@ -163,35 +164,17 @@ export class GamesController {
     return await this.filesService.downloadGame(Number(params.id));
   }
 
-  @Put(":id/box_image")
+  @Put(":id")
   @ApiOperation({
-    summary: "updates the box art of a game",
-    operationId: "updateBoxArt",
+    summary: "updates the details of a game",
+    operationId: "updateGame",
   })
-  @ApiOkResponse({ type: () => Game })
   @ApiBody({ type: () => ImageUrlDto })
   @MinimumRole(Role.EDITOR)
-  async remapBoxArt(
+  async updateGame(
     @Param() params: IdDto,
-    @Body() dto: ImageUrlDto,
+    @Body() dto: UpdateGameDto,
   ): Promise<Game> {
-    const game = await this.gamesService.getGameById(Number(params.id));
-    game.box_image = await this.imagesService.downloadImage(dto.image_url);
-    return await this.gamesService.saveGame(game);
-  }
-
-  @Put(":id/rawg_id")
-  @ApiOperation({
-    summary: "remaps a game to a rawg game and recaches it",
-    operationId: "remapGame",
-  })
-  @ApiOkResponse({ type: () => Game })
-  @ApiBody({ type: () => RawgIdDto })
-  @MinimumRole(Role.EDITOR)
-  async remapGame(
-    @Param() params: IdDto,
-    @Body() dto: RawgIdDto,
-  ): Promise<Game> {
-    return await this.gamesService.remapGame(Number(params.id), dto.rawg_id);
+    return await this.gamesService.updateGame(Number(params.id), dto);
   }
 }

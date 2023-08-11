@@ -189,7 +189,7 @@ export class Game extends DatabaseEntity {
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
     description: "progresses associated to the game",
-    type: [() => Progress],
+    type: () => Progress,
     isArray: true,
   })
   progresses: Progress[];

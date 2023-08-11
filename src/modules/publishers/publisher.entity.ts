@@ -22,7 +22,7 @@ export class Publisher extends DatabaseEntity {
   @ManyToMany(() => Game, (game) => game.publishers)
   @ApiProperty({
     description: "games published by the publisher",
-    type: Game,
+    type: () => Game,
     isArray: true,
   })
   games: Game[];

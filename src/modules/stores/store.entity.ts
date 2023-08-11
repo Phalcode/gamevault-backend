@@ -22,7 +22,7 @@ export class Store extends DatabaseEntity {
   @ManyToMany(() => Game, (game) => game.stores)
   @ApiProperty({
     description: "games available on the store",
-    type: Game,
+    type: () => Game,
     isArray: true,
   })
   games: Game[];

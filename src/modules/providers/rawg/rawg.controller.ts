@@ -66,7 +66,7 @@ export class RawgController {
   @ApiOperation({
     summary:
       "manually triggers a recache from rawg-api for a specific game, also updates boxart",
-    operationId: "recacheGame",
+    operationId: "rawgRecacheGame",
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.EDITOR)
@@ -85,7 +85,7 @@ export class RawgController {
     summary: "manually triggers a recache from rawg-api for all games",
     description:
       "DANGER: This is a very expensive operation and should be used sparingly",
-    operationId: "recacheAllGames",
+    operationId: "rawgRecacheAll",
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)

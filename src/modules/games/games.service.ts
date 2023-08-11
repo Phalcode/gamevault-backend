@@ -12,6 +12,8 @@ import { Game } from "./game.entity";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { GameExistence } from "./models/game-existence.enum";
 import { BoxArtsService } from "../boxarts/boxarts.service";
+import { UpdateGameDto } from "./models/update-game.dto";
+import { ImagesService } from "../images/images.service";
 
 @Injectable()
 export class GamesService {
@@ -23,6 +25,7 @@ export class GamesService {
     @Inject(forwardRef(() => RawgService))
     private rawgService: RawgService,
     private boxartService: BoxArtsService,
+    private imagesService: ImagesService,
   ) {}
 
   /**
@@ -227,6 +230,22 @@ export class GamesService {
    */
   public deleteGame(game: Game) {
     return this.gamesRepository.softRemove(game);
+  }
+
+  public async updateGame(id: number, dto: UpdateGameDto) {
+    let game = await this.getGameById(id);
+
+    // Remaps RAWG Entry of Game
+    if (dto.rawg_id) {
+      game = await this.remapGame(id, dto.rawg_id);
+    }
+
+    // Updates BoxArt if Necessary
+    if (dto.box_image) {
+      game.box_image = await this.imagesService.downloadImage(dto.box_image);
+    }
+
+    return this.gamesRepository.save(game);
   }
 
   /**
