@@ -57,7 +57,7 @@ export class UsersService implements OnApplicationBootstrap {
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(
-          `The admin user wasn't configured as the "${configuration.SERVER.ADMIN_USERNAME}" user mentioned in the configuration wasn't located in the database. Make sure to register the user.`,
+          `The admin user wasn't configured because the user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user.`,
         );
       } else {
         this.logger.error(
