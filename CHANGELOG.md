@@ -10,6 +10,8 @@
 
 ### Breaking Changes & Migration
 
+- Implemented native Support for Single .exe files as described in [#144](https://github.com/Phalcode/gamevault-backend/issues/144)
+
 - [#168](https://github.com/Phalcode/gamevault-backend/issues/168) - Deprecated Utility APIs and moved them to better designed places (Deprecated APIs willl eventually be removed in v5.0.0). Replacements are available as follows:
   - `/api/v1/utility/reindex` -> `/api/v1/files/reindex`
   - `/api/v1/utility/recache/{id}` -> `/api/v1/rawg/{id}/recache` (Also now available for EDITOR Role)
@@ -21,7 +23,7 @@
 
 - Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
 - Implemented Update Game API (currently only supports rawg_id and box_image may come in handy for [#161](https://github.com/Phalcode/gamevault-backend/issues/161) in the future!)
-- Implemented native Support for Single .exe files as described in [#144](https://github.com/Phalcode/gamevault-backend/issues/144)
+
 - [#146](https://github.com/Phalcode/gamevault-backend/issues/146) Fixed OpenAPI Spec again
 
 ### Thanks
