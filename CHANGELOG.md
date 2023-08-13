@@ -10,7 +10,7 @@
 
 ### Breaking Changes & Migration
 
-- Implemented native Support for Single .exe files as described in [#144](https://github.com/Phalcode/gamevault-backend/issues/144)
+- Implemented native Support for Single .exe and .sh files as described in [#144](https://github.com/Phalcode/gamevault-backend/issues/144). They get temporarily tarballed in `/tmp` and reused if possible.
 
 - [#168](https://github.com/Phalcode/gamevault-backend/issues/168) - Deprecated Utility APIs and moved them to better designed places (Deprecated APIs willl eventually be removed in v5.0.0). Replacements are available as follows:
   - `/api/v1/utility/reindex` -> `/api/v1/files/reindex`

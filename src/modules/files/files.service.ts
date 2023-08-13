@@ -19,11 +19,12 @@ import configuration from "../../configuration";
 import mock from "../games/games.mock";
 import mime from "mime";
 import { GameExistence } from "../games/models/game-existence.enum";
-import { list } from "node-7z";
+import { add, list } from "node-7z";
 import { GameType } from "../games/models/game-type.enum";
 import { Cron } from "@nestjs/schedule";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
+import globals from "../../globals";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -330,6 +331,24 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
+  private async archiveFiles(
+    output: string,
+    source: string | string[],
+  ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const archiveStream = add(output, source);
+      archiveStream.on("error", (error) => {
+        this.logger.error(error, `Error archiving "${output}"`);
+        reject(error);
+      });
+
+      archiveStream.on("end", () => {
+        this.logger.debug(`Archived "${output}"`);
+        resolve();
+      });
+    });
+  }
+
   /**
    * This method performs an integrity check by comparing the games in the file
    * system with the games in the database, marking the deleted games as deleted
@@ -425,14 +444,34 @@ export class FilesService implements OnApplicationBootstrap {
    */
   public async downloadGame(gameId: number): Promise<StreamableFile> {
     const game = await this.gamesService.getGameById(gameId);
-    const file = createReadStream(game.file_path);
-    const type = mime.getType(game.file_path);
+    const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
+    let downloadPath = game.file_path;
 
-    return new StreamableFile(file, {
-      disposition: `attachment; filename=${encodeURIComponent(game.file_path)}`,
+    if (!globals.ARCHIVE_FORMATS.includes(fileExtension)) {
+      downloadPath = `/tmp/${gameId}.tar`;
+
+      if (!existsSync(downloadPath)) {
+        this.logger.debug(
+          `Temporarily tarballing "${game.file_path}" as "${downloadPath}" for downloading...`,
+        );
+        await this.archiveFiles(downloadPath, game.file_path);
+      } else {
+        this.logger.debug(
+          `Reusing temporary tarball "${downloadPath}" for "${game.file_path}."`,
+        );
+      }
+    }
+
+    const file = createReadStream(downloadPath);
+    const type = mime.getType(downloadPath);
+
+    const headers = {
+      disposition: `attachment; filename=${encodeURIComponent(downloadPath)}`,
       length: Number(game.size),
       type,
-    });
+    };
+
+    return new StreamableFile(file, headers);
   }
 
   /**
@@ -483,7 +522,7 @@ export class FilesService implements OnApplicationBootstrap {
    * @param {string} errorMessage - The error message to log if the directory
    *   does not exist.
    */
-  private createDirectoryIfNotExist(path, errorMessage) {
+  private createDirectoryIfNotExist(path: string, errorMessage: string): void {
     if (!existsSync(path)) {
       this.logger.error(errorMessage);
       mkdirSync(path);
