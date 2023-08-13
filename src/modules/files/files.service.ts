@@ -457,7 +457,7 @@ export class FilesService implements OnApplicationBootstrap {
         await this.archiveFiles(downloadPath, game.file_path);
       } else {
         this.logger.debug(
-          `Reusing temporary tarball "${downloadPath}" for "${game.file_path}."`,
+          `Reusing temporary tarball "${downloadPath}" for "${game.file_path}"`,
         );
       }
     }
