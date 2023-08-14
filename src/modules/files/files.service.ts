@@ -445,28 +445,28 @@ export class FilesService implements OnApplicationBootstrap {
   public async downloadGame(gameId: number): Promise<StreamableFile> {
     const game = await this.gamesService.getGameById(gameId);
     const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
-    let downloadPath = game.file_path;
+    let fileDownloadPath = game.file_path;
 
     if (!globals.ARCHIVE_FORMATS.includes(fileExtension)) {
-      downloadPath = `/tmp/${gameId}.tar`;
+      fileDownloadPath = `/tmp/${gameId}.tar`;
 
-      if (!existsSync(downloadPath)) {
+      if (!existsSync(fileDownloadPath)) {
         this.logger.debug(
-          `Temporarily tarballing "${game.file_path}" as "${downloadPath}" for downloading...`,
+          `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
         );
-        await this.archiveFiles(downloadPath, game.file_path);
+        await this.archiveFiles(fileDownloadPath, game.file_path);
       } else {
         this.logger.debug(
-          `Reusing temporary tarball "${downloadPath}" for "${game.file_path}"`,
+          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
         );
       }
     }
 
-    const file = createReadStream(downloadPath);
-    const type = mime.getType(downloadPath);
+    const file = createReadStream(fileDownloadPath);
+    const type = mime.getType(fileDownloadPath);
 
     const headers = {
-      disposition: `attachment; filename=${encodeURIComponent(downloadPath)}`,
+      disposition: `attachment; filename="${fileDownloadPath.replace(/^.*[\\\/]/, '')}"`,
       length: Number(game.size),
       type,
     };
