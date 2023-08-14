@@ -466,7 +466,10 @@ export class FilesService implements OnApplicationBootstrap {
     const type = mime.getType(fileDownloadPath);
 
     const headers = {
-      disposition: `attachment; filename="${fileDownloadPath.replace(/^.*[\\\/]/, '')}"`,
+      disposition: `attachment; filename="${fileDownloadPath.replace(
+        /^.*[\\\/]/,
+        "",
+      )}"`,
       length: Number(game.size),
       type,
     };
