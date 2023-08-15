@@ -5,7 +5,6 @@ import {
   IsEmail,
   IsNotEmpty,
   IsOptional,
-  IsStrongPassword,
   IsUrl,
   MinLength,
 } from "class-validator";
@@ -26,9 +25,6 @@ export class RegisterUserDto {
 
   @MinLength(8)
   @IsNotEmpty()
-  @IsStrongPassword({
-    minLength: 8,
-  })
   @ApiProperty({
     example: "SecretPw822!",
     minLength: 8,
