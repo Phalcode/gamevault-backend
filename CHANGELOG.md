@@ -19,8 +19,10 @@
   - `/api/v1/utility/overwrite/{id}/rawg_id` -> `/api/v1/games/{id}`
   - `/api/v1/utility/overwrite/{id}/box_image` -> `/api/v1/games/{id}`
 
+
 ### Changes
 
+- Fixed Version "undefined" on Server Startup Log
 - Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
 - Implemented Update Game API (currently only supports rawg_id and box_image may come in handy for [#161](https://github.com/Phalcode/gamevault-backend/issues/161) in the future!)
 
@@ -29,6 +31,7 @@
 ### Thanks
 
 - @Yotadak
+- @Kairubyte
 
 ## 3.0.0
 
