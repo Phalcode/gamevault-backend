@@ -62,10 +62,7 @@ async function bootstrap(): Promise<void> {
         .setDescription(
           "Backend for GameVault, the self-hosted gaming platform for drm-free games",
         )
-        .setVersion(
-          process.env.npm_package_version ||
-            (await import("../package.json")).version,
-        )
+        .setVersion(configuration.SERVER.VERSION)
         .addBasicAuth()
         .addServer(`http://localhost:8080`, "Local GameVault Server")
         .setLicense(
@@ -96,7 +93,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(8080);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started GameVault Server with version ${process.env.npm_package_version} on port 8080.`,
+    `Started GameVault Server with version ${configuration.SERVER.VERSION} on port 8080.`,
   );
 }
 bootstrap();
