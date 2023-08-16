@@ -1,10 +1,9 @@
 import globals from "./globals";
+import packageJson from "../package.json";
 
 export default {
   SERVER: {
-    VERSION:
-      process.env.npm_package_version ||
-      (await import("../package.json")).version,
+    VERSION: process.env.npm_package_version || packageJson.version,
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: process.env.SERVER_LOG_FILES_ENABLED === "true" || false,
     REQUEST_LOG_FORMAT:
