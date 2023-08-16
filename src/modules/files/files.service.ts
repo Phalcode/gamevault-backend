@@ -470,7 +470,7 @@ export class FilesService implements OnApplicationBootstrap {
         /^.*[\\\/]/,
         "",
       )}"`,
-      length: Number(game.size),
+      length: statSync(fileDownloadPath).size,
       type,
     };
 
