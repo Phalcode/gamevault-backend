@@ -9,7 +9,11 @@ export default {
     REQUEST_LOG_FORMAT:
       process.env.SERVER_REQUEST_LOG_FORMAT ||
       "[:date[clf]] :remote-user @ :remote-addr - :method :url -> :status - :response-time ms - :res[content-length] - ':user-agent'",
-    CORS_ALLOWED_ORIGINS: process.env.SERVER_CORS_ALLOWED_ORIGINS || "*",
+    CORS_ALLOWED_ORIGINS: process.env.SERVER_CORS_ALLOWED_ORIGINS
+      ? process.env.SERVER_CORS_ALLOWED_ORIGINS.split(",").map((item) =>
+          item.trim(),
+        )
+      : ["*"],
     REGISTRATION_DISABLED:
       process.env.SERVER_REGISTRATION_DISABLED === "true" || false,
     ACCOUNT_ACTIVATION_DISABLED:
