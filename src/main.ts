@@ -12,8 +12,8 @@ import { AppModule } from "./app.module";
 import configuration from "./configuration";
 import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AuthenticationGuard } from "./auth/authentication.guard";
-import { AuthorizationGuard } from "./auth/authorization.guard";
+import { AuthenticationGuard } from "./modules/auth/authentication.guard";
+import { AuthorizationGuard } from "./modules/auth/authorization.guard";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,
  * and setting up global settings and routes.
@@ -45,6 +45,7 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix("api/v1");
   const reflector = app.get(Reflector);
+
   app.useGlobalGuards(
     new AuthenticationGuard(reflector),
     new AuthorizationGuard(reflector),
@@ -59,9 +60,9 @@ async function bootstrap(): Promise<void> {
         .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
         .setExternalDoc("Documentation", "https://gamevau.lt")
         .setDescription(
-          "Backend for GameVault, the self-hosted gaming platform for 'alternatively obtained' games",
+          "Backend for GameVault, the self-hosted gaming platform for drm-free games",
         )
-        .setVersion(process.env.npm_package_version)
+        .setVersion(configuration.SERVER.VERSION)
         .addBasicAuth()
         .addServer(`http://localhost:8080`, "Local GameVault Server")
         .setLicense(
@@ -92,7 +93,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(8080);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started GameVault Server with version ${process.env.npm_package_version} on port 8080.`,
+    `Started GameVault Server with version ${configuration.SERVER.VERSION} on port 8080.`,
   );
 }
 bootstrap();

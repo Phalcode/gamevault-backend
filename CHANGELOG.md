@@ -1,6 +1,37 @@
 # GameVault Backend Server Changelog
 
-## Upcoming
+## 5.0.0
+
+### Changes
+
+- TODO: Removed Deprecated Utility APIs
+
+## 4.0.0
+
+### Breaking Changes & Migration
+
+- Implemented native Support for Single .exe and .sh files as described in [#144](https://github.com/Phalcode/gamevault-backend/issues/144). They get temporarily tarballed in `/tmp` and reused if possible.
+
+- [#168](https://github.com/Phalcode/gamevault-backend/issues/168) - Deprecated Utility APIs and moved them to better designed places (Deprecated APIs willl eventually be removed in v5.0.0). Replacements are available as follows:
+  - `/api/v1/utility/reindex` -> `/api/v1/files/reindex`
+  - `/api/v1/utility/recache/{id}` -> `/api/v1/rawg/{id}/recache` (Also now available for EDITOR Role)
+  - `/api/v1/utility/recache` -> `/api/v1/rawg/recache-all`
+  - `/api/v1/utility/overwrite/{id}/rawg_id` -> `/api/v1/games/{id}`
+  - `/api/v1/utility/overwrite/{id}/box_image` -> `/api/v1/games/{id}`
+
+### Changes
+
+- Fixed `SERVER_CORS_ALLOWED_ORIGINS` not working for multiple origins
+- Fixed Vague Password Validation Message
+- Fixed Version "undefined" on Server Startup Log
+- Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
+- Implemented Update Game API (currently only supports rawg_id and box_image may come in handy for [#161](https://github.com/Phalcode/gamevault-backend/issues/161) in the future!)
+- [#146](https://github.com/Phalcode/gamevault-backend/issues/146) Fixed OpenAPI Spec again
+
+### Thanks
+
+- @Yotadak
+- @Kairubyte
 
 ## 3.0.0
 

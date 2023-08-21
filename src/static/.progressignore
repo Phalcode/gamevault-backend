@@ -19,9 +19,6 @@ installerupdater
 installfile
 installscript
 installwizard
-launcher
-launcher_x64
-launchersetup
 notification_helper
 oalinst
 patcher

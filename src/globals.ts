@@ -1,5 +1,9 @@
 export default {
-  SUPPORTED_FILE_FORMATS: [
+  get SUPPORTED_FILE_FORMATS() {
+    return [...this.ARCHIVE_FORMATS, ...this.EXECUTABLE_FORMATS];
+  },
+
+  ARCHIVE_FORMATS: [
     ".7z",
     ".xz",
     ".bz2",
@@ -39,4 +43,5 @@ export default {
     ".xar",
     ".z",
   ],
+  EXECUTABLE_FORMATS: [".exe", ".sh"],
 };

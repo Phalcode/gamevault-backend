@@ -1,6 +1,0 @@
-export enum GameExistance {
-  DOES_NOT_EXIST,
-  EXISTS,
-  EXISTS_BUT_ALTERED,
-  EXISTS_BUT_DELETED,
-}
