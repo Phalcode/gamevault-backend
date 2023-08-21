@@ -174,7 +174,9 @@ export class BoxArtsService {
 
       if (aspectRatioDifference <= tolerance) {
         try {
-          game.box_image = await this.imagesService.downloadImage(image.url);
+          game.box_image = await this.imagesService.downloadImageByUrl(
+            image.url,
+          );
           await this.gamesService.saveGame(game);
           this.logger.log(
             `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,

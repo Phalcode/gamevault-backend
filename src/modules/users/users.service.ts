@@ -167,13 +167,13 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.background_image_url) {
-      user.background_image = await this.imagesService.downloadImage(
+      user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
       );
     }
 
     if (dto.profile_picture_url) {
-      user.profile_picture = await this.imagesService.downloadImage(
+      user.profile_picture = await this.imagesService.downloadImageByUrl(
         dto.profile_picture_url,
       );
     }
@@ -268,13 +268,13 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.downloadImage(
+      user.profile_picture = await this.imagesService.downloadImageByUrl(
         dto.profile_picture_url,
       );
     }
 
     if (dto.background_image_url != null) {
-      user.background_image = await this.imagesService.downloadImage(
+      user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
       );
     }
@@ -324,7 +324,7 @@ export class UsersService implements OnApplicationBootstrap {
     url: string,
   ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.profile_picture = await this.imagesService.downloadImage(url);
+    user.profile_picture = await this.imagesService.downloadImageByUrl(url);
     return await this.userRepository.save(user);
   }
 
@@ -339,7 +339,7 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.background_image = await this.imagesService.downloadImage(url);
+    user.background_image = await this.imagesService.downloadImageByUrl(url);
     return await this.userRepository.save(user);
   }
 

@@ -44,4 +44,12 @@ export default {
     ".z",
   ],
   EXECUTABLE_FORMATS: [".exe", ".sh"],
+  SUPPORTED_IMAGE_FORMATS: [
+    "image/bmp",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/gif",
+    "image/x-icon",
+  ],
 };

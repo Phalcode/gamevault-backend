@@ -242,7 +242,9 @@ export class GamesService {
 
     // Updates BoxArt if Necessary
     if (dto.box_image) {
-      game.box_image = await this.imagesService.downloadImage(dto.box_image);
+      game.box_image = await this.imagesService.downloadImageByUrl(
+        dto.box_image,
+      );
     }
 
     return this.gamesRepository.save(game);

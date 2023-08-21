@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
@@ -15,6 +17,7 @@ import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError } from "axios";
 import { randomUUID } from "crypto";
+import fileTypeChecker from "file-type-checker";
 
 @Injectable()
 export class ImagesService {
@@ -80,7 +83,7 @@ export class ImagesService {
    * @throws {InternalServerErrorException} - If the image is not available or
    *   could not be downloaded.
    */
-  async downloadImage(sourceUrl: string): Promise<Image> {
+  async downloadImageByUrl(sourceUrl: string): Promise<Image> {
     const image = new Image();
     image.source = sourceUrl;
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
@@ -164,6 +167,37 @@ export class ImagesService {
       );
     } catch (error) {
       this.logger.error(error, `Failed to hard delete image from database`);
+    }
+  }
+
+  public async upload(file: Express.Multer.File) {
+    // Check File Type
+    if (
+      !fileTypeChecker.validateFileType(file.buffer, [
+        "bmp",
+        "jpeg",
+        "png",
+        "gif",
+        "ico",
+      ])
+    ) {
+      throw new BadRequestException(
+        "Unsupported file type. Please select a different image or convert the file.",
+      );
+    }
+    const image = new Image();
+    image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
+    try {
+      fs.writeFileSync(image.path, file.buffer);
+      logger.log(`Uploaded image ${image.id} to "${image.path}"`);
+      return this.imageRepository.save(image);
+    } catch (error) {
+      logger.error(error, "Error uploading image.");
+      fs.unlinkSync(image.path);
+      await this.deleteImageById(image.id);
+      throw new InternalServerErrorException(
+        "Error Uploading Image. Please retry or try another one.",
+      );
     }
   }
 }
