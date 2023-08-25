@@ -5,6 +5,7 @@ import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/Be
 import configuration from "../../configuration";
 
 const baseConfig: TypeOrmModuleOptions = {
+  autoLoadEntities: true,
   entities: ["dist/**/*.entity.js"],
   synchronize: configuration.DB.SYNCHRONIZE,
   cache: true,
@@ -20,12 +21,12 @@ const postgresConfig: PostgresConnectionOptions = {
   username: configuration.DB.USERNAME,
   password: configuration.DB.PASSWORD,
   database: configuration.DB.DATABASE,
-  migrations: ["dist/modules/database/migrations/postgres/*.js"],
+  migrations: ["dist/src/modules/database/migrations/postgres/*.js"],
 };
 
 const sqliteConfig: BetterSqlite3ConnectionOptions = {
   type: "better-sqlite3",
-  migrations: ["dist/modules/database/migrations/sqlite/*.js"],
+  migrations: ["dist/src/modules/database/migrations/sqlite/*.js"],
   database: configuration.TESTING.IN_MEMORY_DB
     ? ":memory:"
     : `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
