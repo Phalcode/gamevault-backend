@@ -6,6 +6,12 @@
 
 - TODO: Removed Deprecated Utility APIs
 
+## 4.0.1
+
+### Changes
+
+- Fix Database not Populating on new Installations
+
 ## 4.0.0
 
 ### Breaking Changes & Migration

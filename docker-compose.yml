@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   gamevault-backend:
-    image: phalcode/gamevault-backend:latest
+    build: .
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -11,11 +11,6 @@ services:
       SERVER_ADMIN_USERNAME: admin
       # Uncomment and Insert your RAWG API Key here if you have one (https://gamevau.lt/docs/server-docs/indexing-and-metadata#rawg-api-key)
       # RAWG_API_KEY: YOURAPIKEYHERE
-    volumes:
-      # Mount the folder where your games are
-      - /your/games/folder:/files
-      # Mount the folder where gamevault should store its images
-      - /your/images/folder:/images
     ports:
       - 8080:8080
   db:
@@ -25,6 +20,3 @@ services:
       POSTGRES_USER: gamevault
       POSTGRES_PASSWORD: RANDOMPASSWORD
       POSTGRES_DB: gamevault
-    volumes:
-      # Mount the folder where your postgres database files should land
-      - /your/database/folder:/var/lib/postgresql
