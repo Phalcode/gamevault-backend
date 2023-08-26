@@ -56,6 +56,7 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       relations: ["game", "user"],
       order: { minutes_played: "DESC" },
+      withDeleted: true,
     });
     return this.filterEmptyProgresses(progresses);
   }
@@ -73,6 +74,7 @@ export class ProgressService {
         where: { id: progressId },
         relations: ["game", "user"],
         order: { minutes_played: "DESC" },
+        withDeleted: true,
       })
       .catch(() => {
         throw new NotFoundException(
@@ -116,6 +118,7 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       where: { user: { id: userId } },
       relations: ["game"],
+      withDeleted: true,
       order: { minutes_played: "DESC" },
     });
     return this.filterEmptyProgresses(progresses);
@@ -131,6 +134,7 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       where: { game: { id: gameId } },
       relations: ["user"],
+      withDeleted: true,
       order: { minutes_played: "DESC" },
     });
     return this.filterEmptyProgresses(progresses);
@@ -147,9 +151,12 @@ export class ProgressService {
     userId: number,
     gameId: number,
   ): Promise<Progress> {
-    let progress = await this.progressRepository.findOneBy({
-      user: { id: userId },
-      game: { id: gameId },
+    let progress = await this.progressRepository.findOne({
+      where: {
+        user: { id: userId },
+        game: { id: gameId },
+      },
+      withDeleted: true,
     });
 
     if (!progress) {
