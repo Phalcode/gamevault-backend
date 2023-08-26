@@ -58,7 +58,7 @@ export class ProgressService {
       order: { minutes_played: "DESC" },
       withDeleted: true,
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -121,7 +121,7 @@ export class ProgressService {
       withDeleted: true,
       order: { minutes_played: "DESC" },
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -137,7 +137,7 @@ export class ProgressService {
       withDeleted: true,
       order: { minutes_played: "DESC" },
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -246,16 +246,18 @@ export class ProgressService {
 
   /**
    * Filters out any progress objects from the given array that have 0 minutes
-   * played or are in the UNPLAYED state.
+   * played, are soft-deleted or in the UNPLAYED state.
    *
    * @param progresses - An array of Progress objects.
    * @returns An array of Progress objects that have minutes_played > 0 and are
    *   not in the UNPLAYED state.
    */
-  private async filterEmptyProgresses(progresses: Progress[]) {
+  private async filterDeletedOrEmptyProgresses(progresses: Progress[]) {
     return progresses.filter(
       (progress) =>
-        progress.minutes_played > 0 && progress.state !== State.UNPLAYED,
+        progress.minutes_played > 0 &&
+        progress.state !== State.UNPLAYED &&
+        !progress.deleted_at,
     );
   }
 }
