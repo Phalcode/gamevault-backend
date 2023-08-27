@@ -15,9 +15,10 @@ import sharp from "sharp";
 import logger from "../../logging";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
+import globals from "../../globals";
 
 @Injectable()
 export class ImagesService {
@@ -29,12 +30,6 @@ export class ImagesService {
     private imageRepository: Repository<Image>,
   ) {}
 
-  /**
-   * Checks if an image is available on the database and file system
-   *
-   * @param id - The id of the image to check for availability
-   * @returns - Whether the image is available or not
-   */
   public async isImageAvailable(id: number): Promise<boolean> {
     try {
       await this.findByIdOrFail(id);
@@ -44,90 +39,52 @@ export class ImagesService {
     }
   }
 
-  /**
-   * Finds an image by its id in the database or throws a NotFoundException if
-   * not found.
-   *
-   * @async
-   * @param id - The id of the image to find.
-   * @returns - The found image.
-   * @throws {NotFoundException} - If the image with the specified id is not
-   *   found.
-   */
   public async findByIdOrFail(id: number): Promise<Image> {
-    const image = await this.imageRepository
-      .findOneByOrFail({ id })
-      .catch(() => {
-        throw new NotFoundException(
-          `Image with id ${id} was not found in the database.`,
-        );
-      });
+    const image = await this.findImageById(id);
 
-    if (!fs.existsSync(image.path) && !configuration.TESTING.MOCK_FILES) {
-      await this.deleteImageById(image.id);
-      throw new NotFoundException(
-        `Image with id ${image.id} was found in the database but not on the server's filesystem (${image.path}), so it was soft-deleted.`,
-      );
+    if (!this.isImageOnFileSystem(image)) {
+      await this.handleImageNotFound(image);
     }
     return image;
   }
 
-  /**
-   * Downloads an image from the given URL and returns a Promise that resolves
-   * to the saved Image object.
-   *
-   * @param sourceUrl - The URL of the image to download.
-   * @returns - A Promise that resolves to the saved Image object.
-   * @throws {UnprocessableEntityException} - If the image is not available or
-   *   could not be downloaded.
-   * @throws {InternalServerErrorException} - If the image is not available or
-   *   could not be downloaded.
-   */
+  private async findImageById(id: number): Promise<Image> {
+    try {
+      return await this.imageRepository.findOneByOrFail({ id });
+    } catch {
+      throw new NotFoundException(
+        `Image with id ${id} was not found in the database.`,
+      );
+    }
+  }
+
+  private isImageOnFileSystem(image: Image): boolean {
+    return fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES;
+  }
+
+  private async handleImageNotFound(image: Image): Promise<void> {
+    await this.deleteImageById(image.id);
+    throw new NotFoundException(
+      `Image with id ${image.id} was found in the database but not on the server's filesystem (${image.path}), so it was soft-deleted.`,
+    );
+  }
+
   async downloadImageByUrl(sourceUrl: string): Promise<Image> {
-    const image = new Image();
-    image.source = sourceUrl;
-    image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
+    const image = await this.createImageFromUrl(sourceUrl);
 
     try {
-      this.logger.debug(`Downloading image from '${image.source}'`);
-      const response = await firstValueFrom(
-        this.httpService
-          .get(image.source, {
-            responseType: "arraybuffer",
-            timeout: 30000,
-          })
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw new Error(
-                `Failed to download image from ${image.source}: ${error.status} ${error.message}`,
-              );
-            }),
-          ),
-      );
+      const response = await this.downloadImageFromUrl(image.source);
 
-      // Check Media Type
       image.mediaType = response.headers["content-type"];
-      if (!image.mediaType.startsWith("image/")) {
-        throw new UnprocessableEntityException(
-          `Content Type '${image.mediaType}' is not a known image data type. Please choose a valid image.`,
-        );
-      }
+      this.checkImageMediaType(image);
 
-      // Download Image
-      this.logger.debug(`Buffering image from '${image.source}'...`);
       const imageBuffer = Buffer.from(response.data);
+      this.checkImageFileType(imageBuffer);
 
-      // Compress Image
-      this.logger.debug(`Compressing image from '${image.source}'...`);
-      const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
+      const compressedImageBuffer = await this.compressImage(imageBuffer);
 
-      // Save the Image
-      this.logger.debug(`Saving image from '${image.source}'...`);
       if (!configuration.TESTING.MOCK_FILES) {
-        fs.writeFileSync(image.path, compressedImageBuffer);
-        this.logger.debug(
-          `Saved image from '${image.source} to '${image.path}'`,
-        );
+        await this.saveImageToFileSystem(image, compressedImageBuffer);
       } else {
         this.logger.warn(
           "Not saving any image to filesystem because TESTING_MOCK_FILES is set to true",
@@ -135,69 +92,120 @@ export class ImagesService {
       }
       return await this.imageRepository.save(image);
     } catch (error) {
-      logger.error(
-        { image, error },
-        "Failed to download image. Clearing Remains.",
-      );
-      if (image.id) {
-        await this.deleteImageById(image.id);
-      }
+      await this.handleImageProcessingFailure(image, error);
       throw new UnprocessableEntityException(
-        `Failed to download image from '${sourceUrl}.'`,
+        `Failed to download image from '${sourceUrl}'.`,
       );
     }
   }
 
-  /** Soft deletes an image from the database and on the file system by its id */
-  async deleteImageById(id: number) {
-    try {
-      const image = await this.imageRepository.findOneOrFail({
-        where: { id },
-        withDeleted: true,
-      });
-      await this.imageRepository.softRemove(image);
-      this.logger.debug(
-        { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-        `Image successfully soft-deleted from database.`,
-      );
-      fs.unlinkSync(image.path);
-      this.logger.debug(
-        { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-        `Image successfully hard deleted from file system.`,
-      );
-    } catch (error) {
-      this.logger.error(error, `Failed to hard delete image from database`);
-    }
-  }
-
-  public async uploadImage(file: Express.Multer.File) {
-    // Check File Type
-    if (
-      !fileTypeChecker.validateFileType(file.buffer, [
-        "bmp",
-        "jpeg",
-        "png",
-        "gif",
-        "ico",
-      ])
-    ) {
-      throw new BadRequestException(
-        "Unsupported file type. Please select a different image or convert the file.",
-      );
-    }
+  private async createImageFromUrl(sourceUrl: string): Promise<Image> {
     const image = new Image();
+    image.source = sourceUrl;
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
-    try {
-      fs.writeFileSync(image.path, file.buffer);
-      logger.log(`Uploaded image ${image.id} to "${image.path}"`);
-      return this.imageRepository.save(image);
-    } catch (error) {
-      logger.error(error, "Error uploading image.");
-      fs.unlinkSync(image.path);
+    return image;
+  }
+
+  private async downloadImageFromUrl(
+    sourceUrl: string,
+  ): Promise<AxiosResponse> {
+    return await firstValueFrom(
+      this.httpService
+        .get(sourceUrl, {
+          responseType: "arraybuffer",
+          timeout: 30_000,
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            throw new Error(
+              `Failed to download image from ${sourceUrl}: ${error.status} ${error.message}`,
+            );
+          }),
+        ),
+    );
+  }
+
+  private checkImageMediaType(image: Image): void {
+    if (!image.mediaType.startsWith("image/")) {
+      throw new UnprocessableEntityException(
+        `Content Type '${image.mediaType}' is not a known image data type. Please choose a valid image.`,
+      );
+    }
+  }
+
+  private checkImageFileType(imageBuffer: Buffer): void {
+    const fileType = fileTypeChecker.detectFile(imageBuffer);
+    if (globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
+      throw new BadRequestException(
+        "Unsupported file type. Please select a different image or convert it.",
+      );
+    }
+  }
+
+  private async compressImage(imageBuffer: Buffer): Promise<Buffer> {
+    this.logger.debug(`Compressing image...`);
+    return await sharp(imageBuffer).toBuffer();
+  }
+
+  private async saveImageToFileSystem(
+    image: Image,
+    compressedImageBuffer: Buffer,
+  ): Promise<void> {
+    fs.writeFileSync(image.path, compressedImageBuffer);
+    this.logger.debug(`Saved image from '${image.source} to '${image.path}'`);
+  }
+
+  private async handleImageProcessingFailure(
+    image: Image,
+    error: unknown,
+  ): Promise<void> {
+    logger.error(
+      { image, error },
+      "Failed to process image. Clearing Remains.",
+    );
+    if (image.id) {
       await this.deleteImageById(image.id);
+    }
+  }
+
+  async deleteImageById(id: number): Promise<void> {
+    const image = await this.findImageById(id);
+    await this.imageRepository.remove(image);
+    this.hardDeleteImageFromFileSystem(image);
+  }
+
+  private hardDeleteImageFromFileSystem(image: Image): void {
+    fs.unlinkSync(image.path);
+    this.logger.debug(
+      { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
+      `Image successfully hard deleted from file system.`,
+    );
+  }
+
+  public async uploadImage(file: Express.Multer.File): Promise<Image> {
+    const image = await this.createImageFromUpload(file);
+
+    try {
+      await this.saveImageToFileSystem(image, file.buffer);
+      logger.log(`Uploaded image ${image.id} to "${image.path}"`);
+      return await this.imageRepository.save(image);
+    } catch (error) {
+      await this.handleImageProcessingFailure(image, error);
       throw new InternalServerErrorException(
         "Error Uploading Image. Please retry or try another one.",
       );
     }
+  }
+
+  private async createImageFromUpload(
+    file: Express.Multer.File,
+  ): Promise<Image> {
+    const image = new Image();
+    const fileType = fileTypeChecker.detectFile(file.buffer);
+    image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
+      fileType.extension
+    }`;
+    image.mediaType = fileType.mimeType;
+    return image;
   }
 }

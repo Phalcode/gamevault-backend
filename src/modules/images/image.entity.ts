@@ -5,7 +5,7 @@ import { DatabaseEntity } from "../database/database.entity";
 @Entity()
 export class Image extends DatabaseEntity {
   @Index()
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   @ApiProperty({
     example:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Grand_Theft_Auto_logo_series.svg",
