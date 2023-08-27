@@ -135,7 +135,7 @@ export class ImagesService {
 
   private checkImageFileType(imageBuffer: Buffer): void {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
-    if (globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
+    if (!globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
       throw new BadRequestException(
         `File type "${fileType.mimeType}" is not supported. Please select a different image or convert it.`,
       );
