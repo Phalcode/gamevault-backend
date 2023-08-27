@@ -170,7 +170,7 @@ export class ImagesService {
     }
   }
 
-  public async upload(file: Express.Multer.File) {
+  public async uploadImage(file: Express.Multer.File) {
     // Check File Type
     if (
       !fileTypeChecker.validateFileType(file.buffer, [

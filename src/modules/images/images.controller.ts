@@ -23,6 +23,7 @@ import { Response } from "express";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { Image } from "./image.entity";
 
 @ApiTags("images")
 @Controller("images")
@@ -41,7 +42,7 @@ export class ImagesController {
    */
   @Get(":id")
   @ApiOperation({
-    summary: "retrieve an image using its id",
+    summary: "Retrieve an image using its id",
     operationId: "getImage",
   })
   @ApiOkResponse({
@@ -57,18 +58,27 @@ export class ImagesController {
   }
 
   @Post()
+  @ApiOperation({
+    summary: "Upload an image",
+    operationId: "uploadImage",
+  })
+  @ApiOkResponse({
+    type: () => Image,
+    description: "The uploaded image",
+  })
   @UseInterceptors(FileInterceptor("file"))
+  @MinimumRole(Role.USER)
   uploadFile(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 10000 }),
+          new MaxFileSizeValidator({ maxSize: 10_000 }),
           new FileTypeValidator({ fileType: /image\/.*/ }),
         ],
       }),
     )
     file: Express.Multer.File,
   ) {
-    return this.imagesService.upload(file);
+    return this.imagesService.uploadImage(file);
   }
 }
