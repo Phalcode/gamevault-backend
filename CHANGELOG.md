@@ -6,6 +6,12 @@
 
 - TODO: Removed Deprecated Utility APIs
 
+## Upcoming
+
+### Changes
+
+- Progress calls now include soft-deleted games, allowing them to be viewed even after a game is deleted.
+
 ## 4.0.1
 
 ### Changes
