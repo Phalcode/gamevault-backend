@@ -11,6 +11,10 @@
 ### Changes
 
 - Progress calls now include soft-deleted games, allowing them to be viewed even after a game is deleted.
+- Upload Image API
+- Implemented Magic Byte Checking for images to prevent file upload vulnerabilities
+- TODO: Made Game Release Date Nullable. [Filenames can now only constist of the game title, see #180](https://github.com/Phalcode/gamevault-backend/issues/180)
+- TODO: Made Image Source URLs Nullable for image uploading.
 
 ## 4.0.1
 

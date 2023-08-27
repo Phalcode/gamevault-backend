@@ -12,7 +12,6 @@ import { Image } from "./image.entity";
 import * as fs from "fs";
 import configuration from "../../configuration";
 import sharp from "sharp";
-import logger from "../../logging";
 import { HttpService } from "@nestjs/axios";
 import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError, AxiosResponse } from "axios";
@@ -83,12 +82,12 @@ export class ImagesService {
 
       const compressedImageBuffer = await this.compressImage(imageBuffer);
 
-      if (!configuration.TESTING.MOCK_FILES) {
-        await this.saveImageToFileSystem(image, compressedImageBuffer);
-      } else {
+      if (configuration.TESTING.MOCK_FILES) {
         this.logger.warn(
           "Not saving any image to filesystem because TESTING_MOCK_FILES is set to true",
         );
+      } else {
+        await this.saveImageToFileSystem(image, compressedImageBuffer);
       }
       return await this.imageRepository.save(image);
     } catch (error) {
@@ -159,7 +158,7 @@ export class ImagesService {
     image: Image,
     error: unknown,
   ): Promise<void> {
-    logger.error(
+    this.logger.error(
       { image, error },
       "Failed to process image. Clearing Remains.",
     );
@@ -187,7 +186,7 @@ export class ImagesService {
 
     try {
       await this.saveImageToFileSystem(image, file.buffer);
-      logger.log(`Uploaded image ${image.id} to "${image.path}"`);
+      this.logger.log(`Uploaded image ${image.id} to "${image.path}"`);
       return await this.imageRepository.save(image);
     } catch (error) {
       await this.handleImageProcessingFailure(image, error);

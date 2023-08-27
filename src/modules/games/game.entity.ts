@@ -55,7 +55,7 @@ export class Game extends DatabaseEntity {
   })
   version?: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({
     description: "release date of the game (extracted from filename)",
     example: "2013-09-17T00:00:00.000Z",

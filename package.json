@@ -12,12 +12,12 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix",
-    "migration:gen:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/sqlite.migration-config.js migration:generate -p",
-    "migration:run:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/sqlite.migration-config.js migration:run",
-    "migration:revert:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/sqlite.migration-config.js migration:revert",
-    "migration:gen:postgres": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/postgres.migration-config.js migration:generate -p",
-    "migration:run:postgres": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/postgres.migration-config.js migration:run",
-    "migration:revert:postgres": "rimraf dist && pnpm run build && typeorm -d dist/modules/database/migrations/postgres.migration-config.js migration:revert"
+    "migration:gen:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/sqlite.migration-config.js migration:generate -p",
+    "migration:run:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/sqlite.migration-config.js migration:run",
+    "migration:revert:sqlite": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/sqlite.migration-config.js migration:revert",
+    "migration:gen:postgres": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/postgres.migration-config.js migration:generate -p",
+    "migration:run:postgres": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/postgres.migration-config.js migration:run",
+    "migration:revert:postgres": "rimraf dist && pnpm run build && typeorm -d dist/src/modules/database/migrations/postgres.migration-config.js migration:revert"
   },
   "dependencies": {
     "@nestjs/axios": "3.0.0",
