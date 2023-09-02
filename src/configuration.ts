@@ -53,8 +53,8 @@ export default {
     SEARCH_RECURSIVE: process.env.SEARCH_RECURSIVE === "true" || true,
   },
   IMAGE: {
-    GC_KEEP_DAYS: Number(process.env.IMAGE_GC_KEEP_DAYS) || 30,
-    GC_INTERVAL_MINUTES: Number(process.env.IMAGE_GC_INTERVAL_MINUTES) || 60,
+    MAX_SIZE_IN_BYTES:
+      Number(process.env.IMAGE_MAX_SIZE_IN_BYTES) || 10_000_000,
     GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
       Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
   },
