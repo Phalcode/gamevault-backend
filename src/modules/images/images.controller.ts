@@ -63,7 +63,8 @@ export class ImagesController {
   @Post()
   @ApiOperation({
     summary: "Upload an image",
-    description: "You can use the id of the uploaded image in subsequent requests."
+    description:
+      "You can use the id of the uploaded image in subsequent requests.",
     operationId: "uploadImage",
   })
   @ApiConsumes("multipart/form-data")
