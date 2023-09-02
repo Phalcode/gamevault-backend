@@ -27,7 +27,6 @@ import { FilesService } from "../files/files.service";
 import { GamesService } from "./games.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
-import { ImageUrlDto } from "../images/models/image-url.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiTags("game")
@@ -166,7 +165,7 @@ export class GamesController {
     summary: "updates the details of a game",
     operationId: "updateGame",
   })
-  @ApiBody({ type: () => ImageUrlDto })
+  @ApiBody({ type: () => UpdateGameDto })
   @MinimumRole(Role.EDITOR)
   async updateGame(
     @Param() params: IdDto,
