@@ -85,7 +85,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     withDeleted = false,
   ): Promise<GamevaultUser> {
-    const user = await this.userRepository
+    return await this.userRepository
       .findOneOrFail({
         where: { id },
         relations: ["progresses", "progresses.game"],
@@ -94,7 +94,6 @@ export class UsersService implements OnApplicationBootstrap {
       .catch(() => {
         throw new NotFoundException(`User with id ${id} was not found.`);
       });
-    return user;
   }
 
   /**
@@ -108,7 +107,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async getUserByUsernameOrFail(
     username: string,
   ): Promise<GamevaultUser> {
-    const user = await this.userRepository
+    return await this.userRepository
       .findOneOrFail({
         where: { username },
         relations: ["progresses", "progresses.game"],
@@ -118,7 +117,6 @@ export class UsersService implements OnApplicationBootstrap {
           `User with username ${username} was not found on the server.`,
         );
       });
-    return user;
   }
 
   /**
@@ -166,15 +164,27 @@ export class UsersService implements OnApplicationBootstrap {
       user.activated = true;
     }
 
+    if (dto.profile_picture_url) {
+      user.profile_picture = await this.imagesService.downloadImageByUrl(
+        dto.profile_picture_url,
+      );
+    }
+
+    if (dto.profile_picture_id) {
+      user.profile_picture = await this.imagesService.findByIdOrFail(
+        dto.profile_picture_id,
+      );
+    }
+
     if (dto.background_image_url) {
       user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
       );
     }
 
-    if (dto.profile_picture_url) {
-      user.profile_picture = await this.imagesService.downloadImageByUrl(
-        dto.profile_picture_url,
+    if (dto.background_image_id) {
+      user.profile_picture = await this.imagesService.findByIdOrFail(
+        dto.background_image_id,
       );
     }
 
@@ -273,9 +283,21 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
 
+    if (dto.profile_picture_id) {
+      user.profile_picture = await this.imagesService.findByIdOrFail(
+        dto.profile_picture_id,
+      );
+    }
+
     if (dto.background_image_url != null) {
       user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
+      );
+    }
+
+    if (dto.background_image_id) {
+      user.profile_picture = await this.imagesService.findByIdOrFail(
+        dto.background_image_id,
       );
     }
 

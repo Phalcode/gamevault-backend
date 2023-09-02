@@ -41,7 +41,7 @@ export class GamesService {
   public async getGameById(id: number, loadRelations = false): Promise<Game> {
     try {
       return await this.gamesRepository.findOneOrFail({
-        where: { id: id },
+        where: { id },
         relations: loadRelations
           ? [
               "developers",
@@ -233,19 +233,33 @@ export class GamesService {
   }
 
   public async updateGame(id: number, dto: UpdateGameDto) {
-    let game = await this.getGameById(id);
-
-    // Remaps RAWG Entry of Game
-    if (dto.rawg_id) {
-      game = await this.remapGame(id, dto.rawg_id);
-    }
+    const game = dto.rawg_id
+      ? await this.remapGame(id, dto.rawg_id)
+      : await this.getGameById(id);
 
     // Updates BoxArt if Necessary
-    if (dto.box_image) {
+    if (dto.box_image_url) {
       game.box_image = await this.imagesService.downloadImageByUrl(
-        dto.box_image,
+        dto.box_image_url,
       );
     }
+
+    if (dto.box_image_id)
+      game.box_image = await this.imagesService.findByIdOrFail(
+        dto.box_image_id,
+      );
+
+    // Updates Background Image if Necessary
+    if (dto.background_image_url) {
+      game.background_image = await this.imagesService.downloadImageByUrl(
+        dto.background_image_url,
+      );
+    }
+
+    if (dto.background_image_id)
+      game.background_image = await this.imagesService.findByIdOrFail(
+        dto.background_image_id,
+      );
 
     return this.gamesRepository.save(game);
   }
@@ -257,7 +271,7 @@ export class GamesService {
    * @returns - The restored game object.
    */
   public async restoreGame(id: number): Promise<Game> {
-    await this.gamesRepository.recover({ id: id });
+    await this.gamesRepository.recover({ id });
     return this.getGameById(id);
   }
 }

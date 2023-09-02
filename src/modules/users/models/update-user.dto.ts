@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsUrl,
   MinLength,
@@ -74,6 +75,14 @@ export class UpdateUserDto {
   })
   profile_picture_url?: string;
 
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({
+    example: 69_420,
+    description: "id of the profile picture of the user",
+  })
+  profile_picture_id?: number;
+
   @IsUrl()
   @IsOptional()
   @ApiProperty({
@@ -83,6 +92,14 @@ export class UpdateUserDto {
     nullable: true,
   })
   background_image_url?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({
+    example: 69_420,
+    description: "id of the profile art (background-image) of the User",
+  })
+  background_image_id?: number;
 
   @IsBoolean()
   @IsOptional()
