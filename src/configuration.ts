@@ -53,8 +53,8 @@ export default {
     SEARCH_RECURSIVE: process.env.SEARCH_RECURSIVE === "true" || true,
   },
   IMAGE: {
-    MAX_SIZE_IN_BYTES:
-      Number(process.env.IMAGE_MAX_SIZE_IN_BYTES) || 10_000_000,
+    MAX_SIZE_IN_KB:
+      Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000 * 1000,
     GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
       Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
   },

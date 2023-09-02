@@ -24,6 +24,7 @@ import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Image } from "./image.entity";
+import configuration from "../../configuration";
 
 @ApiTags("images")
 @Controller("images")
@@ -72,7 +73,9 @@ export class ImagesController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 10_000 }),
+          new MaxFileSizeValidator({
+            maxSize: configuration.IMAGE.MAX_SIZE_IN_KB,
+          }),
           new FileTypeValidator({ fileType: /image\/.*/ }),
         ],
       }),
