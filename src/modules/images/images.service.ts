@@ -69,7 +69,8 @@ export class ImagesService {
   }
 
   async downloadImageByUrl(sourceUrl: string): Promise<Image> {
-    const image = await this.createImageFromUrl(sourceUrl);
+    const image = new Image();
+    image.source = sourceUrl;
 
     try {
       const response = await this.downloadImageFromUrl(image.source);
@@ -78,7 +79,11 @@ export class ImagesService {
       this.checkImageMediaType(image);
 
       const imageBuffer = Buffer.from(response.data);
-      this.checkImageFileType(imageBuffer);
+      const fileType = this.checkImageFileType(imageBuffer);
+
+      image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.{${
+        fileType.extension
+      }}`;
 
       const compressedImageBuffer = await this.compressImage(imageBuffer);
 
@@ -96,13 +101,6 @@ export class ImagesService {
         `Failed to download image from '${sourceUrl}'.`,
       );
     }
-  }
-
-  private async createImageFromUrl(sourceUrl: string): Promise<Image> {
-    const image = new Image();
-    image.source = sourceUrl;
-    image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}`;
-    return image;
   }
 
   private async downloadImageFromUrl(
@@ -132,13 +130,14 @@ export class ImagesService {
     }
   }
 
-  private checkImageFileType(imageBuffer: Buffer): void {
+  private checkImageFileType(imageBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
     if (!globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
       throw new BadRequestException(
         `File type "${fileType.mimeType}" is not supported. Please select a different image or convert it.`,
       );
     }
+    return fileType;
   }
 
   private async compressImage(imageBuffer: Buffer): Promise<Buffer> {
