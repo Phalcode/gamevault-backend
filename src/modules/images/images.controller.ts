@@ -12,6 +12,8 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import {
+  ApiBody,
+  ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
@@ -61,7 +63,21 @@ export class ImagesController {
   @Post()
   @ApiOperation({
     summary: "Upload an image",
+    description: "You can use the id of the uploaded image in subsequent requests."
     operationId: "uploadImage",
+  })
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: {
+        file: {
+          type: "string",
+          format: "binary",
+          description: "The image to upload",
+        },
+      },
+    },
   })
   @ApiOkResponse({
     type: () => Image,
