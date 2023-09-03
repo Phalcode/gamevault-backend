@@ -19,6 +19,7 @@
 - Images are now saved with their proper extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico, ensuring compatibility with WPF.
 - Removed Unused Image Garbabe Collector Configurables (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`)
+- Implemented Serverside Bandwith Limit Configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the servers max bandwidth
 
 ## 4.0.1
 
