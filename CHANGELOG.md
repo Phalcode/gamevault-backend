@@ -10,8 +10,9 @@
 
 ### Changes
 
-- Progress calls now include soft-deleted games, allowing them to be viewed even after a game is deleted.
-- Added an Image Upload API.
+- Progress calls now include soft-deleted games, allowing them to be displayed even after a game is deleted.
+- Added an Image Upload API. [#173](https://github.com/Phalcode/gamevault-backend/issues/173)
+- Added Image By Id Option to Register User, Update User and Update Game APIs
 - Added Configurable Max Image Upload Size `IMAGE_MAX_SIZE_IN_KB` (Default is 10000 which is 10MB)
 - Implemented Magic Byte Checking for images to enhance file upload security.
 - Modified Game Release Date to be Nullable. [Filenames now consist only of the game title, see #180](https://github.com/Phalcode/gamevault-backend/issues/180).
@@ -19,7 +20,7 @@
 - Images are now saved with their proper extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico, ensuring compatibility with WPF.
 - Removed Unused Image Garbabe Collector Configurables (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`)
-- Implemented Serverside Bandwith Limit Configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the servers max bandwidth
+- Implemented Serverside Bandwith Limit Configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the servers max bandwidth #10
 
 ## 4.0.1
 
