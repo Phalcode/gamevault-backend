@@ -49,7 +49,7 @@ export class ImagesController {
     operationId: "getImage",
   })
   @ApiOkResponse({
-    type: Buffer,
+    type: () => Buffer,
     description: "The requested image",
   })
   @ApiProduces("image/*")
@@ -70,7 +70,6 @@ export class ImagesController {
   @ApiConsumes("multipart/form-data")
   @ApiBody({
     schema: {
-      type: "object",
       properties: {
         file: {
           type: "string",

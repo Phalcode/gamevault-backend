@@ -92,10 +92,10 @@ export class ProgressController {
   @ApiOperation({
     summary: "delete a progress by progress id.",
     description:
-      "Only the user who created the progress can delete it. This is a hard deletion and can not be undone.",
+      "Only admins or the user who is associated to the progress can delete it.",
     operationId: "deleteProgressById",
   })
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   @MinimumRole(Role.USER)
   async deleteProgressById(
     @Param() params: IdDto,

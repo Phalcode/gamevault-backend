@@ -2,12 +2,19 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Logger,
   Param,
   Put,
   StreamableFile,
 } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBody,
+  ApiHeader,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
@@ -153,11 +160,27 @@ export class GamesController {
    *   the game.
    */
   @Get(":id/download")
-  @ApiOperation({ summary: "download a game", operationId: "downloadGame" })
+  @ApiHeader({
+    name: "X-Download-Speed-Limit",
+    required: false,
+    description:
+      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request. (Default unlimited)",
+    example: "1024",
+  })
+  @ApiOperation({
+    summary: "download a game",
+    operationId: "downloadGame",
+  })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
-  async downloadGame(@Param() params: IdDto): Promise<StreamableFile> {
-    return await this.filesService.downloadGame(Number(params.id));
+  async downloadGame(
+    @Param() params: IdDto,
+    @Headers("X-Download-Speed-Limit") speedlimit?: string,
+  ): Promise<StreamableFile> {
+    return await this.filesService.downloadGame(
+      Number(params.id),
+      Number(speedlimit),
+    );
   }
 
   @Put(":id")

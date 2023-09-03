@@ -366,7 +366,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /**
-   * Check if the username matches the user ID
+   * Check if the username matches the user ID or is an administrator
    *
    * @param userId - The ID of the user to check
    * @param username - The username of the user to check
@@ -377,7 +377,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {ForbiddenException} - If authentication is disabled or the
    *   username does not match the user ID
    */
-  public async checkIfUsernameMatchesId(
+  public async checkIfUsernameMatchesIdOrPriviledged(
     userId: number,
     username: string,
   ): Promise<boolean> {
@@ -388,6 +388,9 @@ export class UsersService implements OnApplicationBootstrap {
       throw new UnauthorizedException("No Authorization provided");
     }
     const user = await this.getUserByIdOrFail(userId);
+    if (user.role === Role.ADMIN) {
+      return true;
+    }
     if (user.username !== username) {
       throw new ForbiddenException(
         {

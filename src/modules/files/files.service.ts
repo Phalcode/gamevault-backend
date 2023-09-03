@@ -440,7 +440,17 @@ export class FilesService implements OnApplicationBootstrap {
    *   the downloaded game file.
    * @public
    */
-  public async downloadGame(gameId: number): Promise<StreamableFile> {
+  public async downloadGame(
+    gameId: number,
+    speedlimit?: number,
+  ): Promise<StreamableFile> {
+    if (
+      !speedlimit ||
+      speedlimit > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
+    ) {
+      speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    }
+
     const game = await this.gamesService.getGameById(gameId);
     const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
     let fileDownloadPath = game.file_path;
@@ -461,7 +471,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     const file = createReadStream(fileDownloadPath).pipe(
-      new Throttle(configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS),
+      new Throttle(speedlimit),
     );
     const type = mime.getType(fileDownloadPath);
 
