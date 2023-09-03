@@ -20,9 +20,9 @@ export default {
       process.env.SERVER_ACCOUNT_ACTIVATION_DISABLED === "true" || false,
     ADMIN_USERNAME: process.env.SERVER_ADMIN_USERNAME || undefined,
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
-    MAX_DOWNLOAD_BANDWIDTH_PER_SECOND_IN_KB:
-      Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_PER_SECOND_IN_KB) *
-        1000 || Number.MAX_SAFE_INTEGER * 1000,
+    MAX_DOWNLOAD_BANDWIDTH_IN_KBPS:
+      Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS) * 1000 ||
+      Number.MAX_SAFE_INTEGER * 1000,
   },
   VOLUMES: {
     FILES: process.env.VOLUMES_FILES?.replace(/\/$/, "") || "/files",
