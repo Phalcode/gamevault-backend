@@ -25,6 +25,7 @@ import { Cron } from "@nestjs/schedule";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
+import Throttle from "throttle";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -167,8 +168,7 @@ export class FilesService implements OnApplicationBootstrap {
     const directoryRemoved = fileName.replace(/^.*[\\/]/, "");
     const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
     const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
-    const trimmedTitle = parenthesesRemoved.trim();
-    return trimmedTitle;
+    return parenthesesRemoved.trim();
   }
 
   /**
@@ -410,7 +410,7 @@ export class FilesService implements OnApplicationBootstrap {
       return mock;
     }
 
-    const files = readdirSync(configuration.VOLUMES.FILES, {
+    return readdirSync(configuration.VOLUMES.FILES, {
       encoding: "utf8",
       recursive: configuration.GAMES.SEARCH_RECURSIVE,
     })
@@ -428,8 +428,6 @@ export class FilesService implements OnApplicationBootstrap {
             ),
           }) as IGameVaultFile,
       );
-
-    return files;
   }
 
   /**
@@ -450,19 +448,23 @@ export class FilesService implements OnApplicationBootstrap {
     if (!globals.ARCHIVE_FORMATS.includes(fileExtension)) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
-      if (!existsSync(fileDownloadPath)) {
+      if (existsSync(fileDownloadPath)) {
+        this.logger.debug(
+          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
+        );
+      } else {
         this.logger.debug(
           `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
         );
         await this.archiveFiles(fileDownloadPath, game.file_path);
-      } else {
-        this.logger.debug(
-          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
-        );
       }
     }
 
-    const file = createReadStream(fileDownloadPath);
+    const file = createReadStream(fileDownloadPath).pipe(
+      new Throttle(
+        configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_PER_SECOND_IN_KB,
+      ),
+    );
     const type = mime.getType(fileDownloadPath);
 
     const headers = {
