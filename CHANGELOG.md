@@ -6,13 +6,13 @@
 
 - TODO: Removed Deprecated Utility APIs
 
-## Upcoming
+## 4.1.0
 
 ### Changes
 
 - Progress calls now include soft-deleted games, allowing them to be viewed even after a game is deleted.
 - Added an Image Upload API.
-- Added Configurable Max Image Upload Size `IMAGE_MAX_SIZE_IN_BYTES` (Default is 10000000 which is 10MB)
+- Added Configurable Max Image Upload Size `IMAGE_MAX_SIZE_IN_KB` (Default is 10000 which is 10MB)
 - Implemented Magic Byte Checking for images to enhance file upload security.
 - Modified Game Release Date to be Nullable. [Filenames now consist only of the game title, see #180](https://github.com/Phalcode/gamevault-backend/issues/180).
 - Made Image Source URLs Nullable for image uploading.
