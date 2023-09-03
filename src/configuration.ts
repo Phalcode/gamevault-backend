@@ -22,7 +22,7 @@ export default {
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS:
       Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS) * 1024 ||
-      Number.MAX_SAFE_INTEGER * 1000,
+      Number.MAX_SAFE_INTEGER,
   },
   VOLUMES: {
     FILES: process.env.VOLUMES_FILES?.replace(/\/$/, "") || "/files",
