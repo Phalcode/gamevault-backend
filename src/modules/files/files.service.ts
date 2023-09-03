@@ -461,9 +461,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     const file = createReadStream(fileDownloadPath).pipe(
-      new Throttle(
-        configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_PER_SECOND_IN_KB,
-      ),
+      new Throttle(configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS),
     );
     const type = mime.getType(fileDownloadPath);
 
