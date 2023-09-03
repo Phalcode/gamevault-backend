@@ -188,7 +188,10 @@ export class ProgressService {
     progressDto: ProgressDto,
     executorUsername: string,
   ) {
-    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(userId, executorUsername);
+    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(
+      userId,
+      executorUsername,
+    );
 
     const progress = await this.getProgressByUserAndGame(userId, gameId);
 
@@ -228,7 +231,10 @@ export class ProgressService {
     executorUsername: string,
     incrementBy = 1,
   ): Promise<Progress> {
-    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(userId, executorUsername);
+    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(
+      userId,
+      executorUsername,
+    );
     const progress = await this.getProgressByUserAndGame(userId, gameId);
     if (
       progress.state !== State.INFINITE &&
