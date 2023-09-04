@@ -13,6 +13,7 @@
 - Progress calls now include soft-deleted games, allowing them to be displayed even after a game is deleted.
 - Added an Image Upload API. [#173](https://github.com/Phalcode/gamevault-backend/issues/173)
 - Added Image By Id Option to Register User, Update User and Update Game APIs
+- Implemented Game Background Image Update API
 - Added Configurable Max Image Upload Size `IMAGE_MAX_SIZE_IN_KB` (Default is 10000 which is 10MB)
 - Implemented Magic Byte Checking for images to enhance file upload security.
 - Modified Game Release Date to be Nullable. [Filenames now consist only of the game title, see #180](https://github.com/Phalcode/gamevault-backend/issues/180).
