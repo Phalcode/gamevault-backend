@@ -37,7 +37,7 @@ export default {
     ADMIN_USERNAME: process.env.SERVER_ADMIN_USERNAME || undefined,
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS:
-      Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS) * 1024 ||
+      Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS) ||
       Number.MAX_SAFE_INTEGER,
   },
   VOLUMES: {
