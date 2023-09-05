@@ -35,6 +35,7 @@
 - Migrated Email, First Name, and Last Name as nullable fields in the database.
 - Implemented Conditional Validators to ensure that only registrations matching the required user information configuration are accepted, denying registrations that don't meet the configuration criteria.
 - Refactored the Configuration Class for improved organization and readability.
+- First And Last Name fields now support german Umlauts (ä,ö,ü, etc.)
 
 ## 4.0.1
 
