@@ -43,7 +43,7 @@ export default {
   RAWG_API: {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
-    CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 7,
+    CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
   },
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES:

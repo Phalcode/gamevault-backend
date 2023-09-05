@@ -24,6 +24,7 @@
 - Implemented Serverside Bandwidth Limit Configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the servers max bandwidth #10
 - Implemented Clientside Bandwidth Limit Configuration by `max_kbps` Header in Download Request
 - Admins can now delete other Users Progresses by the Progress ID
+- Changed Default RAWG Cache Days from 7 Days to 30 Days as game data doesn't change often.
 
 ## 4.0.1
 
