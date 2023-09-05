@@ -1,30 +1,40 @@
 # GameVault Backend Server Changelog
 
-## 5.0.0
+## 6.0.0
 
 ### Changes
 
 - TODO: Removed Deprecated Utility APIs
 
-## 4.1.0
+## 5.0.0
+
+### Breaking Changes & Migration
+
+- Issue #157: Email, First Name, and Last Name are no longer mandatory by default. You can adjust their required status during registration by configuring these options:
+  - `USERS_REQUIRE_EMAIL` = true
+  - `USERS_REQUIRE_FIRST_NAME` = true
+  - `USERS_REQUIRE_LAST_NAME` = true
 
 ### Changes
 
-- Progress calls now include soft-deleted games, allowing them to be displayed even after a game is deleted.
-- Added an Image Upload API. [#173](https://github.com/Phalcode/gamevault-backend/issues/173)
-- Added Image By Id Option to Register User, Update User and Update Game APIs
-- Implemented Game Background Image Update API
-- Added Configurable Max Image Upload Size `IMAGE_MAX_SIZE_IN_KB` (Default is 10000 which is 10MB)
-- Implemented Magic Byte Checking for images to enhance file upload security.
-- Modified Game Release Date to be Nullable. [Filenames now consist only of the game title, see #180](https://github.com/Phalcode/gamevault-backend/issues/180).
-- Made Image Source URLs Nullable for image uploading.
-- Images are now saved with their proper extensions.
-- Limited image format support to bmp, jpeg, png, tiff, gif, and ico, ensuring compatibility with WPF.
-- Removed Unused Image Garbabe Collector Configurables (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`)
-- Implemented Serverside Bandwidth Limit Configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the servers max bandwidth #10
-- Implemented Clientside Bandwidth Limit Configuration by `max_kbps` Header in Download Request
-- Admins can now delete other Users Progresses by the Progress ID
-- Changed Default RAWG Cache Days from 7 Days to 30 Days as game data doesn't change often.
+- Progress calls now include soft-deleted games, making it possible to display them correctly even after a game has been deleted.
+- Added a new API for Image Upload. [See Issue #173](https://github.com/Phalcode/gamevault-backend/issues/173).
+- Introduced an option to set Images by their ID in the Register User, Update User, and Update Game APIs.
+- Implemented an API for updating Game Background Images.
+- Added a configurable maximum image upload size, `IMAGE_MAX_SIZE_IN_KB` (default is 10,000 KB, which is 10MB).
+- Enhanced file upload security with Magic Byte Checking for images.
+- Modified the Game Release Date to be nullable. [Now, filenames consist only of the game title, see Issue #180](https://github.com/Phalcode/gamevault-backend/issues/180).
+- Made Image Source URLs nullable for image uploads.
+- Images are now saved with their correct file extensions.
+- Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
+- Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
+- Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
+- Added client-side bandwidth limit configuration through the `max_kbps` Header in Download Requests.
+- Admins now have the ability to delete the progress of other users by using the Progress ID.
+- Changed the default RAWG Cache retention period from 7 days to 30 days since game data doesn't change frequently.
+- Migrated Email, First Name, and Last Name as nullable fields in the database.
+- Implemented Conditional Validators to ensure that only registrations matching the required user information configuration are accepted, denying registrations that don't meet the configuration criteria.
+- Refactored the Configuration Class for improved organization and readability.
 
 ## 4.0.1
 

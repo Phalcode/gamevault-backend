@@ -3,6 +3,8 @@ export default {
     return [...this.ARCHIVE_FORMATS, ...this.EXECUTABLE_FORMATS];
   },
 
+  LOGGING_FORMAT:
+    "[:date[clf]] :remote-user @ :remote-addr - :method :url -> :status - :response-time ms - :res[content-length] - ':user-agent'",
   ARCHIVE_FORMATS: [
     ".7z",
     ".xz",
