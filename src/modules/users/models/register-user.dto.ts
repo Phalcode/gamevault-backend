@@ -37,13 +37,13 @@ export class RegisterUserDto {
   email?: string;
 
   @ValidateIf(() => configuration.USERS.REQUIRE_FIRST_NAME)
-  @IsAlpha()
+  @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({ example: "John", description: "first name of the user" })
   first_name?: string;
 
   @ValidateIf(() => configuration.USERS.REQUIRE_LAST_NAME)
-  @IsAlpha()
+  @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({ example: "Doe", description: "last name of the user" })
   last_name?: string;

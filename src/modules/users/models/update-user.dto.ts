@@ -45,7 +45,7 @@ export class UpdateUserDto {
   })
   password?: string;
 
-  @IsAlpha()
+  @IsAlpha("de-DE")
   @IsOptional()
   @IsNotEmpty()
   @ApiProperty({
@@ -55,7 +55,7 @@ export class UpdateUserDto {
   })
   first_name?: string;
 
-  @IsAlpha()
+  @IsAlpha("de-DE")
   @IsOptional()
   @IsNotEmpty()
   @ApiProperty({
