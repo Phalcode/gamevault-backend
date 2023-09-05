@@ -29,7 +29,7 @@
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
 - Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
-- Added client-side bandwidth limit configuration through the `max_kbps` Header in Download Requests.
+- Added client-side bandwidth limit configuration through the `X-Download-Speed-Limit` Header in Download Requests.
 - Admins now have the ability to delete the progress of other users by using the Progress ID.
 - Changed the default RAWG Cache retention period from 7 days to 30 days since game data doesn't change frequently.
 - Migrated Email, First Name, and Last Name as nullable fields in the database.
