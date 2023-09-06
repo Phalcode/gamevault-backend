@@ -446,9 +446,11 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<StreamableFile> {
     if (
       !speedlimit ||
-      speedlimit > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
+      speedlimit * 1024 > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
     ) {
       speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    } else {
+      speedlimit *= 1024;
     }
 
     const game = await this.gamesService.getGameById(gameId);

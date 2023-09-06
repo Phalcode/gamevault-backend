@@ -16,6 +16,16 @@ function parseList(envVar: string, defaultList: string[] = []) {
   return defaultList;
 }
 
+function parseKibibytesToBytes(
+  envVar: string,
+  defaultNumber = Number.MAX_SAFE_INTEGER,
+) {
+  const number = Number(envVar) * 1024;
+  if (!number || number < 0 || number > Number.MAX_SAFE_INTEGER) {
+    return defaultNumber;
+  }
+}
+
 export default {
   SERVER: {
     VERSION: process.env.npm_package_version || packageJson.version,
@@ -36,9 +46,9 @@ export default {
     ),
     ADMIN_USERNAME: process.env.SERVER_ADMIN_USERNAME || undefined,
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
-    MAX_DOWNLOAD_BANDWIDTH_IN_KBPS:
-      Number(process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS) ||
-      Number.MAX_SAFE_INTEGER,
+    MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
+      process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
+    ),
   },
   VOLUMES: {
     FILES: parsePath(process.env.VOLUMES_FILES, "/files"),
