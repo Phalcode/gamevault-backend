@@ -44,7 +44,7 @@ export class RawgService {
       return;
     }
 
-    if (!this.key) {
+    if (!configuration.RAWG_API.KEY) {
       this.logger.warn(
         "Skipping RAWG Cache Check because RAWG API Key is not set",
       );
