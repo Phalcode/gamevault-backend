@@ -48,6 +48,7 @@ export default {
     ADMIN_PASSWORD: process.env.SERVER_ADMIN_PASSWORD || undefined,
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
+      10_737_418_240,
     ),
   },
   VOLUMES: {
