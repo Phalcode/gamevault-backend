@@ -453,8 +453,6 @@ export class FilesService implements OnApplicationBootstrap {
       speedlimit *= 1024;
     }
 
-    this.logger.log("Speed Limit: " + speedlimit);
-
     const game = await this.gamesService.getGameById(gameId);
     const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
     let fileDownloadPath = game.file_path;
@@ -475,7 +473,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     const file = createReadStream(fileDownloadPath).pipe(
-      new Throttle(speedlimit * 1024),
+      new Throttle(speedlimit),
     );
     const type = mime.getType(fileDownloadPath);
 
