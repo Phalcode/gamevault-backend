@@ -94,7 +94,7 @@ export default {
   },
   IMAGE: {
     MAX_SIZE_IN_KB:
-      Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000 * 1000,
+      Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000_000,
     GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
       Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
   },
