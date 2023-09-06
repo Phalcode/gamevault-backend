@@ -71,6 +71,7 @@ export default {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
     CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
+    EXCLUDE_STORES: process.env.RAWG_API_EXCLUDE_STORES || "9",
   },
   USERS: {
     REQUIRE_EMAIL: parseBooleanEnvVariable(process.env.USERS_REQUIRE_EMAIL),

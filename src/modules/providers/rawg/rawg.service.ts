@@ -12,7 +12,6 @@ import { RawgMapperService } from "./mapper.service";
 import { RawgGame } from "./models/game.interface";
 import { Result as RawgResult, SearchResult } from "./models/games.interface";
 import { Game } from "../../games/game.entity";
-import { BoxArtsService } from "../../boxarts/boxarts.service";
 import { catchError, firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { AxiosError } from "axios";
@@ -20,16 +19,11 @@ import stringSimilarity from "string-similarity-js";
 
 @Injectable()
 export class RawgService {
-  baseUrl = configuration.RAWG_API.URL;
-  key = configuration.RAWG_API.KEY;
-
   private readonly logger = new Logger(RawgService.name);
 
   constructor(
     @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
-    @Inject(forwardRef(() => BoxArtsService))
-    private boxartService: BoxArtsService,
     private mapper: RawgMapperService,
     private readonly httpService: HttpService,
   ) {}
@@ -106,7 +100,7 @@ export class RawgService {
     } else {
       rawgEntry = await this.getBestMatchingRawgGame(
         game.title,
-        game.release_date.getFullYear(),
+        game.release_date?.getFullYear() || undefined,
       );
     }
     const mappedGame = await this.mapper.map(game, rawgEntry);
@@ -125,7 +119,7 @@ export class RawgService {
    */
   private async getBestMatchingRawgGame(
     title: string,
-    releaseYear: number,
+    releaseYear?: number,
   ): Promise<RawgGame> {
     const sortedResults = await this.getRawgGames(title, releaseYear);
     const bestMatch = sortedResults[0];
@@ -150,56 +144,72 @@ export class RawgService {
   }
 
   /**
-   * Searches for and returns a game from the RAWG API that matches the
-   * specified title and release year.
+   * Search for games in RAWG API based on the provided title and optional
+   * release year.
    *
-   * @param title - The title of the game to search for.
-   * @param releaseYear - The year the game was released.
-   * @returns An array of RawgResult objects that match the search criteria.
+   * @param {string} title - The title of the game to search for.
+   * @param {number} [releaseYear] - The optional release year of the game.
+   * @returns {Promise<RawgResult[]>} An array of RawgResult objects
+   *   representing search results.
+   * @throws {NotFoundException} If no game is found in RAWG.
    */
   public async getRawgGames(
     title: string,
-    releaseYear: number,
+    releaseYear?: number,
   ): Promise<RawgResult[]> {
     const searchResults: RawgResult[] = [];
 
-    //get games by title and release year and add them to the search results
-    const gamesByTitleAndYear = await this.getGames(title, releaseYear);
-    searchResults.push(...gamesByTitleAndYear.results);
-    //get games by title and add them to the search results
-    const gamesByTitle = await this.getGames(title);
-    searchResults.push(...gamesByTitle.results);
-
-    if (searchResults.length === 0) {
-      this.logger.log(
-        `➥ "${title} (${releaseYear})" | Search Step 1 (Precise Title and Year Search) | No results found`,
-      );
-      const gamesByTitleFuzzy = await this.getGames(title, undefined, false);
-      searchResults.push(...gamesByTitleFuzzy.results);
+    // Step 1: Get games by title and release year (if provided)
+    if (releaseYear) {
+      searchResults.push(...(await this.getGames(title, releaseYear)).results);
     }
 
+    // Step 2: Get games by title only if Step 1 had no results or releaseYear is not provided
+    if (searchResults.length === 0) {
+      searchResults.push(...(await this.getGames(title)).results);
+    }
+
+    // If no results found in both steps, try fuzzy search
+    if (searchResults.length === 0) {
+      searchResults.push(
+        ...(await this.getGames(title, undefined, false)).results,
+      );
+    }
+
+    // If still no results found, throw an exception
     if (searchResults.length === 0) {
       this.logger.log(
-        `➥ "${title} (${releaseYear})" | Search Step 2 (Fuzzy Search) | No results found`,
+        `➥ "${title} (${
+          releaseYear || "No Year"
+        })" | No results found after all search steps`,
       );
+
       throw new NotFoundException(
-        `No game found in RAWG for "${title} (${releaseYear})"`,
+        `No game found in RAWG for "${title} (${releaseYear || "No Year"})"`,
       );
     }
 
+    // Calculate and assign probabilities
     searchResults.forEach((game) => {
-      // DEV_INFO: If game.probability does not exists, add it to the Result Object
-      game.probability = stringSimilarity(
-        title.toLowerCase().replaceAll(/[^\w\s]/g, ""),
-        game.name.toLowerCase().replaceAll(/[^\w\s]/g, ""),
-      );
-      // reduce the probability the more the year does not match
-      game.probability -=
-        Math.abs(releaseYear - new Date(game.released).getFullYear()) / 10;
+      const titleCleaned = title.toLowerCase().replaceAll(/[^\w\s]/g, "");
+      const gameNameCleaned = game.name
+        .toLowerCase()
+        .replaceAll(/[^\w\s]/g, "");
+
+      // Calculate similarity based on title
+      game.probability = stringSimilarity(titleCleaned, gameNameCleaned);
+
+      // Reduce the probability the more the year does not match (if releaseYear is provided)
+      if (releaseYear !== undefined) {
+        const gameReleaseYear = new Date(game.released).getFullYear();
+        game.probability -= Math.abs(releaseYear - gameReleaseYear) / 10;
+      }
     });
 
-    // Sort search results by probability beginning with the highest probability
-    return searchResults.sort((a, b) => b.probability - a.probability);
+    // Sort search results by probability in descending order
+    searchResults.sort((a, b) => b.probability - a.probability);
+
+    return searchResults;
   }
 
   /**
@@ -236,8 +246,8 @@ export class RawgService {
     try {
       const response = await firstValueFrom(
         this.httpService
-          .get(`${this.baseUrl}/games/${id}`, {
-            params: { key: this.key },
+          .get(`${configuration.RAWG_API.URL}/games/${id}`, {
+            params: { key: configuration.RAWG_API.KEY },
           })
           .pipe(
             catchError((error: AxiosError) => {
@@ -282,14 +292,13 @@ export class RawgService {
     try {
       const response = await firstValueFrom(
         this.httpService
-          .get(`${this.baseUrl}/games`, {
+          .get(`${configuration.RAWG_API.URL}/games`, {
             params: {
-              key: this.key,
-              search: search,
+              search,
+              key: configuration.RAWG_API.KEY,
               dates: searchDates,
               search_precise: precise,
-              platforms: 4,
-              exclude_stores: 9,
+              exclude_stores: configuration.RAWG_API.EXCLUDE_STORES,
             },
           })
           .pipe(
