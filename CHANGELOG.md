@@ -17,6 +17,7 @@
 
 ### Changes
 
+- TODO: Fix Double RAWG Call Algorithm
 - Progress calls now include soft-deleted games, making it possible to display them correctly even after a game has been deleted.
 - Added a new API for Image Upload. [See Issue #173](https://github.com/Phalcode/gamevault-backend/issues/173).
 - Introduced an option to set Images by their ID in the Register User, Update User, and Update Game APIs.
@@ -28,7 +29,7 @@
 - Images are now saved with their correct file extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
-- Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
+- Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. (Maximum 10GB/s) [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
 - Added client-side bandwidth limit configuration through the `X-Download-Speed-Limit` Header in Download Requests.
 - Admins now have the ability to delete the progress of other users by using the Progress ID.
 - Changed the default RAWG Cache retention period from 7 days to 30 days since game data doesn't change frequently.
