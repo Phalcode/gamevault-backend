@@ -24,6 +24,7 @@
 - Added a configurable maximum image upload size, `IMAGE_MAX_SIZE_IN_KB` (default is 10,000 KB, which is 10MB).
 - Enhanced file upload security with Magic Byte Checking for images.
 - Modified the Game Release Date to be nullable. [Now, filenames consist only of the game title, see Issue #180](https://github.com/Phalcode/gamevault-backend/issues/180).
+- Improved RAWG Matching Algorithm to use less calls to Rawg and work without Release Dates.
 - Made Image Source URLs nullable for image uploads.
 - Images are now saved with their correct file extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
@@ -35,7 +36,8 @@
 - Migrated Email, First Name, and Last Name as nullable fields in the database.
 - Implemented Conditional Validators to ensure that only registrations matching the required user information configuration are accepted, denying registrations that don't meet the configuration criteria.
 - Refactored the Configuration Class for improved organization and readability.
-- First And Last Name fields now support german Umlauts (ä,ö,ü, etc.)
+- First And Last Name fields now support german Umlauts (like ä,ö,ü, etc.)
+- Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
 
 ## 4.0.1
 
