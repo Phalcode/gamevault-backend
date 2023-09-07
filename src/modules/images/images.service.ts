@@ -81,9 +81,9 @@ export class ImagesService {
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkImageFileType(imageBuffer);
 
-      image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.{${
+      image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
         fileType.extension
-      }}`;
+      }`;
 
       const compressedImageBuffer = await this.compressImage(imageBuffer);
 
