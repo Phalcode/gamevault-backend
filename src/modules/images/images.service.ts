@@ -200,6 +200,11 @@ export class ImagesService {
   ): Promise<Image> {
     const image = new Image();
     const fileType = fileTypeChecker.detectFile(file.buffer);
+    if (!globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
+      throw new BadRequestException(
+        `This file pretends to be a "${file.mimetype}" but is actually a "${fileType.mimeType}", which is not supported.`,
+      );
+    }
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
       fileType.extension
     }`;
