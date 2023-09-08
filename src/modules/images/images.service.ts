@@ -217,6 +217,13 @@ export class ImagesService {
     username?: string,
   ): Promise<Image> {
     const fileType = fileTypeChecker.detectFile(file.buffer);
+    this.logger.debug({
+      fileType,
+      buffer: [...new Uint8Array(file.buffer)]
+        .map((x) => x.toString(16).padStart(2, "0"))
+        .join("")
+        .slice(1, 50),
+    });
     if (!fileType?.extension || !fileType?.mimeType) {
       throw new BadRequestException(
         "File Type could not be detected. Please try another image.",
