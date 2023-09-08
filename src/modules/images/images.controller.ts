@@ -101,6 +101,13 @@ export class ImagesController {
     )
     file: Express.Multer.File,
   ) {
+    this.logger.debug(file);
+    this.logger.debug(
+      [...new Uint8Array(file.buffer)]
+        .map((x) => x.toString(16).padStart(2, "0"))
+        .join("")
+        .slice(1, 200),
+    );
     return this.imagesService.uploadImage(file, req.gamevaultuser.username);
   }
 }
