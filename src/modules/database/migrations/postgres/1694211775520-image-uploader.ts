@@ -18,6 +18,17 @@ export class ImageUploader1694211775520 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "image" DROP CONSTRAINT IF EXISTS "UQ_e0626148aee5829fd312447001a"`,
     );
+    
+    // CLEAR ALL DUPES
+    await queryRunner.query(
+      `DELETE FROM image
+      WHERE id NOT IN (
+        SELECT MAX(id)
+        FROM image
+        GROUP BY source
+      );`,
+    );
+
     await queryRunner.query(`
             ALTER TABLE "image"
             ADD CONSTRAINT "UQ_e0626148aee5829fd312447001a" UNIQUE ("source")
