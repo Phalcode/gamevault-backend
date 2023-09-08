@@ -39,6 +39,7 @@
 - Refactored the Configuration Class for improved organization and readability.
 - First And Last Name fields now support german Umlauts (like ä,ö,ü, etc.)
 - Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
+- Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
 
 
 ## 4.0.1
