@@ -183,7 +183,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.background_image_id) {
-      user.profile_picture = await this.imagesService.findByIdOrFail(
+      user.background_image = await this.imagesService.findByIdOrFail(
         dto.background_image_id,
       );
     }
