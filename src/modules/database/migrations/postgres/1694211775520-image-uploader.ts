@@ -14,10 +14,15 @@ export class ImageUploader1694211775520 implements MigrationInterface {
             ALTER TABLE "image"
             ADD "uploader_id" integer
         `);
+
+    await queryRunner.query(
+      `ALTER TABLE "image" DROP CONSTRAINT IF EXISTS "UQ_e0626148aee5829fd312447001a"`,
+    );
     await queryRunner.query(`
             ALTER TABLE "image"
-            ADD CONSTRAINT IF NOT EXISTS "UQ_e0626148aee5829fd312447001a" UNIQUE ("source")
+            ADD CONSTRAINT "UQ_e0626148aee5829fd312447001a" UNIQUE ("source")
         `);
+
     await queryRunner.query(`
             ALTER TABLE "progress" DROP CONSTRAINT IF EXISTS "FK_ddcaca3a9db9d77105d51c02c24"
         `);
@@ -34,12 +39,21 @@ export class ImageUploader1694211775520 implements MigrationInterface {
             ALTER COLUMN "id" DROP DEFAULT
         `);
     await queryRunner.query(`
-            ALTER TYPE IF EXISTS "public"."crackpipe_user_role_enum"
-            RENAME TO "crackpipe_user_role_enum_old"
-        `);
+        DO $$ 
+        BEGIN 
+            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'crackpipe_user_role_enum' AND typtype = 'e') THEN 
+                ALTER TYPE "public"."crackpipe_user_role_enum" RENAME TO "crackpipe_user_role_enum_old"; 
+            END IF; 
+        END $$;
+    `);
     await queryRunner.query(`
-            CREATE TYPE IF NOT EXISTS "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3')
-        `);
+    DO $$ 
+    BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gamevault_user_role_enum' AND typtype = 'e') THEN 
+            CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3'); 
+        END IF; 
+    END $$;
+`);
     await queryRunner.query(`
             ALTER TABLE "gamevault_user"
             ALTER COLUMN "role" DROP DEFAULT
@@ -56,21 +70,35 @@ export class ImageUploader1694211775520 implements MigrationInterface {
     await queryRunner.query(`
             DROP TYPE IF EXISTS "public"."crackpipe_user_role_enum_old"
         `);
+
+    await queryRunner.query(
+      `ALTER TABLE "image" DROP CONSTRAINT IF EXISTS "FK_81cba867ad852a0b6402f0e82fb"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "gamevault_user" DROP CONSTRAINT IF EXISTS "FK_c1779b9b22212754248aa404bad"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "gamevault_user" DROP CONSTRAINT IF EXISTS "FK_4b83e27ed50c1e183a69fceef68"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "progress" DROP CONSTRAINT IF EXISTS "FK_ddcaca3a9db9d77105d51c02c24"`,
+    );
+
     await queryRunner.query(`
             ALTER TABLE "image"
-            ADD CONSTRAINT IF NOT EXISTS "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+            ADD CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE "gamevault_user"
-            ADD CONSTRAINT IF NOT EXISTS "FK_c1779b9b22212754248aa404bad" FOREIGN KEY ("profile_picture_id") REFERENCES "image"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            ADD CONSTRAINT "FK_c1779b9b22212754248aa404bad" FOREIGN KEY ("profile_picture_id") REFERENCES "image"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE "gamevault_user"
-            ADD CONSTRAINT IF NOT EXISTS "FK_4b83e27ed50c1e183a69fceef68" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+            ADD CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68" FOREIGN KEY ("background_image_id") REFERENCES "image"("id") ON DELETE CASCADE ON UPDATE NO ACTION
         `);
     await queryRunner.query(`
             ALTER TABLE "progress"
-            ADD CONSTRAINT IF NOT EXISTS "FK_ddcaca3a9db9d77105d51c02c24" FOREIGN KEY ("user_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+            ADD CONSTRAINT "FK_ddcaca3a9db9d77105d51c02c24" FOREIGN KEY ("user_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
   }
 
