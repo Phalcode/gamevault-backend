@@ -10,7 +10,7 @@
 
 ### Breaking Changes & Migration
 
-- Issue #157: Email, First Name, and Last Name are no longer mandatory by default. You can adjust their required status during registration by configuring these options:
+- Issue #157: Email, First Name, and Last Name are no longer mandatory by default for new registrations. You can regain the previous functionality by configuring these options:
   - `USERS_REQUIRE_EMAIL` = true
   - `USERS_REQUIRE_FIRST_NAME` = true
   - `USERS_REQUIRE_LAST_NAME` = true
@@ -23,7 +23,7 @@
 - Implemented an API for updating Game Background Images.
 - Added a configurable maximum image upload size, `IMAGE_MAX_SIZE_IN_KB` (default is 10,000 KB, which is 10MB).
 - Enhanced file upload security with Magic Byte Checking for images.
-- Modified the Game Release Date to be nullable. [Now, filenames consist only of the game title, see Issue #180](https://github.com/Phalcode/gamevault-backend/issues/180).
+- Modified the Game Release Date to be nullable. [Now, filenames can consist only of the game title, see Issue #180](https://github.com/Phalcode/gamevault-backend/issues/180).
 - Improved RAWG Matching Algorithm to use less calls to Rawg and work without Release Dates.
 - Made Image Source URLs nullable for image uploads.
 - Images are now saved with their correct file extensions.
@@ -39,8 +39,8 @@
 - Refactored the Configuration Class for improved organization and readability.
 - First And Last Name fields now support german Umlauts (like ä,ö,ü, etc.)
 - Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
+- Set RAWG API Calls to look for games on all Platforms and not just PC
 - Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
-
 
 ## 4.0.1
 
