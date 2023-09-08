@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   UnprocessableEntityException,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -17,6 +19,7 @@ import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
+import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class ImagesService {
@@ -26,6 +29,8 @@ export class ImagesService {
     private readonly httpService: HttpService,
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
   ) {}
 
   public async isImageAvailable(id: number): Promise<boolean> {
@@ -67,11 +72,19 @@ export class ImagesService {
     );
   }
 
-  async downloadImageByUrl(sourceUrl: string): Promise<Image> {
+  async downloadImageByUrl(
+    sourceUrl: string,
+    uploaderUsername?: string,
+  ): Promise<Image> {
     const image = new Image();
     image.source = sourceUrl;
 
     try {
+      if (uploaderUsername) {
+        image.uploader =
+          await this.usersService.getUserByUsernameOrFail(uploaderUsername);
+      }
+
       const response = await this.downloadImageFromUrl(image.source);
 
       image.mediaType = response.headers["content-type"];
@@ -181,8 +194,11 @@ export class ImagesService {
     );
   }
 
-  public async uploadImage(file: Express.Multer.File): Promise<Image> {
-    const image = await this.createImageFromUpload(file);
+  public async uploadImage(
+    file: Express.Multer.File,
+    username: string,
+  ): Promise<Image> {
+    const image = await this.createImageFromUpload(file, username);
 
     try {
       await this.saveImageToFileSystem(image, file.buffer);
@@ -198,6 +214,7 @@ export class ImagesService {
 
   private async createImageFromUpload(
     file: Express.Multer.File,
+    username?: string,
   ): Promise<Image> {
     const fileType = fileTypeChecker.detectFile(file.buffer);
     if (!fileType?.extension || !fileType?.mimeType) {
@@ -215,6 +232,12 @@ export class ImagesService {
     }
 
     const image = new Image();
+
+    if (username) {
+      image.uploader =
+        await this.usersService.getUserByUsernameOrFail(username);
+    }
+
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
       fileType.extension
     }`;

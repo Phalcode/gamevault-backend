@@ -11,9 +11,12 @@
 ### Breaking Changes & Migration
 
 - Issue #157: Email, First Name, and Last Name are no longer mandatory by default for new registrations. You can regain the previous functionality by configuring these options:
+
   - `USERS_REQUIRE_EMAIL` = true
   - `USERS_REQUIRE_FIRST_NAME` = true
   - `USERS_REQUIRE_LAST_NAME` = true
+
+- Removed all images from registration: To prevent spam attacks, we can't allow people to save images on your server without your permission. Therefore, we removed all image fields from registration.
 
 ### Changes
 
@@ -41,6 +44,7 @@
 - Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
 - Set RAWG API Calls to look for games on all Platforms and not just PC
 - Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
+- Added nullable uploader field to Images and uploaded_images field to Users for traceability
 
 ### Thanks
 

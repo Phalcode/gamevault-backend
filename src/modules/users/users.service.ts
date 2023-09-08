@@ -1,10 +1,12 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
   UnauthorizedException,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
@@ -23,6 +25,7 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(GamevaultUser)
     private userRepository: Repository<GamevaultUser>,
+    @Inject(forwardRef(() => ImagesService))
     private imagesService: ImagesService,
   ) {}
 
@@ -164,30 +167,6 @@ export class UsersService implements OnApplicationBootstrap {
       user.activated = true;
     }
 
-    if (dto.profile_picture_url) {
-      user.profile_picture = await this.imagesService.downloadImageByUrl(
-        dto.profile_picture_url,
-      );
-    }
-
-    if (dto.profile_picture_id) {
-      user.profile_picture = await this.imagesService.findByIdOrFail(
-        dto.profile_picture_id,
-      );
-    }
-
-    if (dto.background_image_url) {
-      user.background_image = await this.imagesService.downloadImageByUrl(
-        dto.background_image_url,
-      );
-    }
-
-    if (dto.background_image_id) {
-      user.background_image = await this.imagesService.findByIdOrFail(
-        dto.background_image_id,
-      );
-    }
-
     if (user.username === configuration.SERVER.ADMIN_USERNAME) {
       user.role = Role.ADMIN;
     }
@@ -252,6 +231,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     dto: UpdateUserDto,
     admin = false,
+    executorUsername?: string,
   ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
 
@@ -280,6 +260,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (dto.profile_picture_url != null) {
       user.profile_picture = await this.imagesService.downloadImageByUrl(
         dto.profile_picture_url,
+        executorUsername,
       );
     }
 
@@ -292,11 +273,12 @@ export class UsersService implements OnApplicationBootstrap {
     if (dto.background_image_url != null) {
       user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
+        executorUsername,
       );
     }
 
     if (dto.background_image_id) {
-      user.profile_picture = await this.imagesService.findByIdOrFail(
+      user.background_image = await this.imagesService.findByIdOrFail(
         dto.background_image_id,
       );
     }

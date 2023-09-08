@@ -11,10 +11,10 @@ import { ImagesModule } from "../images/images.module";
 @Module({
   imports: [
     TypeOrmModule.forFeature([Game]),
-    RawgModule,
+    forwardRef(() => RawgModule),
+    forwardRef(() => FilesModule),
     BoxartsModule,
     ImagesModule,
-    forwardRef(() => FilesModule),
   ],
   controllers: [GamesController],
   providers: [GamesService],

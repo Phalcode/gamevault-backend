@@ -87,4 +87,12 @@ export class GamevaultUser extends DatabaseEntity {
       "The role determines the set of permissions and access rights for a user in the system.",
   })
   role: Role;
+
+  @OneToMany(() => Image, (image) => image.uploader)
+  @ApiProperty({
+    description: "images uploaded by this user",
+    type: () => Image,
+    isArray: true,
+  })
+  uploaded_images: Image[];
 }

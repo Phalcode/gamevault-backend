@@ -232,7 +232,7 @@ export class GamesService {
     return this.gamesRepository.softRemove(game);
   }
 
-  public async updateGame(id: number, dto: UpdateGameDto) {
+  public async updateGame(id: number, dto: UpdateGameDto, username: string) {
     const game = dto.rawg_id
       ? await this.remapGame(id, dto.rawg_id)
       : await this.getGameById(id);
@@ -241,6 +241,7 @@ export class GamesService {
     if (dto.box_image_url) {
       game.box_image = await this.imagesService.downloadImageByUrl(
         dto.box_image_url,
+        username,
       );
     }
 
@@ -253,6 +254,7 @@ export class GamesService {
     if (dto.background_image_url) {
       game.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
+        username,
       );
     }
 

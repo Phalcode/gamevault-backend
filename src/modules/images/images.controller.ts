@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Request,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -27,6 +28,7 @@ import { Role } from "../users/models/role.enum";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Image } from "./image.entity";
 import configuration from "../../configuration";
+import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @ApiTags("images")
 @Controller("images")
@@ -86,6 +88,7 @@ export class ImagesController {
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.USER)
   uploadFile(
+    @Request() req: { gamevaultuser: GamevaultUser },
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -98,6 +101,6 @@ export class ImagesController {
     )
     file: Express.Multer.File,
   ) {
-    return this.imagesService.uploadImage(file);
+    return this.imagesService.uploadImage(file, req.gamevaultuser.username);
   }
 }

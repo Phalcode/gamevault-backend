@@ -99,12 +99,17 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   async updateMe(
     @Body() dto: UpdateUserDto,
-    @Request() request,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
     const user = await this.usersService.getUserByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.update(user.id, dto, false);
+    return await this.usersService.update(
+      user.id,
+      dto,
+      false,
+      request.gamevaultuser.username,
+    );
   }
 
   /**
@@ -161,8 +166,14 @@ export class UsersController {
   async updateAnyUser(
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.update(Number(params.id), dto, true);
+    return await this.usersService.update(
+      Number(params.id),
+      dto,
+      true,
+      request.gamevaultuser.username,
+    );
   }
 
   /**
