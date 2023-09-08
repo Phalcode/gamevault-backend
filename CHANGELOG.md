@@ -42,6 +42,11 @@
 - Set RAWG API Calls to look for games on all Platforms and not just PC
 - Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
 
+### Thanks
+
+- @freitagdavid
+- @Kairubyte
+
 ## 4.0.1
 
 ### Changes
