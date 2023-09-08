@@ -99,6 +99,10 @@ export default {
       Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000_000,
     GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
       Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
+    SUPPORTED_IMAGE_FORMATS: parseList(
+      process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
+      globals.SUPPORTED_IMAGE_FORMATS,
+    ),
   },
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(

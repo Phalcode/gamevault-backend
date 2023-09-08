@@ -28,6 +28,7 @@
 - Made Image Source URLs nullable for image uploads.
 - Images are now saved with their correct file extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
+- Added `IMAGE_SUPPORTED_IMAGE_FORMATS`, you can change the supported Content-Type Headers for images with this parameter if you have a non WPF Client.
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
 - Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
 - Added client-side bandwidth limit configuration through the `X-Download-Speed-Limit` Header in Download Requests.
@@ -38,6 +39,7 @@
 - Refactored the Configuration Class for improved organization and readability.
 - First And Last Name fields now support german Umlauts (like ä,ö,ü, etc.)
 - Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
+
 
 ## 4.0.1
 

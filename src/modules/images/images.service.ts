@@ -17,7 +17,6 @@ import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import globals from "../../globals";
 
 @Injectable()
 export class ImagesService {
@@ -132,7 +131,9 @@ export class ImagesService {
 
   private checkImageFileType(imageBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
-    if (!globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
+    if (
+      !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
+    ) {
       throw new BadRequestException(
         `File type "${fileType.mimeType}" is not supported. Please select a different image or convert it.`,
       );
@@ -198,13 +199,22 @@ export class ImagesService {
   private async createImageFromUpload(
     file: Express.Multer.File,
   ): Promise<Image> {
-    const image = new Image();
     const fileType = fileTypeChecker.detectFile(file.buffer);
-    if (!globals.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)) {
+    if (!fileType?.extension || !fileType?.mimeType) {
+      throw new BadRequestException(
+        "File Type could not be detected. Please try another image.",
+      );
+    }
+
+    if (
+      !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
+    ) {
       throw new BadRequestException(
         `This file pretends to be a "${file.mimetype}" but is actually a "${fileType.mimeType}", which is not supported.`,
       );
     }
+
+    const image = new Image();
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
       fileType.extension
     }`;
