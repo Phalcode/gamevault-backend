@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
@@ -19,6 +19,7 @@ import { Role } from "../users/models/role.enum";
 
 @Controller("tags")
 @ApiTags("tags")
+@ApiBasicAuth()
 export class TagsController {
   constructor(
     @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,

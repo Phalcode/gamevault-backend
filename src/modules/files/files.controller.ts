@@ -1,10 +1,16 @@
 import { Controller, Put } from "@nestjs/common";
-import { ApiOperation, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiOperation,
+  ApiOkResponse,
+  ApiTags,
+  ApiBasicAuth,
+} from "@nestjs/swagger";
 import { Game } from "../games/game.entity";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { FilesService } from "./files.service";
 
+@ApiBasicAuth()
 @ApiTags("files")
 @Controller("files")
 export class FilesController {

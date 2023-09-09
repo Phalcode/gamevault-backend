@@ -10,6 +10,7 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import {
+  ApiBasicAuth,
   ApiBody,
   ApiHeader,
   ApiOkResponse,
@@ -38,6 +39,7 @@ import { Role } from "../users/models/role.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 
+@ApiBasicAuth()
 @ApiTags("game")
 @Controller("games")
 export class GamesController {

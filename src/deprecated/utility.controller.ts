@@ -1,5 +1,11 @@
 import { Body, Controller, Param, Put, Request } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { ImageUrlDto } from "../modules/images/models/image-url.dto";
 import { RawgIdDto } from "../modules/games/models/rawg_id.dto";
 import { Game } from "../modules/games/game.entity";
@@ -15,6 +21,7 @@ import { GamevaultUser } from "../modules/users/gamevault-user.entity";
 
 @ApiTags("utility")
 @Controller("utility")
+@ApiBasicAuth()
 export class UtilityController {
   constructor(
     private gamesService: GamesService,

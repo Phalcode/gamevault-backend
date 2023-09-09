@@ -13,6 +13,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import {
+  ApiBasicAuth,
   ApiBody,
   ApiConsumes,
   ApiOkResponse,
@@ -32,6 +33,7 @@ import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @ApiTags("images")
 @Controller("images")
+@ApiBasicAuth()
 export class ImagesController {
   private readonly logger = new Logger(ImagesService.name);
 

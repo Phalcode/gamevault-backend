@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Put, Query } from "@nestjs/common";
 import {
+  ApiBasicAuth,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
@@ -17,6 +18,7 @@ import { BoxArtsService } from "../../boxarts/boxarts.service";
 
 @ApiTags("rawg")
 @Controller("rawg")
+@ApiBasicAuth()
 export class RawgController {
   constructor(
     private gamesService: GamesService,

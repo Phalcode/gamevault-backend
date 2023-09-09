@@ -9,7 +9,13 @@ import {
   Put,
   Request,
 } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import configuration from "../../configuration";
 import { IdDto } from "../database/models/id.dto";
 import { RegisterUserDto } from "./models/register-user.dto";
@@ -20,6 +26,7 @@ import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "./models/role.enum";
 import { Public } from "../pagination/public.decorator";
 
+@ApiBasicAuth()
 @ApiTags("user")
 @Controller("users")
 export class UsersController {

@@ -43,6 +43,10 @@
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
 - TODO: Fixed Failures when fetching duplicate images.
 
+#### API Specification
+
+- Added `@ApiBasicAuth()` to all APIs except Health API #186
+
 #### Bandwidth Control
 
 - Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
@@ -71,6 +75,7 @@
 
 - @freitagdavid
 - @Kairubyte
+- @yotadak
 
 ## 4.0.1
 
