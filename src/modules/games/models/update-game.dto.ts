@@ -20,7 +20,6 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsUrl()
-  @IsNotEmpty()
   @ApiProperty({
     pattern: "url",
     example: "https://example.com/image.png",
@@ -38,7 +37,6 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsUrl()
-  @IsNotEmpty()
   @ApiProperty({
     pattern: "url",
     example: "https://example.com/image.png",
