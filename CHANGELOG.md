@@ -10,41 +10,62 @@
 
 ### Breaking Changes & Migration
 
-- Issue #157: Email, First Name, and Last Name are no longer mandatory by default for new registrations. You can regain the previous functionality by configuring these options:
+#### Issue #157: Optional User Information
 
+- Email, First Name, and Last Name are no longer mandatory by default for new registrations. You can regain the previous functionality by configuring these options:
   - `USERS_REQUIRE_EMAIL` = true
   - `USERS_REQUIRE_FIRST_NAME` = true
   - `USERS_REQUIRE_LAST_NAME` = true
+
+#### Removed Image Fields from Registration
 
 - Removed all images from registration: To prevent spam attacks, we can't allow people to save images on your server without your permission. Therefore, we removed all image fields from registration.
 
 ### Changes
 
+#### Progress and Game Display
+
 - Progress calls now include soft-deleted games, making it possible to display them correctly even after a game has been deleted.
+
+#### Image Upload API
+
 - Added a new API for Image Upload. [See Issue #173](https://github.com/Phalcode/gamevault-backend/issues/173).
-- Introduced an option to set Images by their ID in the Register User, Update User, and Update Game APIs.
+- Introduced an option to set Images by their ID in the Update User and Update Game APIs.
 - Implemented an API for updating Game Background Images.
 - Added a configurable maximum image upload size, `IMAGE_MAX_SIZE_IN_KB` (default is 10,000 KB, which is 10MB).
-- Enhanced file upload security with Magic Byte Checking for images.
+- Enhanced file upload security with Magic Bytes Checking for images.
 - Modified the Game Release Date to be nullable. [Now, filenames can consist only of the game title, see Issue #180](https://github.com/Phalcode/gamevault-backend/issues/180).
-- Improved RAWG Matching Algorithm to use less calls to Rawg and work without Release Dates.
-- Made Image Source URLs nullable for image uploads.
+- Improved RAWG Matching Algorithm to use fewer calls to Rawg and work without Release Dates.
+- Made Image Source URLs nullable and unique.
 - Images are now saved with their correct file extensions.
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
 - Added `IMAGE_SUPPORTED_IMAGE_FORMATS`, you can change the supported Content-Type Headers for images with this parameter if you have a non WPF Client.
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
+- TODO: Fixed Failures when fetching duplicate images.
+
+#### Bandwidth Control
+
 - Implemented server-side bandwidth limit configuration `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` to control the server's maximum bandwidth. [See Issue #10](https://github.com/Phalcode/gamevault-backend/issues/10).
 - Added client-side bandwidth limit configuration through the `X-Download-Speed-Limit` Header in Download Requests.
+
+#### Admin Features
+
 - Admins now have the ability to delete the progress of other users by using the Progress ID.
+
+#### RAWG Cache
+
 - Changed the default RAWG Cache retention period from 7 days to 30 days since game data doesn't change frequently.
+
+#### Database Changes
+
 - Migrated Email, First Name, and Last Name as nullable fields in the database.
 - Implemented Conditional Validators to ensure that only registrations matching the required user information configuration are accepted, denying registrations that don't meet the configuration criteria.
 - Refactored the Configuration Class for improved organization and readability.
-- First And Last Name fields now support german Umlauts (like ä,ö,ü, etc.)
-- Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Indie-Game Lovers
-- Set RAWG API Calls to look for games on all Platforms and not just PC
+- First And Last Name fields now support German Umlauts (like ä,ö,ü, etc.).
+- Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Itch.io Indie-Game Lovers.
+- Set RAWG API Calls to look for games on all Platforms & Consoles and not just PC.
 - Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
-- Added nullable uploader field to Images and uploaded_images field to Users for traceability
+- Added nullable uploader field to Images and uploaded_images field to Users for traceability.
 
 ### Thanks
 
