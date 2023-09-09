@@ -27,8 +27,8 @@ export class UpdateGameDto {
   })
   box_image_url?: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   @ApiProperty({
     example: 69_420,
     description: "id of the image",
@@ -44,8 +44,8 @@ export class UpdateGameDto {
   })
   background_image_url?: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   @ApiProperty({
     example: 69_420,
     description: "id of the image",
