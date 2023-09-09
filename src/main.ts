@@ -50,36 +50,39 @@ async function bootstrap(): Promise<void> {
     new AuthenticationGuard(reflector),
     new AuthorizationGuard(reflector),
   );
-  SwaggerModule.setup(
-    "api/docs",
-    app,
-    SwaggerModule.createDocument(
+
+  if (configuration.SERVER.API_DOCS_ENABLED) {
+    SwaggerModule.setup(
+      "api/docs",
       app,
-      new DocumentBuilder()
-        .setTitle("GameVault Backend Server")
-        .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
-        .setExternalDoc("Documentation", "https://gamevau.lt")
-        .setDescription(
-          "Backend for GameVault, the self-hosted gaming platform for drm-free games",
-        )
-        .setVersion(configuration.SERVER.VERSION)
-        .addBasicAuth()
-        .addServer(`http://localhost:8080`, "Local GameVault Server")
-        .setLicense(
-          "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
-          "https://github.com/Phalcode/gamevault-backend/LICENSE",
-        )
-        .addTag("game", "apis for games")
-        .addTag("progress", "apis for progresses")
-        .addTag("tags", "apis for tags")
-        .addTag("genres", "apis for genres")
-        .addTag("user", "apis for user management")
-        .addTag("utility", "apis for miscellaneous utilities")
-        .addTag("rawg", "apis for rawg services")
-        .addTag("images", "apis for handling images")
-        .build(),
-    ),
-  );
+      SwaggerModule.createDocument(
+        app,
+        new DocumentBuilder()
+          .setTitle("GameVault Backend Server")
+          .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
+          .setExternalDoc("Documentation", "https://gamevau.lt")
+          .setDescription(
+            "Backend for GameVault, the self-hosted gaming platform for drm-free games",
+          )
+          .setVersion(configuration.SERVER.VERSION)
+          .addBasicAuth()
+          .addServer(`http://localhost:8080`, "Local GameVault Server")
+          .setLicense(
+            "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+            "https://github.com/Phalcode/gamevault-backend/LICENSE",
+          )
+          .addTag("game", "apis for games")
+          .addTag("progress", "apis for progresses")
+          .addTag("tags", "apis for tags")
+          .addTag("genres", "apis for genres")
+          .addTag("user", "apis for user management")
+          .addTag("utility", "apis for miscellaneous utilities")
+          .addTag("rawg", "apis for rawg services")
+          .addTag("images", "apis for handling images")
+          .build(),
+      ),
+    );
+  }
 
   app
     .getHttpAdapter()
@@ -93,7 +96,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(8080);
   logger.debug("Loaded Configuration", configuration);
   logger.log(
-    `Started GameVault Server with version ${configuration.SERVER.VERSION} on port 8080.`,
+    `Started GameVault Server v${configuration.SERVER.VERSION} on port 8080.`,
   );
 }
 bootstrap();

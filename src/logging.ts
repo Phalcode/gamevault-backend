@@ -42,7 +42,7 @@ if (configuration.SERVER.LOG_FILES_ENABLED) {
 
 const logger = WinstonModule.createLogger({
   exitOnError: false,
-  transports: transports,
+  transports,
   handleExceptions: true,
   format: winston.format.combine(
     winston.format.timestamp(),
