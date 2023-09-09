@@ -67,6 +67,7 @@ async function bootstrap(): Promise<void> {
           .setVersion(configuration.SERVER.VERSION)
           .addBasicAuth()
           .addServer(`http://localhost:8080`, "Local GameVault Server")
+          .addServer(`https://demo.gamevau.lt`, "Demo GameVault Server")
           .setLicense(
             "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
             "https://github.com/Phalcode/gamevault-backend/LICENSE",
