@@ -43,33 +43,16 @@ export class ImagesService {
   }
 
   public async findByIdOrFail(id: number): Promise<Image> {
-    const image = await this.findImageById(id);
-
-    if (!this.isImageOnFileSystem(image)) {
-      await this.handleImageNotFound(image);
-    }
-    return image;
-  }
-
-  private async findImageById(id: number): Promise<Image> {
     try {
-      return await this.imageRepository.findOneByOrFail({ id });
+      const image = await this.imageRepository.findOneByOrFail({ id });
+      if (!fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
+        throw new NotFoundException("Image not found on File System.");
+      }
+      return image;
     } catch {
-      throw new NotFoundException(
-        `Image with id ${id} was not found in the database.`,
-      );
+      await this.deleteImageById(id);
+      throw new NotFoundException(`Image with id ${id} was not found.`);
     }
-  }
-
-  private isImageOnFileSystem(image: Image): boolean {
-    return fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES;
-  }
-
-  private async handleImageNotFound(image: Image): Promise<void> {
-    await this.deleteImageById(image.id);
-    throw new NotFoundException(
-      `Image with id ${image.id} was found in the database but not on the server's filesystem (${image.path}), so it was soft-deleted.`,
-    );
   }
 
   async downloadImageByUrl(
@@ -84,12 +67,7 @@ export class ImagesService {
         image.uploader =
           await this.usersService.getUserByUsernameOrFail(uploaderUsername);
       }
-
       const response = await this.downloadImageFromUrl(image.source);
-
-      image.mediaType = response.headers["content-type"];
-      this.checkImageMediaType(image);
-
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkImageFileType(imageBuffer);
 
@@ -97,18 +75,10 @@ export class ImagesService {
         fileType.extension
       }`;
 
-      const compressedImageBuffer = await this.compressImage(imageBuffer);
-
-      if (configuration.TESTING.MOCK_FILES) {
-        this.logger.warn(
-          "Not saving any image to filesystem because TESTING_MOCK_FILES is set to true",
-        );
-      } else {
-        await this.saveImageToFileSystem(image, compressedImageBuffer);
-      }
+      await this.saveImageToFileSystem(image.path, imageBuffer);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.handleImageProcessingFailure(image, error);
+      await this.deleteImageById(image?.id);
       throw new UnprocessableEntityException(
         `Failed to download image from '${sourceUrl}'.`,
       );
@@ -134,63 +104,47 @@ export class ImagesService {
     );
   }
 
-  private checkImageMediaType(image: Image): void {
-    if (!image.mediaType.startsWith("image/")) {
-      throw new UnprocessableEntityException(
-        `Content Type '${image.mediaType}' is not a known image data type. Please choose a valid image.`,
-      );
-    }
-  }
-
   private checkImageFileType(imageBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
     if (
       !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
     ) {
       throw new BadRequestException(
-        `File type "${fileType.mimeType}" is not supported. Please select a different image or convert it.`,
+        `Content Type "${fileType.mimeType}" is not supported. Please select a different image or convert it.`,
       );
     }
     return fileType;
   }
 
-  private async compressImage(imageBuffer: Buffer): Promise<Buffer> {
-    this.logger.debug(`Compressing image...`);
-    return await sharp(imageBuffer).toBuffer();
-  }
-
   private async saveImageToFileSystem(
-    image: Image,
-    compressedImageBuffer: Buffer,
+    path: string,
+    imageBuffer: Buffer,
   ): Promise<void> {
-    fs.writeFileSync(image.path, compressedImageBuffer);
-    this.logger.debug(`Saved image from '${image.source} to '${image.path}'`);
-  }
-
-  private async handleImageProcessingFailure(
-    image: Image,
-    error: unknown,
-  ): Promise<void> {
-    this.logger.error(
-      { image, error },
-      "Failed to process image. Clearing Remains.",
-    );
-    if (image.id) {
-      await this.deleteImageById(image.id);
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn(
+        "Not saving image to the filesystem because TESTING_MOCK_FILES is set to true",
+      );
+      return;
     }
+    this.logger.debug(`Compressing image...`);
+    const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
+    fs.writeFileSync(path, compressedImageBuffer);
+    this.logger.debug(`Saved image to '${path}'`);
   }
 
   async deleteImageById(id: number): Promise<void> {
-    const image = await this.findImageById(id);
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn(
+        "Not deleting image from the filesystem because TESTING_MOCK_FILES is set to true",
+      );
+      return;
+    }
+    const image = await this.findByIdOrFail(id);
     await this.imageRepository.remove(image);
-    this.hardDeleteImageFromFileSystem(image);
-  }
-
-  private hardDeleteImageFromFileSystem(image: Image): void {
     fs.unlinkSync(image.path);
     this.logger.debug(
       { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-      `Image successfully hard deleted from file system.`,
+      `Image successfully hard deleted from the filesystem.`,
     );
   }
 
@@ -201,36 +155,39 @@ export class ImagesService {
     const image = await this.createImageFromUpload(file, username);
 
     try {
-      await this.saveImageToFileSystem(image, file.buffer);
+      await this.saveImageToFileSystem(image.path, file.buffer);
       this.logger.log(`Uploaded image ${image.id} to "${image.path}"`);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.handleImageProcessingFailure(image, error);
+      await this.deleteImageById(image?.id);
       throw new InternalServerErrorException(
-        "Error Uploading Image. Please retry or try another one.",
+        "Error uploading image. Please retry or try another one.",
       );
     }
+  }
+
+  private async validateImage(imageBuffer: Buffer) {
+    const fileType = fileTypeChecker.detectFile(imageBuffer);
+    if (!fileType?.extension || !fileType?.mimeType) {
+      throw new BadRequestException(
+        "File type could not be detected. Please try another image.",
+      );
+    }
+    if (
+      !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
+    ) {
+      throw new BadRequestException(
+        `This file is a "${fileType.mimeType}", which is not supported.`,
+      );
+    }
+    return fileType;
   }
 
   private async createImageFromUpload(
     file: Express.Multer.File,
     username?: string,
   ): Promise<Image> {
-    const fileType = fileTypeChecker.detectFile(file.buffer);
-    if (!fileType?.extension || !fileType?.mimeType) {
-      throw new BadRequestException(
-        "File Type could not be detected. Please try another image.",
-      );
-    }
-
-    if (
-      !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
-    ) {
-      throw new BadRequestException(
-        `This file pretends to be a "${file.mimetype}" but is actually a "${fileType.mimeType}", which is not supported.`,
-      );
-    }
-
+    const fileType = await this.validateImage(file.buffer);
     const image = new Image();
 
     if (username) {

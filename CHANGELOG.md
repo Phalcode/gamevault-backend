@@ -41,7 +41,6 @@
 - Limited image format support to bmp, jpeg, png, tiff, gif, and ico to ensure compatibility with WPF.
 - Added `IMAGE_SUPPORTED_IMAGE_FORMATS`, you can change the supported Content-Type Headers for images with this parameter if you have a non WPF Client.
 - Removed unused Image Garbage Collector configurations (`IMAGE_GC_INTERVAL_MINUTES` & `IMAGE_GC_KEEP_DAYS`).
-- TODO: Fixed Failures when fetching duplicate images.
 
 #### API Specification
 
@@ -69,7 +68,7 @@
 - Added `RAWG_API_EXCLUDE_STORES` Config Parameter for Itch.io Indie-Game Lovers.
 - Set RAWG API Calls to look for games on all Platforms & Consoles and not just PC.
 - Fixed a bug where Boxarts couldn't be found for certain games because the search effort was insufficient.
-- Added nullable uploader field to Images and uploaded_images field to Users for traceability.
+- Added nullable uploader field to Image Enity and uploaded_images field to User Entity for traceability.
 
 ### Thanks
 

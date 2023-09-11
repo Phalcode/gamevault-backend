@@ -90,7 +90,7 @@ async function bootstrap(): Promise<void> {
     .getInstance()
     .get("/", (_request, response) => {
       response.send(
-        "<p style='font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.5; text-align: center;''><strong>Web UI is in Another Castle!</strong><br/>The server is operational, but there is currently no Web UI available for GameVault.<br/><br/><strong>Simply connect to the server using the GameVault Client Application for now.</strong></p>",
+        '<p style=\'font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.5; text-align: center;\'\'><strong>🕹️ GameVault UI is in Another Castle! 🏰</strong><br/>The server is operational, but there is currently no Web UI available for GameVault.<br/><br/><strong>Simply connect to the server using the <a target="_blank" href="https://www.microsoft.com/store/apps/9PCKDV76GL75" >GameVault Client Application</a> for now.</strong></p>',
       );
     });
 
