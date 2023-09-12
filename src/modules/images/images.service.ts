@@ -11,7 +11,6 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Image } from "./image.entity";
-import * as fs from "fs";
 import configuration from "../../configuration";
 import sharp from "sharp";
 import { HttpService } from "@nestjs/axios";
@@ -20,6 +19,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { UsersService } from "../users/users.service";
+import { existsSync, unlinkSync, writeFileSync } from "fs";
 
 @Injectable()
 export class ImagesService {
@@ -34,16 +34,13 @@ export class ImagesService {
   ) {}
 
   public async isImageAvailable(id: number): Promise<boolean> {
-    this.logger.debug(`Checking if image "${id}" is available...`);
     try {
       if (!id) {
         throw new NotFoundException("No image id given!");
       }
       await this.findByIdOrFail(id);
-      this.logger.debug(`Image "${id}" is available.`);
       return true;
     } catch (error) {
-      this.logger.debug(`Image "${id}" is not available.`);
       return false;
     }
   }
@@ -51,7 +48,7 @@ export class ImagesService {
   public async findByIdOrFail(id: number): Promise<Image> {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
-      if (!fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
+      if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
         throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
@@ -134,7 +131,7 @@ export class ImagesService {
     }
     this.logger.debug(`Compressing image...`);
     const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
-    fs.writeFileSync(path, compressedImageBuffer);
+    writeFileSync(path, compressedImageBuffer);
     this.logger.debug(`Saved image to '${path}'`);
   }
 
@@ -147,7 +144,7 @@ export class ImagesService {
     }
     const image = await this.findByIdOrFail(id);
     await this.imageRepository.remove(image);
-    fs.unlinkSync(image.path);
+    unlinkSync(image.path);
     this.logger.debug(
       { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
       `Image successfully hard deleted from the filesystem.`,
