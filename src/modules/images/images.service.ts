@@ -34,13 +34,16 @@ export class ImagesService {
   ) {}
 
   public async isImageAvailable(id: number): Promise<boolean> {
-    if (!id) {
-      return false;
-    }
+    this.logger.debug(`Checking if image "${id}" is available...`);
     try {
+      if (!id) {
+        throw new NotFoundException("No image id given!");
+      }
       await this.findByIdOrFail(id);
+      this.logger.debug(`Image "${id}" is available.`);
       return true;
     } catch (error) {
+      this.logger.debug(`Image "${id}" is not available.`);
       return false;
     }
   }
@@ -49,7 +52,7 @@ export class ImagesService {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
       if (!fs.existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
-        throw new NotFoundException("Image not found on File System.");
+        throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
     } catch {
