@@ -6,9 +6,17 @@
 
 - TODO: Removed Deprecated Utility APIs
 
+## 5.0.1
+
+Recommended Gamevault App Version: `v1.5.0`
+
+### Changes
+
+- Fixed Error when mapping RAWG Games that have no background_image.
+
 ## 5.0.0
 
-💫 Recommended Gamevault App Version: `v1.5.0`
+Recommended Gamevault App Version: `v1.5.0`
 
 ### Breaking Changes & Migration
 
@@ -25,7 +33,7 @@
 
 ### Changes
 
-### Runtime
+#### Runtime
 
 - Updated to Node 20.6
 

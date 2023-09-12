@@ -46,7 +46,7 @@ export class RawgController {
   })
   @MinimumRole(Role.EDITOR)
   async searchRawg(@Query("query") query: string): Promise<Game[]> {
-    const rawggames = await this.rawgService.getRawgGames(query, undefined);
+    const rawggames = await this.rawgService.getRawgGames(query);
     // for each rawggames entry use mapper to map rawg-games to a new game-model and return it as an array
     const games: Game[] = [];
     for (const rawggame of rawggames) {
