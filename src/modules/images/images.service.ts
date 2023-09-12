@@ -34,6 +34,9 @@ export class ImagesService {
   ) {}
 
   public async isImageAvailable(id: number): Promise<boolean> {
+    if (!id) {
+      return false;
+    }
     try {
       await this.findByIdOrFail(id);
       return true;
