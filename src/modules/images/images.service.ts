@@ -81,7 +81,9 @@ export class ImagesService {
       await this.saveImageToFileSystem(image.path, imageBuffer);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.deleteImage(image);
+      if (image.id) {
+        await this.deleteImage(image);
+      }
       throw new UnprocessableEntityException(
         `Failed to download image from '${sourceUrl}'.`,
       );
