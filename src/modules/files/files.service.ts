@@ -477,10 +477,11 @@ export class FilesService implements OnApplicationBootstrap {
     );
     const type = mime.getType(fileDownloadPath);
 
+    const encodedFilename = encodeURIComponent(
+      fileDownloadPath.replace(/^.*[\\/]/, ""),
+    );
     const headers = {
-      disposition: `attachment; filename="${encodeURIComponent(
-        fileDownloadPath.replace(/^.*[\\/]/, ""),
-      )}"`,
+      disposition: `attachment; filename*=UTF-8''${encodedFilename}; filename="${encodedFilename}"`,
       length: statSync(fileDownloadPath).size,
       type,
     };
