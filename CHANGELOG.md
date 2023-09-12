@@ -8,6 +8,8 @@
 
 ## 5.0.0
 
+💫 Recommended Gamevault App Version: `v1.5.0`
+
 ### Breaking Changes & Migration
 
 #### Issue #157: Optional User Information
