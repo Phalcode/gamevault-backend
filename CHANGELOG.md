@@ -25,6 +25,10 @@
 
 ### Changes
 
+### Runtime
+
+- Updated to Node 20.6
+
 #### Progress and Game Display
 
 - Progress calls now include soft-deleted games, making it possible to display them correctly even after a game has been deleted.
