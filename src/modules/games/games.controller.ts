@@ -7,6 +7,7 @@ import {
   Param,
   Put,
   Request,
+  Res,
   StreamableFile,
 } from "@nestjs/common";
 import {
@@ -38,6 +39,8 @@ import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { Response } from "express";
+import contentDisposition from "content-disposition";
 
 @ApiBasicAuth()
 @ApiTags("game")
@@ -178,13 +181,21 @@ export class GamesController {
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
   async downloadGame(
+    @Res() response: Response,
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
   ): Promise<StreamableFile> {
-    return await this.filesService.downloadGame(
+    const file = await this.filesService.downloadGame(
       Number(params.id),
       Number(speedlimit),
     );
+
+    response.setHeader(
+      "Content-Disposition",
+      contentDisposition(file.getHeaders().disposition),
+    );
+
+    return file;
   }
 
   @Put(":id")

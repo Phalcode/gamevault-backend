@@ -26,7 +26,7 @@ import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
 import Throttle from "throttle";
-import contentDisposition from "content-disposition";
+
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(FilesService.name);
@@ -478,7 +478,7 @@ export class FilesService implements OnApplicationBootstrap {
     const type = mime.getType(fileDownloadPath);
 
     const headers = {
-      disposition: contentDisposition(fileDownloadPath.replace(/^.*[\\/]/, "")),
+      disposition: fileDownloadPath.replace(/^.*[\\/]/, ""),
       length: statSync(fileDownloadPath).size,
       type,
     };
