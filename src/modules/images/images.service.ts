@@ -49,9 +49,8 @@ export class ImagesService {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
       if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
-        throw new NotFoundException("Image not found on filesystem.");
-      } else {
         await this.deleteImage(image);
+        throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
     } catch (e) {
