@@ -1,5 +1,10 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Genre } from "./genre.entity";
@@ -8,6 +13,7 @@ import { Role } from "../users/models/role.enum";
 
 @Controller("genres")
 @ApiTags("genres")
+@ApiBasicAuth()
 export class GenresController {
   constructor(
     @InjectRepository(Genre)

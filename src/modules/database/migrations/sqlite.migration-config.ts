@@ -6,7 +6,7 @@ export const dataSource = new DataSource({
   type: "better-sqlite3",
   database: "database.sqlite",
   entities: ["dist/**/*.entity.js"],
-  migrations: ["dist/modules/database/migrations/sqlite/*.js"],
+  migrations: ["dist/src/modules/database/migrations/sqlite/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 });

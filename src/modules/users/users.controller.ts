@@ -9,7 +9,13 @@ import {
   Put,
   Request,
 } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import configuration from "../../configuration";
 import { IdDto } from "../database/models/id.dto";
 import { RegisterUserDto } from "./models/register-user.dto";
@@ -20,6 +26,7 @@ import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "./models/role.enum";
 import { Public } from "../pagination/public.decorator";
 
+@ApiBasicAuth()
 @ApiTags("user")
 @Controller("users")
 export class UsersController {
@@ -99,12 +106,17 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   async updateMe(
     @Body() dto: UpdateUserDto,
-    @Request() request,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
     const user = await this.usersService.getUserByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.update(user.id, dto, false);
+    return await this.usersService.update(
+      user.id,
+      dto,
+      false,
+      request.gamevaultuser.username,
+    );
   }
 
   /**
@@ -161,8 +173,14 @@ export class UsersController {
   async updateAnyUser(
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.update(Number(params.id), dto, true);
+    return await this.usersService.update(
+      Number(params.id),
+      dto,
+      true,
+      request.gamevaultuser.username,
+    );
   }
 
   /**

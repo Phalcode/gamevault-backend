@@ -3,6 +3,8 @@ export default {
     return [...this.ARCHIVE_FORMATS, ...this.EXECUTABLE_FORMATS];
   },
 
+  LOGGING_FORMAT:
+    "[:date[clf]] :remote-user @ :remote-addr - :method :url -> :status - :response-time ms - :res[content-length] - ':user-agent'",
   ARCHIVE_FORMATS: [
     ".7z",
     ".xz",
@@ -44,4 +46,12 @@ export default {
     ".z",
   ],
   EXECUTABLE_FORMATS: [".exe", ".sh"],
+  SUPPORTED_IMAGE_FORMATS: [
+    "image/bmp",
+    "image/jpeg",
+    "image/png",
+    "image/tiff",
+    "image/gif",
+    "image/x-icon",
+  ],
 };

@@ -1,10 +1,12 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
   UnauthorizedException,
+  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
@@ -23,6 +25,7 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(GamevaultUser)
     private userRepository: Repository<GamevaultUser>,
+    @Inject(forwardRef(() => ImagesService))
     private imagesService: ImagesService,
   ) {}
 
@@ -85,7 +88,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     withDeleted = false,
   ): Promise<GamevaultUser> {
-    const user = await this.userRepository
+    return await this.userRepository
       .findOneOrFail({
         where: { id },
         relations: ["progresses", "progresses.game"],
@@ -94,7 +97,6 @@ export class UsersService implements OnApplicationBootstrap {
       .catch(() => {
         throw new NotFoundException(`User with id ${id} was not found.`);
       });
-    return user;
   }
 
   /**
@@ -108,7 +110,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async getUserByUsernameOrFail(
     username: string,
   ): Promise<GamevaultUser> {
-    const user = await this.userRepository
+    return await this.userRepository
       .findOneOrFail({
         where: { username },
         relations: ["progresses", "progresses.game"],
@@ -118,7 +120,6 @@ export class UsersService implements OnApplicationBootstrap {
           `User with username ${username} was not found on the server.`,
         );
       });
-    return user;
   }
 
   /**
@@ -164,18 +165,6 @@ export class UsersService implements OnApplicationBootstrap {
       user.username === configuration.SERVER.ADMIN_USERNAME
     ) {
       user.activated = true;
-    }
-
-    if (dto.background_image_url) {
-      user.background_image = await this.imagesService.downloadImage(
-        dto.background_image_url,
-      );
-    }
-
-    if (dto.profile_picture_url) {
-      user.profile_picture = await this.imagesService.downloadImage(
-        dto.profile_picture_url,
-      );
     }
 
     if (user.username === configuration.SERVER.ADMIN_USERNAME) {
@@ -242,6 +231,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     dto: UpdateUserDto,
     admin = false,
+    executorUsername?: string,
   ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
 
@@ -268,14 +258,28 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.downloadImage(
+      user.profile_picture = await this.imagesService.downloadImageByUrl(
         dto.profile_picture_url,
+        executorUsername,
+      );
+    }
+
+    if (dto.profile_picture_id) {
+      user.profile_picture = await this.imagesService.findByIdOrFail(
+        dto.profile_picture_id,
       );
     }
 
     if (dto.background_image_url != null) {
-      user.background_image = await this.imagesService.downloadImage(
+      user.background_image = await this.imagesService.downloadImageByUrl(
         dto.background_image_url,
+        executorUsername,
+      );
+    }
+
+    if (dto.background_image_id) {
+      user.background_image = await this.imagesService.findByIdOrFail(
+        dto.background_image_id,
       );
     }
 
@@ -324,7 +328,7 @@ export class UsersService implements OnApplicationBootstrap {
     url: string,
   ): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.profile_picture = await this.imagesService.downloadImage(url);
+    user.profile_picture = await this.imagesService.downloadImageByUrl(url);
     return await this.userRepository.save(user);
   }
 
@@ -339,12 +343,12 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
     const user = await this.getUserByIdOrFail(id);
-    user.background_image = await this.imagesService.downloadImage(url);
+    user.background_image = await this.imagesService.downloadImageByUrl(url);
     return await this.userRepository.save(user);
   }
 
   /**
-   * Check if the username matches the user ID
+   * Check if the username matches the user ID or is an administrator
    *
    * @param userId - The ID of the user to check
    * @param username - The username of the user to check
@@ -355,7 +359,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {ForbiddenException} - If authentication is disabled or the
    *   username does not match the user ID
    */
-  public async checkIfUsernameMatchesId(
+  public async checkIfUsernameMatchesIdOrPriviledged(
     userId: number,
     username: string,
   ): Promise<boolean> {
@@ -366,6 +370,9 @@ export class UsersService implements OnApplicationBootstrap {
       throw new UnauthorizedException("No Authorization provided");
     }
     const user = await this.getUserByIdOrFail(userId);
+    if (user.role === Role.ADMIN) {
+      return true;
+    }
     if (user.username !== username) {
       throw new ForbiddenException(
         {

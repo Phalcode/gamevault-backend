@@ -1,5 +1,11 @@
-import { Body, Controller, Param, Put } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Param, Put, Request } from "@nestjs/common";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { ImageUrlDto } from "../modules/images/models/image-url.dto";
 import { RawgIdDto } from "../modules/games/models/rawg_id.dto";
 import { Game } from "../modules/games/game.entity";
@@ -11,9 +17,11 @@ import { Role } from "../modules/users/models/role.enum";
 import { BoxArtsService } from "../modules/boxarts/boxarts.service";
 import { IdDto } from "../modules/database/models/id.dto";
 import { FilesService } from "../modules/files/files.service";
+import { GamevaultUser } from "../modules/users/gamevault-user.entity";
 
 @ApiTags("utility")
 @Controller("utility")
+@ApiBasicAuth()
 export class UtilityController {
   constructor(
     private gamesService: GamesService,
@@ -125,9 +133,13 @@ export class UtilityController {
   async remapBoxArt(
     @Param() params: IdDto,
     @Body() dto: ImageUrlDto,
+    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Game> {
     const game = await this.gamesService.getGameById(Number(params.id));
-    game.box_image = await this.imagesService.downloadImage(dto.image_url);
+    game.box_image = await this.imagesService.downloadImageByUrl(
+      dto.image_url,
+      req.gamevaultuser.username,
+    );
     return await this.gamesService.saveGame(game);
   }
 }

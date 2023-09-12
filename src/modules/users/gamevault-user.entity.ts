@@ -44,18 +44,18 @@ export class GamevaultUser extends DatabaseEntity {
   })
   background_image: Image;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   @ApiProperty({
     example: "john.doe@mail.com",
     description: "email address of the user",
   })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ example: "John", description: "first name of the user" })
   first_name: string;
 
-  @Column()
+  @Column({ nullable: true })
   @ApiProperty({ example: "Doe", description: "last name of the user" })
   last_name: string;
 
@@ -87,4 +87,12 @@ export class GamevaultUser extends DatabaseEntity {
       "The role determines the set of permissions and access rights for a user in the system.",
   })
   role: Role;
+
+  @OneToMany(() => Image, (image) => image.uploader)
+  @ApiProperty({
+    description: "images uploaded by this user",
+    type: () => Image,
+    isArray: true,
+  })
+  uploaded_images: Image[];
 }

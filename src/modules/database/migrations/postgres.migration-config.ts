@@ -10,7 +10,7 @@ export const dataSource = new DataSource({
   password: "gamevault",
   database: "gamevault",
   entities: ["dist/**/*.entity.js"],
-  migrations: ["dist/modules/database/migrations/postgres/*.js"],
+  migrations: ["dist/src/modules/database/migrations/postgres/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
 });

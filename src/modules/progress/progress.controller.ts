@@ -8,7 +8,13 @@ import {
   Put,
   Request,
 } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { IdDto } from "../database/models/id.dto";
 import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
 import { Progress } from "./progress.entity";
@@ -21,6 +27,7 @@ import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
 
 @Controller("progresses")
 @ApiTags("progress")
+@ApiBasicAuth()
 export class ProgressController {
   private readonly logger = new Logger(ProgressController.name);
 
@@ -92,10 +99,10 @@ export class ProgressController {
   @ApiOperation({
     summary: "delete a progress by progress id.",
     description:
-      "Only the user who created the progress can delete it. This is a hard deletion and can not be undone.",
+      "Only admins or the user who is associated to the progress can delete it.",
     operationId: "deleteProgressById",
   })
-  @ApiOkResponse({ type: Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress, isArray: true })
   @MinimumRole(Role.USER)
   async deleteProgressById(
     @Param() params: IdDto,

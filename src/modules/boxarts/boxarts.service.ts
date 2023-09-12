@@ -122,7 +122,7 @@ export class BoxArtsService {
       return;
     }
 
-    const matchingImage = await this.findAndSaveMatchingImage(game, results);
+    const matchingImage = await this.downloadMatchingImage(game, results);
 
     if (!matchingImage) {
       this.logger.error(`No Box Art Images found for "${game.title}"`);
@@ -144,11 +144,23 @@ export class BoxArtsService {
     searchQuery: string,
   ): Promise<Result[]> {
     try {
-      const results = await gis(searchQuery);
+      const targetAspectRatio = 0.66;
+      const tolerance = 0.1;
+      const matches = [];
+      const searchResults = await gis(searchQuery);
       this.logger.debug(
-        `Found ${results.length} Box Art Images for "${title}" | Search: "${searchQuery}"`,
+        `Found ${searchResults.length} Box Art Images for "${title}" | Search: "${searchQuery}"`,
       );
-      return results;
+
+      for (const image of searchResults) {
+        const aspectRatio = image.width / image.height;
+        const aspectRatioDifference = Math.abs(aspectRatio - targetAspectRatio);
+
+        if (aspectRatioDifference <= tolerance) {
+          matches.push(image);
+        }
+      }
+      return matches;
     } catch (error) {
       this.logger.error(
         error,
@@ -161,28 +173,20 @@ export class BoxArtsService {
    * Finds the matching image with the target aspect ratio from the given
    * images. Saves the first image that matches all criteria into the game.
    */
-  private async findAndSaveMatchingImage(
+  private async downloadMatchingImage(
     game: Game,
     images: Result[],
   ): Promise<boolean> {
-    const targetAspectRatio = 0.66;
-    const tolerance = 0.1;
-
     for (const image of images) {
-      const aspectRatio = image.width / image.height;
-      const aspectRatioDifference = Math.abs(aspectRatio - targetAspectRatio);
-
-      if (aspectRatioDifference <= tolerance) {
-        try {
-          game.box_image = await this.imagesService.downloadImage(image.url);
-          await this.gamesService.saveGame(game);
-          this.logger.log(
-            `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,
-          );
-          return true;
-        } catch (error) {
-          continue;
-        }
+      try {
+        game.box_image = await this.imagesService.downloadImageByUrl(image.url);
+        await this.gamesService.saveGame(game);
+        this.logger.log(
+          `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,
+        );
+        return true;
+      } catch (error) {
+        continue;
       }
     }
 

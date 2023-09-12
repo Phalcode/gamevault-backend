@@ -56,8 +56,9 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       relations: ["game", "user"],
       order: { minutes_played: "DESC" },
+      withDeleted: true,
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -73,6 +74,7 @@ export class ProgressService {
         where: { id: progressId },
         relations: ["game", "user"],
         order: { minutes_played: "DESC" },
+        withDeleted: true,
       })
       .catch(() => {
         throw new NotFoundException(
@@ -95,7 +97,7 @@ export class ProgressService {
   ): Promise<Progress> {
     const progress = await this.getProgressById(progressId);
 
-    await this.usersService.checkIfUsernameMatchesId(
+    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(
       progress.user.id,
       executorUsername,
     );
@@ -116,9 +118,10 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       where: { user: { id: userId } },
       relations: ["game"],
+      withDeleted: true,
       order: { minutes_played: "DESC" },
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -131,9 +134,10 @@ export class ProgressService {
     const progresses = await this.progressRepository.find({
       where: { game: { id: gameId } },
       relations: ["user"],
+      withDeleted: true,
       order: { minutes_played: "DESC" },
     });
-    return this.filterEmptyProgresses(progresses);
+    return this.filterDeletedOrEmptyProgresses(progresses);
   }
 
   /**
@@ -147,9 +151,12 @@ export class ProgressService {
     userId: number,
     gameId: number,
   ): Promise<Progress> {
-    let progress = await this.progressRepository.findOneBy({
-      user: { id: userId },
-      game: { id: gameId },
+    let progress = await this.progressRepository.findOne({
+      where: {
+        user: { id: userId },
+        game: { id: gameId },
+      },
+      withDeleted: true,
     });
 
     if (!progress) {
@@ -181,7 +188,10 @@ export class ProgressService {
     progressDto: ProgressDto,
     executorUsername: string,
   ) {
-    await this.usersService.checkIfUsernameMatchesId(userId, executorUsername);
+    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(
+      userId,
+      executorUsername,
+    );
 
     const progress = await this.getProgressByUserAndGame(userId, gameId);
 
@@ -221,7 +231,10 @@ export class ProgressService {
     executorUsername: string,
     incrementBy = 1,
   ): Promise<Progress> {
-    await this.usersService.checkIfUsernameMatchesId(userId, executorUsername);
+    await this.usersService.checkIfUsernameMatchesIdOrPriviledged(
+      userId,
+      executorUsername,
+    );
     const progress = await this.getProgressByUserAndGame(userId, gameId);
     if (
       progress.state !== State.INFINITE &&
@@ -239,16 +252,18 @@ export class ProgressService {
 
   /**
    * Filters out any progress objects from the given array that have 0 minutes
-   * played or are in the UNPLAYED state.
+   * played, are soft-deleted or in the UNPLAYED state.
    *
    * @param progresses - An array of Progress objects.
    * @returns An array of Progress objects that have minutes_played > 0 and are
    *   not in the UNPLAYED state.
    */
-  private async filterEmptyProgresses(progresses: Progress[]) {
+  private async filterDeletedOrEmptyProgresses(progresses: Progress[]) {
     return progresses.filter(
       (progress) =>
-        progress.minutes_played > 0 && progress.state !== State.UNPLAYED,
+        progress.minutes_played > 0 &&
+        progress.state !== State.UNPLAYED &&
+        !progress.deleted_at,
     );
   }
 }
