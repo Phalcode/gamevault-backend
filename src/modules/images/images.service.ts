@@ -48,17 +48,13 @@ export class ImagesService {
   public async findByIdOrFail(id: number): Promise<Image> {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
-      this.logger.debug("Image found in database! Lookin in drive!");
-      const onDrive = existsSync(image.path);
-      if (!onDrive || configuration.TESTING.MOCK_FILES) {
-        this.logger.debug("Image not found on drive :(!");
+      if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
         throw new NotFoundException("Image not found on filesystem.");
+      } else {
+        await this.deleteImage(image);
       }
-      this.logger.debug("Image found on frive too! Awesome!!");
       return image;
     } catch (e) {
-      this.logger.error(e, "Yo this is a hefty error");
-      await this.deleteImageById(id);
       throw new NotFoundException(`Image with id ${id} was not found.`, e);
     }
   }
@@ -86,7 +82,7 @@ export class ImagesService {
       await this.saveImageToFileSystem(image.path, imageBuffer);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.deleteImageById(image?.id);
+      await this.deleteImage(image);
       throw new UnprocessableEntityException(
         `Failed to download image from '${sourceUrl}'.`,
       );
@@ -140,14 +136,13 @@ export class ImagesService {
     this.logger.debug(`Saved image to '${path}'`);
   }
 
-  async deleteImageById(id: number): Promise<void> {
+  async deleteImage(image: Image): Promise<void> {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn(
         "Not deleting image from the filesystem because TESTING_MOCK_FILES is set to true",
       );
       return;
     }
-    const image = await this.findByIdOrFail(id);
     await this.imageRepository.remove(image);
     unlinkSync(image.path);
     this.logger.debug(
@@ -167,7 +162,7 @@ export class ImagesService {
       this.logger.log(`Uploaded image ${image.id} to "${image.path}"`);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.deleteImageById(image?.id);
+      await this.deleteImage(image);
       throw new InternalServerErrorException(
         "Error uploading image. Please retry or try another one.",
       );
