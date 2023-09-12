@@ -48,13 +48,18 @@ export class ImagesService {
   public async findByIdOrFail(id: number): Promise<Image> {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
-      if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
+      this.logger.debug("Image found in database! Lookin in drive!");
+      const onDrive = existsSync(image.path);
+      if (!onDrive || configuration.TESTING.MOCK_FILES) {
+        this.logger.debug("Image not found on drive :(!");
         throw new NotFoundException("Image not found on filesystem.");
       }
+      this.logger.debug("Image found on frive too! Awesome!!");
       return image;
-    } catch {
+    } catch (e) {
+      this.logger.error(e, "Yo this is a hefty error");
       await this.deleteImageById(id);
-      throw new NotFoundException(`Image with id ${id} was not found.`);
+      throw new NotFoundException(`Image with id ${id} was not found.`, e);
     }
   }
 
