@@ -50,9 +50,6 @@ dependencies:
   compression:
     specifier: 1.7.4
     version: 1.7.4
-  content-disposition:
-    specifier: ^0.5.4
-    version: 0.5.4
   cookie-parser:
     specifier: 1.4.6
     version: 1.4.6
@@ -142,9 +139,6 @@ devDependencies:
   '@types/compression':
     specifier: 1.7.3
     version: 1.7.3
-  '@types/content-disposition':
-    specifier: ^0.5.6
-    version: 0.5.6
   '@types/cookie-parser':
     specifier: 1.4.4
     version: 1.4.4
@@ -821,10 +815,6 @@ packages:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
       '@types/node': 20.6.0
-    dev: true
-
-  /@types/content-disposition@0.5.6:
-    resolution: {integrity: sha512-GmShTb4qA9+HMPPaV2+Up8tJafgi38geFi7vL4qAM7k8BwjoelgHZqEUKJZLvughUw22h6vD/wvwN4IUCaWpDA==}
     dev: true
 
   /@types/cookie-parser@1.4.4:

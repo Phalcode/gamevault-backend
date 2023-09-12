@@ -478,7 +478,9 @@ export class FilesService implements OnApplicationBootstrap {
     const type = mime.getType(fileDownloadPath);
 
     const headers = {
-      disposition: fileDownloadPath.replace(/^.*[\\/]/, ""),
+      disposition: fileDownloadPath
+        .replace(/^.*[\\/]/, "")
+        .replace(/[^\x20-\x7F]/g, ""),
       length: statSync(fileDownloadPath).size,
       type,
     };
