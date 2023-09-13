@@ -22,7 +22,6 @@ export class NonUniqueImageSources1694219968449 implements MigrationInterface {
                 "media_type" varchar,
                 "uploader_id" integer,
                 CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path"),
-                CONSTRAINT "UQ_d8bab01646004e7af66bf8439dd" UNIQUE ("source"),
                 CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
@@ -80,7 +79,6 @@ export class NonUniqueImageSources1694219968449 implements MigrationInterface {
                 "media_type" varchar,
                 "uploader_id" integer,
                 CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path"),
-                CONSTRAINT "UQ_d8bab01646004e7af66bf8439dd" UNIQUE ("source"),
                 CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
@@ -269,7 +267,6 @@ export class NonUniqueImageSources1694219968449 implements MigrationInterface {
                 "media_type" varchar,
                 "uploader_id" integer,
                 CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path"),
-                CONSTRAINT "UQ_d8bab01646004e7af66bf8439dd" UNIQUE ("source"),
                 CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
@@ -327,7 +324,6 @@ export class NonUniqueImageSources1694219968449 implements MigrationInterface {
                 "media_type" varchar,
                 "uploader_id" integer,
                 CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path"),
-                CONSTRAINT "UQ_d8bab01646004e7af66bf8439dd" UNIQUE ("source"),
                 CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);

@@ -226,8 +226,7 @@ export class RemoveNotNullConstraints1693526400000
                 "source" varchar,
                 "path" varchar,
                 "media_type" varchar,
-                CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path"),
-                CONSTRAINT "UQ_d8bab01646004e7af66bf8439dd" UNIQUE ("source")
+                CONSTRAINT "UQ_f03b89f33671086e6733828e79c" UNIQUE ("path")
             )
         `);
     await queryRunner.query(`
