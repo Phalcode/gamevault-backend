@@ -6,6 +6,18 @@
 
 - TODO: Removed Deprecated Utility APIs
 
+## 5.0.2
+
+Recommended Gamevault App Version: `v1.5.0`
+
+### Changes
+
+- Fixed Broken Database Migrations
+
+### Thanks
+
+- @Kudjo
+
 ## 5.0.1
 
 Recommended Gamevault App Version: `v1.5.0`

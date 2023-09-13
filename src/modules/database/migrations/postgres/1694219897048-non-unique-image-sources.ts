@@ -5,7 +5,7 @@ export class NonUniqueImageSources1694219897048 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "image" DROP CONSTRAINT "UQ_e0626148aee5829fd312447001a"
+            ALTER TABLE "image" DROP CONSTRAINT IF EXISTS "UQ_e0626148aee5829fd312447001a"
         `);
     await queryRunner.query(`
             ALTER TABLE "progress" DROP CONSTRAINT "FK_ddcaca3a9db9d77105d51c02c24"
