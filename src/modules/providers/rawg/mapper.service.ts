@@ -193,8 +193,11 @@ export class RawgMapperService {
   ): Promise<Game> {
     try {
       if (
-        !entity.background_image?.id ||
-        !(await this.imagesService.isImageAvailable(entity.background_image.id))
+        game.background_image &&
+        (!entity.background_image?.id ||
+          !(await this.imagesService.isImageAvailable(
+            entity.background_image.id,
+          )))
       ) {
         entity.background_image = await this.imagesService.downloadImageByUrl(
           game.background_image,
