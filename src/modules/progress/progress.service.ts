@@ -30,19 +30,22 @@ export class ProgressService {
   }
 
   /**
-   * Reads the .progressignore file and updates the ignoreList property.
+   * Reads the ignored-executables.txt file and updates the ignoreList property.
    *
    * @private
    */
   private readIgnoreFile() {
     try {
-      const filePath = path.join(__dirname, "../../../static/.progressignore");
+      const filePath = path.join(
+        __dirname,
+        "../../../assets/ignored-executables.txt",
+      );
       const fileContent = fs.readFileSync(filePath, "utf-8");
       this.ignoreList = fileContent.split("\n").map((line) => line.trim());
     } catch (error) {
       throw new InternalServerErrorException(
         error,
-        "Error reading .progressignore file",
+        "Error reading ignored-executables.txt file",
       );
     }
   }
