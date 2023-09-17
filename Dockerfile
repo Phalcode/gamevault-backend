@@ -1,4 +1,4 @@
-FROM node:20.6 AS base
+FROM node:20.6-slim AS base
 # Default Variables
 ENV PUID=1000
 ENV PGID=1000

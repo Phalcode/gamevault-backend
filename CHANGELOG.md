@@ -14,7 +14,13 @@ Recommended Gamevault App Version: `v1.6.0`
 
 ### Changes
 
-- Improved Error-Handling when downloading Images;
+- Improved Error-Handling when downloading Images
+- Switched to Debian `20.6-slim` docker image
+
+### Thanks
+
+- @yodatak
+- @Ben2303
 
 ## 5.0.2
 
@@ -111,7 +117,7 @@ Recommended Gamevault App Version: `v1.5.0`
 
 - @freitagdavid
 - @Kairubyte
-- @yotadak
+- @yodatak
 
 ## 4.0.1
 
@@ -143,7 +149,7 @@ Recommended Gamevault App Version: `v1.5.0`
 
 ### Thanks
 
-- @Yotadak
+- @yodatak
 - @Kairubyte
 
 ## 3.0.0
