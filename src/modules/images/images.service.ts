@@ -5,7 +5,6 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnprocessableEntityException,
   forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -85,7 +84,8 @@ export class ImagesService {
       if (image.id) {
         await this.deleteImage(image);
       }
-      throw new UnprocessableEntityException(
+      throw new InternalServerErrorException(
+        error,
         `Failed to download image from '${sourceUrl}'.`,
       );
     }

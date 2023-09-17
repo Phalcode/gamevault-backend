@@ -11,10 +11,10 @@ import { RawgService } from "./rawg.service";
 import { Game } from "../../games/game.entity";
 import { MinimumRole } from "../../pagination/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
-import { RawgGame } from "./models/game.interface";
 import { IdDto } from "../../database/models/id.dto";
 import { GamesService } from "../../games/games.service";
 import { BoxArtsService } from "../../boxarts/boxarts.service";
+import { MinimalGame } from "../../games/models/minimal-game";
 
 @ApiTags("rawg")
 @Controller("rawg")
@@ -40,19 +40,23 @@ export class RawgController {
   })
   @ApiQuery({ name: "query", description: "search query" })
   @ApiOkResponse({
-    type: () => Game,
+    type: () => MinimalGame,
     isArray: true,
-    description: "These objects may have lost some data in conversion",
+    description:
+      "These are minimal game objects, without a lot of information.",
   })
   @MinimumRole(Role.EDITOR)
-  async searchRawg(@Query("query") query: string): Promise<Game[]> {
-    const rawggames = await this.rawgService.getRawgGames(query);
-    // for each rawggames entry use mapper to map rawg-games to a new game-model and return it as an array
-    const games: Game[] = [];
-    for (const rawggame of rawggames) {
-      games.push(
-        await this.mapper.map(new Game(), rawggame as unknown as RawgGame),
-      );
+  async searchRawg(@Query("query") query: string): Promise<MinimalGame[]> {
+    const rawgGames = await this.rawgService.getRawgGames(query);
+    // for each search result return a minimal gamevault game
+    const games: MinimalGame[] = [];
+    for (const rawgGame of rawgGames) {
+      const newGame = new MinimalGame();
+      newGame.rawg_id = rawgGame.id;
+      newGame.title = rawgGame.name;
+      newGame.box_image_url = rawgGame.background_image;
+      newGame.release_date = new Date(rawgGame.released);
+      games.push(newGame);
     }
     return games;
   }
