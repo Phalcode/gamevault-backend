@@ -6,7 +6,6 @@ import {
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
-import { RawgMapperService } from "./mapper.service";
 import { RawgService } from "./rawg.service";
 import { Game } from "../../games/game.entity";
 import { MinimumRole } from "../../pagination/minimum-role.decorator";
@@ -23,7 +22,6 @@ export class RawgController {
   constructor(
     private gamesService: GamesService,
     private rawgService: RawgService,
-    private mapper: RawgMapperService,
     private boxartService: BoxArtsService,
   ) {}
 

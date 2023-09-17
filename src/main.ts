@@ -80,7 +80,6 @@ async function bootstrap(): Promise<void> {
           .addTag("tags", "apis for tags")
           .addTag("genres", "apis for genres")
           .addTag("user", "apis for user management")
-          .addTag("utility", "apis for miscellaneous utilities")
           .addTag("rawg", "apis for rawg services")
           .addTag("images", "apis for handling images")
           .build(),

@@ -15,7 +15,7 @@ import {
   readdirSync,
   statSync,
 } from "fs";
-import { basename, extname } from "path";
+import path, { basename, extname } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
 import mime from "mime";
@@ -162,13 +162,12 @@ export class FilesService implements OnApplicationBootstrap {
    * regular expression.
    *
    * @private
-   * @param fileName - A string representing the file name.
+   * @param filePath - A string representing the files path.
    * @returns - The extracted game title string.
    */
-  private extractTitle(fileName: string): string {
-    const directoryRemoved = fileName.replace(/^.*[\\/]/, "");
-    const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
-    const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
+  private extractTitle(filePath: string): string {
+    const basename = path.basename(filePath, path.extname(filePath));
+    const parenthesesRemoved = basename.replace(/\([^)]*\)/g, "");
     return parenthesesRemoved.trim();
   }
 
