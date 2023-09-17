@@ -461,10 +461,9 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     const game = await this.gamesService.getGameById(gameId);
-    const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
     let fileDownloadPath = game.file_path;
 
-    if (!globals.ARCHIVE_FORMATS.includes(fileExtension)) {
+    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
       if (existsSync(fileDownloadPath)) {
