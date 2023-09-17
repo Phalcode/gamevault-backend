@@ -14,6 +14,7 @@ import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/auth/authentication.guard";
 import { AuthorizationGuard } from "./modules/auth/authorization.guard";
+import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,
  * and setting up global settings and routes.
@@ -42,6 +43,8 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new LoggingExceptionFilter());
 
   app.setGlobalPrefix("api/v1");
   const reflector = app.get(Reflector);

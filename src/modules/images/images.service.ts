@@ -70,6 +70,7 @@ export class ImagesService {
         image.uploader =
           await this.usersService.getUserByUsernameOrFail(uploaderUsername);
       }
+      this.logger.debug(`Downloading Image from "${image.source}" ...`);
       const response = await this.downloadImageFromUrl(image.source);
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkImageFileType(imageBuffer);

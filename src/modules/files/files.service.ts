@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   Logger,
   OnApplicationBootstrap,
   StreamableFile,
@@ -406,28 +407,35 @@ export class FilesService implements OnApplicationBootstrap {
    * @public
    */
   private fetchFiles(): IGameVaultFile[] {
-    if (configuration.TESTING.MOCK_FILES) {
-      return mock;
-    }
+    try {
+      if (configuration.TESTING.MOCK_FILES) {
+        return mock;
+      }
 
-    return readdirSync(configuration.VOLUMES.FILES, {
-      encoding: "utf8",
-      recursive: configuration.GAMES.SEARCH_RECURSIVE,
-    })
-      .filter((file) =>
-        configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-          extname(file).toLowerCase(),
-        ),
-      )
-      .map(
-        (file) =>
-          ({
-            name: file,
-            size: BigInt(
-              statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
-            ),
-          }) as IGameVaultFile,
+      return readdirSync(configuration.VOLUMES.FILES, {
+        encoding: "utf8",
+        recursive: configuration.GAMES.SEARCH_RECURSIVE,
+      })
+        .filter((file) =>
+          configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+            extname(file).toLowerCase(),
+          ),
+        )
+        .map(
+          (file) =>
+            ({
+              name: file,
+              size: BigInt(
+                statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
+              ),
+            }) as IGameVaultFile,
+        );
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error,
+        "Error reading /files directory!",
       );
+    }
   }
 
   /**

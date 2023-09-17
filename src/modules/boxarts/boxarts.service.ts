@@ -186,10 +186,10 @@ export class BoxArtsService {
         );
         return true;
       } catch (error) {
+        this.logger.error(error, `Error downloading image from ${image.url}`);
         continue;
       }
     }
-
     return false;
   }
 
