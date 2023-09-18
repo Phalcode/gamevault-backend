@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Paginated } from "nestjs-paginate";
 import { SortBy, Column } from "nestjs-paginate/lib/helper";
 
@@ -19,20 +19,22 @@ export class Metadata<T> {
   search: string;
   @ApiProperty({ description: "select string" })
   select: string[];
-  @ApiProperty({ description: "filters that were applied by the query" })
+  @ApiPropertyOptional({
+    description: "filters that were applied by the query",
+  })
   filter?: {
     [column: string]: string | string[];
   };
 }
 
 export class Links {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example:
       "http://localhost:8080/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "first page",
   })
   first?: string;
-  @ApiProperty({
+  @ApiPropertyOptional({
     example:
       "http://localhost:8080/games?limit=5&page=1&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "previous page",
@@ -44,13 +46,13 @@ export class Links {
     description: "current page",
   })
   current: string;
-  @ApiProperty({
+  @ApiPropertyOptional({
     example:
       "http://localhost:8080/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "next page",
   })
   next?: string;
-  @ApiProperty({
+  @ApiPropertyOptional({
     example:
       "http://localhost:8080/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "last page",

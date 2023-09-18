@@ -16,6 +16,7 @@ Recommended Gamevault App Version: `v1.6.0`
 
 - Improved Error-Handling when downloading Images
 - Switched to Debian `20.6-slim` docker image
+- Corrected "required/nullable" fields in API Specification
 
 ### Thanks
 

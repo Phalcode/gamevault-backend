@@ -30,18 +30,27 @@ export class RegisterUserDto {
   @ApiProperty({
     example: "john.doe@mail.com",
     description: "email of the user",
+    required: configuration.USERS.REQUIRE_EMAIL,
   })
   email?: string;
 
   @ValidateIf(() => configuration.USERS.REQUIRE_FIRST_NAME)
   @IsAlpha("de-DE")
   @IsNotEmpty()
-  @ApiProperty({ example: "John", description: "first name of the user" })
+  @ApiProperty({
+    example: "John",
+    description: "first name of the user",
+    required: configuration.USERS.REQUIRE_FIRST_NAME,
+  })
   first_name?: string;
 
   @ValidateIf(() => configuration.USERS.REQUIRE_LAST_NAME)
   @IsAlpha("de-DE")
   @IsNotEmpty()
-  @ApiProperty({ example: "Doe", description: "last name of the user" })
+  @ApiProperty({
+    example: "Doe",
+    description: "last name of the user",
+    required: configuration.USERS.REQUIRE_LAST_NAME,
+  })
   last_name?: string;
 }

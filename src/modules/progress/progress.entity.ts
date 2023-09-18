@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Entity, Column, ManyToOne } from "typeorm";
 import { State } from "./models/state.enum";
 import { Game } from "../games/game.entity";
@@ -38,10 +38,9 @@ export class Progress extends DatabaseEntity {
   state: State;
 
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "date the progress was updated",
     example: "2020-01-01T00:00:00.000Z",
-    required: false,
   })
   last_played_at?: Date;
 }

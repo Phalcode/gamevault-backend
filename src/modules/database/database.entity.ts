@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   CreateDateColumn,
   DeleteDateColumn,
@@ -23,17 +23,16 @@ export abstract class DatabaseEntity {
   created_at: Date;
 
   @UpdateDateColumn()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "date the entity was updated",
     example: "2021-01-01T00:00:00.000Z",
   })
   updated_at?: Date;
 
   @DeleteDateColumn()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "date the entity was soft-deleted (null if not deleted)",
     example: "2021-01-01T00:00:00.000Z",
-    nullable: true,
   })
   deleted_at?: Date;
 

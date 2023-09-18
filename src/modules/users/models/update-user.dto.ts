@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsAlpha,
   IsAlphanumeric,
@@ -17,67 +17,61 @@ export class UpdateUserDto {
   @IsAlphanumeric()
   @IsOptional()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "JohnDoe",
     description: "username of the user",
-    nullable: true,
   })
   username?: string;
 
   @IsEmail()
   @IsOptional()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "john.doe@mail.com",
     description: "email of the user",
-    nullable: true,
   })
   email?: string;
 
   @MinLength(8)
   @IsOptional()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "SecretPw822!",
     minLength: 8,
     description: "password of the user",
-    nullable: true,
   })
   password?: string;
 
   @IsAlpha("de-DE")
   @IsOptional()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "John",
     description: "first name of the user",
-    nullable: true,
   })
   first_name?: string;
 
   @IsAlpha("de-DE")
   @IsOptional()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "Doe",
     description: "last name of the user",
-    nullable: true,
   })
   last_name?: string;
 
   @IsUrl()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     pattern: "url",
     example: "https://example.com/profile-picture.png",
     description: "url to the profile picture of the user",
-    nullable: true,
   })
   profile_picture_url?: string;
 
   @IsNumber()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 69_420,
     description: "id of the profile picture of the user",
   })
@@ -85,17 +79,16 @@ export class UpdateUserDto {
 
   @IsUrl()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     pattern: "url",
     example: "https://example.com/profile-art.png",
     description: "url to the profile art (background-image) of the User",
-    nullable: true,
   })
   background_image_url?: string;
 
   @IsNumber()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 69_420,
     description: "id of the profile art (background-image) of the User",
   })
@@ -103,17 +96,16 @@ export class UpdateUserDto {
 
   @IsBoolean()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     pattern: "boolean",
     example: true,
     description: "wether or not the user is activated. Not yet working.",
-    nullable: true,
   })
   activated?: boolean;
 
   @IsEnum(Role)
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: "enum",
     enum: Role,
     example: Role.EDITOR,

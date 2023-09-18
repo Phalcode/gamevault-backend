@@ -22,10 +22,9 @@ import { GameType } from "./models/game-type.enum";
 @Entity()
 export class Game extends DatabaseEntity {
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "unique rawg-api-identifier of the game",
     example: 1212,
-    required: false,
   })
   rawg_id?: number;
 
@@ -43,15 +42,13 @@ export class Game extends DatabaseEntity {
     description:
       "rawg-api-title of the game (a correction needed if different from title)",
     example: "Grand Theft Auto V",
-    required: false,
   })
   rawg_title?: string;
 
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
     example: "v1.0.0",
-    required: false,
   })
   version?: string;
 
@@ -63,18 +60,16 @@ export class Game extends DatabaseEntity {
   release_date: Date;
 
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "release date of the game (from rawg-api)",
     example: "2013-09-17T00:00:00.000Z",
-    required: false,
   })
   rawg_release_date?: Date;
 
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "date the game was last updated using the rawg-api",
     example: "2021-03-01T00:00:00.000Z",
-    required: false,
   })
   cache_date?: Date;
 
@@ -108,7 +103,6 @@ export class Game extends DatabaseEntity {
     description: "rawg-api description of the game",
     example:
       "An open world action-adventure video game developed by Rockstar North and published by Rockstar Games.",
-    required: false,
   })
   description?: string;
 
@@ -122,7 +116,6 @@ export class Game extends DatabaseEntity {
   @ApiPropertyOptional({
     description: "box image of the game",
     type: () => Image,
-    required: false,
   })
   box_image?: Image;
 
@@ -136,7 +129,6 @@ export class Game extends DatabaseEntity {
   @ApiPropertyOptional({
     description: "background image of the game",
     type: () => Image,
-    required: false,
   })
   background_image?: Image;
 
@@ -144,7 +136,6 @@ export class Game extends DatabaseEntity {
   @ApiPropertyOptional({
     description: "website url of the game from rawg-api",
     example: "https://www.escapefromtarkov.com/",
-    required: false,
   })
   website_url?: string;
 
@@ -152,16 +143,14 @@ export class Game extends DatabaseEntity {
   @ApiPropertyOptional({
     description: "metacritic rating from rawg-api of the game",
     example: 90,
-    required: false,
   })
   metacritic_rating?: number;
 
   @Column({ nullable: true, type: "integer" })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "average playtime of other people in the game (similar to howlongtobeat.com) from rawg-api (in minutes)",
     example: 180,
-    required: false,
   })
   average_playtime?: number;
 

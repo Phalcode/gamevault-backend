@@ -25,5 +25,5 @@ export class Genre extends DatabaseEntity {
     type: () => Game,
     isArray: true,
   })
-  games?: Game[];
+  games: Game[];
 }
