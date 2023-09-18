@@ -144,7 +144,7 @@ Recommended Gamevault App Version: `v1.5.0`
 - Fixed `SERVER_CORS_ALLOWED_ORIGINS` not working for multiple origins
 - Fixed Vague Password Validation Message
 - Fixed Version "undefined" on Server Startup Log
-- Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
+- Changed project structure as preparatory work for [#140](https://github.com/Phalcode/gamevault-backend/issues/140)
 - Implemented Update Game API (currently only supports rawg_id and box_image may come in handy for [#161](https://github.com/Phalcode/gamevault-backend/issues/161) in the future!)
 - [#146](https://github.com/Phalcode/gamevault-backend/issues/146) Fixed OpenAPI Spec again
 
