@@ -61,7 +61,10 @@ export class GamesController {
   @Get()
   @PaginateQueryOptions()
   @ApiOkResponsePaginated(Game)
-  @ApiOperation({ summary: "get a list of games", operationId: "getGames" })
+  @ApiOperation({
+    summary: "get an undetailed list of games",
+    operationId: "getGames",
+  })
   @MinimumRole(Role.GUEST)
   async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
     return paginate(query, this.gamesRepository, {
@@ -69,15 +72,8 @@ export class GamesController {
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      relations: [
-        "developers",
-        "genres",
-        "publishers",
-        "tags",
-        "progresses",
-        "box_image",
-        "background_image",
-      ],
+      select: ["id", "title", "box_image"],
+      relations: ["box_image"],
       sortableColumns: [
         "id",
         "title",
