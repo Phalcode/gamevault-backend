@@ -72,8 +72,15 @@ export class GamesController {
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      select: ["id", "title", "box_image"],
-      relations: ["box_image"],
+      select: ["id", "title", "box_image.id"],
+      relations: [
+        "developers",
+        "genres",
+        "publishers",
+        "tags",
+        "progresses",
+        "box_image",
+      ],
       sortableColumns: [
         "id",
         "title",
