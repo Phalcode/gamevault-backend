@@ -490,7 +490,7 @@ export class FilesService implements OnApplicationBootstrap {
     );
 
     const headers = {
-      disposition: `attachment; filename="${filename}"; filename*=UTF-8''${filename}`,
+      disposition: `attachment; filename="${filename}"`,
       length: statSync(fileDownloadPath).size,
       type,
     };
