@@ -27,6 +27,8 @@ import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
 import Throttle from "throttle";
+import filenameSanitizer from "sanitize-filename";
+import unidecode from "unidecode";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -483,11 +485,12 @@ export class FilesService implements OnApplicationBootstrap {
     );
     const type = mime.getType(fileDownloadPath);
 
-    const encodedFilename = encodeURIComponent(
-      fileDownloadPath.replace(/^.*[\\/]/, ""),
+    const filename = filenameSanitizer(
+      unidecode(path.basename(fileDownloadPath)),
     );
+
     const headers = {
-      disposition: `attachment; filename*=UTF-8''${encodedFilename}; filename="${encodedFilename}"`,
+      disposition: `attachment; filename="${filename}"; filename*=UTF-8''${filename}`,
       length: statSync(fileDownloadPath).size,
       type,
     };

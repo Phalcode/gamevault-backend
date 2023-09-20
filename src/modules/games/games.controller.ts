@@ -62,7 +62,7 @@ export class GamesController {
   @PaginateQueryOptions()
   @ApiOkResponsePaginated(Game)
   @ApiOperation({
-    summary: "get an undetailed list of games",
+    summary: "get a list of games",
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
