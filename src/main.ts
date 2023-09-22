@@ -28,7 +28,11 @@ async function bootstrap(): Promise<void> {
 
   app.set("trust proxy", 1);
   app.set("json spaces", 2);
-  app.enableCors({ origin: configuration.SERVER.CORS_ALLOWED_ORIGINS });
+  app.enableCors({
+    origin: configuration.SERVER.CORS_ALLOWED_ORIGINS,
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  });
   app.use(compression());
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieparser());
