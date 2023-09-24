@@ -7,7 +7,7 @@ Recommended Gamevault App Version: `v1.6.0`
 ### Breaking Changes & Migration
 
 - We've removed the outdated Utility APIs. Instead, please switch to using the more current replacements.
-- We've removed the Tags, Genres, Developers, and Publisher details from entries on the /games API to get all details for a game use the /game/:id API 
+- We've removed the Tags, Genres, Developers, and Publisher details from entries on the /games API to get all details for a game use the /game/:id API
 - Fuzzy Search for Tags, Genres, Developers, and Publisher has been eliminated. Previously, searching for a Publisher like "Rockstar" would return "GTA V." This change was made to improve performance (18x speed).
 
 ### Changes
@@ -20,6 +20,8 @@ Recommended Gamevault App Version: `v1.6.0`
 - Rectified "required/nullable" fields in the API Specification.
 - Resolved the file title extraction issue. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
 - Fixed the Broken Content-Disposition Header for some downloads. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
+- Game Type only gets detected once, or when a game file changes and not on every index. [#200](https://github.com/Phalcode/gamevault-backend/issues/200)
+- Unified global error handler for 4XX and 5XX messages. The Problem is now directly inside the response without the duplicated status.
 
 ### Thanks
 
