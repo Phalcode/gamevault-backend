@@ -6,6 +6,7 @@ import {
   Logger,
   Param,
   Put,
+  Query,
   Request,
   StreamableFile,
 } from "@nestjs/common";
@@ -15,6 +16,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -65,19 +67,28 @@ export class GamesController {
     summary: "get a list of games",
     operationId: "getGames",
   })
+  @ApiQuery({
+    name: "detailed",
+    type: Boolean,
+    required: false,
+    description: "determines if all fields should be returned or not",
+  })
   @MinimumRole(Role.GUEST)
-  async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
+  async getGames(
+    @Query("detailed") detailed,
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<Game>> {
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      select: ["id", "title", "box_image.id"],
+      select: detailed ? undefined : ["id", "title", "box_image.id"],
       relations: [
-        "developers",
-        "genres",
-        "publishers",
-        "tags",
+        //"developers",
+        //"genres",
+        //"publishers",
+        //"tags",
         "progresses",
         "box_image",
       ],
@@ -96,10 +107,10 @@ export class GamesController {
       searchableColumns: [
         "title",
         "description",
-        "developers.name",
-        "genres.name",
-        "publishers.name",
-        "tags.name",
+        //"developers.name",
+        //"genres.name",
+        //"publishers.name",
+        //"tags.name",
       ],
       filterableColumns: {
         id: all_filters,
