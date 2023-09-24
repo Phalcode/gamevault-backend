@@ -74,15 +74,10 @@ export class FilesService implements OnApplicationBootstrap {
       try {
         gameToIndex.size = file.size;
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
-        gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
-        this.logger.debug(
-          `Detected game "${gameToIndex.file_path}" type as ${gameToIndex.type}`,
-        );
         gameToIndex.title = this.extractTitle(file.name);
         gameToIndex.release_date = this.extractReleaseYear(file.name);
         gameToIndex.version = this.extractVersion(file.name);
         gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
-
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistence, Game] =
           await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
@@ -97,6 +92,7 @@ export class FilesService implements OnApplicationBootstrap {
 
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug(`Indexing new file "${gameToIndex.file_path}"`);
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.gamesService.saveGame(gameToIndex);
             continue;
           }
@@ -108,6 +104,7 @@ export class FilesService implements OnApplicationBootstrap {
             const restoredGame = await this.gamesService.restoreGame(
               existingGameTuple[1].id,
             );
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.updateGame(restoredGame, gameToIndex);
             continue;
           }
@@ -116,6 +113,7 @@ export class FilesService implements OnApplicationBootstrap {
             this.logger.debug(
               `Detected changes in file "${gameToIndex.file_path}" in the database. Updating the information.`,
             );
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.updateGame(existingGameTuple[1], gameToIndex);
             continue;
           }
@@ -256,25 +254,31 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (/\(W_P\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE} because of (W_P) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}, because of (W_P) override in filename.`,
         );
         return GameType.WINDOWS_PORTABLE;
       }
 
       if (/\(W_S\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP} because of (W_S) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because of (W_S) override in filename.`,
         );
         return GameType.WINDOWS_SETUP;
       }
 
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because TESTING_MOCK_FILES is set to true.`,
+        );
         return GameType.WINDOWS_SETUP;
       }
 
       // Detect single File executable
       if (path.toLowerCase().endsWith(".exe")) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe.`,
+        );
         return GameType.WINDOWS_SETUP;
       }
 
@@ -283,15 +287,22 @@ export class FilesService implements OnApplicationBootstrap {
 
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
+          this.logger.debug(
+            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows setup executables in the archive.`,
+          );
           return GameType.WINDOWS_SETUP;
         }
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are no windows setup executables in the archive.`,
+        );
         return GameType.WINDOWS_PORTABLE;
       }
 
       // More Platforms and Game Types can be added here.
+      this.logger.debug(`Could not detect game type for "${path}"`);
       return GameType.UNDETECTABLE;
     } catch (error) {
-      this.logger.error("Error detecting game type:", error);
+      this.logger.warn(`Could not detect game type for "${path}"`, error);
       return GameType.UNDETECTABLE;
     }
   }
