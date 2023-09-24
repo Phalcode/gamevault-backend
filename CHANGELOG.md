@@ -3,22 +3,22 @@
 ## 6.0.0
 
 Recommended Gamevault App Version: `v1.6.0`
-
 ### Breaking Changes & Migration
 
-- Removed the deprecated Utility APIs. Instead, please switch to using the more up-to-date replacements.
-- GET /games API have been slimmed down to the bare minimum for the search. If you want all fields use the "detailed" query parameter.
+- We've removed the outdated Utility APIs. Instead, please switch to using the more current replacements.
+- We've streamlined the GET /games API to its essential components for searching. If you need all fields, utilize the "detailed" query parameter.
+- Fuzzy Search for Tags, Genres, Developers, and Publisher has been eliminated. Previously, searching for a Publisher like "Rockstar" would return "GTA V." This change was made to improve performance (18x speed).
 
 ### Changes
 
-- Fixed default CORS configuration
-- Significant improvements have been made to the RAWG Search API, making it about 5 times faster and reducing its data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187) Previously, search results unintentionally created numerous tags, genres, developers, and stores in your databases, and even images on your filesystem. This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
-- Improved Search Performance
-- Improved Error-Handling when downloading Images
-- Switched to Debian `20.6-slim` docker image
-- Corrected "required/nullable" fields in API Specification
-- Fixed file title extractor [#209](https://github.com/Phalcode/gamevault-app/issues/209)
-- Fixed Broken Content-Disposition Header for some downloads [#209](https://github.com/Phalcode/gamevault-app/issues/209)
+- Fixed the default CORS configuration.
+- Significantly enhanced the RAWG Search API, resulting in approximately 5 times faster performance and reduced data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187). Previously, search results inadvertently generated numerous tags, genres, developers, and stores in your databases, as well as images on your filesystem. This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
+- Improved Search Performance.
+- Enhanced Error-Handling during image downloads.
+- Transitioned to the Debian `20.6-slim` docker image.
+- Rectified "required/nullable" fields in the API Specification.
+- Resolved the file title extraction issue. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
+- Fixed the Broken Content-Disposition Header for some downloads. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
 
 ### Thanks
 
