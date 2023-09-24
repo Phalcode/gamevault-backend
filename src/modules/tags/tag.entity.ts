@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Entity, Column, ManyToMany } from "typeorm";
+import { Entity, Column, ManyToMany, Index } from "typeorm";
 import { Game } from "../games/game.entity";
 import { DatabaseEntity } from "../database/database.entity";
 
@@ -12,6 +12,7 @@ export class Tag extends DatabaseEntity {
   })
   rawg_id: number;
 
+  @Index()
   @Column({ unique: true })
   @ApiProperty({
     example: "battle-royale",

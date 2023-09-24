@@ -5,7 +5,6 @@ import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Entity()
 export class Image extends DatabaseEntity {
-  @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
     example:

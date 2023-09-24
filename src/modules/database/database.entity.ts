@@ -2,12 +2,14 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   CreateDateColumn,
   DeleteDateColumn,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from "typeorm";
 
 export abstract class DatabaseEntity {
+  @Index()
   @PrimaryGeneratedColumn()
   @ApiProperty({
     example: 1,

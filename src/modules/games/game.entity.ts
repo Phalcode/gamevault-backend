@@ -19,6 +19,7 @@ import { Image } from "../images/image.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GameType } from "./models/game-type.enum";
 
+@Index()
 @Entity()
 export class Game extends DatabaseEntity {
   @Column({ nullable: true })
@@ -175,6 +176,7 @@ export class Game extends DatabaseEntity {
   })
   type: GameType;
 
+  @Index()
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
     description: "progresses associated to the game",
@@ -183,6 +185,7 @@ export class Game extends DatabaseEntity {
   })
   progresses: Progress[];
 
+  @Index()
   @JoinTable()
   @ManyToMany(() => Publisher, (publisher) => publisher.games)
   @ApiPropertyOptional({
@@ -192,6 +195,7 @@ export class Game extends DatabaseEntity {
   })
   publishers: Publisher[];
 
+  @Index()
   @JoinTable()
   @ManyToMany(() => Developer, (developer) => developer.games)
   @ApiPropertyOptional({
@@ -201,6 +205,7 @@ export class Game extends DatabaseEntity {
   })
   developers: Developer[];
 
+  @Index()
   @JoinTable()
   @ManyToMany(() => Store, (store) => store.games)
   @ApiPropertyOptional({
@@ -210,6 +215,7 @@ export class Game extends DatabaseEntity {
   })
   stores: Store[];
 
+  @Index()
   @JoinTable()
   @ManyToMany(() => Tag, (tag) => tag.games)
   @ApiPropertyOptional({
@@ -219,6 +225,7 @@ export class Game extends DatabaseEntity {
   })
   tags: Tag[];
 
+  @Index()
   @JoinTable()
   @ManyToMany(() => Genre, (genre) => genre.games)
   @ApiPropertyOptional({
