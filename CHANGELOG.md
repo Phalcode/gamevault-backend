@@ -22,6 +22,7 @@ Recommended Gamevault App Version: `v1.6.0`
 - Fixed the Broken Content-Disposition Header for some downloads. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
 - Game Type only gets detected once, or when a game file changes and not on every index. [#200](https://github.com/Phalcode/gamevault-backend/issues/200)
 - Unified global error handler for 4XX and 5XX messages. The Problem is now directly inside the response without the duplicated status.
+- Implemented `(NC)` flag to disable rawg-caching for single games. #194(https://github.com/Phalcode/gamevault-app/issues/194)
 
 ### Thanks
 
