@@ -11,6 +11,7 @@ Recommended Gamevault App Version: `v1.6.0`
 
 ### Changes
 
+- Fixed default CORS configuration
 - Significant improvements have been made to the RAWG Search API, making it about 5 times faster and reducing its data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187) Previously, search results unintentionally created numerous tags, genres, developers, and stores in your databases, and even images on your filesystem. This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
 - Improved Search Performance
 - Improved Error-Handling when downloading Images
