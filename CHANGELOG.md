@@ -7,17 +7,17 @@ Recommended Gamevault App Version: `v1.6.0`
 ### Breaking Changes & Migration
 
 - Removed the deprecated Utility APIs. Instead, please switch to using the more up-to-date replacements.
-- Significant improvements have been made to the RAWG Search API, making it about 5 times faster and reducing its data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187)
-  - Previously, search results unintentionally created numerous tags, genres, developers, and stores in your databases, and even images on your filesystem.
-  - This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
-- Corrected file title extractor (It only removed the first extension from the files path)
+- GET /games API have been slimmed down to the bare minimum for the search. If you want all fields use the "detailed" query parameter.
 
 ### Changes
 
+- Significant improvements have been made to the RAWG Search API, making it about 5 times faster and reducing its data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187) Previously, search results unintentionally created numerous tags, genres, developers, and stores in your databases, and even images on your filesystem. This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
+- Improved Search Performance
 - Improved Error-Handling when downloading Images
 - Switched to Debian `20.6-slim` docker image
 - Corrected "required/nullable" fields in API Specification
-- Fixed Broken Content-Disposition Header for some Downloads
+- Fixed file title extractor [#209](https://github.com/Phalcode/gamevault-app/issues/209)
+- Fixed Broken Content-Disposition Header for some downloads [#209](https://github.com/Phalcode/gamevault-app/issues/209)
 
 ### Thanks
 
