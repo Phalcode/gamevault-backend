@@ -3,10 +3,11 @@
 ## 6.0.0
 
 Recommended Gamevault App Version: `v1.6.0`
+
 ### Breaking Changes & Migration
 
 - We've removed the outdated Utility APIs. Instead, please switch to using the more current replacements.
-- We've streamlined the GET /games API to its essential components for searching. If you need all fields, utilize the "detailed" query parameter.
+- We've removed the Tags, Genres, Developers, and Publisher details from entries on the /games API to get all details for a game use the /game/:id API 
 - Fuzzy Search for Tags, Genres, Developers, and Publisher has been eliminated. Previously, searching for a Publisher like "Rockstar" would return "GTA V." This change was made to improve performance (18x speed).
 
 ### Changes
