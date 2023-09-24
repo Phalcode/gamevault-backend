@@ -19,7 +19,6 @@ import { Image } from "../images/image.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GameType } from "./models/game-type.enum";
 
-@Index()
 @Entity()
 export class Game extends DatabaseEntity {
   @Column({ nullable: true })
