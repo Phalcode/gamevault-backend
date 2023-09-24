@@ -86,10 +86,19 @@ export class RawgService {
    */
   private async cacheGame(game: Game): Promise<Game> {
     this.logger.debug(`Caching Game: "${game.title}"`);
+
+    if (game.file_path.includes("(NC)")) {
+      this.logger.debug(
+        { gameId: game.id, title: game.title, file_path: game.file_path },
+        `Game Caching Skipped, because file path contains NO CACHE flag (NC).`,
+      );
+      return game;
+    }
+
     if (!this.isOutdated(game)) {
       this.logger.debug(
         { gameId: game.id, title: game.title, cachedAt: game.cache_date },
-        `Game Caching Skipped. Game is up to date.`,
+        `Game Caching Skipped, because game is already up to date.`,
       );
       return game;
     }
@@ -248,8 +257,9 @@ export class RawgService {
           })
           .pipe(
             catchError((error: AxiosError) => {
-              throw new Error(
-                `Serverside Request Error: ${error.status} ${error.message}`,
+              throw new InternalServerErrorException(
+                error,
+                `Serverside RAWG Request Error: ${error.status} ${error.message}`,
               );
             }),
           ),
