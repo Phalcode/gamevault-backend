@@ -2,9 +2,32 @@
 
 ## 6.0.0
 
+Recommended Gamevault App Version: `v1.6.0`
+
+### Breaking Changes & Migration
+
+- We've removed the outdated Utility APIs. Instead, please switch to using the more current replacements.
+- We've removed the Tags, Genres, Developers, and Publisher details from entries on the /games API for performace Reasons. To get all details for a game use the /game/:id API
+- Fuzzy Search for Tags, Genres, Developers, and Publishers has been eliminated. (Previously for example, searching for a Publisher like "Rockstar" would return "GTA V") This change was made to improve search performance (18x speed)
+
 ### Changes
 
-- TODO: Removed Deprecated Utility APIs
+- Fixed the default CORS configuration.
+- Significantly enhanced the RAWG Search API, resulting in approximately 5 times faster performance and reduced data consumption. [#187](https://github.com/Phalcode/gamevault-backend/issues/187). Previously, search results inadvertently generated numerous tags, genres, developers, and stores in your databases, as well as images on your filesystem. This is no longer the case. The RAWG Search now provides only essential game information for identification and remapping.
+- Improved Search Performance.
+- Enhanced Error-Handling during image downloads.
+- Transitioned to the Debian `20.6-slim` docker image.
+- Rectified "required/nullable" fields in the API Specification.
+- Resolved the file title extraction issue. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
+- Fixed the Broken Content-Disposition Header for some downloads. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
+- Game Type only gets detected once, or when a game file changes and not on every index. [#200](https://github.com/Phalcode/gamevault-backend/issues/200)
+- Unified global error handler for 4XX and 5XX messages. The Problem is now directly inside the response without the duplicated status.
+- Implemented `(NC)` flag to disable rawg-caching for single games. #194(https://github.com/Phalcode/gamevault-app/issues/194)
+
+### Thanks
+
+- @yodatak
+- @Ben2303
 
 ## 5.0.2
 
@@ -101,7 +124,7 @@ Recommended Gamevault App Version: `v1.5.0`
 
 - @freitagdavid
 - @Kairubyte
-- @yotadak
+- @yodatak
 
 ## 4.0.1
 
@@ -127,13 +150,13 @@ Recommended Gamevault App Version: `v1.5.0`
 - Fixed `SERVER_CORS_ALLOWED_ORIGINS` not working for multiple origins
 - Fixed Vague Password Validation Message
 - Fixed Version "undefined" on Server Startup Log
-- Changed project structure as preparatory work for https://github.com/Phalcode/gamevault-backend/issues/140
+- Changed project structure as preparatory work for [#140](https://github.com/Phalcode/gamevault-backend/issues/140)
 - Implemented Update Game API (currently only supports rawg_id and box_image may come in handy for [#161](https://github.com/Phalcode/gamevault-backend/issues/161) in the future!)
 - [#146](https://github.com/Phalcode/gamevault-backend/issues/146) Fixed OpenAPI Spec again
 
 ### Thanks
 
-- @Yotadak
+- @yodatak
 - @Kairubyte
 
 ## 3.0.0

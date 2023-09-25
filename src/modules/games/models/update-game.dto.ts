@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsNotEmpty,
   IsNumber,
@@ -12,7 +12,7 @@ export class UpdateGameDto {
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 1000,
     description: "unique rawg-api-identifier of the game",
   })
@@ -20,7 +20,7 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsUrl()
-  @ApiProperty({
+  @ApiPropertyOptional({
     pattern: "url",
     example: "https://example.com/image.png",
     description: "url to the image",
@@ -29,7 +29,7 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsNumber()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 69_420,
     description: "id of the image",
   })
@@ -37,7 +37,7 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsUrl()
-  @ApiProperty({
+  @ApiPropertyOptional({
     pattern: "url",
     example: "https://example.com/image.png",
     description: "url to the image",
@@ -46,7 +46,7 @@ export class UpdateGameDto {
 
   @IsOptional()
   @IsNumber()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 69_420,
     description: "id of the image",
   })

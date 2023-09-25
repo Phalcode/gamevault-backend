@@ -35,9 +35,10 @@ export default {
     ),
     REQUEST_LOG_FORMAT:
       process.env.SERVER_REQUEST_LOG_FORMAT || globals.LOGGING_FORMAT,
-    CORS_ALLOWED_ORIGINS: parseList(process.env.SERVER_CORS_ALLOWED_ORIGINS, [
-      "*",
-    ]),
+    CORS_ALLOWED_ORIGINS: parseList(
+      process.env.SERVER_CORS_ALLOWED_ORIGINS,
+      [],
+    ),
     REGISTRATION_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_REGISTRATION_DISABLED,
     ),

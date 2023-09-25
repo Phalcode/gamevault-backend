@@ -5,7 +5,6 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnprocessableEntityException,
   forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -70,6 +69,7 @@ export class ImagesService {
         image.uploader =
           await this.usersService.getUserByUsernameOrFail(uploaderUsername);
       }
+      this.logger.debug(`Downloading Image from "${image.source}" ...`);
       const response = await this.downloadImageFromUrl(image.source);
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkImageFileType(imageBuffer);
@@ -84,7 +84,8 @@ export class ImagesService {
       if (image.id) {
         await this.deleteImage(image);
       }
-      throw new UnprocessableEntityException(
+      throw new InternalServerErrorException(
+        error,
         `Failed to download image from '${sourceUrl}'.`,
       );
     }

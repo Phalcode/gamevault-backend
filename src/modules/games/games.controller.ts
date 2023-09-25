@@ -61,7 +61,10 @@ export class GamesController {
   @Get()
   @PaginateQueryOptions()
   @ApiOkResponsePaginated(Game)
-  @ApiOperation({ summary: "get a list of games", operationId: "getGames" })
+  @ApiOperation({
+    summary: "get a list of games",
+    operationId: "getGames",
+  })
   @MinimumRole(Role.GUEST)
   async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
     return paginate(query, this.gamesRepository, {
@@ -69,15 +72,7 @@ export class GamesController {
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      relations: [
-        "developers",
-        "genres",
-        "publishers",
-        "tags",
-        "progresses",
-        "box_image",
-        "background_image",
-      ],
+      relations: ["progresses", "box_image"],
       sortableColumns: [
         "id",
         "title",
@@ -90,14 +85,7 @@ export class GamesController {
         "early_access",
         "type",
       ],
-      searchableColumns: [
-        "title",
-        "description",
-        "developers.name",
-        "genres.name",
-        "publishers.name",
-        "tags.name",
-      ],
+      searchableColumns: ["title", "description"],
       filterableColumns: {
         id: all_filters,
         title: all_filters,
@@ -108,10 +96,6 @@ export class GamesController {
         average_playtime: all_filters,
         early_access: all_filters,
         type: all_filters,
-        "developers.name": all_filters,
-        "genres.name": all_filters,
-        "publishers.name": all_filters,
-        "tags.name": all_filters,
         "progresses.created_at": all_filters,
         "progresses.updated_at": all_filters,
         "progresses.minutes_played": all_filters,

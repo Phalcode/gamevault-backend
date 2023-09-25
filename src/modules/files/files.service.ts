@@ -1,5 +1,6 @@
 import {
   Injectable,
+  InternalServerErrorException,
   Logger,
   OnApplicationBootstrap,
   StreamableFile,
@@ -14,7 +15,7 @@ import {
   readdirSync,
   statSync,
 } from "fs";
-import { basename, extname } from "path";
+import path, { basename, extname } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
 import mime from "mime";
@@ -26,6 +27,8 @@ import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
 import Throttle from "throttle";
+import filenameSanitizer from "sanitize-filename";
+import unidecode from "unidecode";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -71,15 +74,10 @@ export class FilesService implements OnApplicationBootstrap {
       try {
         gameToIndex.size = file.size;
         gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
-        gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
-        this.logger.debug(
-          `Detected game "${gameToIndex.file_path}" type as ${gameToIndex.type}`,
-        );
         gameToIndex.title = this.extractTitle(file.name);
         gameToIndex.release_date = this.extractReleaseYear(file.name);
         gameToIndex.version = this.extractVersion(file.name);
         gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
-
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistence, Game] =
           await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
@@ -94,6 +92,7 @@ export class FilesService implements OnApplicationBootstrap {
 
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug(`Indexing new file "${gameToIndex.file_path}"`);
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.gamesService.saveGame(gameToIndex);
             continue;
           }
@@ -105,6 +104,7 @@ export class FilesService implements OnApplicationBootstrap {
             const restoredGame = await this.gamesService.restoreGame(
               existingGameTuple[1].id,
             );
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.updateGame(restoredGame, gameToIndex);
             continue;
           }
@@ -113,6 +113,7 @@ export class FilesService implements OnApplicationBootstrap {
             this.logger.debug(
               `Detected changes in file "${gameToIndex.file_path}" in the database. Updating the information.`,
             );
+            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
             await this.updateGame(existingGameTuple[1], gameToIndex);
             continue;
           }
@@ -161,13 +162,12 @@ export class FilesService implements OnApplicationBootstrap {
    * regular expression.
    *
    * @private
-   * @param fileName - A string representing the file name.
+   * @param filePath - A string representing the files path.
    * @returns - The extracted game title string.
    */
-  private extractTitle(fileName: string): string {
-    const directoryRemoved = fileName.replace(/^.*[\\/]/, "");
-    const extensionRemoved = directoryRemoved.replace(/\.([^.]*)$/, "");
-    const parenthesesRemoved = extensionRemoved.replace(/\([^)]*\)/g, "");
+  private extractTitle(filePath: string): string {
+    const basename = path.basename(filePath, path.extname(filePath));
+    const parenthesesRemoved = basename.replace(/\([^)]*\)/g, "");
     return parenthesesRemoved.trim();
   }
 
@@ -254,25 +254,31 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (/\(W_P\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE} because of (W_P) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}, because of (W_P) override in filename.`,
         );
         return GameType.WINDOWS_PORTABLE;
       }
 
       if (/\(W_S\)/.test(path)) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP} because of (W_S) override in filename.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because of (W_S) override in filename.`,
         );
         return GameType.WINDOWS_SETUP;
       }
 
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because TESTING_MOCK_FILES is set to true.`,
+        );
         return GameType.WINDOWS_SETUP;
       }
 
       // Detect single File executable
       if (path.toLowerCase().endsWith(".exe")) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe.`,
+        );
         return GameType.WINDOWS_SETUP;
       }
 
@@ -281,15 +287,22 @@ export class FilesService implements OnApplicationBootstrap {
 
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
+          this.logger.debug(
+            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows setup executables in the archive.`,
+          );
           return GameType.WINDOWS_SETUP;
         }
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are no windows setup executables in the archive.`,
+        );
         return GameType.WINDOWS_PORTABLE;
       }
 
       // More Platforms and Game Types can be added here.
+      this.logger.debug(`Could not detect game type for "${path}"`);
       return GameType.UNDETECTABLE;
     } catch (error) {
-      this.logger.error("Error detecting game type:", error);
+      this.logger.warn(`Could not detect game type for "${path}"`, error);
       return GameType.UNDETECTABLE;
     }
   }
@@ -406,28 +419,35 @@ export class FilesService implements OnApplicationBootstrap {
    * @public
    */
   private fetchFiles(): IGameVaultFile[] {
-    if (configuration.TESTING.MOCK_FILES) {
-      return mock;
-    }
+    try {
+      if (configuration.TESTING.MOCK_FILES) {
+        return mock;
+      }
 
-    return readdirSync(configuration.VOLUMES.FILES, {
-      encoding: "utf8",
-      recursive: configuration.GAMES.SEARCH_RECURSIVE,
-    })
-      .filter((file) =>
-        configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-          extname(file).toLowerCase(),
-        ),
-      )
-      .map(
-        (file) =>
-          ({
-            name: file,
-            size: BigInt(
-              statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
-            ),
-          }) as IGameVaultFile,
+      return readdirSync(configuration.VOLUMES.FILES, {
+        encoding: "utf8",
+        recursive: configuration.GAMES.SEARCH_RECURSIVE,
+      })
+        .filter((file) =>
+          configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+            extname(file).toLowerCase(),
+          ),
+        )
+        .map(
+          (file) =>
+            ({
+              name: file,
+              size: BigInt(
+                statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
+              ),
+            }) as IGameVaultFile,
+        );
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error,
+        "Error reading /files directory!",
       );
+    }
   }
 
   /**
@@ -454,10 +474,9 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     const game = await this.gamesService.getGameById(gameId);
-    const fileExtension = RegExp(/(?:\.([^.]+))?$/).exec(game.file_path)[0];
     let fileDownloadPath = game.file_path;
 
-    if (!globals.ARCHIVE_FORMATS.includes(fileExtension)) {
+    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
       if (existsSync(fileDownloadPath)) {
@@ -477,11 +496,12 @@ export class FilesService implements OnApplicationBootstrap {
     );
     const type = mime.getType(fileDownloadPath);
 
-    const encodedFilename = encodeURIComponent(
-      fileDownloadPath.replace(/^.*[\\/]/, ""),
+    const filename = filenameSanitizer(
+      unidecode(path.basename(fileDownloadPath)),
     );
+
     const headers = {
-      disposition: `attachment; filename*=UTF-8''${encodedFilename}; filename="${encodedFilename}"`,
+      disposition: `attachment; filename="${filename}"`,
       length: statSync(fileDownloadPath).size,
       type,
     };

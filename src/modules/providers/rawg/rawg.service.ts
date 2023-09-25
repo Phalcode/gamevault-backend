@@ -86,10 +86,19 @@ export class RawgService {
    */
   private async cacheGame(game: Game): Promise<Game> {
     this.logger.debug(`Caching Game: "${game.title}"`);
+
+    if (game.file_path.includes("(NC)")) {
+      this.logger.debug(
+        { gameId: game.id, title: game.title, file_path: game.file_path },
+        `Game Caching Skipped, because file path contains NO CACHE flag (NC).`,
+      );
+      return game;
+    }
+
     if (!this.isOutdated(game)) {
       this.logger.debug(
         { gameId: game.id, title: game.title, cachedAt: game.cache_date },
-        `Game Caching Skipped. Game is up to date.`,
+        `Game Caching Skipped, because game is already up to date.`,
       );
       return game;
     }
@@ -103,7 +112,7 @@ export class RawgService {
         game.release_date?.getFullYear() || undefined,
       );
     }
-    const mappedGame = await this.mapper.map(game, rawgEntry);
+    const mappedGame = await this.mapper.mapRawgGameToGame(rawgEntry, game);
     return await this.gamesService.saveGame(mappedGame);
   }
 
@@ -188,7 +197,6 @@ export class RawgService {
         `No game found in RAWG for "${title} (${releaseYear || "No Year"})"`,
       );
     }
-
     // Calculate and assign probabilities
     searchResults.forEach((game) => {
       const titleCleaned = title.toLowerCase().replaceAll(/[^\w\s]/g, "");
@@ -205,10 +213,8 @@ export class RawgService {
         game.probability -= Math.abs(releaseYear - gameReleaseYear) / 10;
       }
     });
-
     // Sort search results by probability in descending order
     searchResults.sort((a, b) => b.probability - a.probability);
-
     return searchResults;
   }
 
@@ -251,8 +257,9 @@ export class RawgService {
           })
           .pipe(
             catchError((error: AxiosError) => {
-              throw new Error(
-                `Serverside Request Error: ${error.status} ${error.message}`,
+              throw new InternalServerErrorException(
+                error,
+                `Serverside RAWG Request Error: ${error.status} ${error.message}`,
               );
             }),
           ),
@@ -303,8 +310,9 @@ export class RawgService {
           })
           .pipe(
             catchError((error: AxiosError) => {
-              throw new Error(
-                `Serverside Request Error: ${error.status} ${error.message}`,
+              throw new InternalServerErrorException(
+                error,
+                `Serverside RAWG Request Error`,
               );
             }),
           ),

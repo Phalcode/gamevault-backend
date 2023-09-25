@@ -25,20 +25,23 @@ export class RawgMapperService {
    * Maps a RawgGame to a Game entity, filling missing information in the entity
    * using the RawgGame.
    *
-   * @param entity - The Game entity to fill with information.
+   * @param game - The Game entity to fill with information.
    * @param rawg_game - The RawgGame to extract information from.
    * @returns A Promise that resolves with the updated Game entity.
    */
-  public async map(entity: Game, rawg_game: RawgGame): Promise<Game> {
-    this.logger.debug(`Mapping game "${rawg_game.name}" to "${entity.title}"`);
-    entity = await this.mapStoresToEntity(rawg_game, entity);
-    entity = await this.mapDevelopersToEntity(rawg_game, entity);
-    entity = await this.mapPublishersToEntity(rawg_game, entity);
-    entity = await this.mapTagsToEntity(rawg_game, entity);
-    entity = await this.mapGenresToEntity(rawg_game, entity);
-    entity = await this.mapRawgGameToEntity(rawg_game, entity);
-    entity.cache_date = new Date();
-    return entity;
+  public async mapRawgGameToGame(
+    rawg_game: RawgGame,
+    game: Game,
+  ): Promise<Game> {
+    this.logger.debug(`Mapping game "${rawg_game.name}" to "${game.title}"`);
+    game = await this.mapRawgStoresToGame(rawg_game, game);
+    game = await this.mapRawgDevelopersToGame(rawg_game, game);
+    game = await this.mapRawgPublishersToGame(rawg_game, game);
+    game = await this.mapRawgTagsToGame(rawg_game, game);
+    game = await this.mapRawgGenresToGame(rawg_game, game);
+    game = await this.mapRawgGameDetailsToGame(rawg_game, game);
+    game.cache_date = new Date();
+    return game;
   }
 
   /**
@@ -48,7 +51,10 @@ export class RawgMapperService {
    * @param entity - The Game entity.
    * @returns The updated Game entity.
    */
-  private async mapStoresToEntity(game: RawgGame, entity: Game): Promise<Game> {
+  private async mapRawgStoresToGame(
+    game: RawgGame,
+    entity: Game,
+  ): Promise<Game> {
     try {
       entity.stores = [];
       if (!game.stores) return entity;
@@ -71,7 +77,7 @@ export class RawgMapperService {
    * @param entity - The Game entity to update with the developers information.
    * @returns The updated Game entity.
    */
-  private async mapDevelopersToEntity(
+  private async mapRawgDevelopersToGame(
     game: RawgGame,
     entity: Game,
   ): Promise<Game> {
@@ -99,7 +105,7 @@ export class RawgMapperService {
    * @param entity - The Game entity.
    * @returns The updated Game entity.
    */
-  private async mapPublishersToEntity(
+  private async mapRawgPublishersToGame(
     game: RawgGame,
     entity: Game,
   ): Promise<Game> {
@@ -127,7 +133,7 @@ export class RawgMapperService {
    * @param entity - The Game entity.
    * @returns The updated Game entity.
    */
-  private async mapTagsToEntity(game: RawgGame, entity: Game): Promise<Game> {
+  private async mapRawgTagsToGame(game: RawgGame, entity: Game): Promise<Game> {
     try {
       entity.tags = [];
 
@@ -165,7 +171,10 @@ export class RawgMapperService {
    * @param entity - The Game entity.
    * @returns The updated Game entity.
    */
-  private async mapGenresToEntity(game: RawgGame, entity: Game): Promise<Game> {
+  private async mapRawgGenresToGame(
+    game: RawgGame,
+    entity: Game,
+  ): Promise<Game> {
     try {
       entity.genres = [];
       if (!game.genres) return entity;
@@ -187,7 +196,7 @@ export class RawgMapperService {
    * @param entity - The Game entity to update.
    * @returns The updated Game entity.
    */
-  private async mapRawgGameToEntity(
+  private async mapRawgGameDetailsToGame(
     game: RawgGame,
     entity: Game,
   ): Promise<Game> {

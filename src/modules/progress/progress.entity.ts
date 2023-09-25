@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Entity, Column, ManyToOne } from "typeorm";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Entity, Column, ManyToOne, Index } from "typeorm";
 import { State } from "./models/state.enum";
 import { Game } from "../games/game.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
@@ -7,6 +7,7 @@ import { DatabaseEntity } from "../database/database.entity";
 
 @Entity()
 export class Progress extends DatabaseEntity {
+  @Index()
   @ManyToOne(() => GamevaultUser, (user) => user.progresses)
   @ApiProperty({
     description: "user the progress belongs to",
@@ -14,6 +15,7 @@ export class Progress extends DatabaseEntity {
   })
   user: GamevaultUser;
 
+  @Index()
   @ManyToOne(() => Game, (game) => game.progresses)
   @ApiProperty({
     description: "game the progress belongs to",
@@ -38,10 +40,9 @@ export class Progress extends DatabaseEntity {
   state: State;
 
   @Column({ nullable: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "date the progress was updated",
     example: "2020-01-01T00:00:00.000Z",
-    required: false,
   })
   last_played_at?: Date;
 }

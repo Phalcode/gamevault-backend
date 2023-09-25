@@ -14,6 +14,7 @@ import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/auth/authentication.guard";
 import { AuthorizationGuard } from "./modules/auth/authorization.guard";
+import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,
  * and setting up global settings and routes.
@@ -27,7 +28,15 @@ async function bootstrap(): Promise<void> {
 
   app.set("trust proxy", 1);
   app.set("json spaces", 2);
-  app.enableCors({ origin: configuration.SERVER.CORS_ALLOWED_ORIGINS });
+  if (configuration.SERVER.CORS_ALLOWED_ORIGINS.length) {
+    app.enableCors({
+      origin: configuration.SERVER.CORS_ALLOWED_ORIGINS,
+      credentials: true,
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    });
+  } else {
+    app.enableCors();
+  }
   app.use(compression());
   app.use(helmet({ contentSecurityPolicy: false }));
   app.use(cookieparser());
@@ -42,6 +51,8 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new LoggingExceptionFilter());
 
   app.setGlobalPrefix("api/v1");
   const reflector = app.get(Reflector);
@@ -77,7 +88,6 @@ async function bootstrap(): Promise<void> {
           .addTag("tags", "apis for tags")
           .addTag("genres", "apis for genres")
           .addTag("user", "apis for user management")
-          .addTag("utility", "apis for miscellaneous utilities")
           .addTag("rawg", "apis for rawg services")
           .addTag("images", "apis for handling images")
           .build(),

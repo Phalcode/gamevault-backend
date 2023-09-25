@@ -3,6 +3,12 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "assets": ["**/static/*"]
+    "assets": [
+      {
+        "include": "../assets",
+        "outDir":"dist/assets",
+        "watchAssets": true
+      }
+    ]
   }
 }

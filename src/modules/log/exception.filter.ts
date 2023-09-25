@@ -46,10 +46,7 @@ export class LoggingExceptionFilter implements ExceptionFilter {
         { url: request.url, error: exception },
         `Unhandled ${exception.name} occurred: ${exception.message}`,
       );
-      response.status(httpStatusCode).json({
-        statusCode: httpStatusCode,
-        error: exception.message,
-      });
+      response.status(httpStatusCode).json(exception.message);
     }
   }
 }
