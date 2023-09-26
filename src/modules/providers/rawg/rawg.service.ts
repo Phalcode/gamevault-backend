@@ -194,7 +194,9 @@ export class RawgService {
       );
 
       throw new NotFoundException(
-        `No game found in RAWG for "${title} (${releaseYear || "No Year"})"`,
+        `No game found in RAWG for "${title}" ${
+          releaseYear ? `(${releaseYear})` : undefined
+        })`,
       );
     }
     // Calculate and assign probabilities
