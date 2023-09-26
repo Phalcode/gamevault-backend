@@ -350,9 +350,7 @@ export class FilesService implements OnApplicationBootstrap {
     sourcePath: string,
   ): Promise<void> {
     if (!existsSync(sourcePath)) {
-      throw new NotFoundException(
-        `The File "${sourcePath}" could not be found.`,
-      );
+      throw new NotFoundException(`The game file could not be found.`);
     }
     return new Promise<void>((resolve, reject) => {
       const archiveStream = add(output, sourcePath);
@@ -498,9 +496,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     if (!existsSync(fileDownloadPath)) {
-      throw new NotFoundException(
-        `The File "${fileDownloadPath}" could not be found.`,
-      );
+      throw new NotFoundException(`The game file could not be found.`);
     }
 
     const file = createReadStream(fileDownloadPath).pipe(
