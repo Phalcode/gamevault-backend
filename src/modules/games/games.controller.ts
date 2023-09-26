@@ -72,7 +72,7 @@ export class GamesController {
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      relations: ["progresses", "box_image"],
+      relations: ["box_image"],
       sortableColumns: [
         "id",
         "title",
@@ -96,10 +96,6 @@ export class GamesController {
         average_playtime: all_filters,
         early_access: all_filters,
         type: all_filters,
-        "progresses.created_at": all_filters,
-        "progresses.updated_at": all_filters,
-        "progresses.minutes_played": all_filters,
-        "progresses.state": all_filters,
       },
       withDeleted: false,
     });
