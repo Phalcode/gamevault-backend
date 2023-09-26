@@ -22,6 +22,10 @@ Recommended Gamevault App Version: `v1.6.1`
   - User-related calls now include deleted game details in their progress information.
   - This enhancement allows for the correct display of progress even after a game has been deleted, ensuring a more comprehensive user experience.
 
+### Changes
+
+- Made Failing Game Downloads more robust
+
 ### Thanks
 
 - @Kairubyte
