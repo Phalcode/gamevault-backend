@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -10,7 +11,13 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
-import { FindManyOptions, Repository } from "typeorm";
+import {
+  FindManyOptions,
+  FindOperator,
+  ILike,
+  IsNull,
+  Repository,
+} from "typeorm";
 import configuration from "../../configuration";
 import { RegisterUserDto } from "./models/register-user.dto";
 import { GamevaultUser } from "./gamevault-user.entity";
@@ -50,13 +57,15 @@ export class UsersService implements OnApplicationBootstrap {
         configuration.SERVER.ADMIN_USERNAME,
       );
 
-      const updateUserDto: UpdateUserDto = {
-        role: Role.ADMIN,
-        activated: true,
-        password: configuration.SERVER.ADMIN_PASSWORD || undefined,
-      };
-
-      await this.update(user.id, updateUserDto, true);
+      await this.update(
+        user.id,
+        {
+          role: Role.ADMIN,
+          activated: true,
+          password: configuration.SERVER.ADMIN_PASSWORD || undefined,
+        },
+        true,
+      );
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(
@@ -77,8 +86,8 @@ export class UsersService implements OnApplicationBootstrap {
    *
    * @async
    * @param id The ID of the user.
-   * @param withDeleted Optional. Determines whether to include deleted users in
-   *   the search. Default is `false`.
+   * @param inludeDeletedUsers Optional. Determines whether to include deleted
+   *   users in the search. Default is `false`.
    * @returns A Promise that resolves to the user object matching the provided
    *   ID.
    * @throws {NotFoundException} If the user with the specified ID does not
@@ -86,13 +95,17 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async getUserByIdOrFail(
     id: number,
-    withDeleted = false,
+    inludeDeletedUsers = false,
   ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
-        where: { id },
+        where: {
+          id,
+          deleted_at: inludeDeletedUsers ? undefined : IsNull(),
+          progresses: { deleted_at: IsNull() },
+        },
         relations: ["progresses", "progresses.game"],
-        withDeleted,
+        withDeleted: true,
       })
       .catch(() => {
         throw new NotFoundException(`User with id ${id} was not found.`);
@@ -112,8 +125,13 @@ export class UsersService implements OnApplicationBootstrap {
   ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
-        where: { username },
+        where: {
+          username: ILike(username),
+          deleted_at: IsNull(),
+          progresses: { deleted_at: IsNull() },
+        },
         relations: ["progresses", "progresses.game"],
+        withDeleted: true,
       })
       .catch(() => {
         throw new NotFoundException(
@@ -123,22 +141,19 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /**
-   * Get an overview of all users
+   * Get a rough overview of all users
    *
    * @returns - Overview of all users
    */
   public async getUsers(
     includeDeleted = false,
-    includeUnactivated = false,
+    includeDeactivated = false,
   ): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
       withDeleted: includeDeleted,
+      where: includeDeactivated ? undefined : { activated: true },
     };
-
-    if (includeUnactivated === false) {
-      query.where = { activated: true };
-    }
 
     return await this.userRepository.find(query);
   }
@@ -152,7 +167,7 @@ export class UsersService implements OnApplicationBootstrap {
    *   already exists
    */
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
-    await this.checkForExistingUser(dto.username, dto.email);
+    await this.throwIfUserAlreadyExists(dto.username, dto.email);
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
@@ -191,7 +206,7 @@ export class UsersService implements OnApplicationBootstrap {
   ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
-        where: { username },
+        where: { username: ILike(username) },
         select: ["username", "password", "activated", "role", "deleted_at"],
         withDeleted: true,
         loadEagerRelations: false,
@@ -236,12 +251,16 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.getUserByIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
-      await this.checkForExistingUser(dto.username, undefined);
+      if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
+        await this.throwIfUserAlreadyExists(dto.username, undefined);
+      }
       user.username = dto.username;
     }
 
     if (dto.email != null && dto.email !== user.email) {
-      await this.checkForExistingUser(undefined, dto.email);
+      if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
+        await this.throwIfUserAlreadyExists(undefined, dto.email);
+      }
       user.email = dto.email;
     }
 
@@ -264,7 +283,7 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
 
-    if (dto.profile_picture_id) {
+    if (dto.profile_picture_id != null) {
       user.profile_picture = await this.imagesService.findByIdOrFail(
         dto.profile_picture_id,
       );
@@ -277,7 +296,7 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
 
-    if (dto.background_image_id) {
+    if (dto.background_image_id != null) {
       user.background_image = await this.imagesService.findByIdOrFail(
         dto.background_image_id,
       );
@@ -359,7 +378,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {ForbiddenException} - If authentication is disabled or the
    *   username does not match the user ID
    */
-  public async checkIfUsernameMatchesIdOrPriviledged(
+  public async checkIfUsernameMatchesIdOrIsAdmin(
     userId: number,
     username: string,
   ): Promise<boolean> {
@@ -373,12 +392,12 @@ export class UsersService implements OnApplicationBootstrap {
     if (user.role === Role.ADMIN) {
       return true;
     }
-    if (user.username !== username) {
+    if (user.username.toLowerCase() !== username.toLowerCase()) {
       throw new ForbiddenException(
         {
           requestedId: userId,
           requestedUser: user.username,
-          requestor: username,
+          requestorUser: username,
         },
         "You are not allowed to make changes to other users data.",
       );
@@ -386,39 +405,38 @@ export class UsersService implements OnApplicationBootstrap {
     return true;
   }
 
-  /**
-   * Checks for the existence of a user with the given username or email.
-   *
-   * @param username - The username to check.
-   * @param email - The email to check.
-   * @throws {ForbiddenException} If a user with the same username or email
-   *   already exists.
-   */
-  private async checkForExistingUser(
+  private async throwIfUserAlreadyExists(
     username: string | undefined,
     email: string | undefined,
   ) {
-    if (username && email) {
-      return;
+    if (!username && !email) {
+      throw new BadRequestException(
+        `Can't check if a user exists if neither username nor email is given.`,
+      );
     }
 
-    const where = {} as { username: string; email: string };
+    const where = {} as {
+      username: FindOperator<string>;
+      email: FindOperator<string>;
+    };
 
     if (username) {
-      where.username = username;
+      where.username = ILike(username);
     }
 
     if (email) {
-      where.email = email;
+      where.email = ILike(email);
     }
 
     const existingUser = await this.userRepository.findOne({ where });
 
     if (existingUser) {
       const duplicateField =
-        existingUser.username === username ? "username" : "email";
+        existingUser.username.toLowerCase() === username?.toLowerCase()
+          ? "username"
+          : "email";
       throw new ForbiddenException(
-        `User with this ${duplicateField} already exists.`,
+        `A user with this ${duplicateField} already exists. (case-insensitive)`,
       );
     }
   }

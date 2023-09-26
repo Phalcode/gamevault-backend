@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
@@ -346,10 +347,13 @@ export class FilesService implements OnApplicationBootstrap {
 
   private async archiveFiles(
     output: string,
-    source: string | string[],
+    sourcePath: string,
   ): Promise<void> {
+    if (!existsSync(sourcePath)) {
+      throw new NotFoundException(`The game file could not be found.`);
+    }
     return new Promise<void>((resolve, reject) => {
-      const archiveStream = add(output, source);
+      const archiveStream = add(output, sourcePath);
       archiveStream.on("error", (error) => {
         this.logger.error(error, `Error archiving "${output}"`);
         reject(error);
@@ -489,6 +493,10 @@ export class FilesService implements OnApplicationBootstrap {
         );
         await this.archiveFiles(fileDownloadPath, game.file_path);
       }
+    }
+
+    if (!existsSync(fileDownloadPath)) {
+      throw new NotFoundException(`The game file could not be found.`);
     }
 
     const file = createReadStream(fileDownloadPath).pipe(
