@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
@@ -346,10 +347,15 @@ export class FilesService implements OnApplicationBootstrap {
 
   private async archiveFiles(
     output: string,
-    source: string | string[],
+    sourcePath: string,
   ): Promise<void> {
+    if (!existsSync(sourcePath)) {
+      throw new NotFoundException(
+        `The File "${sourcePath}" could not be found.`,
+      );
+    }
     return new Promise<void>((resolve, reject) => {
-      const archiveStream = add(output, source);
+      const archiveStream = add(output, sourcePath);
       archiveStream.on("error", (error) => {
         this.logger.error(error, `Error archiving "${output}"`);
         reject(error);
@@ -464,54 +470,55 @@ export class FilesService implements OnApplicationBootstrap {
     gameId: number,
     speedlimit?: number,
   ): Promise<StreamableFile> {
-    try {
-      if (
-        !speedlimit ||
-        speedlimit * 1024 > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
-      ) {
-        speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
-      } else {
-        speedlimit *= 1024;
-      }
-
-      const game = await this.gamesService.getGameById(gameId);
-      let fileDownloadPath = game.file_path;
-
-      if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
-        fileDownloadPath = `/tmp/${gameId}.tar`;
-
-        if (existsSync(fileDownloadPath)) {
-          this.logger.debug(
-            `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
-          );
-        } else {
-          this.logger.debug(
-            `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
-          );
-          await this.archiveFiles(fileDownloadPath, game.file_path);
-        }
-      }
-
-      const file = createReadStream(fileDownloadPath).pipe(
-        new Throttle(speedlimit),
-      );
-      const type = mime.getType(fileDownloadPath);
-
-      const filename = filenameSanitizer(
-        unidecode(path.basename(fileDownloadPath)),
-      );
-
-      const headers = {
-        disposition: `attachment; filename="${filename}"`,
-        length: statSync(fileDownloadPath).size,
-        type,
-      };
-
-      return new StreamableFile(file, headers);
-    } catch (error: unknown) {
-      this.logger.error(error, `Error downloading game with ID ${gameId}}`);
-      throw new InternalServerErrorException("Failed to download the game.");
+    if (
+      !speedlimit ||
+      speedlimit * 1024 > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
+    ) {
+      speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    } else {
+      speedlimit *= 1024;
     }
+
+    const game = await this.gamesService.getGameById(gameId);
+    let fileDownloadPath = game.file_path;
+
+    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
+      fileDownloadPath = `/tmp/${gameId}.tar`;
+
+      if (existsSync(fileDownloadPath)) {
+        this.logger.debug(
+          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
+        );
+      } else {
+        this.logger.debug(
+          `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
+        );
+        await this.archiveFiles(fileDownloadPath, game.file_path);
+      }
+    }
+
+    if (!existsSync(fileDownloadPath)) {
+      throw new NotFoundException(
+        `The File "${fileDownloadPath}" could not be found.`,
+      );
+    }
+
+    const file = createReadStream(fileDownloadPath).pipe(
+      new Throttle(speedlimit),
+    );
+    const type = mime.getType(fileDownloadPath);
+
+    const filename = filenameSanitizer(
+      unidecode(path.basename(fileDownloadPath)),
+    );
+
+    const headers = {
+      disposition: `attachment; filename="${filename}"`,
+      length: statSync(fileDownloadPath).size,
+      type,
+    };
+
+    return new StreamableFile(file, headers);
   }
 
   /**

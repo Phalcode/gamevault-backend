@@ -25,6 +25,7 @@ Recommended Gamevault App Version: `v1.6.1`
 ### Changes
 
 - Made Failing Game Downloads more robust
+- Fixed missing indexation game type getting detected as difference
 
 ### Thanks
 
