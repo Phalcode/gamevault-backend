@@ -508,6 +508,8 @@ export class FilesService implements OnApplicationBootstrap {
       unidecode(path.basename(fileDownloadPath)),
     );
 
+    this.logger.warn(statSync(fileDownloadPath));
+
     const headers = {
       disposition: `attachment; filename="${filename}"`,
       length: statSync(fileDownloadPath).size,
