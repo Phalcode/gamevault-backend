@@ -502,21 +502,18 @@ export class FilesService implements OnApplicationBootstrap {
     const file = createReadStream(fileDownloadPath).pipe(
       new Throttle(speedlimit),
     );
-    const type = mime.getType(fileDownloadPath);
 
+    const length = statSync(fileDownloadPath).size;
+    const type = mime.getType(fileDownloadPath);
     const filename = filenameSanitizer(
       unidecode(path.basename(fileDownloadPath)),
     );
 
-    this.logger.warn(statSync(fileDownloadPath));
-
-    const headers = {
+    return new StreamableFile(file, {
       disposition: `attachment; filename="${filename}"`,
-      length: statSync(fileDownloadPath).size,
+      length,
       type,
-    };
-
-    return new StreamableFile(file, headers);
+    });
   }
 
   /**
