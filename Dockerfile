@@ -13,7 +13,7 @@ VOLUME /files /images /logs /db
 # Install pnpm and other needed tools
 RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \ 
     && apt update \
-    && apt install -y sudo tzdata curl p7zip-full p7zip-rar \
+    && apt install -y sudo tzdata curl p7zip-full p7zip-rar postgresql-client \
     && npm i -g pnpm
 WORKDIR /app
 

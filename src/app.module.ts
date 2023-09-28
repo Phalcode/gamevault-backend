@@ -1,3 +1,4 @@
+import { DatabaseModule } from "./modules/database/database.module";
 import { FilesModule } from "./modules/files/files.module";
 import { BoxartsModule } from "./modules/boxarts/boxarts.module";
 import { DevelopersModule } from "./modules/developers/developers.module";
@@ -16,11 +17,9 @@ import { APP_FILTER } from "@nestjs/core";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/auth/basic-auth.strategy";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { getDatabaseConfiguration } from "./modules/database/db_configuration";
 @Module({
   imports: [
-    TypeOrmModule.forRoot(getDatabaseConfiguration()),
+    DatabaseModule,
     ScheduleModule.forRoot(),
     BoxartsModule,
     DevelopersModule,

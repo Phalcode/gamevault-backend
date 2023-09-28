@@ -1,0 +1,12 @@
+import { DatabaseService } from "./database.service";
+import { DatabaseController } from "./database.controller";
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { getDatabaseConfiguration } from "./db_configuration";
+
+@Module({
+  imports: [TypeOrmModule.forRoot(getDatabaseConfiguration())],
+  controllers: [DatabaseController],
+  providers: [DatabaseService],
+})
+export class DatabaseModule {}

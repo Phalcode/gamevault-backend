@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## 8.0.0
+
+Recommended Gamevault App Version: `v1.6.1`
+
+### Changes
+
+- [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
+
 ## 7.0.0
 
 Recommended Gamevault App Version: `v1.6.1`
