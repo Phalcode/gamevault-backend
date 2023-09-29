@@ -170,7 +170,10 @@ export class DatabaseService {
         )
           .then(() => this.logger.log("Restored pre-restore database."))
           .catch((error) => {
-            this.logger.error(error, "Error restoring PostgreSQL database");
+            this.logger.error(
+              error,
+              "Error restoring pre-restore PostgreSQL database",
+            );
             throw new InternalServerErrorException(
               "Error restoring pre-restore PostgreSQL Database.",
             );
