@@ -97,18 +97,14 @@ export class DatabaseService {
     backupFilePath: string,
   ): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
-    try {
-      await execute(
-        `pg_dump -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
-      ).catch((error) => {
-        throw new Error(`Error executing pg_dump: ${error}`);
-      });
-    } catch (error) {
+    await execute(
+      `pg_dump -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
+    ).catch((error) => {
       throw new InternalServerErrorException(
         error,
-        "Error backing up PostgreSQL Database",
+        "Error backing up PostgreSQL Database.",
       );
-    }
+    });
 
     const file = createReadStream(backupFilePath);
     const length = statSync(backupFilePath).size;
@@ -148,29 +144,33 @@ export class DatabaseService {
   private async restorePostgresqlDatabase(file: Express.Multer.File) {
     this.logger.log("Restoring PostgreSQL Database...");
     try {
-      try {
-        await this.backupPostgresqlDatabase(
-          "/tmp/gamevault_database_pre_restore.db",
-        );
-        writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
-        await execute(
-          `pg_restore /tmp/gamevault_database_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
-        );
-      } catch (error) {
-        this.logger.error(error, "Error restoring POSTGRESQL database");
-        if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
-          this.logger.log("Restoring pre-restore database.");
-          await execute(
-            `pg_restore /tmp/gamevault_database_pre_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
-          );
-          this.logger.log("Restored pre-restore database.");
-        }
-      }
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        "Error restoring PostgreSQL Database",
+      await this.backupPostgresqlDatabase(
+        "/tmp/gamevault_database_pre_restore.db",
       );
+      writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
+      await execute(
+        `pg_restore /tmp/gamevault_database_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
+      ).catch((error) => {
+        throw new InternalServerErrorException(
+          error,
+          "Error restoring PostgreSQL Database.",
+        );
+      });
+    } catch (error) {
+      this.logger.error(error, "Error restoring POSTGRESQL database");
+      if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
+        this.logger.log("Restoring pre-restore database.");
+        await execute(
+          `pg_restore /tmp/gamevault_database_pre_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
+        )
+          .then(() => this.logger.log("Restored pre-restore database."))
+          .catch((error) => {
+            throw new InternalServerErrorException(
+              error,
+              "Error restoring pre-restore PostgreSQL Database.",
+            );
+          });
+      }
     }
   }
 
