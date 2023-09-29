@@ -100,7 +100,9 @@ export class DatabaseService {
     try {
       await execute(
         `pg_dump -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
-      );
+      ).catch((error) => {
+        throw new Error(`Error executing pg_dump: ${error}`);
+      });
     } catch (error) {
       throw new InternalServerErrorException(
         error,
