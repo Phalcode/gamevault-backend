@@ -98,7 +98,7 @@ export class DatabaseService {
   ): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
     await execute(
-      `pg_dump -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
+      `PGPASSWORD=${configuration.DB.PASSWORD} pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
     ).catch((error) => {
       throw new InternalServerErrorException(
         error,
@@ -149,7 +149,7 @@ export class DatabaseService {
       );
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
       await execute(
-        `pg_restore /tmp/gamevault_database_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
+        `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore /tmp/gamevault_database_restore.db -e -c -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE}`,
       ).catch((error) => {
         throw new InternalServerErrorException(
           error,
@@ -161,7 +161,7 @@ export class DatabaseService {
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         await execute(
-          `pg_restore /tmp/gamevault_database_pre_restore.db -e -c -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -w ${configuration.DB.PASSWORD} -d ${configuration.DB.DATABASE}`,
+          `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore /tmp/gamevault_database_pre_restore.db -e -c -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE}`,
         )
           .then(() => this.logger.log("Restored pre-restore database."))
           .catch((error) => {
