@@ -33,9 +33,12 @@ export class DatabaseService {
         "This server can't backup its data as it uses an in-memory database.",
       );
     }
+
     this.validateDatabasePassword(password);
     await this.disconnectDatabase();
+
     let backupFile: Promise<StreamableFile>;
+
     switch (configuration.DB.SYSTEM) {
       case "POSTGRESQL":
         backupFile = this.backupPostgresqlDatabase(
@@ -50,6 +53,7 @@ export class DatabaseService {
           "This server's DB_SYSTEM environment variable is set to an unknown value.",
         );
     }
+
     await this.connectDatabase();
     return backupFile;
   }
@@ -60,8 +64,10 @@ export class DatabaseService {
         "This server can't restore backups as it uses an in-memory database.",
       );
     }
+
     this.validateDatabasePassword(password);
     await this.disconnectDatabase();
+
     switch (configuration.DB.SYSTEM) {
       case "POSTGRESQL":
         await this.restorePostgresqlDatabase(file);
@@ -74,6 +80,7 @@ export class DatabaseService {
           "This server's DB_SYSTEM environment variable is set to an unknown value.",
         );
     }
+
     await this.connectDatabase();
     await this.migrateDatabase();
   }
@@ -97,26 +104,27 @@ export class DatabaseService {
     backupFilePath: string,
   ): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
-    await execute(
-      `PGPASSWORD=${configuration.DB.PASSWORD} pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
-    ).catch((error) => {
+    try {
+      await execute(
+        `PGPASSWORD=${configuration.DB.PASSWORD} pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
+      );
+      const file = createReadStream(backupFilePath);
+      const length = statSync(backupFilePath).size;
+      const type = mime.getType(backupFilePath);
+      const filename = filenameSanitizer(
+        unidecode(path.basename(backupFilePath)),
+      );
+      return new StreamableFile(file, {
+        disposition: `attachment; filename="${filename}"`,
+        length,
+        type,
+      });
+    } catch (error) {
       this.logger.error(error, "Error backing up PostgreSQL database");
       throw new InternalServerErrorException(
         "Error backing up PostgreSQL Database.",
       );
-    });
-
-    const file = createReadStream(backupFilePath);
-    const length = statSync(backupFilePath).size;
-    const type = mime.getType(backupFilePath);
-    const filename = filenameSanitizer(
-      unidecode(path.basename(backupFilePath)),
-    );
-    return new StreamableFile(file, {
-      disposition: `attachment; filename="${filename}"`,
-      length,
-      type,
-    });
+    }
   }
 
   private async backupSqliteDatabase(
@@ -149,19 +157,15 @@ export class DatabaseService {
       );
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
       await execute(
-        `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
-      ).catch((error) => {
-        this.logger.error(error, "Error restoring PostgreSQL database");
-        throw new InternalServerErrorException(
-          "Error restoring PostgreSQL Database.",
-        );
-      });
+        `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -C -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
+      );
+      this.logger.log("Successfully restored PostgreSQL Database...");
     } catch (error) {
-      this.logger.error(error, "Error restoring PostgreSQL database");
+      this.logger.error(error, "Error restoring PostgreSQL database.");
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         await execute(
-          `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -v -e -c -C -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
+          `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -C -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
         )
           .then(() => this.logger.log("Restored pre-restore database."))
           .catch((error) => {
