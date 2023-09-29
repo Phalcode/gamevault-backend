@@ -19,7 +19,7 @@ import unidecode from "unidecode";
 import filenameSanitizer from "sanitize-filename";
 import mime from "mime";
 import path from "path";
-import { execute } from "@getvim/execute";
+import { exec } from "child_process";
 
 @Injectable()
 export class DatabaseService {
@@ -100,20 +100,23 @@ export class DatabaseService {
     return await this.dataSource.runMigrations();
   }
 
-  private async backupPostgresqlDatabase(
+  async backupPostgresqlDatabase(
     backupFilePath: string,
   ): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
     try {
-      await execute(
-        `PGPASSWORD=${configuration.DB.PASSWORD} pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
+      exec(
+        `pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
+        { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
+
       const file = createReadStream(backupFilePath);
       const length = statSync(backupFilePath).size;
       const type = mime.getType(backupFilePath);
       const filename = filenameSanitizer(
         unidecode(path.basename(backupFilePath)),
       );
+
       return new StreamableFile(file, {
         disposition: `attachment; filename="${filename}"`,
         length,
@@ -149,35 +152,41 @@ export class DatabaseService {
     });
   }
 
-  private async restorePostgresqlDatabase(file: Express.Multer.File) {
+  async restorePostgresqlDatabase(file: Express.Multer.File) {
     this.logger.log("Restoring PostgreSQL Database...");
     try {
       await this.backupPostgresqlDatabase(
         "/tmp/gamevault_database_pre_restore.db",
       );
+
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
-      await execute(
-        `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
+
+      exec(
+        `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
+        { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
+
       this.logger.log("Successfully restored PostgreSQL Database...");
     } catch (error) {
       this.logger.error(error, "Error restoring PostgreSQL database.");
-      console.error(error);
+
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
-        await execute(
-          `PGPASSWORD=${configuration.DB.PASSWORD} pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
-        )
-          .then(() => this.logger.log("Restored pre-restore database."))
-          .catch((error) => {
-            this.logger.error(
-              error,
-              "Error restoring pre-restore PostgreSQL database",
-            );
-            throw new InternalServerErrorException(
-              "Error restoring pre-restore PostgreSQL Database.",
-            );
-          });
+        try {
+          exec(
+            `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
+            { env: { PGPASSWORD: configuration.DB.PASSWORD } },
+          );
+          this.logger.log("Restored pre-restore database.");
+        } catch (error) {
+          this.logger.error(
+            error,
+            "Error restoring pre-restore PostgreSQL database",
+          );
+          throw new InternalServerErrorException(
+            "Error restoring pre-restore PostgreSQL Database.",
+          );
+        }
       }
     }
   }

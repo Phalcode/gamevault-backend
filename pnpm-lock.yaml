@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@getvim/execute':
-    specifier: ^1.0.0
-    version: 1.0.0
   '@nestjs/axios':
     specifier: 3.0.0
     version: 3.0.0(@nestjs/common@10.2.6)(axios@1.5.1)(reflect-metadata@0.1.13)(rxjs@7.8.1)
@@ -402,10 +399,6 @@ packages:
     resolution: {integrity: sha512-aZAXGYo6m22Fk1zZzEUKBvut/CIIQe/BapEORnxiD5Qr0kPHqqI69NtEMCme74h+at72sPhbkb4ZrLd1W3KRLA==}
     dependencies:
       fast-json-stringify: 5.7.0
-    dev: false
-
-  /@getvim/execute@1.0.0:
-    resolution: {integrity: sha512-DBtKHtKq4GKNnHL8pmiZb2y7uhkfVaQljqlmOJODDtJJfVOPQtUMMJCbEBTbvrqTnOlzgcgftUIsJCbLNgukdg==}
     dev: false
 
   /@humanwhocodes/config-array@0.11.11:
