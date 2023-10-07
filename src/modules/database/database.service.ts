@@ -174,7 +174,7 @@ export class DatabaseService {
       );
 
       await this.execPromise(
-        `pg_restore -O -e -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_restore.db`,
+        `pg_restore -O -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_restore.db`,
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
@@ -196,7 +196,7 @@ export class DatabaseService {
           );
 
           await this.execPromise(
-            `pg_restore -O -e -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_pre_restore.db`,
+            `pg_restore -O -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_pre_restore.db`,
             { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
           this.logger.log("Restored pre-restore database.");
