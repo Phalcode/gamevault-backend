@@ -63,9 +63,6 @@ export class ProgressService {
       return await this.progressRepository.findOneOrFail({
         where: {
           id: progressId,
-          minutes_played: MoreThan(0),
-          state: Not(State.UNPLAYED),
-          deleted_at: IsNull(),
         },
         relations: ["game", "user"],
         order: { minutes_played: "DESC" },
@@ -126,13 +123,14 @@ export class ProgressService {
   public async getProgressByUserAndGame(
     userId: number,
     gameId: number,
+    filterEmpty = true,
   ): Promise<Progress> {
     let progress = await this.progressRepository.findOne({
       where: {
         user: { id: userId },
         game: { id: gameId },
-        minutes_played: MoreThan(0),
-        state: Not(State.UNPLAYED),
+        minutes_played: filterEmpty ? MoreThan(0) : undefined,
+        state: filterEmpty ? Not(State.UNPLAYED) : undefined,
         deleted_at: IsNull(),
       },
       withDeleted: true,
@@ -160,7 +158,7 @@ export class ProgressService {
       executorUsername,
     );
 
-    const progress = await this.getProgressByUserAndGame(userId, gameId);
+    const progress = await this.getProgressByUserAndGame(userId, gameId, false);
 
     progress.state = progressDto.state;
     if (progress.minutes_played > progressDto.minutes_played) {
@@ -192,7 +190,7 @@ export class ProgressService {
       userId,
       executorUsername,
     );
-    const progress = await this.getProgressByUserAndGame(userId, gameId);
+    const progress = await this.getProgressByUserAndGame(userId, gameId, false);
     if (
       progress.state !== State.INFINITE &&
       progress.state !== State.COMPLETED
