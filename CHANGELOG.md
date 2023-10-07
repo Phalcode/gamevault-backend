@@ -6,7 +6,8 @@ Recommended Gamevault App Version: `v1.6.1`
 
 ### Changes
 
-- [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
+- //TODO: [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
+- Refactored Progress-Service
 
 ## 7.0.0
 
