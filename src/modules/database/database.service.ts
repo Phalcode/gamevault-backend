@@ -20,10 +20,12 @@ import filenameSanitizer from "sanitize-filename";
 import mime from "mime";
 import path from "path";
 import { exec } from "child_process";
+import { promisify } from "util";
 
 @Injectable()
 export class DatabaseService {
   private readonly logger = new Logger(DatabaseService.name);
+  private execPromise = promisify(exec);
 
   constructor(private dataSource: DataSource) {}
 
@@ -105,7 +107,7 @@ export class DatabaseService {
   ): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
     try {
-      exec(
+      await this.execPromise(
         `pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
@@ -161,7 +163,7 @@ export class DatabaseService {
 
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
 
-      exec(
+      await this.execPromise(
         `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
@@ -173,7 +175,7 @@ export class DatabaseService {
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         try {
-          exec(
+          await this.execPromise(
             `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
             { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
