@@ -164,7 +164,15 @@ export class DatabaseService {
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
 
       await this.execPromise(
-        `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_restore.db`,
+        `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+      );
+
+      await this.execPromise(
+        `createdb -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+      );
+
+      await this.execPromise(
+        `pg_restore -O -e -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_restore.db`,
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
@@ -176,7 +184,15 @@ export class DatabaseService {
         this.logger.log("Restoring pre-restore database.");
         try {
           await this.execPromise(
-            `pg_restore -O -v -e -c -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} < /tmp/gamevault_database_pre_restore.db`,
+            `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+          );
+
+          await this.execPromise(
+            `createdb -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+          );
+
+          await this.execPromise(
+            `pg_restore -O -e -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_pre_restore.db`,
             { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
           this.logger.log("Restored pre-restore database.");
