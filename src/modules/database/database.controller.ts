@@ -26,7 +26,7 @@ export class DatabaseController {
   @Get("backup")
   @ApiOperation({
     summary:
-      "Create a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time.",
+      "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time.",
     operationId: "backupDatabase",
   })
   @ApiHeader({
@@ -44,7 +44,7 @@ export class DatabaseController {
   @Post("restore")
   @ApiOperation({
     summary:
-      "Restore a previously saved database dump. This action will replace all current data in the database.",
+      "Upload and restore a previously saved database dump. This action will replace all current data in the database.",
     operationId: "restoreDatabase",
   })
   @ApiHeader({
