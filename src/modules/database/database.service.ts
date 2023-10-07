@@ -112,23 +112,9 @@ export class DatabaseService {
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
-      const file = createReadStream(backupFilePath);
-      const length = statSync(backupFilePath).size;
-      const type = mime.getType(backupFilePath);
-      const filename = filenameSanitizer(
-        unidecode(path.basename(backupFilePath)),
-      );
-
-      return new StreamableFile(file, {
-        disposition: `attachment; filename="${filename}"`,
-        length,
-        type,
-      });
+      return this.createStreamableFile(backupFilePath);
     } catch (error) {
-      this.logger.error(error, "Error backing up PostgreSQL database");
-      throw new InternalServerErrorException(
-        "Error backing up PostgreSQL Database.",
-      );
+      this.handleDatabaseBackupError(error);
     }
   }
 
@@ -141,17 +127,7 @@ export class DatabaseService {
       backupFilePath,
     );
 
-    const file = createReadStream(backupFilePath);
-    const length = statSync(backupFilePath).size;
-    const type = mime.getType(backupFilePath);
-    const filename = filenameSanitizer(
-      unidecode(path.basename(backupFilePath)),
-    );
-    return new StreamableFile(file, {
-      disposition: `attachment; filename="${filename}"`,
-      length,
-      type,
-    });
+    return this.createStreamableFile(backupFilePath);
   }
 
   async restorePostgresqlDatabase(file: Express.Multer.File) {
@@ -163,12 +139,19 @@ export class DatabaseService {
 
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
 
-      await this.execPromise(
-        `pg_restore -O -c --if-exists -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_restore.db`,
-        { env: { PGPASSWORD: configuration.DB.PASSWORD } },
-      );
+      try {
+        await this.execPromise(
+          `pg_restore -O -c --if-exists -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} /tmp/gamevault_database_restore.db`,
+          { env: { PGPASSWORD: configuration.DB.PASSWORD } },
+        );
 
-      this.logger.log("Successfully restored PostgreSQL Database...");
+        this.logger.log("Successfully restored PostgreSQL Database...");
+      } catch (error) {
+        this.logger.warn(
+          error,
+          "Something may went wrong restoring your backup. Please check the logs carefully",
+        );
+      }
     } catch (error) {
       this.logger.error(error, "Error restoring PostgreSQL database.");
 
@@ -183,7 +166,7 @@ export class DatabaseService {
         } catch (error) {
           this.logger.error(
             error,
-            "Error restoring pre-restore PostgreSQL database",
+            "Error restoring pre-restore PostgreSQL database. Please restore the dump manually.",
           );
           throw new InternalServerErrorException(
             "Error restoring pre-restore PostgreSQL Database.",
@@ -197,11 +180,7 @@ export class DatabaseService {
     this.logger.log("Restoring SQLITE Database...");
     try {
       if (existsSync(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)) {
-        this.logger.log("Backing up pre-restore database");
-        copyFileSync(
-          `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
-          "/tmp/gamevault_database_pre_restore.db",
-        );
+        this.backupSqliteDatabase("/tmp/gamevault_database_pre_restore.db");
       }
       writeFileSync(
         `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
@@ -221,17 +200,34 @@ export class DatabaseService {
   }
 
   private validateDatabasePassword(password: string) {
-    if (configuration.DB.PASSWORD === password) {
-      return;
+    if (configuration.DB.PASSWORD !== password) {
+      throw new UnauthorizedException(
+        "The database password provided in the X-Database-Password Header is incorrect.",
+      );
     }
-    throw new UnauthorizedException(
-      "The database password provided in the X-Database-Password Header is incorrect.",
-    );
   }
 
   private generateBackupFilepath(): string {
     const now = new Date();
     const timestamp = now.toISOString().replace(/[:.]/g, "-");
     return `/tmp/gamevault_database_backup_${timestamp}.db`;
+  }
+
+  private createStreamableFile(filePath: string): StreamableFile {
+    const file = createReadStream(filePath);
+    const length = statSync(filePath).size;
+    const type = mime.getType(filePath);
+    const filename = filenameSanitizer(unidecode(path.basename(filePath)));
+
+    return new StreamableFile(file, {
+      disposition: `attachment; filename="${filename}"`,
+      length,
+      type,
+    });
+  }
+
+  private handleDatabaseBackupError(error: unknown) {
+    this.logger.error(error, "Error backing up database");
+    throw new InternalServerErrorException("Error backing up database.");
   }
 }
