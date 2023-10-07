@@ -165,10 +165,12 @@ export class DatabaseService {
 
       await this.execPromise(
         `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+        { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
       await this.execPromise(
         `createdb -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+        { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
       await this.execPromise(
@@ -185,10 +187,12 @@ export class DatabaseService {
         try {
           await this.execPromise(
             `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+            { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
 
           await this.execPromise(
             `createdb -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+            { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
 
           await this.execPromise(
