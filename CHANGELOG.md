@@ -7,7 +7,11 @@ Recommended Gamevault App Version: `v1.6.1`
 ### Changes
 
 - //TODO: [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
-- Refactored Progress-Service
+- //TODO: Refactored Progress-Service
+  - Migration that deletes UNPLAYED 0 Min Progresses
+  - Progress API hard deletes progresses that are set to unplayed with 0 min
+  - Progress api returns ALL Progresses, that were not manually deleted
+  - Progress Update should have nullable fields so they can be updated partially
 
 ## 7.0.0
 
