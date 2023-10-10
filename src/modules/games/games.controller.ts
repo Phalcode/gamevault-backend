@@ -66,7 +66,7 @@ export class GamesController {
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
-  async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
+  async get(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
@@ -114,8 +114,8 @@ export class GamesController {
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
-  async getRandomGame(): Promise<Game> {
-    return await this.gamesService.getRandomGame();
+  async getRandom(): Promise<Game> {
+    return await this.gamesService.getRandom();
   }
 
   /**
@@ -131,8 +131,8 @@ export class GamesController {
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
-  async getGameById(@Param() params: IdDto): Promise<Game> {
-    return await this.gamesService.getGameById(Number(params.id), true);
+  async getById(@Param() params: IdDto): Promise<Game> {
+    return await this.gamesService.getByIdOrFail(Number(params.id), true);
   }
   /**
    * Download a game by its ID.
@@ -157,11 +157,11 @@ export class GamesController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
-  async downloadGame(
+  async download(
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
   ): Promise<StreamableFile> {
-    return await this.filesService.downloadGame(
+    return await this.filesService.download(
       Number(params.id),
       Number(speedlimit),
     );
@@ -174,12 +174,12 @@ export class GamesController {
   })
   @ApiBody({ type: () => UpdateGameDto })
   @MinimumRole(Role.EDITOR)
-  async updateGame(
+  async update(
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Game> {
-    return await this.gamesService.updateGame(
+    return await this.gamesService.update(
       Number(params.id),
       dto,
       req.gamevaultuser.username,

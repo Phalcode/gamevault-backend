@@ -38,13 +38,13 @@ export class UsersService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     try {
-      await this.setServerAdmin();
+      await this.setAdmin();
     } catch (error) {
       this.logger.error(error, "Error on FilesService Bootstrap");
     }
   }
 
-  private async setServerAdmin() {
+  private async setAdmin() {
     try {
       if (!configuration.SERVER.ADMIN_USERNAME) {
         this.logger.warn(
@@ -53,7 +53,7 @@ export class UsersService implements OnApplicationBootstrap {
         return;
       }
 
-      const user = await this.getUserByUsernameOrFail(
+      const user = await this.getByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -93,7 +93,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} If the user with the specified ID does not
    *   exist.
    */
-  public async getUserByIdOrFail(
+  public async getByIdOrFail(
     id: number,
     inludeDeletedUsers = false,
   ): Promise<GamevaultUser> {
@@ -120,9 +120,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified username is not
    *   found
    */
-  public async getUserByUsernameOrFail(
-    username: string,
-  ): Promise<GamevaultUser> {
+  public async getByUsernameOrFail(username: string): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
@@ -145,7 +143,7 @@ export class UsersService implements OnApplicationBootstrap {
    *
    * @returns - Overview of all users
    */
-  public async getUsers(
+  public async getAll(
     includeDeleted = false,
     includeDeactivated = false,
   ): Promise<GamevaultUser[]> {
@@ -167,7 +165,7 @@ export class UsersService implements OnApplicationBootstrap {
    *   already exists
    */
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
-    await this.throwIfUserAlreadyExists(dto.username, dto.email);
+    await this.throwIfAlreadyExists(dto.username, dto.email);
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
@@ -248,18 +246,18 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
     executorUsername?: string,
   ): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
+    const user = await this.getByIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
       if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
-        await this.throwIfUserAlreadyExists(dto.username, undefined);
+        await this.throwIfAlreadyExists(dto.username, undefined);
       }
       user.username = dto.username;
     }
 
     if (dto.email != null && dto.email !== user.email) {
       if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
-        await this.throwIfUserAlreadyExists(undefined, dto.email);
+        await this.throwIfAlreadyExists(undefined, dto.email);
       }
       user.email = dto.email;
     }
@@ -277,7 +275,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.downloadImageByUrl(
+      user.profile_picture = await this.imagesService.downloadByUrl(
         dto.profile_picture_url,
         executorUsername,
       );
@@ -290,7 +288,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.background_image_url != null) {
-      user.background_image = await this.imagesService.downloadImageByUrl(
+      user.background_image = await this.imagesService.downloadByUrl(
         dto.background_image_url,
         executorUsername,
       );
@@ -319,7 +317,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to delete.
    */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
+    const user = await this.getByIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
@@ -329,7 +327,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to recover.
    */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id, true);
+    const user = await this.getByIdOrFail(id, true);
     return this.userRepository.recover(user);
   }
 
@@ -346,8 +344,8 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     url: string,
   ): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
-    user.profile_picture = await this.imagesService.downloadImageByUrl(url);
+    const user = await this.getByIdOrFail(id);
+    user.profile_picture = await this.imagesService.downloadByUrl(url);
     return await this.userRepository.save(user);
   }
 
@@ -361,8 +359,8 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified ID is not found
    */
   public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
-    user.background_image = await this.imagesService.downloadImageByUrl(url);
+    const user = await this.getByIdOrFail(id);
+    user.background_image = await this.imagesService.downloadByUrl(url);
     return await this.userRepository.save(user);
   }
 
@@ -388,7 +386,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.getUserByIdOrFail(userId);
+    const user = await this.getByIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
@@ -405,7 +403,7 @@ export class UsersService implements OnApplicationBootstrap {
     return true;
   }
 
-  private async throwIfUserAlreadyExists(
+  private async throwIfAlreadyExists(
     username: string | undefined,
     email: string | undefined,
   ) {

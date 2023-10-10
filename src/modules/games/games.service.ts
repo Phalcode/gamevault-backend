@@ -38,7 +38,7 @@ export class GamesService {
    * @throws {NotFoundException} - If a Game with the specified id is not found
    *   in the database.
    */
-  public async getGameById(id: number, loadRelations = false): Promise<Game> {
+  public async getByIdOrFail(id: number, loadRelations = false): Promise<Game> {
     try {
       return await this.gamesRepository.findOneOrFail({
         where: { id },
@@ -73,7 +73,7 @@ export class GamesService {
    * @throws {InternalServerErrorException} If the game does not have necessary
    *   data for dupe-checking.
    */
-  public async checkIfGameExistsInDatabase(
+  public async checkIfExistsInDatabase(
     game: Game,
   ): Promise<[GameExistence, Game]> {
     if (!game.file_path || (!game.title && !game.release_date)) {
@@ -154,11 +154,11 @@ export class GamesService {
    * @throws {Error} If there is an error retrieving the games from the
    *   database.
    */
-  public async getAllGames(): Promise<Game[]> {
+  public async getAll(): Promise<Game[]> {
     return this.gamesRepository.find();
   }
 
-  public async getRandomGame(): Promise<Game> {
+  public async getRandom(): Promise<Game> {
     const game = await this.gamesRepository
       .createQueryBuilder("game")
       .select("game.id")
@@ -166,7 +166,7 @@ export class GamesService {
       .limit(1)
       .getOne();
 
-    return this.getGameById(game.id, true);
+    return this.getByIdOrFail(game.id, true);
   }
 
   /**
@@ -179,9 +179,9 @@ export class GamesService {
    * @throws {NotFoundException} - If the game with the provided ID is not found
    *   in the database.
    */
-  public async remapGame(id: number, new_rawg_id: number): Promise<Game> {
+  public async remap(id: number, new_rawg_id: number): Promise<Game> {
     // Fetch the game to remap from the database and set the new rawg_id
-    let game = await this.getGameById(id);
+    let game = await this.getByIdOrFail(id);
     game.rawg_id = new_rawg_id;
 
     // Null all related fields but keep progresses
@@ -201,11 +201,11 @@ export class GamesService {
     game.tags = [];
     game.genres = [];
 
-    game = await this.saveGame(game);
+    game = await this.save(game);
     // Recache the game
-    await this.rawgService.cacheGames([game]);
+    await this.rawgService.checkCache([game]);
     // Refetch the boxart
-    await this.boxartService.checkBoxArt(game);
+    await this.boxartService.check(game);
     // Return the new game object
     return game;
   }
@@ -216,7 +216,7 @@ export class GamesService {
    * @param game - The game object to save.
    * @returns - The saved game object.
    */
-  public async saveGame(game: Game): Promise<Game> {
+  public async save(game: Game): Promise<Game> {
     return this.gamesRepository.save(game);
   }
 
@@ -225,37 +225,38 @@ export class GamesService {
    *
    * @param id - The id of the game to delete.
    */
-  public deleteGame(game: Game) {
+  public delete(game: Game) {
     return this.gamesRepository.softRemove(game);
   }
 
-  public async updateGame(id: number, dto: UpdateGameDto, username: string) {
-    const game = dto.rawg_id
-      ? await this.remapGame(id, dto.rawg_id)
-      : await this.getGameById(id);
+  public async update(id: number, dto: UpdateGameDto, username: string) {
+    const game =
+      dto.rawg_id != null
+        ? await this.remap(id, dto.rawg_id)
+        : await this.getByIdOrFail(id);
 
     // Updates BoxArt if Necessary
-    if (dto.box_image_url) {
-      game.box_image = await this.imagesService.downloadImageByUrl(
+    if (dto.box_image_url != null) {
+      game.box_image = await this.imagesService.downloadByUrl(
         dto.box_image_url,
         username,
       );
     }
 
-    if (dto.box_image_id)
+    if (dto.box_image_id != null)
       game.box_image = await this.imagesService.findByIdOrFail(
         dto.box_image_id,
       );
 
     // Updates Background Image if Necessary
-    if (dto.background_image_url) {
-      game.background_image = await this.imagesService.downloadImageByUrl(
+    if (dto.background_image_url != null) {
+      game.background_image = await this.imagesService.downloadByUrl(
         dto.background_image_url,
         username,
       );
     }
 
-    if (dto.background_image_id)
+    if (dto.background_image_id != null)
       game.background_image = await this.imagesService.findByIdOrFail(
         dto.background_image_id,
       );
@@ -269,8 +270,8 @@ export class GamesService {
    * @param id - The id of the game to restore.
    * @returns - The restored game object.
    */
-  public async restoreGame(id: number): Promise<Game> {
+  public async restore(id: number): Promise<Game> {
     await this.gamesRepository.recover({ id });
-    return this.getGameById(id);
+    return this.getByIdOrFail(id);
   }
 }

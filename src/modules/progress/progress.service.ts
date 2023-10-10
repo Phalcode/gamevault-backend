@@ -6,14 +6,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { IsNull, MoreThan, Not, Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 import { Progress } from "./progress.entity";
 import { State } from "./models/state.enum";
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
 import path from "path";
 import * as fs from "fs";
-import { ProgressDto } from "./models/progress.dto";
+import { UpdateProgressDto } from "./models/update-progress.dto";
 
 @Injectable()
 export class ProgressService {
@@ -45,11 +45,9 @@ export class ProgressService {
     }
   }
 
-  public async getAllProgresses() {
+  public async getAll() {
     return await this.progressRepository.find({
       where: {
-        minutes_played: MoreThan(0),
-        state: Not(State.UNPLAYED),
         deleted_at: IsNull(),
       },
       relations: ["game", "user"],
@@ -58,7 +56,7 @@ export class ProgressService {
     });
   }
 
-  public async getProgressById(progressId: number) {
+  public async getById(progressId: number) {
     try {
       return await this.progressRepository.findOneOrFail({
         where: {
@@ -75,11 +73,11 @@ export class ProgressService {
     }
   }
 
-  public async deleteProgressById(
+  public async delete(
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    const progress = await this.getProgressById(progressId);
+    const progress = await this.getById(progressId);
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
       progress.user.id,
@@ -92,13 +90,11 @@ export class ProgressService {
     return this.progressRepository.softRemove(progress);
   }
 
-  public async getProgressesByUser(userId: number) {
+  public async findByUserId(userId: number) {
     return await this.progressRepository.find({
       order: { minutes_played: "DESC" },
       where: {
         user: { id: userId },
-        minutes_played: MoreThan(0),
-        state: Not(State.UNPLAYED),
         deleted_at: IsNull(),
       },
       relations: ["game"],
@@ -106,12 +102,10 @@ export class ProgressService {
     });
   }
 
-  public async getProgressesByGame(gameId: number): Promise<Progress[]> {
+  public async findByGameId(gameId: number): Promise<Progress[]> {
     return await this.progressRepository.find({
       where: {
         game: { id: gameId },
-        minutes_played: MoreThan(0),
-        state: Not(State.UNPLAYED),
         deleted_at: IsNull(),
       },
       relations: ["user"],
@@ -120,37 +114,31 @@ export class ProgressService {
     });
   }
 
-  public async getProgressByUserAndGame(
+  public async findOrCreateByUserIdAndGameId(
     userId: number,
     gameId: number,
-    filterEmpty = true,
   ): Promise<Progress> {
-    let progress = await this.progressRepository.findOne({
-      where: {
-        user: { id: userId },
-        game: { id: gameId },
-        minutes_played: filterEmpty ? MoreThan(0) : undefined,
-        state: filterEmpty ? Not(State.UNPLAYED) : undefined,
-        deleted_at: IsNull(),
-      },
-      withDeleted: true,
-    });
-
-    if (!progress) {
-      progress = new Progress();
-      progress.user = await this.usersService.getUserByIdOrFail(userId);
-      progress.game = await this.gamesService.getGameById(gameId);
-      progress.state = State.UNPLAYED;
-      progress.minutes_played = 0;
+    try {
+      return await this.progressRepository.findOneOrFail({
+        where: {
+          user: { id: userId },
+          game: { id: gameId },
+          deleted_at: IsNull(),
+        },
+        withDeleted: true,
+      });
+    } catch (error) {
+      const newProgress = new Progress();
+      newProgress.user = await this.usersService.getByIdOrFail(userId);
+      newProgress.game = await this.gamesService.getByIdOrFail(gameId);
+      return newProgress;
     }
-
-    return progress;
   }
 
-  public async setProgress(
+  public async set(
     userId: number,
     gameId: number,
-    progressDto: ProgressDto,
+    updateProgressDto: UpdateProgressDto,
     executorUsername: string,
   ) {
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
@@ -158,29 +146,46 @@ export class ProgressService {
       executorUsername,
     );
 
-    const progress = await this.getProgressByUserAndGame(userId, gameId, false);
+    const progress = await this.findOrCreateByUserIdAndGameId(userId, gameId);
 
-    progress.state = progressDto.state;
-    if (progress.minutes_played > progressDto.minutes_played) {
-      throw new ConflictException(
-        `New value for "minutes_played" cannot be less than previous value: ${progress.minutes_played} minutes`,
-      );
-    }
-    if (progress.minutes_played !== progressDto.minutes_played) {
+    if (updateProgressDto.state != null) {
+      progress.state = updateProgressDto.state;
       if (
-        progress.state !== State.INFINITE &&
-        progress.state !== State.COMPLETED
+        updateProgressDto.state === State.UNPLAYED &&
+        progress.id &&
+        !progress.minutes_played &&
+        !updateProgressDto.minutes_played
       ) {
-        progress.state = State.PLAYING;
+        this.progressRepository.remove(progress);
+        this.logger.log(
+          `Deleted empty progress for user ${userId} and game ${gameId}`,
+        );
+        return;
       }
-      progress.minutes_played = progressDto.minutes_played;
-      progress.last_played_at = new Date();
+    }
+
+    if (updateProgressDto.minutes_played != null) {
+      if (progress.minutes_played > updateProgressDto.minutes_played) {
+        throw new ConflictException(
+          `New value for "minutes_played" cannot be less than previous value: ${progress.minutes_played} minutes`,
+        );
+      }
+      if (progress.minutes_played !== updateProgressDto.minutes_played) {
+        if (
+          progress.state !== State.INFINITE &&
+          progress.state !== State.COMPLETED
+        ) {
+          progress.state = State.PLAYING;
+        }
+        progress.minutes_played = updateProgressDto.minutes_played;
+        progress.last_played_at = new Date();
+      }
     }
     this.logger.log(`Updated progress for user ${userId} and game ${gameId}`);
     return this.progressRepository.save(progress);
   }
 
-  public async incrementProgress(
+  public async increment(
     userId: number,
     gameId: number,
     executorUsername: string,
@@ -190,7 +195,7 @@ export class ProgressService {
       userId,
       executorUsername,
     );
-    const progress = await this.getProgressByUserAndGame(userId, gameId, false);
+    const progress = await this.findOrCreateByUserIdAndGameId(userId, gameId);
     if (
       progress.state !== State.INFINITE &&
       progress.state !== State.COMPLETED

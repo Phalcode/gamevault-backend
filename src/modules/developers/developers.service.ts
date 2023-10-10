@@ -15,10 +15,7 @@ export class DevelopersService {
    * Returns the developer with the specified RAWG ID, creating a new developer
    * if one does not already exist.
    */
-  async getOrCreateDeveloper(
-    name: string,
-    rawg_id: number,
-  ): Promise<Developer> {
+  async getOrCreate(name: string, rawg_id: number): Promise<Developer> {
     const existingDeveloper = await this.developerRepository.findOneBy({
       rawg_id,
     });

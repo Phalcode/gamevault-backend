@@ -53,22 +53,20 @@ export class FilesService implements OnApplicationBootstrap {
   @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
   public async index(): Promise<void> {
     //Get all games in file system
-    const gamesInFileSystem = this.fetchFiles();
+    const gamesInFileSystem = this.fetch();
     //Feed Game
-    await this.ingestGames(gamesInFileSystem);
+    await this.ingest(gamesInFileSystem);
     //Get all games in database
-    const gamesInDatabase = await this.gamesService.getAllGames();
+    const gamesInDatabase = await this.gamesService.getAll();
     //Check integrity of games in database with games in file system
-    await this.integrityCheck(gamesInFileSystem, gamesInDatabase);
+    await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
     //Check cache of games in database
-    await this.rawgService.cacheGames(gamesInDatabase);
+    await this.rawgService.checkCache(gamesInDatabase);
     //Check boxart of games in database
-    await this.boxartService.checkBoxArts(gamesInDatabase);
+    await this.boxartService.checkMultiple(gamesInDatabase);
   }
 
-  private async ingestGames(
-    gamesInFileSystem: IGameVaultFile[],
-  ): Promise<void> {
+  private async ingest(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
     this.logger.log("Started Game Ingestion");
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
@@ -81,7 +79,7 @@ export class FilesService implements OnApplicationBootstrap {
         gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistence, Game] =
-          await this.gamesService.checkIfGameExistsInDatabase(gameToIndex);
+          await this.gamesService.checkIfExistsInDatabase(gameToIndex);
 
         switch (existingGameTuple[0]) {
           case GameExistence.EXISTS: {
@@ -93,8 +91,8 @@ export class FilesService implements OnApplicationBootstrap {
 
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug(`Indexing new file "${gameToIndex.file_path}"`);
-            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
-            await this.gamesService.saveGame(gameToIndex);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
+            await this.gamesService.save(gameToIndex);
             continue;
           }
 
@@ -102,11 +100,11 @@ export class FilesService implements OnApplicationBootstrap {
             this.logger.debug(
               `A soft-deleted duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
             );
-            const restoredGame = await this.gamesService.restoreGame(
+            const restoredGame = await this.gamesService.restore(
               existingGameTuple[1].id,
             );
-            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
-            await this.updateGame(restoredGame, gameToIndex);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
+            await this.update(restoredGame, gameToIndex);
             continue;
           }
 
@@ -114,8 +112,8 @@ export class FilesService implements OnApplicationBootstrap {
             this.logger.debug(
               `Detected changes in file "${gameToIndex.file_path}" in the database. Updating the information.`,
             );
-            gameToIndex.type = await this.detectGameType(gameToIndex.file_path);
-            await this.updateGame(existingGameTuple[1], gameToIndex);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
+            await this.update(existingGameTuple[1], gameToIndex);
             continue;
           }
         }
@@ -136,7 +134,7 @@ export class FilesService implements OnApplicationBootstrap {
    * @param {Game} updatesToApply - The updates to apply to the game.
    * @returns {Promise<Game>} The updated game.
    */
-  private async updateGame(
+  private async update(
     gameToUpdate: Game,
     updatesToApply: Game,
   ): Promise<Game> {
@@ -155,7 +153,7 @@ export class FilesService implements OnApplicationBootstrap {
       `Updated new Game Information for "${gameToUpdate.file_path}".`,
     );
 
-    return this.gamesService.saveGame(updatedGame);
+    return this.gamesService.save(updatedGame);
   }
 
   /**
@@ -251,7 +249,7 @@ export class FilesService implements OnApplicationBootstrap {
     return detectedPatterns.length > 0;
   }
 
-  private async detectGameType(path: string): Promise<GameType> {
+  private async detectType(path: string): Promise<GameType> {
     try {
       if (/\(W_P\)/.test(path)) {
         this.logger.debug(
@@ -345,10 +343,7 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
-  private async archiveFiles(
-    output: string,
-    sourcePath: string,
-  ): Promise<void> {
+  private async archive(output: string, sourcePath: string): Promise<void> {
     if (!existsSync(sourcePath)) {
       throw new NotFoundException(`The game file could not be found.`);
     }
@@ -378,7 +373,7 @@ export class FilesService implements OnApplicationBootstrap {
    *   the database.
    * @returns
    */
-  private async integrityCheck(
+  private async checkIntegrity(
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
   ): Promise<void> {
@@ -398,7 +393,7 @@ export class FilesService implements OnApplicationBootstrap {
         );
         // If game is not in file system, mark it as deleted
         if (!gameInFileSystem) {
-          await this.gamesService.deleteGame(gameInDatabase);
+          await this.gamesService.delete(gameInDatabase);
           this.logger.log(
             `Game "${gameInDatabase.file_path}" marked as deleted, as it can not be found in the filesystem.`,
           );
@@ -422,7 +417,7 @@ export class FilesService implements OnApplicationBootstrap {
    * @throws {Error} - If there's an error during the process.
    * @public
    */
-  private fetchFiles(): IGameVaultFile[] {
+  private fetch(): IGameVaultFile[] {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
@@ -464,7 +459,7 @@ export class FilesService implements OnApplicationBootstrap {
    *   the downloaded game file.
    * @public
    */
-  public async downloadGame(
+  public async download(
     gameId: number,
     speedlimit?: number,
   ): Promise<StreamableFile> {
@@ -477,7 +472,7 @@ export class FilesService implements OnApplicationBootstrap {
       speedlimit *= 1024;
     }
 
-    const game = await this.gamesService.getGameById(gameId);
+    const game = await this.gamesService.getByIdOrFail(gameId);
     let fileDownloadPath = game.file_path;
 
     if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
@@ -491,7 +486,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug(
           `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
         );
-        await this.archiveFiles(fileDownloadPath, game.file_path);
+        await this.archive(fileDownloadPath, game.file_path);
       }
     }
 

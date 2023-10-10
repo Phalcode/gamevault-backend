@@ -6,12 +6,13 @@ Recommended Gamevault App Version: `v1.6.1`
 
 ### Changes
 
+- Introduced a database migration to remove empty Progress entries (State = Unplayed and 0 minutes playtime).
+- The Progress API now performs a hard delete on Progress entries marked as unplayed with 0 minutes of playtime.
+- The Progress API returns all Progress entries that haven't been manually deleted.
+- Enhanced the Progress Update feature to support nullable fields, allowing partial updates.
+- Conducted code refactoring for uniformity in code structure and naming.
+
 - //TODO: [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
-- //TODO: Refactored Progress-Service
-  - Migration that deletes UNPLAYED 0 Min Progresses
-  - Progress API hard deletes progresses that are set to unplayed with 0 min
-  - Progress api returns ALL Progresses, that were not manually deleted
-  - Progress Update should have nullable fields so they can be updated partially
 
 ## 7.0.0
 

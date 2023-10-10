@@ -45,7 +45,7 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   @MinimumRole(Role.GUEST)
   async getUsers(): Promise<GamevaultUser[]> {
-    return await this.usersService.getUsers();
+    return await this.usersService.getAll();
   }
 
   /**
@@ -61,7 +61,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   async getAllUsers(): Promise<GamevaultUser[]> {
-    return await this.usersService.getUsers(true, true);
+    return await this.usersService.getAll(true, true);
   }
 
   /**
@@ -82,7 +82,7 @@ export class UsersController {
   async getMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.getUserByUsernameOrFail(
+    return await this.usersService.getByUsernameOrFail(
       request.gamevaultuser.username,
     );
   }
@@ -108,7 +108,7 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.getUserByUsernameOrFail(
+    const user = await this.usersService.getByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.update(
@@ -130,7 +130,7 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
   async deleteMe(@Request() request): Promise<GamevaultUser> {
-    const user = await this.usersService.getUserByUsernameOrFail(
+    const user = await this.usersService.getByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.delete(user.id);
@@ -152,7 +152,7 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
   async getUserById(@Param() params: IdDto): Promise<GamevaultUser> {
-    return await this.usersService.getUserByIdOrFail(Number(params.id));
+    return await this.usersService.getByIdOrFail(Number(params.id));
   }
 
   /**

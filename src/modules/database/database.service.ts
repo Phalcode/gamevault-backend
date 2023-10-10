@@ -36,19 +36,17 @@ export class DatabaseService {
       );
     }
 
-    this.validateDatabasePassword(password);
-    await this.disconnectDatabase();
+    this.validatePassword(password);
+    await this.disconnect();
 
     let backupFile: Promise<StreamableFile>;
 
     switch (configuration.DB.SYSTEM) {
       case "POSTGRESQL":
-        backupFile = this.backupPostgresqlDatabase(
-          this.generateBackupFilepath(),
-        );
+        backupFile = this.backupPostgresql(this.generateBackupFilepath());
         break;
       case "SQLITE":
-        backupFile = this.backupSqliteDatabase(this.generateBackupFilepath());
+        backupFile = this.backupSqlite(this.generateBackupFilepath());
         break;
       default:
         throw new InternalServerErrorException(
@@ -56,7 +54,7 @@ export class DatabaseService {
         );
     }
 
-    await this.connectDatabase();
+    await this.connect();
     return backupFile;
   }
 
@@ -67,15 +65,15 @@ export class DatabaseService {
       );
     }
 
-    this.validateDatabasePassword(password);
-    await this.disconnectDatabase();
+    this.validatePassword(password);
+    await this.disconnect();
 
     switch (configuration.DB.SYSTEM) {
       case "POSTGRESQL":
-        await this.restorePostgresqlDatabase(file);
+        await this.restorePostgresql(file);
         break;
       case "SQLITE":
-        await this.restoreSqliteDatabase(file);
+        await this.restoreSqlite(file);
         break;
       default:
         throw new InternalServerErrorException(
@@ -83,28 +81,26 @@ export class DatabaseService {
         );
     }
 
-    await this.connectDatabase();
-    await this.migrateDatabase();
+    await this.connect();
+    await this.migrate();
   }
 
-  async connectDatabase() {
+  async connect() {
     this.logger.log("Connecting Database...");
     return await this.dataSource.initialize();
   }
 
-  async disconnectDatabase() {
+  async disconnect() {
     this.logger.log("Disconnecting Database...");
     return await this.dataSource.destroy();
   }
 
-  async migrateDatabase() {
+  async migrate() {
     this.logger.log("Migrating Database...");
     return await this.dataSource.runMigrations();
   }
 
-  async backupPostgresqlDatabase(
-    backupFilePath: string,
-  ): Promise<StreamableFile> {
+  async backupPostgresql(backupFilePath: string): Promise<StreamableFile> {
     this.logger.log("Backing up PostgreSQL Database...");
     try {
       await this.execPromise(
@@ -114,13 +110,11 @@ export class DatabaseService {
 
       return this.createStreamableFile(backupFilePath);
     } catch (error) {
-      this.handleDatabaseBackupError(error);
+      this.handleBackupError(error);
     }
   }
 
-  private async backupSqliteDatabase(
-    backupFilePath: string,
-  ): Promise<StreamableFile> {
+  private async backupSqlite(backupFilePath: string): Promise<StreamableFile> {
     this.logger.log("Backing up SQLITE Database...");
     copyFileSync(
       `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
@@ -130,12 +124,10 @@ export class DatabaseService {
     return this.createStreamableFile(backupFilePath);
   }
 
-  async restorePostgresqlDatabase(file: Express.Multer.File) {
+  async restorePostgresql(file: Express.Multer.File) {
     this.logger.log("Restoring PostgreSQL Database...");
     try {
-      await this.backupPostgresqlDatabase(
-        "/tmp/gamevault_database_pre_restore.db",
-      );
+      await this.backupPostgresql("/tmp/gamevault_database_pre_restore.db");
 
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
 
@@ -196,11 +188,11 @@ export class DatabaseService {
     }
   }
 
-  private async restoreSqliteDatabase(file: Express.Multer.File) {
+  private async restoreSqlite(file: Express.Multer.File) {
     this.logger.log("Restoring SQLITE Database...");
     try {
       if (existsSync(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)) {
-        this.backupSqliteDatabase("/tmp/gamevault_database_pre_restore.db");
+        this.backupSqlite("/tmp/gamevault_database_pre_restore.db");
       }
       writeFileSync(
         `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
@@ -219,7 +211,7 @@ export class DatabaseService {
     }
   }
 
-  private validateDatabasePassword(password: string) {
+  private validatePassword(password: string) {
     if (configuration.DB.PASSWORD !== password) {
       throw new UnauthorizedException(
         "The database password provided in the X-Database-Password Header is incorrect.",
@@ -246,7 +238,7 @@ export class DatabaseService {
     });
   }
 
-  private handleDatabaseBackupError(error: unknown) {
+  private handleBackupError(error: unknown) {
     this.logger.error(error, "Error backing up database");
     throw new InternalServerErrorException("Error backing up database.");
   }

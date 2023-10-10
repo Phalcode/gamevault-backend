@@ -19,7 +19,7 @@ export class BoxArtsService {
     private imagesService: ImagesService,
   ) {}
 
-  public async checkBoxArts(games: Game[]): Promise<void> {
+  public async checkMultiple(games: Game[]): Promise<void> {
     if (configuration.TESTING.GOOGLE_API_DISABLED) {
       this.logger.warn(
         "Skipping Box Art Search because Google API is disabled",
@@ -31,7 +31,7 @@ export class BoxArtsService {
 
     for (const game of games) {
       try {
-        await this.checkBoxArt(game);
+        await this.check(game);
         this.logger.debug(
           { gameId: game.id, title: game.title },
           `Checked BoxArt Successfully`,
@@ -41,7 +41,7 @@ export class BoxArtsService {
           {
             gameId: game.id,
             title: game.title,
-            error: error,
+            error,
           },
           "Checking BoxArt Failed!",
         );
@@ -56,10 +56,10 @@ export class BoxArtsService {
    *
    * @param game - The game for which to check the box art.
    */
-  public async checkBoxArt(game: Game): Promise<void> {
+  public async check(game: Game): Promise<void> {
     if (
       game.box_image?.id &&
-      (await this.imagesService.isImageAvailable(game.box_image.id))
+      (await this.imagesService.isAvailable(game.box_image.id))
     ) {
       this.logger.debug(`Box Art for "${game.title}" is still available`);
       return;
@@ -179,8 +179,8 @@ export class BoxArtsService {
   ): Promise<boolean> {
     for (const image of images) {
       try {
-        game.box_image = await this.imagesService.downloadImageByUrl(image.url);
-        await this.gamesService.saveGame(game);
+        game.box_image = await this.imagesService.downloadByUrl(image.url);
+        await this.gamesService.save(game);
         this.logger.log(
           `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,
         );

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Logger,
+  NotFoundException,
   Param,
   Put,
   Request,
@@ -22,7 +23,7 @@ import { ProgressService } from "./progress.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { GamevaultUser } from "../users/gamevault-user.entity";
-import { ProgressDto } from "./models/progress.dto";
+import { UpdateProgressDto } from "./models/update-progress.dto";
 import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
 
 @Controller("progresses")
@@ -62,7 +63,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getAllProgresses(): Promise<Progress[]> {
-    return await this.progressService.getAllProgresses();
+    return await this.progressService.getAll();
   }
 
   /**
@@ -82,7 +83,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressById(@Param() params: IdDto): Promise<Progress> {
-    return await this.progressService.getProgressById(Number(params.id));
+    return await this.progressService.getById(Number(params.id));
   }
 
   /**
@@ -108,7 +109,7 @@ export class ProgressController {
     @Param() params: IdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.deleteProgressById(
+    return await this.progressService.delete(
       Number(params.id),
       req.gamevaultuser.username,
     );
@@ -128,7 +129,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByUser(@Param() params: IdDto) {
-    return await this.progressService.getProgressesByUser(Number(params.id));
+    return await this.progressService.findByUserId(Number(params.id));
   }
 
   /**
@@ -146,7 +147,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByGame(@Param() params: IdDto): Promise<Progress[]> {
-    return await this.progressService.getProgressesByGame(Number(params.id));
+    return await this.progressService.findByGameId(Number(params.id));
   }
 
   /**
@@ -166,13 +167,20 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress })
-  async getProgressByUserAndGame(
+  async findByUserAndGameOrFail(
     @Param() params: UserIdGameIdDto,
   ): Promise<Progress> {
-    return await this.progressService.getProgressByUserAndGame(
+    const progress = await this.progressService.findOrCreateByUserIdAndGameId(
       Number(params.userId),
       Number(params.gameId),
     );
+
+    if (!progress.id) {
+      throw new NotFoundException(
+        "No progress found for the given user ID and game ID combination.",
+      );
+    }
+    return progress;
   }
 
   /**
@@ -188,19 +196,19 @@ export class ProgressController {
    * @throws {Error} If there was an error setting the progress.
    */
   @Put("/user/:userId/game/:gameId")
-  @ApiBody({ type: () => ProgressDto })
+  @ApiBody({ type: () => UpdateProgressDto })
   @ApiOperation({
     summary: "create or update a progress",
     operationId: "setProgressForUser",
   })
   @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
-  async setProgressForUser(
+  async set(
     @Param() params: UserIdGameIdDto,
-    @Body() progress: ProgressDto,
+    @Body() progress: UpdateProgressDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.setProgress(
+    return await this.progressService.set(
       Number(params.userId),
       Number(params.gameId),
       progress,
@@ -226,11 +234,11 @@ export class ProgressController {
   })
   @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
-  async incrementProgressForUser(
+  async incrementByOne(
     @Param() params: UserIdGameIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.incrementProgress(
+    return await this.progressService.increment(
       Number(params.userId),
       Number(params.gameId),
       req.gamevaultuser.username,
@@ -260,7 +268,7 @@ export class ProgressController {
     @Param() params: IncrementProgressByMinutesDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.incrementProgress(
+    return await this.progressService.increment(
       Number(params.userId),
       Number(params.gameId),
       req.gamevaultuser.username,

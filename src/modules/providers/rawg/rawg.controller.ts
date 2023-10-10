@@ -45,7 +45,7 @@ export class RawgController {
   })
   @MinimumRole(Role.EDITOR)
   async searchRawg(@Query("query") query: string): Promise<MinimalGame[]> {
-    const rawgGames = await this.rawgService.getRawgGames(query);
+    const rawgGames = await this.rawgService.fetchMatching(query);
     // for each search result return a minimal gamevault game
     const games: MinimalGame[] = [];
     for (const rawgGame of rawgGames) {
@@ -74,13 +74,13 @@ export class RawgController {
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.EDITOR)
-  async recacheGame(@Param() params: IdDto): Promise<Game> {
-    let game = await this.gamesService.getGameById(Number(params.id));
+  async recache(@Param() params: IdDto): Promise<Game> {
+    let game = await this.gamesService.getByIdOrFail(Number(params.id));
     game.cache_date = null;
-    game = await this.gamesService.saveGame(game);
-    await this.rawgService.cacheGames([game]);
-    await this.boxartService.checkBoxArt(game);
-    return await this.gamesService.getGameById(Number(params.id), true);
+    game = await this.gamesService.save(game);
+    await this.rawgService.checkCache([game]);
+    await this.boxartService.check(game);
+    return await this.gamesService.getByIdOrFail(Number(params.id), true);
   }
 
   /** Manually triggers a recache from rawg-api for all games. */
@@ -93,14 +93,14 @@ export class RawgController {
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
-  async recacheAllGames(): Promise<string> {
-    const gamesInDatabase = await this.gamesService.getAllGames();
+  async recacheAll(): Promise<string> {
+    const gamesInDatabase = await this.gamesService.getAll();
     for (const game of gamesInDatabase) {
       game.cache_date = null;
-      await this.gamesService.saveGame(game);
+      await this.gamesService.save(game);
     }
-    await this.rawgService.cacheGames(gamesInDatabase);
-    await this.boxartService.checkBoxArts(gamesInDatabase);
+    await this.rawgService.checkCache(gamesInDatabase);
+    await this.boxartService.checkMultiple(gamesInDatabase);
     return "Recache successfuly completed";
   }
 }

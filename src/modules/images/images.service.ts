@@ -32,7 +32,7 @@ export class ImagesService {
     private usersService: UsersService,
   ) {}
 
-  public async isImageAvailable(id: number): Promise<boolean> {
+  public async isAvailable(id: number): Promise<boolean> {
     try {
       if (!id) {
         throw new NotFoundException("No image id given!");
@@ -48,7 +48,7 @@ export class ImagesService {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
       if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {
-        await this.deleteImage(image);
+        await this.delete(image);
         throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
@@ -57,7 +57,7 @@ export class ImagesService {
     }
   }
 
-  async downloadImageByUrl(
+  async downloadByUrl(
     sourceUrl: string,
     uploaderUsername?: string,
   ): Promise<Image> {
@@ -67,22 +67,22 @@ export class ImagesService {
     try {
       if (uploaderUsername) {
         image.uploader =
-          await this.usersService.getUserByUsernameOrFail(uploaderUsername);
+          await this.usersService.getByUsernameOrFail(uploaderUsername);
       }
       this.logger.debug(`Downloading Image from "${image.source}" ...`);
-      const response = await this.downloadImageFromUrl(image.source);
+      const response = await this.fetchFromUrl(image.source);
       const imageBuffer = Buffer.from(response.data);
-      const fileType = this.checkImageFileType(imageBuffer);
+      const fileType = this.checkFileType(imageBuffer);
 
       image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${
         fileType.extension
       }`;
 
-      await this.saveImageToFileSystem(image.path, imageBuffer);
+      await this.saveToFileSystem(image.path, imageBuffer);
       return await this.imageRepository.save(image);
     } catch (error) {
       if (image.id) {
-        await this.deleteImage(image);
+        await this.delete(image);
       }
       throw new InternalServerErrorException(
         error,
@@ -91,9 +91,7 @@ export class ImagesService {
     }
   }
 
-  private async downloadImageFromUrl(
-    sourceUrl: string,
-  ): Promise<AxiosResponse> {
+  private async fetchFromUrl(sourceUrl: string): Promise<AxiosResponse> {
     return await firstValueFrom(
       this.httpService
         .get(sourceUrl, {
@@ -110,7 +108,7 @@ export class ImagesService {
     );
   }
 
-  private checkImageFileType(imageBuffer: Buffer) {
+  private checkFileType(imageBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
     if (
       !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
@@ -122,7 +120,7 @@ export class ImagesService {
     return fileType;
   }
 
-  private async saveImageToFileSystem(
+  private async saveToFileSystem(
     path: string,
     imageBuffer: Buffer,
   ): Promise<void> {
@@ -138,7 +136,7 @@ export class ImagesService {
     this.logger.debug(`Saved image to '${path}'`);
   }
 
-  async deleteImage(image: Image): Promise<void> {
+  async delete(image: Image): Promise<void> {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn(
         "Not deleting image from the filesystem because TESTING_MOCK_FILES is set to true",
@@ -153,25 +151,25 @@ export class ImagesService {
     );
   }
 
-  public async uploadImage(
+  public async upload(
     file: Express.Multer.File,
     username: string,
   ): Promise<Image> {
-    const image = await this.createImageFromUpload(file, username);
+    const image = await this.createFromUpload(file, username);
 
     try {
-      await this.saveImageToFileSystem(image.path, file.buffer);
+      await this.saveToFileSystem(image.path, file.buffer);
       this.logger.log(`Uploaded image ${image.id} to "${image.path}"`);
       return await this.imageRepository.save(image);
     } catch (error) {
-      await this.deleteImage(image);
+      await this.delete(image);
       throw new InternalServerErrorException(
         "Error uploading image. Please retry or try another one.",
       );
     }
   }
 
-  private async validateImage(imageBuffer: Buffer) {
+  private async validate(imageBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(imageBuffer);
     if (!fileType?.extension || !fileType?.mimeType) {
       throw new BadRequestException(
@@ -188,16 +186,15 @@ export class ImagesService {
     return fileType;
   }
 
-  private async createImageFromUpload(
+  private async createFromUpload(
     file: Express.Multer.File,
     username?: string,
   ): Promise<Image> {
-    const fileType = await this.validateImage(file.buffer);
+    const fileType = await this.validate(file.buffer);
     const image = new Image();
 
     if (username) {
-      image.uploader =
-        await this.usersService.getUserByUsernameOrFail(username);
+      image.uploader = await this.usersService.getByUsernameOrFail(username);
     }
 
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${

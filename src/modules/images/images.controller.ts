@@ -103,6 +103,6 @@ export class ImagesController {
     )
     file: Express.Multer.File,
   ) {
-    return this.imagesService.uploadImage(file, req.gamevaultuser.username);
+    return this.imagesService.upload(file, req.gamevaultuser.username);
   }
 }

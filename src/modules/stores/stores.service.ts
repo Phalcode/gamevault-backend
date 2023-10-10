@@ -15,7 +15,7 @@ export class StoresService {
    * Returns the store with the specified RAWG ID, creating a new store if one
    * does not already exist.
    */
-  async getOrCreateStore(name: string, rawg_id: number): Promise<Store> {
+  async getOrCreate(name: string, rawg_id: number): Promise<Store> {
     const existingStore = await this.storeRepository.findOneBy({ rawg_id });
 
     if (existingStore) return existingStore;

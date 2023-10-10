@@ -16,7 +16,7 @@ export class TagsService {
    * Returns the tag with the specified RAWG ID, creating a new tag if one does
    * not already exist.
    */
-  async getOrCreateTag(name: string, rawg_id: number): Promise<Tag> {
+  async getOrCreate(name: string, rawg_id: number): Promise<Tag> {
     const existingTag = await this.tagRepository.findOneBy({ rawg_id });
 
     if (existingTag) return existingTag;
