@@ -62,7 +62,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getAllProgresses(): Promise<Progress[]> {
+  async getAll(): Promise<Progress[]> {
     return await this.progressService.getAll();
   }
 
@@ -82,7 +82,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressById(@Param() params: IdDto): Promise<Progress> {
+  async getById(@Param() params: IdDto): Promise<Progress> {
     return await this.progressService.getById(Number(params.id));
   }
 
@@ -105,7 +105,7 @@ export class ProgressController {
   })
   @ApiOkResponse({ type: () => Progress, isArray: true })
   @MinimumRole(Role.USER)
-  async deleteProgressById(
+  async deleteById(
     @Param() params: IdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
@@ -128,7 +128,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressesByUser(@Param() params: IdDto) {
+  async getByUserId(@Param() params: IdDto) {
     return await this.progressService.findByUserId(Number(params.id));
   }
 
@@ -146,7 +146,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressesByGame(@Param() params: IdDto): Promise<Progress[]> {
+  async getByGameId(@Param() params: IdDto): Promise<Progress[]> {
     return await this.progressService.findByGameId(Number(params.id));
   }
 
@@ -170,17 +170,10 @@ export class ProgressController {
   async findByUserAndGameOrFail(
     @Param() params: UserIdGameIdDto,
   ): Promise<Progress> {
-    const progress = await this.progressService.findOrCreateByUserIdAndGameId(
+    return await this.progressService.findOrCreateByUserIdAndGameId(
       Number(params.userId),
       Number(params.gameId),
     );
-
-    if (!progress.id) {
-      throw new NotFoundException(
-        "No progress found for the given user ID and game ID combination.",
-      );
-    }
-    return progress;
   }
 
   /**
