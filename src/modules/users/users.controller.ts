@@ -82,7 +82,7 @@ export class UsersController {
   async getMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.getByUsernameOrFail(
+    return await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
   }
@@ -108,7 +108,7 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.getByUsernameOrFail(
+    const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.update(
@@ -130,7 +130,7 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
   async deleteMe(@Request() request): Promise<GamevaultUser> {
-    const user = await this.usersService.getByUsernameOrFail(
+    const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.delete(user.id);
@@ -152,7 +152,7 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
   async getUserById(@Param() params: IdDto): Promise<GamevaultUser> {
-    return await this.usersService.getByIdOrFail(Number(params.id));
+    return await this.usersService.findByIdOrFail(Number(params.id));
   }
 
   /**

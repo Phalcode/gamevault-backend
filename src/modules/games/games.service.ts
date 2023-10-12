@@ -14,6 +14,7 @@ import { GameExistence } from "./models/game-existence.enum";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import { UpdateGameDto } from "./models/update-game.dto";
 import { ImagesService } from "../images/images.service";
+import { FindOptions } from "../../globals";
 
 @Injectable()
 export class GamesService {
@@ -28,21 +29,14 @@ export class GamesService {
     private imagesService: ImagesService,
   ) {}
 
-  /**
-   * Retrieves a Game from the database by its id.
-   *
-   * @param id - The id of the Game to retrieve.
-   * @param [loadRelations=false] - A flag indicating whether to load the Game's
-   *   related entities. Default is `false`
-   * @returns - A Promise that resolves to the retrieved Game.
-   * @throws {NotFoundException} - If a Game with the specified id is not found
-   *   in the database.
-   */
-  public async getByIdOrFail(id: number, loadRelations = false): Promise<Game> {
+  public async findByIdOrFail(
+    id: number,
+    options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
+  ): Promise<Game> {
     try {
       return await this.gamesRepository.findOneOrFail({
         where: { id },
-        relations: loadRelations
+        relations: options.loadRelations
           ? [
               "developers",
               "publishers",
@@ -55,7 +49,7 @@ export class GamesService {
               "background_image",
             ]
           : [],
-        withDeleted: true,
+        withDeleted: options.loadDeletedEntities,
       });
     } catch (error) {
       throw new NotFoundException(
@@ -166,7 +160,10 @@ export class GamesService {
       .limit(1)
       .getOne();
 
-    return this.getByIdOrFail(game.id, true);
+    return this.findByIdOrFail(game.id, {
+      loadDeletedEntities: true,
+      loadRelations: true,
+    });
   }
 
   /**
@@ -181,7 +178,7 @@ export class GamesService {
    */
   public async remap(id: number, new_rawg_id: number): Promise<Game> {
     // Fetch the game to remap from the database and set the new rawg_id
-    let game = await this.getByIdOrFail(id);
+    let game = await this.findByIdOrFail(id);
     game.rawg_id = new_rawg_id;
 
     // Null all related fields but keep progresses
@@ -233,7 +230,7 @@ export class GamesService {
     const game =
       dto.rawg_id != null
         ? await this.remap(id, dto.rawg_id)
-        : await this.getByIdOrFail(id);
+        : await this.findByIdOrFail(id);
 
     // Updates BoxArt if Necessary
     if (dto.box_image_url != null) {
@@ -272,6 +269,6 @@ export class GamesService {
    */
   public async restore(id: number): Promise<Game> {
     await this.gamesRepository.recover({ id });
-    return this.getByIdOrFail(id);
+    return this.findByIdOrFail(id);
   }
 }

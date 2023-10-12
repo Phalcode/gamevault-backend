@@ -131,8 +131,11 @@ export class GamesController {
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
-  async getById(@Param() params: IdDto): Promise<Game> {
-    return await this.gamesService.getByIdOrFail(Number(params.id), true);
+  async findById(@Param() params: IdDto): Promise<Game> {
+    return await this.gamesService.findByIdOrFail(Number(params.id), {
+      loadRelations: true,
+      loadDeletedEntities: true,
+    });
   }
   /**
    * Download a game by its ID.

@@ -56,7 +56,7 @@ export class ProgressService {
     });
   }
 
-  public async getById(progressId: number) {
+  public async findById(progressId: number) {
     try {
       return await this.progressRepository.findOneOrFail({
         where: {
@@ -77,7 +77,7 @@ export class ProgressService {
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    const progress = await this.getById(progressId);
+    const progress = await this.findById(progressId);
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
       progress.user.id,
@@ -129,8 +129,8 @@ export class ProgressService {
       });
     } catch (error) {
       const newProgress = new Progress();
-      newProgress.user = await this.usersService.getByIdOrFail(userId);
-      newProgress.game = await this.gamesService.getByIdOrFail(gameId);
+      newProgress.user = await this.usersService.findByIdOrFail(userId);
+      newProgress.game = await this.gamesService.findByIdOrFail(gameId);
       newProgress.minutes_played = 0;
       newProgress.state = State.UNPLAYED;
       return newProgress;

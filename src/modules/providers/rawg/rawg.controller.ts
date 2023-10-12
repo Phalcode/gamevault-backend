@@ -75,12 +75,15 @@ export class RawgController {
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.EDITOR)
   async recache(@Param() params: IdDto): Promise<Game> {
-    let game = await this.gamesService.getByIdOrFail(Number(params.id));
+    let game = await this.gamesService.findByIdOrFail(Number(params.id));
     game.cache_date = null;
     game = await this.gamesService.save(game);
     await this.rawgService.checkCache([game]);
     await this.boxartService.check(game);
-    return await this.gamesService.getByIdOrFail(Number(params.id), true);
+    return await this.gamesService.findByIdOrFail(Number(params.id), {
+      loadDeletedEntities: true,
+      loadRelations: true,
+    });
   }
 
   /** Manually triggers a recache from rawg-api for all games. */

@@ -67,7 +67,7 @@ export class ImagesService {
     try {
       if (uploaderUsername) {
         image.uploader =
-          await this.usersService.getByUsernameOrFail(uploaderUsername);
+          await this.usersService.findByUsernameOrFail(uploaderUsername);
       }
       this.logger.debug(`Downloading Image from "${image.source}" ...`);
       const response = await this.fetchFromUrl(image.source);
@@ -194,7 +194,7 @@ export class ImagesService {
     const image = new Image();
 
     if (username) {
-      image.uploader = await this.usersService.getByUsernameOrFail(username);
+      image.uploader = await this.usersService.findByUsernameOrFail(username);
     }
 
     image.path = `${configuration.VOLUMES.IMAGES}/${randomUUID()}.${

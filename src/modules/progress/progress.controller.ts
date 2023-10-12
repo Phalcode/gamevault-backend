@@ -81,8 +81,8 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getById(@Param() params: IdDto): Promise<Progress> {
-    return await this.progressService.getById(Number(params.id));
+  async findById(@Param() params: IdDto): Promise<Progress> {
+    return await this.progressService.findById(Number(params.id));
   }
 
   /**
@@ -127,7 +127,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getByUserId(@Param() params: IdDto) {
+  async findByUserId(@Param() params: IdDto) {
     return await this.progressService.findByUserId(Number(params.id));
   }
 
@@ -145,7 +145,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getByGameId(@Param() params: IdDto): Promise<Progress[]> {
+  async findByGameId(@Param() params: IdDto): Promise<Progress[]> {
     return await this.progressService.findByGameId(Number(params.id));
   }
 

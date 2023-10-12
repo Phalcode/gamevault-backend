@@ -53,7 +53,7 @@ export class UsersService implements OnApplicationBootstrap {
         return;
       }
 
-      const user = await this.getByUsernameOrFail(
+      const user = await this.findByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -93,7 +93,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} If the user with the specified ID does not
    *   exist.
    */
-  public async getByIdOrFail(
+  public async findByIdOrFail(
     id: number,
     inludeDeletedUsers = false,
   ): Promise<GamevaultUser> {
@@ -120,7 +120,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified username is not
    *   found
    */
-  public async getByUsernameOrFail(username: string): Promise<GamevaultUser> {
+  public async findByUsernameOrFail(username: string): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
@@ -246,7 +246,7 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
     executorUsername?: string,
   ): Promise<GamevaultUser> {
-    const user = await this.getByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
       if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
@@ -317,7 +317,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to delete.
    */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.getByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
@@ -327,7 +327,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to recover.
    */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.getByIdOrFail(id, true);
+    const user = await this.findByIdOrFail(id, true);
     return this.userRepository.recover(user);
   }
 
@@ -344,7 +344,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     url: string,
   ): Promise<GamevaultUser> {
-    const user = await this.getByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
     user.profile_picture = await this.imagesService.downloadByUrl(url);
     return await this.userRepository.save(user);
   }
@@ -359,7 +359,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified ID is not found
    */
   public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
-    const user = await this.getByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
     user.background_image = await this.imagesService.downloadByUrl(url);
     return await this.userRepository.save(user);
   }
@@ -386,7 +386,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.getByIdOrFail(userId);
+    const user = await this.findByIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
