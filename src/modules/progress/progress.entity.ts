@@ -9,19 +9,19 @@ import { DatabaseEntity } from "../database/database.entity";
 export class Progress extends DatabaseEntity {
   @Index()
   @ManyToOne(() => GamevaultUser, (user) => user.progresses)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "user the progress belongs to",
     type: () => GamevaultUser,
   })
-  user: GamevaultUser;
+  user?: GamevaultUser;
 
   @Index()
   @ManyToOne(() => Game, (game) => game.progresses)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "game the progress belongs to",
     type: () => Game,
   })
-  game: Game;
+  game?: Game;
 
   @Column({ default: 0 })
   @ApiProperty({

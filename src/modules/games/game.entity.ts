@@ -181,7 +181,7 @@ export class Game extends DatabaseEntity {
     type: () => Progress,
     isArray: true,
   })
-  progresses: Progress[];
+  progresses?: Progress[];
 
   @JoinTable()
   @ManyToMany(() => Publisher, (publisher) => publisher.games)
@@ -190,7 +190,7 @@ export class Game extends DatabaseEntity {
     type: () => Publisher,
     isArray: true,
   })
-  publishers: Publisher[];
+  publishers?: Publisher[];
 
   @JoinTable()
   @ManyToMany(() => Developer, (developer) => developer.games)
@@ -199,7 +199,7 @@ export class Game extends DatabaseEntity {
     type: () => Developer,
     isArray: true,
   })
-  developers: Developer[];
+  developers?: Developer[];
 
   @JoinTable()
   @ManyToMany(() => Store, (store) => store.games)
@@ -208,7 +208,7 @@ export class Game extends DatabaseEntity {
     type: () => Store,
     isArray: true,
   })
-  stores: Store[];
+  stores?: Store[];
 
   @JoinTable()
   @ManyToMany(() => Tag, (tag) => tag.games)
@@ -217,7 +217,7 @@ export class Game extends DatabaseEntity {
     type: () => Tag,
     isArray: true,
   })
-  tags: Tag[];
+  tags?: Tag[];
 
   @JoinTable()
   @ManyToMany(() => Genre, (genre) => genre.games)
@@ -226,5 +226,5 @@ export class Game extends DatabaseEntity {
     type: () => Genre,
     isArray: true,
   })
-  genres: Genre[];
+  genres?: Genre[];
 }
