@@ -24,6 +24,7 @@ import { GamevaultUser } from "./gamevault-user.entity";
 import { ImagesService } from "../images/images.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
+import { FindOptions } from "../../globals";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -95,16 +96,18 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async findByIdOrFail(
     id: number,
-    inludeDeletedUsers = false,
+    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
           id,
-          deleted_at: inludeDeletedUsers ? undefined : IsNull(),
+          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
           progresses: { deleted_at: IsNull() },
         },
-        relations: ["progresses", "progresses.game"],
+        relations: options.loadRelations
+          ? ["progresses", "progresses.game"]
+          : [],
         withDeleted: true,
       })
       .catch(() => {
@@ -120,15 +123,20 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified username is not
    *   found
    */
-  public async findByUsernameOrFail(username: string): Promise<GamevaultUser> {
+  public async findByUsernameOrFail(
+    username: string,
+    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
+  ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
           username: ILike(username),
-          deleted_at: IsNull(),
+          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
           progresses: { deleted_at: IsNull() },
         },
-        relations: ["progresses", "progresses.game"],
+        relations: options.loadRelations
+          ? ["progresses", "progresses.game"]
+          : [],
         withDeleted: true,
       })
       .catch(() => {
@@ -327,7 +335,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to recover.
    */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id, true);
+    const user = await this.findByIdOrFail(id);
     return this.userRepository.recover(user);
   }
 

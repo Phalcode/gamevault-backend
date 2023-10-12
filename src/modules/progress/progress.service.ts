@@ -129,8 +129,14 @@ export class ProgressService {
       });
     } catch (error) {
       const newProgress = new Progress();
-      newProgress.user = await this.usersService.findByIdOrFail(userId);
-      newProgress.game = await this.gamesService.findByIdOrFail(gameId);
+      newProgress.user = await this.usersService.findByIdOrFail(userId, {
+        loadDeletedEntities: true,
+        loadRelations: false,
+      });
+      newProgress.game = await this.gamesService.findByIdOrFail(gameId, {
+        loadDeletedEntities: true,
+        loadRelations: false,
+      });
       newProgress.minutes_played = 0;
       newProgress.state = State.UNPLAYED;
       return newProgress;
