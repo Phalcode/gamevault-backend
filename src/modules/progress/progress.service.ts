@@ -131,6 +131,8 @@ export class ProgressService {
       const newProgress = new Progress();
       newProgress.user = await this.usersService.getByIdOrFail(userId);
       newProgress.game = await this.gamesService.getByIdOrFail(gameId);
+      newProgress.minutes_played = 0;
+      newProgress.state = State.UNPLAYED;
       return newProgress;
     }
   }
