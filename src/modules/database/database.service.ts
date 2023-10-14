@@ -132,7 +132,7 @@ export class DatabaseService {
       writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
 
       await this.execPromise(
-        `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+        `dropdb --if-exists -f -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
         { env: { PGPASSWORD: configuration.DB.PASSWORD } },
       );
 
@@ -161,7 +161,7 @@ export class DatabaseService {
         this.logger.log("Restoring pre-restore database.");
         try {
           await this.execPromise(
-            `dropdb --if-exists -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
+            `dropdb --if-exists -f -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
             { env: { PGPASSWORD: configuration.DB.PASSWORD } },
           );
 
