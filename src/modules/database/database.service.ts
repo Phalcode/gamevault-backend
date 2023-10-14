@@ -147,11 +147,11 @@ export class DatabaseService {
           { env: { PGPASSWORD: configuration.DB.PASSWORD } },
         );
 
-        this.logger.log("Successfully restored PostgreSQL Database...");
+        this.logger.log("Successfully restored PostgreSQL Database.");
       } catch (error) {
         this.logger.warn(
           error,
-          "Something may went wrong restoring your backup. Please check the logs carefully",
+          "Restoring your backup might have encountered an issue. Please examine the logs. If it reads 'pg_restore: warning: errors ignored on restore,' things are likely alright. It could have succeeded.",
         );
       }
     } catch (error) {
