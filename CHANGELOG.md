@@ -4,15 +4,19 @@
 
 Recommended Gamevault App Version: `v1.7.0`
 
+### Breaking Changes & Migration
+
+- [#234](https://github.com/Phalcode/gamevault-app/issues/234) Implemented better Health API that returns details server infos if an admin calls it.
+
 ### Changes
 
-- Introduced a database migration to remove empty Progress entries (State = Unplayed and 0 minutes playtime).
-- The Progress API now performs a hard delete on Progress entries marked as unplayed with 0 minutes of playtime.
-- The Progress API returns all Progress entries that haven't been manually deleted.
-- Enhanced the Progress Update feature to support nullable fields, allowing partial updates.
+- [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented experimental Database Backup and Restoration API.
+- The Server now wont save empty progresses. (State "UNPLAYED" and 0 minutes of playtime)
+  - Introduced a database migration to remove empty Progress entries.
+  - The Progress API now performs a hard delete on Progress entries marked as unplayed with 0 minutes of playtime.
+  - The Progress API returns all Progress entries that haven't been manually deleted.
+- Enhanced the Progress API to support nullable fields, allowing partial updates.
 - Further code refactoring for uniformity in code structure and naming.
-
-- //TODO: [#253](github.com/Phalcode/gamevault-app/issues/253) Implemented new Database Backup and Restoration API
 
 ### Thanks
 

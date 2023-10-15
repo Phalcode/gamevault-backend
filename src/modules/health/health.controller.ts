@@ -1,20 +1,30 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, Request } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../pagination/public.decorator";
-
+import { Health } from "./models/health.model";
+import { GamevaultUser } from "../users/gamevault-user.entity";
+import { HealthService } from "./health.service";
 @Controller("health")
 @ApiTags("health")
 export class HealthController {
+  constructor(private healthService: HealthService) {}
+
   /**
    * Returns a lifesign.
    *
    * @returns
    */
   @Get()
-  @ApiOperation({ summary: "returns a lifesign", operationId: "healthcheck" })
-  @ApiOkResponse()
+  @ApiOkResponse({ type: () => Health })
+  @ApiOperation({
+    summary:
+      "returns a lifesign, if an admin calls this api additional server infos are returned.",
+    operationId: "healthcheck",
+  })
   @Public()
-  healthcheck(): string {
-    return "<p style='font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.5; text-align: center;''><strong>All systems green! 🤖🟢</strong></p>";
+  async healthcheck(
+    @Request() request: { gamevaultuser: GamevaultUser },
+  ): Promise<Health> {
+    return this.healthService.get(request?.gamevaultuser?.username);
   }
 }

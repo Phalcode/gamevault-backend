@@ -339,37 +339,13 @@ export class UsersService implements OnApplicationBootstrap {
     return this.userRepository.recover(user);
   }
 
-  /**
-   * Set profile picture of a user
-   *
-   * @deprecated
-   * @param id - The ID of the user whose profile picture to set
-   * @param url - The URL of the new profile picture
-   * @returns - The updated user object
-   * @throws {NotFoundException} - If the user with specified ID is not found
-   */
-  public async setProfilePicture(
-    id: number,
-    url: string,
-  ): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id);
-    user.profile_picture = await this.imagesService.downloadByUrl(url);
-    return await this.userRepository.save(user);
-  }
-
-  /**
-   * Set profile art of a user
-   *
-   * @deprecated
-   * @param id - The ID of the user whose profile art to set
-   * @param url - The URL of the new profile art
-   * @returns - The updated user object
-   * @throws {NotFoundException} - If the user with specified ID is not found
-   */
-  public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id);
-    user.background_image = await this.imagesService.downloadByUrl(url);
-    return await this.userRepository.save(user);
+  public async checkIfUsernameIsAtLeastRole(username: string, role: Role) {
+    try {
+      const user = await this.findByUsernameOrFail(username);
+      return user.role >= role;
+    } catch {
+      return false;
+    }
   }
 
   /**
