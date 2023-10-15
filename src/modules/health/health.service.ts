@@ -2,20 +2,18 @@ import { Injectable } from "@nestjs/common";
 import { Health, HealthProtocolEntry } from "./models/health.model";
 import configuration from "../../configuration";
 import { HealthStatus } from "./models/health-status.enum";
-import { UsersService } from "../users/users.service";
-import { Role } from "../users/models/role.enum";
 
 @Injectable()
 export class HealthService {
   private epoch: Date = new Date();
   private currentHealth: Health = new Health();
 
-  constructor(private usersService: UsersService) {
+  constructor() {
     this.set(HealthStatus.HEALTHY, "Server started successfully");
-    this.currentHealth = this.getFullInformation();
+    this.currentHealth = this.getExtensive();
   }
 
-  private getFullInformation(): Health {
+  getExtensive(): Health {
     const newHealth = new Health();
     newHealth.version = configuration.SERVER.VERSION;
     newHealth.uptime = Math.floor(
@@ -27,25 +25,13 @@ export class HealthService {
     return newHealth;
   }
 
-  async get(username?: string): Promise<Health> {
-    const health = this.getFullInformation();
-
-    const isAdmin =
-      username &&
-      (await this.usersService.checkIfUsernameIsAtLeastRole(
-        username,
-        Role.ADMIN,
-      ));
-
-    if (!isAdmin) {
-      const healthCopy = { ...health };
-      delete healthCopy.protocol;
-      delete healthCopy.uptime;
-      delete healthCopy.version;
-      return healthCopy;
-    }
-
-    return health;
+  get(): Health {
+    const health = this.getExtensive();
+    const healthCopy = { ...health };
+    delete healthCopy.protocol;
+    delete healthCopy.uptime;
+    delete healthCopy.version;
+    return healthCopy;
   }
 
   set(status: HealthStatus, reason: string) {

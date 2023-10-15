@@ -6,7 +6,7 @@ Recommended Gamevault App Version: `v1.7.0`
 
 ### Breaking Changes & Migration
 
-- [#234](https://github.com/Phalcode/gamevault-app/issues/234) Implemented better Health API that returns details server infos if an admin calls it.
+- [#234](https://github.com/Phalcode/gamevault-app/issues/234) Implemented an additional Health API endpoint for admins that returns detailed server infos.
 
 ### Changes
 

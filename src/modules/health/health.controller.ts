@@ -4,6 +4,8 @@ import { Public } from "../pagination/public.decorator";
 import { Health } from "./models/health.model";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { HealthService } from "./health.service";
+import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { Role } from "../users/models/role.enum";
 @Controller("health")
 @ApiTags("health")
 export class HealthController {
@@ -25,6 +27,19 @@ export class HealthController {
   async healthcheck(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<Health> {
-    return this.healthService.get(request?.gamevaultuser?.username);
+    console.log(request?.gamevaultuser);
+    return this.healthService.get();
+  }
+
+  @Get("admin")
+  @ApiOkResponse({ type: () => Health })
+  @ApiOperation({
+    summary:
+      "returns a lifesign and additional server metrics for administrators",
+    operationId: "healthcheck",
+  })
+  @MinimumRole(Role.ADMIN)
+  async extensiveHealthcheck(): Promise<Health> {
+    return this.healthService.getExtensive();
   }
 }
