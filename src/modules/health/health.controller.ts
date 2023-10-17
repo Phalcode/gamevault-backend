@@ -27,7 +27,6 @@ export class HealthController {
   async healthcheck(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<Health> {
-    console.log(request?.gamevaultuser);
     return this.healthService.get();
   }
 
