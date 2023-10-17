@@ -55,3 +55,19 @@ export default {
     "image/x-icon",
   ],
 };
+
+export interface FindOptions {
+  /**
+   * Indicates whether deleted (sub)entities should be loaded.
+   *
+   * @default false
+   */
+  loadDeletedEntities: boolean;
+
+  /**
+   * Indicates whether related entities should be loaded.
+   *
+   * @default false
+   */
+  loadRelations: boolean;
+}

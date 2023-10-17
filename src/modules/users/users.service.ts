@@ -24,6 +24,7 @@ import { GamevaultUser } from "./gamevault-user.entity";
 import { ImagesService } from "../images/images.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
+import { FindOptions } from "../../globals";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -38,13 +39,13 @@ export class UsersService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     try {
-      await this.setServerAdmin();
+      await this.setAdmin();
     } catch (error) {
       this.logger.error(error, "Error on FilesService Bootstrap");
     }
   }
 
-  private async setServerAdmin() {
+  private async setAdmin() {
     try {
       if (!configuration.SERVER.ADMIN_USERNAME) {
         this.logger.warn(
@@ -53,7 +54,7 @@ export class UsersService implements OnApplicationBootstrap {
         return;
       }
 
-      const user = await this.getUserByUsernameOrFail(
+      const user = await this.findByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -93,18 +94,20 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} If the user with the specified ID does not
    *   exist.
    */
-  public async getUserByIdOrFail(
+  public async findByIdOrFail(
     id: number,
-    inludeDeletedUsers = false,
+    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
           id,
-          deleted_at: inludeDeletedUsers ? undefined : IsNull(),
+          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
           progresses: { deleted_at: IsNull() },
         },
-        relations: ["progresses", "progresses.game"],
+        relations: options.loadRelations
+          ? ["progresses", "progresses.game"]
+          : [],
         withDeleted: true,
       })
       .catch(() => {
@@ -120,17 +123,20 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} - If the user with specified username is not
    *   found
    */
-  public async getUserByUsernameOrFail(
+  public async findByUsernameOrFail(
     username: string,
+    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
     return await this.userRepository
       .findOneOrFail({
         where: {
           username: ILike(username),
-          deleted_at: IsNull(),
+          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
           progresses: { deleted_at: IsNull() },
         },
-        relations: ["progresses", "progresses.game"],
+        relations: options.loadRelations
+          ? ["progresses", "progresses.game"]
+          : [],
         withDeleted: true,
       })
       .catch(() => {
@@ -145,7 +151,7 @@ export class UsersService implements OnApplicationBootstrap {
    *
    * @returns - Overview of all users
    */
-  public async getUsers(
+  public async getAll(
     includeDeleted = false,
     includeDeactivated = false,
   ): Promise<GamevaultUser[]> {
@@ -167,7 +173,7 @@ export class UsersService implements OnApplicationBootstrap {
    *   already exists
    */
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
-    await this.throwIfUserAlreadyExists(dto.username, dto.email);
+    await this.throwIfAlreadyExists(dto.username, dto.email);
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
@@ -248,18 +254,18 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
     executorUsername?: string,
   ): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
       if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
-        await this.throwIfUserAlreadyExists(dto.username, undefined);
+        await this.throwIfAlreadyExists(dto.username, undefined);
       }
       user.username = dto.username;
     }
 
     if (dto.email != null && dto.email !== user.email) {
       if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
-        await this.throwIfUserAlreadyExists(undefined, dto.email);
+        await this.throwIfAlreadyExists(undefined, dto.email);
       }
       user.email = dto.email;
     }
@@ -277,7 +283,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.downloadImageByUrl(
+      user.profile_picture = await this.imagesService.downloadByUrl(
         dto.profile_picture_url,
         executorUsername,
       );
@@ -290,7 +296,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.background_image_url != null) {
-      user.background_image = await this.imagesService.downloadImageByUrl(
+      user.background_image = await this.imagesService.downloadByUrl(
         dto.background_image_url,
         executorUsername,
       );
@@ -319,7 +325,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to delete.
    */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
@@ -329,41 +335,17 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to recover.
    */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id, true);
+    const user = await this.findByIdOrFail(id);
     return this.userRepository.recover(user);
   }
 
-  /**
-   * Set profile picture of a user
-   *
-   * @deprecated
-   * @param id - The ID of the user whose profile picture to set
-   * @param url - The URL of the new profile picture
-   * @returns - The updated user object
-   * @throws {NotFoundException} - If the user with specified ID is not found
-   */
-  public async setProfilePicture(
-    id: number,
-    url: string,
-  ): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
-    user.profile_picture = await this.imagesService.downloadImageByUrl(url);
-    return await this.userRepository.save(user);
-  }
-
-  /**
-   * Set profile art of a user
-   *
-   * @deprecated
-   * @param id - The ID of the user whose profile art to set
-   * @param url - The URL of the new profile art
-   * @returns - The updated user object
-   * @throws {NotFoundException} - If the user with specified ID is not found
-   */
-  public async setProfileArt(id: number, url: string): Promise<GamevaultUser> {
-    const user = await this.getUserByIdOrFail(id);
-    user.background_image = await this.imagesService.downloadImageByUrl(url);
-    return await this.userRepository.save(user);
+  public async checkIfUsernameIsAtLeastRole(username: string, role: Role) {
+    try {
+      const user = await this.findByUsernameOrFail(username);
+      return user.role >= role;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -388,7 +370,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.getUserByIdOrFail(userId);
+    const user = await this.findByIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
@@ -405,7 +387,7 @@ export class UsersService implements OnApplicationBootstrap {
     return true;
   }
 
-  private async throwIfUserAlreadyExists(
+  private async throwIfAlreadyExists(
     username: string | undefined,
     email: string | undefined,
   ) {

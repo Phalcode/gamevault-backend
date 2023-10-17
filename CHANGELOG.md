@@ -1,5 +1,28 @@
 # GameVault Backend Server Changelog
 
+## 8.0.0
+
+Recommended Gamevault App Version: `v1.7.0`
+
+### Breaking Changes & Migration
+
+- [Issue #234](https://github.com/Phalcode/gamevault-app/issues/234): Added a new Health API endpoint for administrators to access detailed server information.
+
+- The health endpoints now provide data in JSON format, replacing the previous fancy HTML page.
+
+### Changes
+
+- [Issue #253](https://github.com/Phalcode/gamevault-app/issues/253): Implemented the Database Backup and Restoration API.
+- Improved data management: The server no longer saves empty progress entries with a "UNPLAYED" state and 0 minutes of playtime.
+  - This change involved a database migration to remove such empty progress entries.
+  - The Progress API now permanently deletes entries marked as unplayed with 0 minutes of playtime.
+- Enhanced the Progress Upsert API to handle nullable fields, enabling partial updates.
+- Performed additional code refactoring to ensure consistency in code structure and naming.
+
+### Thanks
+
+- @Kudjo
+
 ## 7.0.0
 
 Recommended Gamevault App Version: `v1.6.1`
@@ -54,7 +77,7 @@ Recommended Gamevault App Version: `v1.6.0`
 - Fixed the Broken Content-Disposition Header for some downloads. [#209](https://github.com/Phalcode/gamevault-app/issues/209).
 - Game Type only gets detected once, or when a game file changes and not on every index. [#200](https://github.com/Phalcode/gamevault-backend/issues/200)
 - Unified global error handler for 4XX and 5XX messages. The Problem is now directly inside the response without the duplicated status.
-- Implemented `(NC)` flag to disable rawg-caching for single games. #194(https://github.com/Phalcode/gamevault-app/issues/194)
+- Implemented `(NC)` flag to disable rawg-caching for single games. [#194](https://github.com/Phalcode/gamevault-app/issues/194)
 
 ### Thanks
 

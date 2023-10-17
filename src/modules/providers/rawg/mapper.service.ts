@@ -61,7 +61,7 @@ export class RawgMapperService {
       for (const storeContainer of game.stores) {
         const store = storeContainer.store;
         entity.stores.push(
-          await this.storesService.getOrCreateStore(store.name, store.id),
+          await this.storesService.getOrCreate(store.name, store.id),
         );
       }
     } catch (error) {
@@ -86,7 +86,7 @@ export class RawgMapperService {
       if (!game.developers) return entity;
       for (const developer of game.developers) {
         entity.developers.push(
-          await this.developersService.getOrCreateDeveloper(
+          await this.developersService.getOrCreate(
             developer.name,
             developer.id,
           ),
@@ -114,7 +114,7 @@ export class RawgMapperService {
       if (!game.publishers) return entity;
       for (const publisher of game.publishers) {
         entity.publishers.push(
-          await this.publishersService.getOrCreatePublisher(
+          await this.publishersService.getOrCreate(
             publisher.name,
             publisher.id,
           ),
@@ -152,9 +152,7 @@ export class RawgMapperService {
         } else if (!isAlphanumeric) {
           this.logger.debug(`Skipping tag "${tag.name}" (invalid characters)`);
         } else {
-          entity.tags.push(
-            await this.tagService.getOrCreateTag(tag.name, tag.id),
-          );
+          entity.tags.push(await this.tagService.getOrCreate(tag.name, tag.id));
         }
       }
     } catch (error) {
@@ -180,7 +178,7 @@ export class RawgMapperService {
       if (!game.genres) return entity;
       for (const genre of game.genres) {
         entity.genres.push(
-          await this.genreService.getOrCreateGenre(genre.name, genre.id),
+          await this.genreService.getOrCreate(genre.name, genre.id),
         );
       }
     } catch (error) {
@@ -204,11 +202,9 @@ export class RawgMapperService {
       if (
         game.background_image &&
         (!entity.background_image?.id ||
-          !(await this.imagesService.isImageAvailable(
-            entity.background_image.id,
-          )))
+          !(await this.imagesService.isAvailable(entity.background_image.id)))
       ) {
-        entity.background_image = await this.imagesService.downloadImageByUrl(
+        entity.background_image = await this.imagesService.downloadByUrl(
           game.background_image,
         );
       }

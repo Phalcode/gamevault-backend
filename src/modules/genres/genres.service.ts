@@ -15,7 +15,7 @@ export class GenresService {
    * Returns the genre with the specified RAWG ID, creating a new genre if one
    * does not already exist.
    */
-  async getOrCreateGenre(name: string, rawg_id: number): Promise<Genre> {
+  async getOrCreate(name: string, rawg_id: number): Promise<Genre> {
     const existingGenre = await this.tagRepository.findOneBy({ rawg_id });
 
     if (existingGenre) return existingGenre;

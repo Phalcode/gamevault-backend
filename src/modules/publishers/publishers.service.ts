@@ -15,10 +15,7 @@ export class PublishersService {
    * Returns the publisher with the specified RAWG ID, creating a new publisher
    * if one does not already exist.
    */
-  async getOrCreatePublisher(
-    name: string,
-    rawg_id: number,
-  ): Promise<Publisher> {
+  async getOrCreate(name: string, rawg_id: number): Promise<Publisher> {
     const existingPublisher = await this.publisherRepository.findOneBy({
       rawg_id,
     });

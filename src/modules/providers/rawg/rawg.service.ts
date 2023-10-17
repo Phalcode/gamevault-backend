@@ -36,7 +36,7 @@ export class RawgService {
    * @param games - An array of Game objects to check against the RAWG API.
    * @returns Returns a Promise with no return value.
    */
-  public async cacheGames(games: Game[]): Promise<void> {
+  public async checkCache(games: Game[]): Promise<void> {
     if (configuration.TESTING.RAWG_API_DISABLED) {
       this.logger.warn(
         "Skipping RAWG Cache Check because RAWG API is disabled",
@@ -55,7 +55,7 @@ export class RawgService {
 
     for (const game of games) {
       try {
-        await this.cacheGame(game);
+        await this.cache(game);
         this.logger.debug(
           { gameId: game.id, title: game.title },
           `Game Cached Successfully`,
@@ -84,7 +84,7 @@ export class RawgService {
    * @returns Returns a Promise with a mapped Game object that has been saved in
    *   the database.
    */
-  private async cacheGame(game: Game): Promise<Game> {
+  private async cache(game: Game): Promise<Game> {
     this.logger.debug(`Caching Game: "${game.title}"`);
 
     if (game.file_path.includes("(NC)")) {
@@ -105,15 +105,15 @@ export class RawgService {
 
     let rawgEntry: RawgGame;
     if (game.rawg_id) {
-      rawgEntry = await this.getRawgGameById(game.rawg_id);
+      rawgEntry = await this.fetchById(game.rawg_id);
     } else {
-      rawgEntry = await this.getBestMatchingRawgGame(
+      rawgEntry = await this.getBestMatch(
         game.title,
         game.release_date?.getFullYear() || undefined,
       );
     }
     const mappedGame = await this.mapper.mapRawgGameToGame(rawgEntry, game);
-    return await this.gamesService.saveGame(mappedGame);
+    return await this.gamesService.save(mappedGame);
   }
 
   /**
@@ -126,11 +126,11 @@ export class RawgService {
    * @param releaseYear - The release year of the game to search for.
    * @returns Returns a Promise with the best matching RawgGame object.
    */
-  private async getBestMatchingRawgGame(
+  private async getBestMatch(
     title: string,
     releaseYear?: number,
   ): Promise<RawgGame> {
-    const sortedResults = await this.getRawgGames(title, releaseYear);
+    const sortedResults = await this.fetchMatching(title, releaseYear);
     const bestMatch = sortedResults[0];
 
     if (bestMatch.probability != 1) {
@@ -149,7 +149,7 @@ export class RawgService {
       this.logger.debug("-- END OF MATCHES --");
     }
 
-    return this.getRawgGameById(bestMatch.id);
+    return this.fetchById(bestMatch.id);
   }
 
   /**
@@ -162,7 +162,7 @@ export class RawgService {
    *   representing search results.
    * @throws {NotFoundException} If no game is found in RAWG.
    */
-  public async getRawgGames(
+  public async fetchMatching(
     title: string,
     releaseYear?: number,
   ): Promise<RawgResult[]> {
@@ -170,18 +170,18 @@ export class RawgService {
 
     // Step 1: Get games by title and release year (if provided)
     if (releaseYear) {
-      searchResults.push(...(await this.getGames(title, releaseYear)).results);
+      searchResults.push(...(await this.fetch(title, releaseYear)).results);
     }
 
     // Step 2: Get games by title only if Step 1 had no results or releaseYear is not provided
     if (searchResults.length === 0) {
-      searchResults.push(...(await this.getGames(title)).results);
+      searchResults.push(...(await this.fetch(title)).results);
     }
 
     // If no results found in both steps, try fuzzy search
     if (searchResults.length === 0) {
       searchResults.push(
-        ...(await this.getGames(title, undefined, false)).results,
+        ...(await this.fetch(title, undefined, false)).results,
       );
     }
 
@@ -194,7 +194,9 @@ export class RawgService {
       );
 
       throw new NotFoundException(
-        `No game found in RAWG for "${title} (${releaseYear || "No Year"})"`,
+        `No game found in RAWG for "${title}" ${
+          releaseYear ? `(${releaseYear})` : undefined
+        })`,
       );
     }
     // Calculate and assign probabilities
@@ -248,7 +250,7 @@ export class RawgService {
    * @param id - The RAWG ID of the game to retrieve.
    * @returns The RawgGame object associated with the specified ID.
    */
-  private async getRawgGameById(id: number): Promise<RawgGame> {
+  private async fetchById(id: number): Promise<RawgGame> {
     try {
       const response = await firstValueFrom(
         this.httpService
@@ -287,7 +289,7 @@ export class RawgService {
    * @throws {InternalServerErrorException} - Throws an error if the request to
    *   the RAWG API fails.
    */
-  private async getGames(
+  private async fetch(
     search?: string,
     releaseYear?: number,
     precise = true,

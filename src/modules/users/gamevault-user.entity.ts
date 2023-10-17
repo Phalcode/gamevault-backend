@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from "typeorm";
 import { Image } from "../images/image.entity";
 import { Progress } from "../progress/progress.entity";
@@ -25,11 +25,11 @@ export class GamevaultUser extends DatabaseEntity {
     orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: () => Image,
     description: "the user's profile picture",
   })
-  profile_picture: Image;
+  profile_picture?: Image;
 
   @ManyToOne(() => Image, {
     nullable: true,
@@ -38,11 +38,11 @@ export class GamevaultUser extends DatabaseEntity {
     orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: () => Image,
     description: "the user's profile art (background-picture)",
   })
-  background_image: Image;
+  background_image?: Image;
 
   @Column({ unique: true, nullable: true })
   @ApiProperty({
@@ -67,12 +67,12 @@ export class GamevaultUser extends DatabaseEntity {
   activated: boolean;
 
   @OneToMany(() => Progress, (progress) => progress.user)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "progresses of the user",
     type: () => Progress,
     isArray: true,
   })
-  progresses: Progress[];
+  progresses?: Progress[];
 
   @Column({
     type: "simple-enum",
@@ -89,10 +89,10 @@ export class GamevaultUser extends DatabaseEntity {
   role: Role;
 
   @OneToMany(() => Image, (image) => image.uploader)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "images uploaded by this user",
     type: () => Image,
     isArray: true,
   })
-  uploaded_images: Image[];
+  uploaded_images?: Image[];
 }
