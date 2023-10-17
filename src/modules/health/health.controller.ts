@@ -1,8 +1,7 @@
-import { Controller, Get, Request } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../pagination/public.decorator";
 import { Health } from "./models/health.model";
-import { GamevaultUser } from "../users/gamevault-user.entity";
 import { HealthService } from "./health.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
@@ -24,9 +23,7 @@ export class HealthController {
     operationId: "healthcheck",
   })
   @Public()
-  async healthcheck(
-    @Request() request: { gamevaultuser: GamevaultUser },
-  ): Promise<Health> {
+  async healthcheck(): Promise<Health> {
     return this.healthService.get();
   }
 
