@@ -222,7 +222,7 @@ export class DatabaseService {
   private generateBackupFilepath(): string {
     const now = new Date();
     const timestamp = now.toISOString().replace(/[:.]/g, "-");
-    return `/tmp/gamevault_database_backup_${timestamp}.db`;
+    return `/tmp/gamevault_${configuration.SERVER.VERSION}_database_backup_${timestamp}.db`;
   }
 
   private createStreamableFile(filePath: string): StreamableFile {
