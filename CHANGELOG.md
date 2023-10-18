@@ -1,5 +1,14 @@
 # GameVault Backend Server Changelog
 
+## 8.0.1
+
+Recommended Gamevault App Version: `v1.7.0`
+
+### Changes
+
+- Fixed initial Database Setup not happening
+- Increased stability of some migrations
+
 ## 8.0.0
 
 Recommended Gamevault App Version: `v1.7.0`
