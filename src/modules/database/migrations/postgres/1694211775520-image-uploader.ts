@@ -99,10 +99,10 @@ export class ImageUploader1694211775520 implements MigrationInterface {
             ALTER TABLE "progress" DROP CONSTRAINT "FK_ddcaca3a9db9d77105d51c02c24"
         `);
     await queryRunner.query(`
-            ALTER TABLE "gamevault_user" DROP CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68"
+            ALTER TABLE "gamevault_user" DROP CONSTRAINT IF EXISTS "FK_4b83e27ed50c1e183a69fceef68"
         `);
     await queryRunner.query(`
-            ALTER TABLE "gamevault_user" DROP CONSTRAINT "FK_c1779b9b22212754248aa404bad"
+            ALTER TABLE "gamevault_user" DROP CONSTRAINT IF EXISTS "FK_c1779b9b22212754248aa404bad"
         `);
     await queryRunner.query(`
             ALTER TABLE "image" DROP CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb"
