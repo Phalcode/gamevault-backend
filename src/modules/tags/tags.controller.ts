@@ -46,7 +46,7 @@ export class TagsController {
   async getTags(@Paginate() query: PaginateQuery): Promise<Paginated<Tag>> {
     const paginatedResults = await paginate(query, this.tagRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
-      defaultLimit: Number.MAX_SAFE_INTEGER,
+      defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
       relations: ["games"],

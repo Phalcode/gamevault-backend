@@ -67,12 +67,20 @@ export class GamesController {
   })
   @MinimumRole(Role.GUEST)
   async get(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
+    const relations = ["box_image"];
+    if (query.filter["genres.name"]) {
+      relations.push("genres");
+    }
+    if (query.filter["tags.name"]) {
+      relations.push("tags");
+    }
+
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
       maxLimit: NO_PAGINATION,
       nullSort: "last",
-      relations: ["box_image"],
+      relations,
       sortableColumns: [
         "id",
         "title",
@@ -96,6 +104,8 @@ export class GamesController {
         average_playtime: all_filters,
         early_access: all_filters,
         type: all_filters,
+        "genres.name": all_filters,
+        "tags.name": all_filters,
       },
       withDeleted: false,
     });
