@@ -1,5 +1,14 @@
 # GameVault Backend Server Changelog
 
+
+## 8.0.3
+
+Recommended Gamevault App Version: `v1.7.0`
+
+### Changes
+
+- Fixed Bug of 8.0.2 that using no filters at all would crash the server
+
 ## 8.0.2
 
 Recommended Gamevault App Version: `v1.7.0`
