@@ -25,23 +25,6 @@ Recommended Gamevault App Version: `v1.7.0`
 - Fixed Bug [#268](https://github.com/Phalcode/gamevault-app/issues/268) where your games could not be filtered based on their tags and genres.
 - Also made Tags API faster by limiting pages to 100 results by default.
 
-## 8.0.3
-
-Recommended Gamevault App Version: `v1.7.0`
-
-### Changes
-
-- Fixed Bug of 8.0.2 that using no filters at all would crash the server
-
-## 8.0.2
-
-Recommended Gamevault App Version: `v1.7.0`
-
-### Changes
-
-- Fixed Bug [#268](https://github.com/Phalcode/gamevault-app/issues/268) where your games could not be filtered based on their tags and genres.
-- Also made Tags API faster by limiting pages to 100 results by default.
-
 ## 8.0.1
 
 Recommended Gamevault App Version: `v1.7.0`
