@@ -26,8 +26,11 @@ async function bootstrap(): Promise<void> {
     logger: winston,
   });
 
+  // To Support Reverse Proxies
   app.set("trust proxy", 1);
+  // Fancy JSON Responses
   app.set("json spaces", 2);
+  // CORS Configuration
   if (configuration.SERVER.CORS_ALLOWED_ORIGINS.length) {
     app.enableCors({
       origin: configuration.SERVER.CORS_ALLOWED_ORIGINS,
@@ -37,31 +40,43 @@ async function bootstrap(): Promise<void> {
   } else {
     app.enableCors();
   }
+
+  // GZIP
   app.use(compression());
+  // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
+  // Cookies
   app.use(cookieparser());
+
+  // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
       stream: stream,
-      skip: (req) => req.url.endsWith("/health"),
+      skip: (req) => req.url.includes("/health"),
     }),
   );
+
+  // Validates incoming data
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
     }),
   );
 
+  // Logs HTTP 4XX and 5XX as warns and errors
   app.useGlobalFilters(new LoggingExceptionFilter());
 
+  // TODO: Fix this versioning...
   app.setGlobalPrefix("api/v1");
   const reflector = app.get(Reflector);
 
+  // Enable Authentication and Authorization
   app.useGlobalGuards(
     new AuthenticationGuard(reflector),
     new AuthorizationGuard(reflector),
   );
 
+  // Provide API Specification
   if (configuration.SERVER.API_DOCS_ENABLED) {
     SwaggerModule.setup(
       "api/docs",
@@ -83,18 +98,12 @@ async function bootstrap(): Promise<void> {
             "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
             "https://github.com/Phalcode/gamevault-backend/LICENSE",
           )
-          .addTag("game", "apis for games")
-          .addTag("progress", "apis for progresses")
-          .addTag("tags", "apis for tags")
-          .addTag("genres", "apis for genres")
-          .addTag("user", "apis for user management")
-          .addTag("rawg", "apis for rawg services")
-          .addTag("images", "apis for handling images")
           .build(),
       ),
     );
   }
 
+  // Provide fancy pants landing page
   app
     .getHttpAdapter()
     .getInstance()
