@@ -6,7 +6,7 @@
 
 - TODO: Implemented Realtime Online/Playing/Busy/Offline Status
 - TODO: Implemented direct messages
-- Configured Admin Health api to not write any logs
+- Configured Admin Health API to not write any logs
 
 ## 8.0.3
 
