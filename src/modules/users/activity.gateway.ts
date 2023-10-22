@@ -15,9 +15,9 @@ import { UsersService } from "./users.service";
 import { ActivityState } from "./models/activity-state.enum";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
-import { AuthenticationGuard } from "../auth/authentication.guard";
+import { SocketSecretGuard } from "../guards/socket-secret.guard";
 
-@UseGuards(AuthenticationGuard)
+@UseGuards(SocketSecretGuard)
 @ApiBasicAuth()
 @WebSocketGateway({ cors: true })
 @UseFilters(WebsocketExceptionsFilter)
@@ -26,59 +26,52 @@ export class ActivityGateway
 {
   private readonly logger = new Logger(ActivityGateway.name);
 
-  private activities: Activity[] = [];
+  private activities: Map<number, Activity> = new Map<number, Activity>();
 
   @WebSocketServer()
   server: Server;
 
   constructor(private usersService: UsersService) {}
 
-  private findActivityBySocketId(userSocketId: string): Activity | undefined {
-    return this.activities.find((user) => user.userSocketId === userSocketId);
-  }
-
-  private updateActivity(activity: Activity, newActivity: Activity) {
-    activity.state = newActivity.state;
-    activity.gameId =
-      activity.state === ActivityState.PLAYING ? newActivity.gameId : undefined;
-  }
-
-  private addActivity(dto: Activity) {
-    this.activities.push(dto);
-  }
-
-  @SubscribeMessage("activity")
+  @SubscribeMessage("set-activity")
   async setActivity(
     @ConnectedSocket() client: Socket,
     @MessageBody() dto: Activity,
   ) {
-    this.logger.log(client.request);
-    const req = client.request as unknown as { gamevaultuser: GamevaultUser };
-    this.logger.log(req);
-    const user = await this.usersService.findByUsernameOrFail(
-      req.gamevaultuser.username,
+    const requestingUser = client as unknown as {
+      gamevaultuser: GamevaultUser;
+    };
+    const user = await this.usersService.findByIdOrFail(
+      requestingUser.gamevaultuser.id,
     );
     dto.userId = user.id;
-    dto.userSocketId = client.id;
-    const activity = this.findActivityBySocketId(dto.userSocketId);
-    activity ? this.updateActivity(activity, dto) : this.addActivity(dto);
-    this.server.emit("activities", this.activities);
+    dto.socketId = client.id;
+    dto.gameId = dto.state === ActivityState.PLAYING ? dto.gameId : undefined;
+    this.activities.set(dto.userId, dto);
+    this.logger.log(this.getAll());
+    this.server.emit("activities", this.getAll());
   }
 
-  @SubscribeMessage("activities")
+  @SubscribeMessage("get-activities")
   getActivities(@ConnectedSocket() client: Socket) {
-    client.emit("activities", this.activities);
+    client.emit("activities", this.getAll());
   }
 
   handleConnection(client: Socket) {
-    this.logger.log("Client " + client.id + " connected.");
-    client.emit("activities", this.activities);
+    this.logger.log(`Client ${client.id} connected.`);
+    client.emit("activities", this.getAll());
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log("Client " + client.id + " disconnected.");
-    this.activities = this.activities.filter(
-      (state) => state.userSocketId != client.id,
-    );
+    this.logger.log(`Client ${client.id} disconnected.`);
+    for (const [userId, activity] of this.activities) {
+      if (activity.socketId === client.id) {
+        this.activities.delete(userId);
+      }
+    }
+  }
+
+  private getAll() {
+    return [...this.activities.values()];
   }
 }

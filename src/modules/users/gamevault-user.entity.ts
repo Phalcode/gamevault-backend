@@ -18,6 +18,14 @@ export class GamevaultUser extends DatabaseEntity {
   })
   password: string;
 
+  @Column({ select: false, unique: true, length: 64 })
+  @ApiProperty({
+    description:
+      "the user's socket secret is used for authentication with the server over the websocket protocol.",
+    example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
+  })
+  socketSecret: string;
+
   @ManyToOne(() => Image, {
     nullable: true,
     eager: true,

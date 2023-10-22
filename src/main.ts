@@ -12,8 +12,8 @@ import { AppModule } from "./app.module";
 import configuration from "./configuration";
 import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AuthenticationGuard } from "./modules/auth/authentication.guard";
-import { AuthorizationGuard } from "./modules/auth/authorization.guard";
+import { AuthenticationGuard } from "./modules/guards/authentication.guard";
+import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,

@@ -25,6 +25,7 @@ import { ImagesService } from "../images/images.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
 import { FindOptions } from "../../globals";
+import { randomBytes } from "crypto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -177,6 +178,7 @@ export class UsersService implements OnApplicationBootstrap {
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
+    user.socketSecret = randomBytes(64).toString("hex");
     user.email = dto.email;
     user.first_name = dto.first_name;
     user.last_name = dto.last_name;
@@ -421,5 +423,9 @@ export class UsersService implements OnApplicationBootstrap {
         `A user with this ${duplicateField} already exists. (case-insensitive)`,
       );
     }
+  }
+
+  async getUserBySocketSecretOrFail(socketSecret: string) {
+    return await this.userRepository.findOneByOrFail({ socketSecret });
   }
 }

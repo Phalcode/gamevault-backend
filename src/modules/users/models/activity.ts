@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEmpty, IsNotEmpty } from "class-validator";
+import { IsEmpty, IsNotEmpty, IsOptional } from "class-validator";
 import { ActivityState } from "./activity-state.enum";
-import { Optional } from "@nestjs/common";
 
 export class Activity {
   @IsEmpty()
   userId?: number;
+
   @IsEmpty()
-  userSocketId?: string;
+  socketId?: string;
 
   @ApiProperty({
     type: "enum",
@@ -18,8 +18,10 @@ export class Activity {
   @IsNotEmpty()
   state: ActivityState;
 
-  @ApiPropertyOptional({ description: "The games's id" })
-  @Optional()
+  @ApiPropertyOptional({
+    description: "The games's id. Only required if the state is 'PLAYING'.",
+  })
+  @IsOptional()
   @IsNotEmpty()
   gameId?: number;
 }

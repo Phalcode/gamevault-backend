@@ -16,7 +16,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { APP_FILTER } from "@nestjs/core";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
-import { DefaultStrategy } from "./modules/auth/basic-auth.strategy";
+import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 @Module({
   imports: [
     DatabaseModule,

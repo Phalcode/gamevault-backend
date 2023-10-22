@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { ImagesModule } from "../images/images.module";
 import { ActivityGateway } from "./activity.gateway";
+import { SocketSecretGuard } from "../guards/socket-secret.guard";
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { ActivityGateway } from "./activity.gateway";
     forwardRef(() => ImagesModule),
   ],
   controllers: [UsersController],
-  providers: [UsersService, ActivityGateway],
+  providers: [UsersService, ActivityGateway, SocketSecretGuard],
   exports: [UsersService],
 })
 export class UsersModule {}

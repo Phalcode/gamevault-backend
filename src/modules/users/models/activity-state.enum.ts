@@ -1,5 +1,5 @@
 export enum ActivityState {
-  ONLINE,
-  BUSY,
-  PLAYING,
+  ONLINE = "ONLINE",
+  BUSY = "BUSY",
+  PLAYING = "PLAYING",
 }
