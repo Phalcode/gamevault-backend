@@ -4,7 +4,8 @@
 
 ### Changes
 
-- TODO: Implemented Realtime Online/Playing/Busy/Offline Status
+- Published Async API doc on `/api/docs/async`
+- Implemented Realtime Online/Playing/Busy/Offline Status
 - TODO: Implemented direct messages
 - Configured Admin Health API to not write any logs
 

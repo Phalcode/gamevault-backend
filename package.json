@@ -47,6 +47,7 @@
     "mime": "3.0.0",
     "morgan": "1.10.0",
     "nest-winston": "1.9.4",
+    "nestjs-asyncapi": "^1.2.1",
     "nestjs-paginate": "8.3.3",
     "node-7z": "3.0.0",
     "passport": "0.6.0",

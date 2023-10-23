@@ -1,4 +1,5 @@
 import { Logger, UseFilters, UseGuards } from "@nestjs/common";
+import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
 import { Server, Socket } from "socket.io";
 import {
   MessageBody,
@@ -16,6 +17,7 @@ import { ActivityState } from "./models/activity-state.enum";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
+import { Activities } from "./models/activities.dto";
 
 @UseGuards(SocketSecretGuard)
 @ApiBasicAuth()
@@ -33,6 +35,15 @@ export class ActivityGateway
 
   constructor(private usersService: UsersService) {}
 
+  @AsyncApiSub({
+    channel: "set-activity",
+    operationId: "set-activity",
+    summary: "sets the activity of your user.",
+    tags: [{ name: "activity" }],
+    message: {
+      payload: Activity,
+    },
+  })
   @SubscribeMessage("set-activity")
   async setActivity(
     @ConnectedSocket() client: Socket,
@@ -52,6 +63,22 @@ export class ActivityGateway
     this.server.emit("activities", this.getAll());
   }
 
+  @AsyncApiSub({
+    channel: "get-activities",
+    operationId: "get-activities",
+    summary: "request all activities",
+    tags: [{ name: "activity" }],
+    message: { payload: Object },
+  })
+  @AsyncApiPub({
+    channel: "activities",
+    operationId: "activities",
+    summary: "sends all activites to all users.",
+    tags: [{ name: "activity" }],
+    message: {
+      payload: Activities,
+    },
+  })
   @SubscribeMessage("get-activities")
   getActivities(@ConnectedSocket() client: Socket) {
     client.emit("activities", this.getAll());
@@ -72,6 +99,6 @@ export class ActivityGateway
   }
 
   private getAll() {
-    return [...this.activities.values()];
+    return new Activities([...this.activities.values()]);
   }
 }

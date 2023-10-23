@@ -19,7 +19,7 @@ export class Activity {
   state: ActivityState;
 
   @ApiPropertyOptional({
-    description: "The games's id. Only required if the state is 'PLAYING'.",
+    description: "The game's id. Only required if the state is 'PLAYING'.",
   })
   @IsOptional()
   @IsNotEmpty()

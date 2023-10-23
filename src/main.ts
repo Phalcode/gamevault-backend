@@ -4,6 +4,7 @@ dotenv.config();
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
 import compression from "compression";
 import helmet from "helmet";
@@ -94,6 +95,36 @@ async function bootstrap(): Promise<void> {
           .addBasicAuth()
           .addServer(`http://localhost:8080`, "Local GameVault Server")
           .addServer(`https://demo.gamevau.lt`, "Demo GameVault Server")
+          .setLicense(
+            "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+            "https://github.com/Phalcode/gamevault-backend/LICENSE",
+          )
+          .build(),
+      ),
+    );
+
+    await AsyncApiModule.setup(
+      "api/docs/async",
+      app,
+      AsyncApiModule.createDocument(
+        app,
+        new AsyncApiDocumentBuilder()
+          .setTitle("GameVault Backend Server")
+          .setDescription(
+            "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+          )
+          .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
+          .setExternalDoc("Documentation", "https://gamevau.lt")
+          .setDefaultContentType("application/json")
+          .setVersion(configuration.SERVER.VERSION)
+          .addServer("Local GameVault Server", {
+            url: "localhost:8080",
+            protocol: "ws",
+          })
+          .addServer("Demo GameVault Server", {
+            url: "demo.gamevau.lt",
+            protocol: "wss",
+          })
           .setLicense(
             "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
             "https://github.com/Phalcode/gamevault-backend/LICENSE",
