@@ -102,7 +102,7 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
-
+    /* Skip until it works on docker
     await AsyncApiModule.setup(
       "api/docs/async",
       app,
@@ -132,6 +132,7 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
+   */
   }
 
   // Provide fancy pants landing page

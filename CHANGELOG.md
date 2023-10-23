@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Published Async API doc on `/api/docs/async`
+- Published Async API doc on `/api/docs/async` ( but it doesnt work on docker build due to a bug )
 - Implemented Realtime Online/Playing/Busy/Offline Status
 - TODO: Implemented direct messages
 - Configured Admin Health API to not write any logs
