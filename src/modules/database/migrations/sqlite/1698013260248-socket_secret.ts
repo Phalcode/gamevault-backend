@@ -148,12 +148,14 @@ export class SocketSecret1698013260248 implements MigrationInterface {
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
 
+    // Get a list of user IDs from the "gamevault_user" table.
     const users = await queryRunner.query("SELECT id FROM gamevault_user");
 
+    // Generate a random 64-character hexadecimal socket secret for each user and update the database.
     for (const user of users) {
-      const randomSocketSecret = randomBytes(64).toString("hex");
+      const randomSocketSecret = randomBytes(32).toString("hex"); // 32 bytes for 64 hexadecimal characters
       await queryRunner.query(
-        "UPDATE gamevault_user SET socket_secret = ? WHERE id = ?",
+        "UPDATE gamevault_user SET socket_secret = $1 WHERE id = $2",
         [randomSocketSecret, user.id],
       );
     }

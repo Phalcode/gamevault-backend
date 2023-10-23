@@ -178,7 +178,7 @@ export class UsersService implements OnApplicationBootstrap {
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
-    user.socketSecret = randomBytes(64).toString("hex");
+    user.socketSecret = randomBytes(32).toString("hex");
     user.email = dto.email;
     user.first_name = dto.first_name;
     user.last_name = dto.last_name;
