@@ -2,6 +2,10 @@
 
 ## 9.0.0
 
+### Breaking Changes & Migration
+
+- We've relocated all methods from ``/api/v1`` to ``/api``. This change reflects the fact that we've moved beyond version one, and it wouldn't be practical to maintain the older APIs. Going forward, /api/ will always point to the most up-to-date and current API.
+
 ### Changes
 
 - Published Async API doc on `/api/docs/async` ( but it doesnt work on docker build due to a bug )

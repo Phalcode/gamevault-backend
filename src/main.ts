@@ -16,6 +16,7 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
+import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,
  * and setting up global settings and routes.
@@ -49,6 +50,8 @@ async function bootstrap(): Promise<void> {
   // Cookies
   app.use(cookieparser());
 
+  app.use(new ApiVersionMiddleware().use);
+
   // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
@@ -67,8 +70,7 @@ async function bootstrap(): Promise<void> {
   // Logs HTTP 4XX and 5XX as warns and errors
   app.useGlobalFilters(new LoggingExceptionFilter());
 
-  // TODO: Fix this versioning...
-  app.setGlobalPrefix("api/v1");
+  app.setGlobalPrefix("api");
   const reflector = app.get(Reflector);
 
   // Enable Authentication and Authorization
