@@ -2,6 +2,7 @@ FROM node:20.6-slim AS base
 # Default Variables
 ENV PUID=1000
 ENV PGID=1000
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 # Build time variables
 ## Allow non-root usage
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
