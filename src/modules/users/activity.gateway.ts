@@ -43,6 +43,15 @@ export class ActivityGateway
       payload: Activity,
     },
   })
+  @AsyncApiPub({
+    channel: "activities",
+    operationId: "activity",
+    summary: "sends the new activiy to all users.",
+    tags: [{ name: "activity" }],
+    message: {
+      payload: Activity,
+    },
+  })
   @SubscribeMessage("set-activity")
   async setActivity(
     @ConnectedSocket() client: Socket,
@@ -58,8 +67,7 @@ export class ActivityGateway
     dto.socket_id = client.id;
     dto.game_id = dto.state === ActivityState.PLAYING ? dto.game_id : undefined;
     this.activities.set(dto.user_id, dto);
-    this.logger.log(this.getAll());
-    this.server.emit("activities", this.getAll());
+    this.server.emit("activity", dto);
   }
 
   @AsyncApiSub({
