@@ -433,7 +433,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   async getSocketSecretOrFail(userId: number): Promise<string> {
     const user = await this.userRepository.findOneOrFail({
-      select: ["socket_secret"],
+      select: ["id", "socket_secret"],
       where: { id: userId },
     });
 

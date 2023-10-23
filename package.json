@@ -28,7 +28,7 @@
     "@nestjs/platform-express": "10.2.7",
     "@nestjs/platform-socket.io": "^10.2.7",
     "@nestjs/schedule": "4.0.0",
-    "@nestjs/swagger": "7.1.13",
+    "@nestjs/swagger": "7.1.14",
     "@nestjs/typeorm": "10.0.0",
     "@nestjs/websockets": "^10.2.7",
     "async-g-i-s": "1.5.1",
@@ -69,7 +69,7 @@
     "winston-daily-rotate-file": "4.7.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "10.1.18",
+    "@nestjs/cli": "10.2.0",
     "@nestjs/schematics": "10.0.2",
     "@types/bcrypt": "5.0.1",
     "@types/compression": "1.7.4",
@@ -84,8 +84,8 @@
     "@types/string-similarity": "4.0.1",
     "@types/throttle": "^1.0.3",
     "@types/unidecode": "^0.1.2",
-    "@typescript-eslint/eslint-plugin": "6.8.0",
-    "@typescript-eslint/parser": "6.8.0",
+    "@typescript-eslint/eslint-plugin": "6.9.0",
+    "@typescript-eslint/parser": "6.9.0",
     "eslint": "8.52.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-import": "2.29.0",
