@@ -10,3 +10,4 @@ if [ "$(id -u)" = '0' ]; then
 else # if using the user directive, run normally
     exec node "${@}"
 fi
+sudo chown -R $(whoami) ~/.npm
