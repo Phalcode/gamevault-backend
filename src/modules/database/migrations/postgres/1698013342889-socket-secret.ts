@@ -7,7 +7,7 @@ export class SocketSecret1698013342889 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
             ALTER TABLE "gamevault_user"
-            ADD "socket_secret" character varying(64) NOT NULL
+            ADD "socket_secret" character varying(64)
         `);
     await queryRunner.query(`
             ALTER TABLE "gamevault_user"
