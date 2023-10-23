@@ -9,7 +9,7 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
 } from "@nestjs/websockets";
-import { Activity } from "./models/activity";
+import { Activity } from "./models/activity.dto";
 import { ApiBasicAuth } from "@nestjs/swagger";
 import { UsersService } from "./users.service";
 import { ActivityState } from "./models/activity-state.enum";
@@ -44,10 +44,10 @@ export class ActivityGateway
     const user = await this.usersService.findByIdOrFail(
       requestingUser.gamevaultuser.id,
     );
-    dto.userId = user.id;
-    dto.socketId = client.id;
-    dto.gameId = dto.state === ActivityState.PLAYING ? dto.gameId : undefined;
-    this.activities.set(dto.userId, dto);
+    dto.user_id = user.id;
+    dto.socket_id = client.id;
+    dto.game_id = dto.state === ActivityState.PLAYING ? dto.game_id : undefined;
+    this.activities.set(dto.user_id, dto);
     this.logger.log(this.getAll());
     this.server.emit("activities", this.getAll());
   }
@@ -65,7 +65,7 @@ export class ActivityGateway
   handleDisconnect(client: Socket) {
     this.logger.log(`Client ${client.id} disconnected.`);
     for (const [userId, activity] of this.activities) {
-      if (activity.socketId === client.id) {
+      if (activity.socket_id === client.id) {
         this.activities.delete(userId);
       }
     }

@@ -4,10 +4,10 @@ import { ActivityState } from "./activity-state.enum";
 
 export class Activity {
   @IsEmpty()
-  userId?: number;
+  user_id?: number;
 
   @IsEmpty()
-  socketId?: string;
+  socket_id?: string;
 
   @ApiProperty({
     type: "enum",
@@ -23,5 +23,5 @@ export class Activity {
   })
   @IsOptional()
   @IsNotEmpty()
-  gameId?: number;
+  game_id?: number;
 }
