@@ -17,7 +17,6 @@ import { ActivityState } from "./models/activity-state.enum";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
-import { Activities } from "./models/activities.dto";
 
 @UseGuards(SocketSecretGuard)
 @ApiBasicAuth()
@@ -76,7 +75,7 @@ export class ActivityGateway
     summary: "sends all activites to all users.",
     tags: [{ name: "activity" }],
     message: {
-      payload: Activities,
+      payload: Array<Activity>,
     },
   })
   @SubscribeMessage("get-activities")
@@ -99,6 +98,6 @@ export class ActivityGateway
   }
 
   private getAll() {
-    return new Activities([...this.activities.values()]);
+    return [...this.activities.values()];
   }
 }

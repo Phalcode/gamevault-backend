@@ -4,7 +4,7 @@ dotenv.config();
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
-import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
+//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
 import compression from "compression";
 import helmet from "helmet";
