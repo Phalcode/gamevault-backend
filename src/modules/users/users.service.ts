@@ -178,7 +178,7 @@ export class UsersService implements OnApplicationBootstrap {
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
-    user.socketSecret = randomBytes(32).toString("hex");
+    user.socket_secret = randomBytes(32).toString("hex");
     user.email = dto.email;
     user.first_name = dto.first_name;
     user.last_name = dto.last_name;
@@ -426,6 +426,17 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   async getUserBySocketSecretOrFail(socketSecret: string) {
-    return await this.userRepository.findOneByOrFail({ socketSecret });
+    return await this.userRepository.findOneByOrFail({
+      socket_secret: socketSecret,
+    });
+  }
+
+  async getSocketSecretOrFail(userId: number): Promise<string> {
+    const user = await this.userRepository.findOneOrFail({
+      select: ["socket_secret"],
+      where: { id: userId },
+    });
+
+    return user.socket_secret;
   }
 }

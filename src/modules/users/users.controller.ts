@@ -82,9 +82,11 @@ export class UsersController {
   async getMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
+    user.socket_secret = await this.usersService.getSocketSecretOrFail(user.id);
+    return user;
   }
 
   /**

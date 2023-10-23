@@ -24,7 +24,7 @@ export class GamevaultUser extends DatabaseEntity {
       "the user's socket secret is used for authentication with the server over the websocket protocol.",
     example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
   })
-  socketSecret: string;
+  socket_secret: string;
 
   @ManyToOne(() => Image, {
     nullable: true,
