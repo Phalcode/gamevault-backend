@@ -6,29 +6,46 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
+import { HealthService } from "../health/health.service";
 import {
-  ApiOperation,
-  ApiTags,
   ApiBasicAuth,
   ApiHeader,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from "@nestjs/swagger";
+import { Health } from "../health/models/health.model";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
-import { DatabaseService } from "./database.service";
+import { DatabaseService } from "../database/database.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 
 @ApiBasicAuth()
-@ApiTags("database")
-@Controller("database")
-export class DatabaseController {
-  constructor(private databaseService: DatabaseService) {}
+@Controller("admin")
+@ApiTags("admin")
+export class AdminController {
+  constructor(
+    private healthService: HealthService,
+    private databaseService: DatabaseService,
+  ) {}
 
-  @Get("backup")
+  @Get("health")
+  @ApiOkResponse({ type: () => Health })
   @ApiOperation({
     summary:
-      "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time. **DEPRECATED** Moved to /admin/database/backup",
+      "returns lifesign and additional server metrics for administrators",
+    operationId: "healthcheckAdmin",
+  })
+  @MinimumRole(Role.ADMIN)
+  async getAdminHealth(): Promise<Health> {
+    return this.healthService.getExtensive();
+  }
+
+  @Get("database/backup")
+  @ApiOperation({
+    summary:
+      "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time.",
     operationId: "backupDatabase",
-    deprecated: true,
   })
   @ApiHeader({
     name: "X-Database-Password",
@@ -42,12 +59,11 @@ export class DatabaseController {
     return this.databaseService.backup(password);
   }
 
-  @Post("restore")
+  @Post("database/restore")
   @ApiOperation({
     summary:
-      "Upload and restore a previously saved database dump. This action will replace all current data in the database. **DEPRECATED** Moved to /admin/database/restore",
+      "Upload and restore a previously saved database dump. This action will replace all current data in the database.",
     operationId: "restoreDatabase",
-    deprecated: true,
   })
   @ApiHeader({
     name: "X-Database-Password",

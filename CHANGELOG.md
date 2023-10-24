@@ -2,17 +2,23 @@
 
 ## 9.0.0
 
+I apologize for the summaries. Here's the revised changelog without the summaries:
+
 ### Breaking Changes & Migration
 
-- We've relocated all methods from `/api/v1` to `/api`. This change reflects the fact that we've moved way beyond version one, and it wouldn't be practical to maintain the older APIs. Going forward, /api/ will always point to the most up-to-date and current API.
+- Relocated all APIs from `/api/v1` to `/api`. This change reflects our move beyond version one, ensuring the most up-to-date and current API is always at `/api`.
+- Deprecated `/health/admin` in favor of `/admin/health` to provide additional features for server admins in the future.
+- Deprecated `/database/*` in favor of `/admin/database/*` for the same reason as above.
 
 ### Changes
 
-- TODO: Implemented direct messages
-- Published Async API doc on `/api/docs/async` ( but it doesnt work on docker, due to a bug, so it is disabled )
-- Implemented Realtime Online/Playing/Busy/Offline Status
-- Fixed contract generation [#146](https://github.com/Phalcode/gamevault-backend/issues/146) (again)
-- Configured Admin Health API to not write any logs
+- TODO: Implemented direct messages.
+- The Debug Log level now only returns the redacted server configuration, without sensitive data.
+- Published Async API doc on `/api/docs/async` (but it doesn't work on Docker, due to a bug, so it is disabled).
+- Added real-time online/playing/busy/offline status.
+- Introduced new configuration `SERVER_ONLINE_ACTIVITIES_DISABLED` to disable activities.
+- Fixed contract generation [#146](https://github.com/Phalcode/gamevault-backend/issues/146) (again).
+- Configured Admin Health API to not write any logs.
 
 ### Thanks
 

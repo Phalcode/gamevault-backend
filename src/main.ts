@@ -10,7 +10,7 @@ import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
 import { AppModule } from "./app.module";
-import configuration from "./configuration";
+import configuration, { getCensoredConfiguration } from "./configuration";
 import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
@@ -70,8 +70,12 @@ async function bootstrap(): Promise<void> {
   // Logs HTTP 4XX and 5XX as warns and errors
   app.useGlobalFilters(new LoggingExceptionFilter());
 
+  // Basepath
   app.setGlobalPrefix("api");
   const reflector = app.get(Reflector);
+
+  // Enable automatic HTTP Error Response Logging
+  app.useGlobalFilters(new LoggingExceptionFilter());
 
   // Enable Authentication and Authorization
   app.useGlobalGuards(
@@ -148,7 +152,8 @@ async function bootstrap(): Promise<void> {
     });
 
   await app.listen(8080);
-  logger.debug("Loaded Configuration", configuration);
+
+  logger.debug("Loaded Configuration", getCensoredConfiguration());
   logger.log(
     `Started GameVault Server v${configuration.SERVER.VERSION} on port 8080.`,
   );

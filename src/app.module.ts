@@ -1,3 +1,4 @@
+import { AdminModule } from "./modules/admin/admin.module";
 import { DatabaseModule } from "./modules/database/database.module";
 import { FilesModule } from "./modules/files/files.module";
 import { BoxartsModule } from "./modules/boxarts/boxarts.module";
@@ -13,12 +14,11 @@ import { GenresModule } from "./modules/genres/genres.module";
 import { GamesModule } from "./modules/games/games.module";
 import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
-import { APP_FILTER } from "@nestjs/core";
-import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 @Module({
   imports: [
+    AdminModule,
     DatabaseModule,
     ScheduleModule.forRoot(),
     BoxartsModule,
@@ -35,9 +35,6 @@ import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
     GenresModule,
     GamesModule,
   ],
-  providers: [
-    { provide: APP_FILTER, useClass: LoggingExceptionFilter },
-    DefaultStrategy,
-  ],
+  providers: [DefaultStrategy],
 })
 export class AppModule {}

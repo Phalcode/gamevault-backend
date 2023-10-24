@@ -10,11 +10,6 @@ import { Role } from "../users/models/role.enum";
 export class HealthController {
   constructor(private healthService: HealthService) {}
 
-  /**
-   * Returns a lifesign.
-   *
-   * @returns
-   */
   @Get()
   @ApiOkResponse({ type: () => Health })
   @ApiOperation({
@@ -31,8 +26,9 @@ export class HealthController {
   @ApiOkResponse({ type: () => Health })
   @ApiOperation({
     summary:
-      "returns a lifesign and additional server metrics for administrators",
+      "returns a lifesign and additional server metrics for administrators. **DEPRECATED. MOVED TO /admin/health**",
     operationId: "healthcheckAdmin",
+    deprecated: true,
   })
   @MinimumRole(Role.ADMIN)
   async extensiveHealthcheck(): Promise<Health> {

@@ -26,7 +26,7 @@ function parseKibibytesToBytes(
   }
 }
 
-export default {
+const configuration = {
   SERVER: {
     VERSION: process.env.npm_package_version || packageJson.version,
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
@@ -53,6 +53,9 @@ export default {
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
       10_737_418_240,
+    ),
+    ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
+      process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
   },
   VOLUMES: {
@@ -122,3 +125,12 @@ export default {
     ),
   },
 };
+
+export function getCensoredConfiguration() {
+  const conf = { ...configuration };
+  conf.DB.PASSWORD = "**REDACTED**";
+  conf.SERVER.ADMIN_PASSWORD = "**REDACTED**";
+  return conf;
+}
+
+export default configuration;
