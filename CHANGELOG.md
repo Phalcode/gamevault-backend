@@ -2,8 +2,6 @@
 
 ## 9.0.0
 
-I apologize for the summaries. Here's the revised changelog without the summaries:
-
 ### Breaking Changes & Migration
 
 - Relocated all APIs from `/api/v1` to `/api`. This change reflects our move beyond version one, ensuring the most up-to-date and current API is always at `/api`.
