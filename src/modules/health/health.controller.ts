@@ -32,7 +32,7 @@ export class HealthController {
   @ApiOperation({
     summary:
       "returns a lifesign and additional server metrics for administrators",
-    operationId: "healthcheck",
+    operationId: "healthcheckAdmin",
   })
   @MinimumRole(Role.ADMIN)
   async extensiveHealthcheck(): Promise<Health> {
