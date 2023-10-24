@@ -15,10 +15,10 @@ export class HealthController {
   @ApiOperation({
     summary:
       "returns a lifesign, if an admin calls this api additional server infos are returned.",
-    operationId: "healthcheck",
+    operationId: "getHealth",
   })
   @Public()
-  async healthcheck(): Promise<Health> {
+  async getHealth(): Promise<Health> {
     return this.healthService.get();
   }
 
@@ -27,11 +27,11 @@ export class HealthController {
   @ApiOperation({
     summary:
       "returns a lifesign and additional server metrics for administrators. **DEPRECATED. MOVED TO /admin/health**",
-    operationId: "healthcheckAdmin",
+    operationId: "getHealthAdmin",
     deprecated: true,
   })
   @MinimumRole(Role.ADMIN)
-  async extensiveHealthcheck(): Promise<Health> {
+  async getHealthAdmin(): Promise<Health> {
     return this.healthService.getExtensive();
   }
 }

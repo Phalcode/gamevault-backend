@@ -29,7 +29,7 @@ export class GamesService {
     private imagesService: ImagesService,
   ) {}
 
-  public async findByIdOrFail(
+  public async findByGameIdOrFail(
     id: number,
     options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
   ): Promise<Game> {
@@ -160,7 +160,7 @@ export class GamesService {
       .limit(1)
       .getOne();
 
-    return this.findByIdOrFail(game.id, {
+    return this.findByGameIdOrFail(game.id, {
       loadDeletedEntities: true,
       loadRelations: true,
     });
@@ -178,7 +178,7 @@ export class GamesService {
    */
   public async remap(id: number, new_rawg_id: number): Promise<Game> {
     // Fetch the game to remap from the database and set the new rawg_id
-    let game = await this.findByIdOrFail(id);
+    let game = await this.findByGameIdOrFail(id);
     game.rawg_id = new_rawg_id;
 
     // Null all related fields but keep progresses
@@ -230,7 +230,7 @@ export class GamesService {
     const game =
       dto.rawg_id != null
         ? await this.remap(id, dto.rawg_id)
-        : await this.findByIdOrFail(id);
+        : await this.findByGameIdOrFail(id);
 
     // Updates BoxArt if Necessary
     if (dto.box_image_url != null) {
@@ -241,7 +241,7 @@ export class GamesService {
     }
 
     if (dto.box_image_id != null)
-      game.box_image = await this.imagesService.findByIdOrFail(
+      game.box_image = await this.imagesService.findByImageIdOrFail(
         dto.box_image_id,
       );
 
@@ -254,7 +254,7 @@ export class GamesService {
     }
 
     if (dto.background_image_id != null)
-      game.background_image = await this.imagesService.findByIdOrFail(
+      game.background_image = await this.imagesService.findByImageIdOrFail(
         dto.background_image_id,
       );
 
@@ -269,6 +269,6 @@ export class GamesService {
    */
   public async restore(id: number): Promise<Game> {
     await this.gamesRepository.recover({ id });
-    return this.findByIdOrFail(id);
+    return this.findByGameIdOrFail(id);
   }
 }

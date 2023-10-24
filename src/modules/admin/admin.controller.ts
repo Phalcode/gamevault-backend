@@ -34,7 +34,7 @@ export class AdminController {
   @ApiOperation({
     summary:
       "returns lifesign and additional server metrics for administrators",
-    operationId: "healthcheckAdmin",
+    operationId: "getAdminHealth",
   })
   @MinimumRole(Role.ADMIN)
   async getAdminHealth(): Promise<Health> {
@@ -45,7 +45,7 @@ export class AdminController {
   @ApiOperation({
     summary:
       "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time.",
-    operationId: "backupDatabase",
+    operationId: "getAdminDatabaseBackup",
   })
   @ApiHeader({
     name: "X-Database-Password",
@@ -55,7 +55,9 @@ export class AdminController {
     example: "SecretPassword123",
   })
   @MinimumRole(Role.ADMIN)
-  async backup(@Headers("X-Database-Password") password: string) {
+  async getAdminDatabaseBackup(
+    @Headers("X-Database-Password") password: string,
+  ) {
     return this.databaseService.backup(password);
   }
 
@@ -63,7 +65,7 @@ export class AdminController {
   @ApiOperation({
     summary:
       "Upload and restore a previously saved database dump. This action will replace all current data in the database.",
-    operationId: "restoreDatabase",
+    operationId: "postAdminDatabaseRestore",
   })
   @ApiHeader({
     name: "X-Database-Password",
@@ -74,7 +76,7 @@ export class AdminController {
   })
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.ADMIN)
-  async restore(
+  async postAdminDatabaseRestore(
     @UploadedFile()
     file: Express.Multer.File,
     @Headers("X-Database-Password") password: string,

@@ -105,7 +105,7 @@ export class RawgService {
 
     let rawgEntry: RawgGame;
     if (game.rawg_id) {
-      rawgEntry = await this.fetchById(game.rawg_id);
+      rawgEntry = await this.fetchByRawgId(game.rawg_id);
     } else {
       rawgEntry = await this.getBestMatch(
         game.title,
@@ -149,7 +149,7 @@ export class RawgService {
       this.logger.debug("-- END OF MATCHES --");
     }
 
-    return this.fetchById(bestMatch.id);
+    return this.fetchByRawgId(bestMatch.id);
   }
 
   /**
@@ -250,7 +250,7 @@ export class RawgService {
    * @param id - The RAWG ID of the game to retrieve.
    * @returns The RawgGame object associated with the specified ID.
    */
-  private async fetchById(id: number): Promise<RawgGame> {
+  private async fetchByRawgId(id: number): Promise<RawgGame> {
     try {
       const response = await firstValueFrom(
         this.httpService

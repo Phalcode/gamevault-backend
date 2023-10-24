@@ -19,11 +19,11 @@ export class FilesController {
   @Put("reindex")
   @ApiOperation({
     summary: "manually triggers an index of all games",
-    operationId: "indexGames",
+    operationId: "putFilesReindex",
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
-  async reindex() {
+  async putFilesReindex() {
     return await this.filesService.index();
   }
 }

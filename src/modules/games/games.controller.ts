@@ -66,7 +66,7 @@ export class GamesController {
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
-  async get(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
+  async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
     const relations = ["box_image"];
     if (query.filter) {
       if (query.filter["genres.name"]) {
@@ -122,11 +122,11 @@ export class GamesController {
   @Get("random")
   @ApiOperation({
     summary: "get a random game",
-    operationId: "getRandomGame",
+    operationId: "getGameRandom",
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
-  async getRandom(): Promise<Game> {
+  async getGameRandom(): Promise<Game> {
     return await this.gamesService.getRandom();
   }
 
@@ -139,12 +139,12 @@ export class GamesController {
   @Get(":id")
   @ApiOperation({
     summary: "get details on a game",
-    operationId: "getGameById",
+    operationId: "getGameByGameId",
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.GUEST)
-  async findById(@Param() params: IdDto): Promise<Game> {
-    return await this.gamesService.findByIdOrFail(Number(params.id), {
+  async getGameByGameId(@Param() params: IdDto): Promise<Game> {
+    return await this.gamesService.findByGameIdOrFail(Number(params.id), {
       loadRelations: true,
       loadDeletedEntities: true,
     });
@@ -168,11 +168,11 @@ export class GamesController {
   })
   @ApiOperation({
     summary: "download a game",
-    operationId: "downloadGame",
+    operationId: "getGameDownload",
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
-  async download(
+  async getGameDownload(
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
   ): Promise<StreamableFile> {
@@ -185,11 +185,11 @@ export class GamesController {
   @Put(":id")
   @ApiOperation({
     summary: "updates the details of a game",
-    operationId: "updateGame",
+    operationId: "putGameUpdate",
   })
   @ApiBody({ type: () => UpdateGameDto })
   @MinimumRole(Role.EDITOR)
-  async update(
+  async putGameUpdate(
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
     @Request() req: { gamevaultuser: GamevaultUser },
