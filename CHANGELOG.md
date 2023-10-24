@@ -15,7 +15,7 @@ I apologize for the summaries. Here's the revised changelog without the summarie
 - TODO: Implemented direct messages.
 - The Debug Log level now only returns the redacted server configuration, without sensitive data.
 - Published Async API doc on `/api/docs/async` (but it doesn't work on Docker, due to a bug, so it is disabled).
-- Added real-time online/playing/busy/offline status.
+- [#205](https://github.com/Phalcode/gamevault-app/issues/205) Added real-time online/playing/busy/offline status.
 - Introduced new configuration `SERVER_ONLINE_ACTIVITIES_DISABLED` to disable activities.
 - Fixed contract generation [#146](https://github.com/Phalcode/gamevault-backend/issues/146) (again).
 - Configured Admin Health API to not write any logs.
