@@ -56,7 +56,7 @@ export class ProgressService {
     });
   }
 
-  public async findById(progressId: number) {
+  public async findByProgressId(progressId: number) {
     try {
       return await this.progressRepository.findOneOrFail({
         where: {
@@ -77,7 +77,7 @@ export class ProgressService {
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    const progress = await this.findById(progressId);
+    const progress = await this.findByProgressId(progressId);
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
       progress.user.id,
@@ -129,11 +129,11 @@ export class ProgressService {
       });
     } catch (error) {
       const newProgress = new Progress();
-      newProgress.user = await this.usersService.findByIdOrFail(userId, {
+      newProgress.user = await this.usersService.findByUserIdOrFail(userId, {
         loadDeletedEntities: true,
         loadRelations: false,
       });
-      newProgress.game = await this.gamesService.findByIdOrFail(gameId, {
+      newProgress.game = await this.gamesService.findByGameIdOrFail(gameId, {
         loadDeletedEntities: true,
         loadRelations: false,
       });

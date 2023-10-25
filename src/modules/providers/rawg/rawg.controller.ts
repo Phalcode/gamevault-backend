@@ -34,7 +34,7 @@ export class RawgController {
   @Get("search")
   @ApiOperation({
     summary: "search the rawg-api manually.",
-    operationId: "searchRawg",
+    operationId: "getRawgSearch",
   })
   @ApiQuery({ name: "query", description: "search query" })
   @ApiOkResponse({
@@ -44,7 +44,7 @@ export class RawgController {
       "These are minimal game objects, without a lot of information.",
   })
   @MinimumRole(Role.EDITOR)
-  async searchRawg(@Query("query") query: string): Promise<MinimalGame[]> {
+  async getRawgSearch(@Query("query") query: string): Promise<MinimalGame[]> {
     const rawgGames = await this.rawgService.fetchMatching(query);
     // for each search result return a minimal gamevault game
     const games: MinimalGame[] = [];
@@ -70,17 +70,17 @@ export class RawgController {
   @ApiOperation({
     summary:
       "manually triggers a recache from rawg-api for a specific game, also updates boxart",
-    operationId: "rawgRecacheGame",
+    operationId: "putRawgRecacheGameByGameId",
   })
   @ApiOkResponse({ type: () => Game })
   @MinimumRole(Role.EDITOR)
-  async recache(@Param() params: IdDto): Promise<Game> {
-    let game = await this.gamesService.findByIdOrFail(Number(params.id));
+  async putRawgRecacheGameByGameId(@Param() params: IdDto): Promise<Game> {
+    let game = await this.gamesService.findByGameIdOrFail(Number(params.id));
     game.cache_date = null;
     game = await this.gamesService.save(game);
     await this.rawgService.checkCache([game]);
     await this.boxartService.check(game);
-    return await this.gamesService.findByIdOrFail(Number(params.id), {
+    return await this.gamesService.findByGameIdOrFail(Number(params.id), {
       loadDeletedEntities: true,
       loadRelations: true,
     });
@@ -92,11 +92,11 @@ export class RawgController {
     summary: "manually triggers a recache from rawg-api for all games",
     description:
       "DANGER: This is a very expensive operation and should be used sparingly",
-    operationId: "rawgRecacheAll",
+    operationId: "putRawgRecacheAll",
   })
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
-  async recacheAll(): Promise<string> {
+  async putRawgRecacheAll(): Promise<string> {
     const gamesInDatabase = await this.gamesService.getAll();
     for (const game of gamesInDatabase) {
       game.cache_date = null;

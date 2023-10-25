@@ -4,17 +4,19 @@ dotenv.config();
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
+//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
 import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
 import { AppModule } from "./app.module";
-import configuration from "./configuration";
+import configuration, { getCensoredConfiguration } from "./configuration";
 import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AuthenticationGuard } from "./modules/auth/authentication.guard";
-import { AuthorizationGuard } from "./modules/auth/authorization.guard";
+import { AuthenticationGuard } from "./modules/guards/authentication.guard";
+import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
+import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 /**
  * Bootstraps the application by creating a NestJS application, configuring it,
  * and setting up global settings and routes.
@@ -26,8 +28,11 @@ async function bootstrap(): Promise<void> {
     logger: winston,
   });
 
+  // To Support Reverse Proxies
   app.set("trust proxy", 1);
+  // Fancy JSON Responses
   app.set("json spaces", 2);
+  // CORS Configuration
   if (configuration.SERVER.CORS_ALLOWED_ORIGINS.length) {
     app.enableCors({
       origin: configuration.SERVER.CORS_ALLOWED_ORIGINS,
@@ -37,31 +42,48 @@ async function bootstrap(): Promise<void> {
   } else {
     app.enableCors();
   }
+
+  // GZIP
   app.use(compression());
+  // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
+  // Cookies
   app.use(cookieparser());
+
+  app.use(new ApiVersionMiddleware().use);
+
+  // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
       stream: stream,
-      skip: (req) => req.url.endsWith("/health"),
+      skip: (req) => req.url.includes("/health"),
     }),
   );
+
+  // Validates incoming data
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
     }),
   );
 
+  // Logs HTTP 4XX and 5XX as warns and errors
   app.useGlobalFilters(new LoggingExceptionFilter());
 
-  app.setGlobalPrefix("api/v1");
+  // Basepath
+  app.setGlobalPrefix("api");
   const reflector = app.get(Reflector);
 
+  // Enable automatic HTTP Error Response Logging
+  app.useGlobalFilters(new LoggingExceptionFilter());
+
+  // Enable Authentication and Authorization
   app.useGlobalGuards(
     new AuthenticationGuard(reflector),
     new AuthorizationGuard(reflector),
   );
 
+  // Provide API Specification
   if (configuration.SERVER.API_DOCS_ENABLED) {
     SwaggerModule.setup(
       "api/docs",
@@ -83,18 +105,43 @@ async function bootstrap(): Promise<void> {
             "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
             "https://github.com/Phalcode/gamevault-backend/LICENSE",
           )
-          .addTag("game", "apis for games")
-          .addTag("progress", "apis for progresses")
-          .addTag("tags", "apis for tags")
-          .addTag("genres", "apis for genres")
-          .addTag("user", "apis for user management")
-          .addTag("rawg", "apis for rawg services")
-          .addTag("images", "apis for handling images")
           .build(),
       ),
     );
+    /* Skip until it works on docker
+    await AsyncApiModule.setup(
+      "api/docs/async",
+      app,
+      AsyncApiModule.createDocument(
+        app,
+        new AsyncApiDocumentBuilder()
+          .setTitle("GameVault Backend Server")
+          .setDescription(
+            "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+          )
+          .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
+          .setExternalDoc("Documentation", "https://gamevau.lt")
+          .setDefaultContentType("application/json")
+          .setVersion(configuration.SERVER.VERSION)
+          .addServer("Local GameVault Server", {
+            url: "localhost:8080",
+            protocol: "ws",
+          })
+          .addServer("Demo GameVault Server", {
+            url: "demo.gamevau.lt",
+            protocol: "wss",
+          })
+          .setLicense(
+            "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+            "https://github.com/Phalcode/gamevault-backend/LICENSE",
+          )
+          .build(),
+      ),
+    );
+   */
   }
 
+  // Provide fancy pants landing page
   app
     .getHttpAdapter()
     .getInstance()
@@ -105,7 +152,8 @@ async function bootstrap(): Promise<void> {
     });
 
   await app.listen(8080);
-  logger.debug("Loaded Configuration", configuration);
+
+  logger.debug("Loaded Configuration", getCensoredConfiguration());
   logger.log(
     `Started GameVault Server v${configuration.SERVER.VERSION} on port 8080.`,
   );

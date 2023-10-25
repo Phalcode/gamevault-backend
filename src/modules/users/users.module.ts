@@ -4,6 +4,9 @@ import { UsersController } from "./users.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { ImagesModule } from "../images/images.module";
+import { ActivityGateway } from "./activity.gateway";
+import { SocketSecretGuard } from "../guards/socket-secret.guard";
+import configuration from "../../configuration";
 
 @Module({
   imports: [
@@ -11,7 +14,13 @@ import { ImagesModule } from "../images/images.module";
     forwardRef(() => ImagesModule),
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [
+    UsersService,
+    SocketSecretGuard,
+    configuration.SERVER.ONLINE_ACTIVITIES_DISABLED
+      ? undefined
+      : ActivityGateway,
+  ],
   exports: [UsersService],
 })
 export class UsersModule {}

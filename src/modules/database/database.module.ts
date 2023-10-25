@@ -8,5 +8,6 @@ import { getDatabaseConfiguration } from "./db_configuration";
   imports: [TypeOrmModule.forRoot(getDatabaseConfiguration())],
   controllers: [DatabaseController],
   providers: [DatabaseService],
+  exports: [DatabaseService],
 })
 export class DatabaseModule {}

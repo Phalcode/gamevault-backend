@@ -50,7 +50,7 @@ export class ImagesController {
   @Get(":id")
   @ApiOperation({
     summary: "Retrieve an image using its id",
-    operationId: "getImage",
+    operationId: "getImageByImageId",
   })
   @ApiOkResponse({
     type: () => Buffer,
@@ -58,8 +58,11 @@ export class ImagesController {
   })
   @ApiProduces("image/*")
   @MinimumRole(Role.GUEST)
-  async getImage(@Param("id") id: string, @Res() res: Response): Promise<void> {
-    const image = await this.imagesService.findByIdOrFail(Number(id));
+  async getImageByImageId(
+    @Param("id") id: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const image = await this.imagesService.findByImageIdOrFail(Number(id));
     res.set("Content-Type", image.mediaType);
     fs.createReadStream(image.path).pipe(res);
   }
@@ -69,7 +72,7 @@ export class ImagesController {
     summary: "Upload an image",
     description:
       "You can use the id of the uploaded image in subsequent requests.",
-    operationId: "uploadImage",
+    operationId: "postImage",
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
@@ -89,7 +92,7 @@ export class ImagesController {
   })
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.USER)
-  uploadFile(
+  postImage(
     @Request() req: { gamevaultuser: GamevaultUser },
     @UploadedFile(
       new ParseFilePipe({

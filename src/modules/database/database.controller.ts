@@ -26,8 +26,9 @@ export class DatabaseController {
   @Get("backup")
   @ApiOperation({
     summary:
-      "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time.",
-    operationId: "backupDatabase",
+      "Create and download a database backup. This process will generate an unencrypted file containing all the data currently stored in the database, which can be restored at a later time. **DEPRECATED** Moved to /admin/database/backup",
+    operationId: "getDatabaseBackup",
+    deprecated: true,
   })
   @ApiHeader({
     name: "X-Database-Password",
@@ -37,15 +38,16 @@ export class DatabaseController {
     example: "SecretPassword123",
   })
   @MinimumRole(Role.ADMIN)
-  async backup(@Headers("X-Database-Password") password: string) {
+  async getDatabaseBackup(@Headers("X-Database-Password") password: string) {
     return this.databaseService.backup(password);
   }
 
   @Post("restore")
   @ApiOperation({
     summary:
-      "Upload and restore a previously saved database dump. This action will replace all current data in the database.",
-    operationId: "restoreDatabase",
+      "Upload and restore a previously saved database dump. This action will replace all current data in the database. **DEPRECATED** Moved to /admin/database/restore",
+    operationId: "postDatabaseRestore",
+    deprecated: true,
   })
   @ApiHeader({
     name: "X-Database-Password",
@@ -56,7 +58,7 @@ export class DatabaseController {
   })
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.ADMIN)
-  async restore(
+  async postDatabaseRestore(
     @UploadedFile()
     file: Express.Multer.File,
     @Headers("X-Database-Password") password: string,

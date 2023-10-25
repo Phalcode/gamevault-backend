@@ -2,6 +2,7 @@ FROM node:20.6-slim AS base
 # Default Variables
 ENV PUID=1000
 ENV PGID=1000
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 # Build time variables
 ## Allow non-root usage
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
@@ -41,6 +42,6 @@ COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE ${SERVER_PORT}/tcp
 # Periodic Healthcheck on /api/v1/health
-HEALTHCHECK CMD curl -f http://localhost:${SERVER_PORT}/api/v1/health || exit
+HEALTHCHECK CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD [ "dist/src/main" ]

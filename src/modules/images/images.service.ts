@@ -37,14 +37,14 @@ export class ImagesService {
       if (!id) {
         throw new NotFoundException("No image id given!");
       }
-      await this.findByIdOrFail(id);
+      await this.findByImageIdOrFail(id);
       return true;
     } catch (error) {
       return false;
     }
   }
 
-  public async findByIdOrFail(id: number): Promise<Image> {
+  public async findByImageIdOrFail(id: number): Promise<Image> {
     try {
       const image = await this.imageRepository.findOneByOrFail({ id });
       if (!existsSync(image.path) || configuration.TESTING.MOCK_FILES) {

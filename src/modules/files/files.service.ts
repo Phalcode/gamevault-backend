@@ -472,7 +472,7 @@ export class FilesService implements OnApplicationBootstrap {
       speedlimit *= 1024;
     }
 
-    const game = await this.gamesService.findByIdOrFail(gameId);
+    const game = await this.gamesService.findByGameIdOrFail(gameId);
     let fileDownloadPath = game.file_path;
 
     if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {

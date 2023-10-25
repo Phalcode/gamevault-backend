@@ -1,5 +1,30 @@
 # GameVault Backend Server Changelog
 
+## 9.0.0
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Breaking Changes & Migration
+
+- Relocated all APIs from `/api/v1` to `/api`. This change reflects our move beyond version one, ensuring the most up-to-date and current API is always at `/api`.
+- Deprecated `/api/health/admin` in favor of `/api/admin/health` to provide additional features for server admins in the future.
+- Deprecated `/api/database/*` in favor of `/api/admin/database/*` for the same reason as above.
+- The old routes will be removed in v11.0.0
+
+### Changes
+
+- [#205](https://github.com/Phalcode/gamevault-app/issues/205) Added real-time online/playing/busy/offline status.
+- Introduced Socket Secret in `/api/users/me` to authenticate via Socket.IO
+- The Debug Log level now only returns the redacted server configuration, without sensitive data.
+- Published Async API doc on `/api/docs/async` (doesn't work on Docker, due to a bug, so it is disabled).
+- Introduced new configuration `SERVER_ONLINE_ACTIVITIES_DISABLED` to disable activities.
+- Fixed contract generation [#146](https://github.com/Phalcode/gamevault-backend/issues/146) (again).
+- Configured Admin Health API to not write any logs.
+
+### Thanks
+
+- @yodatak
+- @SergMonsterBro
 
 ## 8.0.3
 

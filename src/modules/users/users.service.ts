@@ -25,6 +25,7 @@ import { ImagesService } from "../images/images.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
 import { FindOptions } from "../../globals";
+import { randomBytes } from "crypto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -94,7 +95,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @throws {NotFoundException} If the user with the specified ID does not
    *   exist.
    */
-  public async findByIdOrFail(
+  public async findByUserIdOrFail(
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
@@ -177,6 +178,7 @@ export class UsersService implements OnApplicationBootstrap {
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
+    user.socket_secret = randomBytes(32).toString("hex");
     user.email = dto.email;
     user.first_name = dto.first_name;
     user.last_name = dto.last_name;
@@ -254,7 +256,7 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
     executorUsername?: string,
   ): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id);
+    const user = await this.findByUserIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
       if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
@@ -290,7 +292,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.profile_picture_id != null) {
-      user.profile_picture = await this.imagesService.findByIdOrFail(
+      user.profile_picture = await this.imagesService.findByImageIdOrFail(
         dto.profile_picture_id,
       );
     }
@@ -303,7 +305,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.background_image_id != null) {
-      user.background_image = await this.imagesService.findByIdOrFail(
+      user.background_image = await this.imagesService.findByImageIdOrFail(
         dto.background_image_id,
       );
     }
@@ -325,7 +327,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to delete.
    */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id);
+    const user = await this.findByUserIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
@@ -335,7 +337,7 @@ export class UsersService implements OnApplicationBootstrap {
    * @param id - The ID of the user to recover.
    */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.findByIdOrFail(id);
+    const user = await this.findByUserIdOrFail(id);
     return this.userRepository.recover(user);
   }
 
@@ -370,7 +372,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.findByIdOrFail(userId);
+    const user = await this.findByUserIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
@@ -421,5 +423,20 @@ export class UsersService implements OnApplicationBootstrap {
         `A user with this ${duplicateField} already exists. (case-insensitive)`,
       );
     }
+  }
+
+  async getUserBySocketSecretOrFail(socketSecret: string) {
+    return await this.userRepository.findOneByOrFail({
+      socket_secret: socketSecret,
+    });
+  }
+
+  async getSocketSecretOrFail(userId: number): Promise<string> {
+    const user = await this.userRepository.findOneOrFail({
+      select: ["id", "socket_secret"],
+      where: { id: userId },
+    });
+
+    return user.socket_secret;
   }
 }
