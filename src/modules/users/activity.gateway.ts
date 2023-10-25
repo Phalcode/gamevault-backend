@@ -17,10 +17,18 @@ import { ActivityState } from "./models/activity-state.enum";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
+import configuration from "../../configuration";
+import { DoNothing } from "../../decorators/donothing.decorator";
+
+// Conditionally decorate the WebSocket gateway class.
+const ConditionalWebSocketGateway = configuration.SERVER
+  .ONLINE_ACTIVITIES_DISABLED
+  ? DoNothing
+  : WebSocketGateway({ cors: true });
 
 @UseGuards(SocketSecretGuard)
 @ApiBasicAuth()
-@WebSocketGateway({ cors: true })
+@ConditionalWebSocketGateway
 @UseFilters(WebsocketExceptionsFilter)
 export class ActivityGateway
   implements OnGatewayConnection, OnGatewayDisconnect
