@@ -24,7 +24,7 @@ import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "./models/role.enum";
-import { Public } from "../pagination/public.decorator";
+import { Public } from "../../decorators/public.decorator";
 
 @ApiBasicAuth()
 @ApiTags("user")
