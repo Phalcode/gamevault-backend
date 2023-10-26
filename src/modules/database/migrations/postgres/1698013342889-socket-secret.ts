@@ -21,7 +21,7 @@ export class SocketSecret1698013342889 implements MigrationInterface {
     for (const user of users) {
       const randomSocketSecret = randomBytes(32).toString("hex"); // 32 bytes for 64 hexadecimal characters
       await queryRunner.query(
-        "UPDATE gamevault_user SET socket_secret = $1 WHERE id = $2",
+        "UPDATE gamevault_user SET socket_secret = ? WHERE id = ?",
         [randomSocketSecret, user.id],
       );
     }

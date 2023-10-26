@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## 9.0.1
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Fixed Socket-Secret migration for SQLITE Users.
+
 ## 9.0.0
 
 Recommended Gamevault App Version: `v1.7.3`

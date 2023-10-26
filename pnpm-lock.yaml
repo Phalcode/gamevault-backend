@@ -85,10 +85,10 @@ dependencies:
     version: 1.9.4(@nestjs/common@10.2.7)(winston@3.11.0)
   nestjs-asyncapi:
     specifier: ^1.2.1
-    version: 1.2.1(@nestjs/common@10.2.7)(@nestjs/core@10.2.7)(@nestjs/swagger@7.1.14)(@nestjs/websockets@10.2.7)(@types/node@20.8.7)
+    version: 1.2.1(@nestjs/common@10.2.7)(@nestjs/core@10.2.7)(@nestjs/swagger@7.1.14)(@nestjs/websockets@10.2.7)(@types/node@20.8.9)
   nestjs-paginate:
-    specifier: 8.3.3
-    version: 8.3.3(@nestjs/common@10.2.7)(@nestjs/swagger@7.1.14)(express@4.18.2)(fastify@4.24.3)(typeorm@0.3.17)
+    specifier: 8.4.0
+    version: 8.4.0(@nestjs/common@10.2.7)(@nestjs/swagger@7.1.14)(express@4.18.2)(fastify@4.24.3)(typeorm@0.3.17)
   node-7z:
     specifier: 3.0.0
     version: 3.0.0
@@ -173,8 +173,8 @@ devDependencies:
     specifier: ^1.4.9
     version: 1.4.9
   '@types/node':
-    specifier: 20.8.7
-    version: 20.8.7
+    specifier: 20.8.9
+    version: 20.8.9
   '@types/node-7z':
     specifier: 2.1.7
     version: 2.1.7
@@ -219,7 +219,7 @@ devDependencies:
     version: 2.9.0
   ts-node:
     specifier: 10.9.1
-    version: 10.9.1(@types/node@20.8.7)(typescript@5.2.2)
+    version: 10.9.1(@types/node@20.8.9)(typescript@5.2.2)
   typescript:
     specifier: 5.2.2
     version: 5.2.2
@@ -355,7 +355,7 @@ packages:
       - supports-color
     dev: false
 
-  /@asyncapi/generator@1.10.9(@types/node@20.8.7):
+  /@asyncapi/generator@1.10.9(@types/node@20.8.9):
     resolution: {integrity: sha512-V30GqM8/yPiapIFUPegXyzkn84zHPt9O3j6a9o/SdtrVmEzliBnCKTqPpZiXxPqYWDauoXMQYyUXMbNsyMbCeA==}
     engines: {node: '>12.16', npm: '>6.13.7'}
     hasBin: true
@@ -385,7 +385,7 @@ packages:
       semver: 7.5.4
       simple-git: 3.20.0
       source-map-support: 0.5.21
-      ts-node: 10.9.1(@types/node@20.8.7)(typescript@4.9.5)
+      ts-node: 10.9.1(@types/node@20.8.9)(typescript@4.9.5)
       typescript: 4.9.5
     transitivePeerDependencies:
       - '@swc/core'
@@ -2715,14 +2715,14 @@ packages:
   /@types/bcrypt@5.0.1:
     resolution: {integrity: sha512-dIIrEsLV1/v0AUNI8oHMaRRTSeVjoy5ID8oclJavtPj8CwPJoD1eFoNXEypuu6k091brEzBeOo3LlxeAH9zRZg==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/compression@1.7.4:
@@ -2734,7 +2734,7 @@ packages:
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/cookie-parser@1.4.5:
@@ -2750,7 +2750,7 @@ packages:
   /@types/cors@2.8.15:
     resolution: {integrity: sha512-n91JxbNLD8eQIuXDIChAN1tCKNWCEgpceU9b7ZMbFA+P+Q4yIeh80jizFLEvolRPc1ES0VdwFlGv+kJTSirogw==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: false
 
   /@types/debug@4.1.7:
@@ -2768,7 +2768,7 @@ packages:
   /@types/es-aggregate-error@1.0.4:
     resolution: {integrity: sha512-95tL6tLR8P3Utx4SxXUEc0e+k2B9VhtBozhgxKGpv30ylIuxGxf080d7mYZ08sH5UjpDv/Nd6F80tH1p+KuPIg==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: false
 
   /@types/eslint-scope@3.7.4:
@@ -2796,7 +2796,7 @@ packages:
   /@types/express-serve-static-core@4.17.33:
     resolution: {integrity: sha512-TPBqmR/HRYI3eC2E5hmiivIzv+bidAfXofM+sbonAGvyDhySGw9/PQZFt2BLOrjUUR++4eJVpx6KnLQK1Fk9tA==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
     dev: true
@@ -2834,7 +2834,7 @@ packages:
   /@types/morgan@1.9.7:
     resolution: {integrity: sha512-4sJFBUBrIZkP5EvMm1L6VCXp3SQe8dnXqlVpe1jsmTjS1JQVmSjnpMNs8DosQd6omBi/K7BSKJ6z/Mc3ki0K9g==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/ms@0.7.31:
@@ -2850,13 +2850,13 @@ packages:
   /@types/node-7z@2.1.7:
     resolution: {integrity: sha512-/a3FYBTPiW7LeCw4ffEt03gM6OQw408lEyrGcp5y4qThHQ4GNHExlm1wr7Rx5PUNBvXnMWTRglA4kYxb1YJHZw==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
-  /@types/node@20.8.7:
-    resolution: {integrity: sha512-21TKHHh3eUHIi2MloeptJWALuCu5H7HQTdTrWIFReA8ad+aggoX+lRes3ex7/FtpC+sVUpFMQ+QTfYr74mruiQ==}
+  /@types/node@20.8.9:
+    resolution: {integrity: sha512-UzykFsT3FhHb1h7yD4CA4YhBHq545JC0YnEz41xkipN88eKQtL6rSgocL5tbAP6Ola9Izm/Aw4Ora8He4x0BHg==}
     dependencies:
-      undici-types: 5.25.3
+      undici-types: 5.26.5
 
   /@types/parse-json@4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
@@ -2878,7 +2878,7 @@ packages:
   /@types/protocol-buffers-schema@3.4.2:
     resolution: {integrity: sha512-GaQpfsfFk4wGU3//d7uCGy9zy6B8QBEyWYd6+maZH+S6m861QrFvLWS5RyHj4UfIiON9tmqCz9C+oNpebDgGIw==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: false
 
   /@types/qs@6.9.7:
@@ -2897,7 +2897,7 @@ packages:
     resolution: {integrity: sha512-z5xyF6uh8CbjAu9760KDKsH2FcDxZ2tFCsA4HIMWE6IkiYMXfVoa+4f9KX+FN0ZLsaMw1WNG2ETLA6N+/YA+cg==}
     dependencies:
       '@types/mime': 3.0.3
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/string-similarity@4.0.1:
@@ -2907,7 +2907,7 @@ packages:
   /@types/throttle@1.0.3:
     resolution: {integrity: sha512-LJyBTiVTwAeWWciM6NGrCnMTSxIz/Gl3Azo7kHTAKo0BbZo825H8KG3vuELxaW3k+WFuSejdX0bRppfCzNsd0Q==}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: true
 
   /@types/trusted-types@2.0.5:
@@ -2934,7 +2934,7 @@ packages:
     resolution: {integrity: sha512-Km7XAtUIduROw7QPgvcft0lIupeG8a8rdKL8RiSyKvlE7dYY31fEn41HVuQsRFDuROA8tA4K2UVL+WdfFmErBA==}
     requiresBuild: true
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
     dev: false
     optional: true
 
@@ -4605,7 +4605,7 @@ packages:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.15
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.1
@@ -6219,7 +6219,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
@@ -7157,7 +7157,7 @@ packages:
       winston: 3.11.0
     dev: false
 
-  /nestjs-asyncapi@1.2.1(@nestjs/common@10.2.7)(@nestjs/core@10.2.7)(@nestjs/swagger@7.1.14)(@nestjs/websockets@10.2.7)(@types/node@20.8.7):
+  /nestjs-asyncapi@1.2.1(@nestjs/common@10.2.7)(@nestjs/core@10.2.7)(@nestjs/swagger@7.1.14)(@nestjs/websockets@10.2.7)(@types/node@20.8.9):
     resolution: {integrity: sha512-JOimGeKgbHgWLY3as5hfiyU7l6ZNB1QWy7VlNqvWgYfSDsVWQdd0AGGdWWqLQnE3J6do0gsdX+R9RgDcU9OyhQ==}
     peerDependencies:
       '@nestjs/common': ^10.0.0 || ^9.0.0
@@ -7168,7 +7168,7 @@ packages:
       '@nestjs/websockets':
         optional: true
     dependencies:
-      '@asyncapi/generator': 1.10.9(@types/node@20.8.7)
+      '@asyncapi/generator': 1.10.9(@types/node@20.8.9)
       '@asyncapi/html-template': 0.28.3
       '@nestjs/common': 10.2.7(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)(rxjs@7.8.1)
       '@nestjs/core': 10.2.7(@nestjs/common@10.2.7)(@nestjs/platform-express@10.2.7)(@nestjs/websockets@10.2.7)(reflect-metadata@0.1.13)(rxjs@7.8.1)
@@ -7189,13 +7189,13 @@ packages:
       - utf-8-validate
     dev: false
 
-  /nestjs-paginate@8.3.3(@nestjs/common@10.2.7)(@nestjs/swagger@7.1.14)(express@4.18.2)(fastify@4.24.3)(typeorm@0.3.17):
-    resolution: {integrity: sha512-NuPqQrcMkodO6m4AfoI0KuX2yxFXlzgm16euyc4CyN7vTEn0Q2nN+v7Ams7LBKrxIsGzpwFux7hjLHBD/gEItg==}
+  /nestjs-paginate@8.4.0(@nestjs/common@10.2.7)(@nestjs/swagger@7.1.14)(express@4.18.2)(fastify@4.24.3)(typeorm@0.3.17):
+    resolution: {integrity: sha512-7IX7Dj75C5p7uR53ENgzLr0U5dhgIMV4EIR/uNb+PzCLBx6tnuG3NeGooCCe8ElK3xcB7MNWt3a65Hn8tYJ2tg==}
     peerDependencies:
-      '@nestjs/common': ^10.2.6
-      '@nestjs/swagger': ^7.1.12
+      '@nestjs/common': ^10.2.7
+      '@nestjs/swagger': ^7.1.13
       express: ^4.18.2
-      fastify: ^4.23.2
+      fastify: ^4.24.2
       typeorm: ^0.3.17
     dependencies:
       '@nestjs/common': 10.2.7(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.13)(rxjs@7.8.1)
@@ -9262,7 +9262,7 @@ packages:
       typescript: 5.2.2
     dev: true
 
-  /ts-node@10.9.1(@types/node@20.8.7)(typescript@4.9.5):
+  /ts-node@10.9.1(@types/node@20.8.9)(typescript@4.9.5):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -9281,7 +9281,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -9293,7 +9293,7 @@ packages:
       yn: 3.1.1
     dev: false
 
-  /ts-node@10.9.1(@types/node@20.8.7)(typescript@5.2.2):
+  /ts-node@10.9.1(@types/node@20.8.9)(typescript@5.2.2):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -9312,7 +9312,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 20.8.7
+      '@types/node': 20.8.9
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -9519,7 +9519,7 @@ packages:
       pg: 8.11.3
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
-      ts-node: 10.9.1(@types/node@20.8.7)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.8.9)(typescript@5.2.2)
       tslib: 2.6.1
       uuid: 9.0.0
       yargs: 17.6.2
@@ -9564,8 +9564,8 @@ packages:
       through: 2.3.8
     dev: false
 
-  /undici-types@5.25.3:
-    resolution: {integrity: sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==}
+  /undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
   /unicode-canonical-property-names-ecmascript@2.0.0:
     resolution: {integrity: sha512-yY5PpDlfVIU5+y/BSCxAJRBIS1Zc2dDG3Ujq+sR0U+JjUevW2JhocOF+soROYDSaAezOzOKuyyixhD6mBknSmQ==}
