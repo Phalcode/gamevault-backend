@@ -212,9 +212,6 @@ export class DatabaseService {
   }
 
   private validatePassword(password: string) {
-    this.logger.debug(
-      `should be: "${configuration.DB.PASSWORD}" given: "${password}"`,
-    );
     if (configuration.DB.PASSWORD !== password) {
       throw new UnauthorizedException(
         "The database password provided in the X-Database-Password Header is incorrect.",

@@ -1,5 +1,18 @@
 # GameVault Backend Server Changelog
 
+## 9.0.3
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Fixed Backup and Restore not working anymore
+- Fixed Admin Password reset not working anymore
+
+### Thanks
+
+- @Kudjo
+
 ## 9.0.2
 
 Recommended Gamevault App Version: `v1.7.3`
@@ -7,6 +20,11 @@ Recommended Gamevault App Version: `v1.7.3`
 ### Changes
 
 - Fixed Socket-Secret migration for POSTGRES Users that i broke in v9.0.1.
+
+### Thanks
+
+- @Kudjo
+- @sandstormman
 
 ## 9.0.1
 

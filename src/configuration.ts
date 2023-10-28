@@ -57,13 +57,13 @@ const configuration = {
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
-  },
+  } as const,
   VOLUMES: {
     FILES: parsePath(process.env.VOLUMES_FILES, "/files"),
     IMAGES: parsePath(process.env.VOLUMES_IMAGES, "/images"),
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
-  },
+  } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
     HOST: process.env.DB_HOST || "localhost",
@@ -73,13 +73,13 @@ const configuration = {
     DATABASE: process.env.DB_DATABASE || "gamevault",
     DEBUG: parseBooleanEnvVariable(process.env.DB_DEBUG),
     SYNCHRONIZE: parseBooleanEnvVariable(process.env.DB_SYNCHRONIZE),
-  },
+  } as const,
   RAWG_API: {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
     CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
     EXCLUDE_STORES: process.env.RAWG_API_EXCLUDE_STORES || "9",
-  },
+  } as const,
   USERS: {
     REQUIRE_EMAIL: parseBooleanEnvVariable(process.env.USERS_REQUIRE_EMAIL),
     REQUIRE_FIRST_NAME: parseBooleanEnvVariable(
@@ -88,7 +88,7 @@ const configuration = {
     REQUIRE_LAST_NAME: parseBooleanEnvVariable(
       process.env.USERS_REQUIRE_LAST_NAME,
     ),
-  },
+  } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES:
       Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 5,
@@ -100,7 +100,7 @@ const configuration = {
       process.env.SEARCH_RECURSIVE,
       true,
     ),
-  },
+  } as const,
   IMAGE: {
     MAX_SIZE_IN_KB:
       Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000_000,
@@ -110,7 +110,7 @@ const configuration = {
       process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
       globals.SUPPORTED_IMAGE_FORMATS,
     ),
-  },
+  } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_AUTHENTICATION_DISABLED,
@@ -123,14 +123,14 @@ const configuration = {
     GOOGLE_API_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_GOOGLE_API_DISABLED,
     ),
-  },
-};
+  } as const,
+} as const;
 
 export function getCensoredConfiguration() {
-  const conf = { ...configuration };
-  conf.DB.PASSWORD = "**REDACTED**";
-  conf.SERVER.ADMIN_PASSWORD = "**REDACTED**";
-  return conf;
+  const censoredConfig = JSON.parse(JSON.stringify(configuration));
+  censoredConfig.DB.PASSWORD = "**REDACTED**";
+  censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
+  return censoredConfig;
 }
 
 export default configuration;
