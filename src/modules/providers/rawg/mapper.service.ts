@@ -24,10 +24,6 @@ export class RawgMapperService {
   /**
    * Maps a RawgGame to a Game entity, filling missing information in the entity
    * using the RawgGame.
-   *
-   * @param game - The Game entity to fill with information.
-   * @param rawg_game - The RawgGame to extract information from.
-   * @returns A Promise that resolves with the updated Game entity.
    */
   public async mapRawgGameToGame(
     rawg_game: RawgGame,
@@ -44,13 +40,7 @@ export class RawgMapperService {
     return game;
   }
 
-  /**
-   * Maps stores from RawgGame to Game entity.
-   *
-   * @param game - The RawgGame object.
-   * @param entity - The Game entity.
-   * @returns The updated Game entity.
-   */
+  /** Maps stores from RawgGame to Game entity. */
   private async mapRawgStoresToGame(
     game: RawgGame,
     entity: Game,
@@ -70,13 +60,7 @@ export class RawgMapperService {
     return entity;
   }
 
-  /**
-   * Maps developers from RawgGame to Game entity.
-   *
-   * @param game - The RawgGame object containing the developers information.
-   * @param entity - The Game entity to update with the developers information.
-   * @returns The updated Game entity.
-   */
+  /** Maps developers from RawgGame to Game entity. */
   private async mapRawgDevelopersToGame(
     game: RawgGame,
     entity: Game,
@@ -98,13 +82,7 @@ export class RawgMapperService {
     return entity;
   }
 
-  /**
-   * Maps publishers from RawgGame to Game entity.
-   *
-   * @param game - The RawgGame object.
-   * @param entity - The Game entity.
-   * @returns The updated Game entity.
-   */
+  /** Maps publishers from RawgGame to Game entity. */
   private async mapRawgPublishersToGame(
     game: RawgGame,
     entity: Game,
@@ -126,13 +104,7 @@ export class RawgMapperService {
     return entity;
   }
 
-  /**
-   * Maps tags from RawgGame to Game entity. Only English tags are mapped.
-   *
-   * @param game - The RawgGame object.
-   * @param entity - The Game entity.
-   * @returns The updated Game entity.
-   */
+  /** Maps tags from RawgGame to Game entity. Only English tags are mapped. */
   private async mapRawgTagsToGame(game: RawgGame, entity: Game): Promise<Game> {
     try {
       entity.tags = [];
@@ -162,13 +134,7 @@ export class RawgMapperService {
     return entity;
   }
 
-  /**
-   * Maps genres from RawgGame to Game entity.
-   *
-   * @param game - The RawgGame object.
-   * @param entity - The Game entity.
-   * @returns The updated Game entity.
-   */
+  /** Maps genres from RawgGame to Game entity. */
   private async mapRawgGenresToGame(
     game: RawgGame,
     entity: Game,
@@ -187,13 +153,7 @@ export class RawgMapperService {
     return entity;
   }
 
-  /**
-   * Maps a RawgGame object to a Game entity.
-   *
-   * @param game - The RawgGame object to map.
-   * @param entity - The Game entity to update.
-   * @returns The updated Game entity.
-   */
+  /** Maps a RawgGame object to a Game entity. */
   private async mapRawgGameDetailsToGame(
     game: RawgGame,
     entity: Game,
@@ -231,10 +191,6 @@ export class RawgMapperService {
   /**
    * Returns the release date for a RawgGame object or null if it is not
    * available.
-   *
-   * @param game - The RawgGame object to get the release date for.
-   * @returns The release date for the RawgGame object, or null if it is not
-   *   available.
    */
   private getReleaseDate(game: RawgGame): Date | null {
     const pcReleaseDate = game.platforms.find((p) => p.platform.id === 4)

@@ -16,13 +16,7 @@ export class AuthenticationGuard extends AuthGuard("basic") {
     }
   }
 
-  /**
-   * Determines whether the route can be activated.
-   *
-   * @param context - The execution context.
-   * @returns A boolean indicating if the route can be activated.
-   * @throws {ForbiddenException} If the user cant log in
-   */
+  /** Determines whether the route can be activated. */
   canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.get<boolean>(
       "public",

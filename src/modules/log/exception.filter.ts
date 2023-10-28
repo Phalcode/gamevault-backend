@@ -12,12 +12,7 @@ import { Request, Response } from "express";
 export class LoggingExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(LoggingExceptionFilter.name);
 
-  /**
-   * Handles exceptions that occur during request processing.
-   *
-   * @param exception - The exception that occurred.
-   * @param host - The host object.
-   */
+  /** Handles exceptions that occur during request processing. */
   catch(exception: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

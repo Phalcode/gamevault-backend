@@ -52,12 +52,7 @@ export class GamesController {
     private readonly gamesRepository: Repository<Game>,
   ) {}
 
-  /**
-   * Get paginated games list based on the given query parameters.
-   *
-   * @param query - The query parameters for pagination.
-   * @returns - A promise that resolves to a paginated list of games.
-   */
+  /** Get paginated games list based on the given query parameters. */
   @Get()
   @PaginateQueryOptions()
   @ApiOkResponsePaginated(Game)
@@ -113,12 +108,7 @@ export class GamesController {
     });
   }
 
-  /**
-   * Retrieves a random game
-   *
-   * @param params An object containing the ID of the game to retrieve.
-   * @returns A Promise that resolves to the Game object with the specified ID.
-   */
+  /** Retrieves a random game */
   @Get("random")
   @ApiOperation({
     summary: "get a random game",
@@ -130,12 +120,7 @@ export class GamesController {
     return await this.gamesService.getRandom();
   }
 
-  /**
-   * Retrieves details for a game with the specified ID.
-   *
-   * @param params An object containing the ID of the game to retrieve.
-   * @returns A Promise that resolves to the Game object with the specified ID.
-   */
+  /** Retrieves details for a game with the specified ID. */
   @Get(":id")
   @ApiOperation({
     summary: "get details on a game",
@@ -149,15 +134,7 @@ export class GamesController {
       loadDeletedEntities: true,
     });
   }
-  /**
-   * Download a game by its ID.
-   *
-   * @param params The ID of the game to download.
-   * @returns A promise that resolves to the downloaded game file.
-   * @throws {NotFoundException} If no game with the specified ID is found.
-   * @throws {UnauthorizedException} If the user is not authorized to download
-   *   the game.
-   */
+  /** Download a game by its ID. */
   @Get(":id/download")
   @ApiHeader({
     name: "X-Download-Speed-Limit",

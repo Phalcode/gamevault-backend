@@ -13,16 +13,7 @@ export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
     });
   }
 
-  /**
-   * Validates a username and password.
-   *
-   * @async
-   * @param req - The request object.
-   * @param req.user.username - The username to validate.
-   * @param username - The username to validate.
-   * @param password - The password to validate.
-   * @returns - Whether or not the login worked
-   */
+  /** Validates a username and password. */
   async validate(
     req: { gamevaultuser: GamevaultUser },
     username: string,

@@ -127,13 +127,7 @@ export class FilesService implements OnApplicationBootstrap {
     this.logger.log("Finished Game Ingestion");
   }
 
-  /**
-   * Updates the game information with the provided updates.
-   *
-   * @param {Game} gameToUpdate - The game to update.
-   * @param {Game} updatesToApply - The updates to apply to the game.
-   * @returns {Promise<Game>} The updated game.
-   */
+  /** Updates the game information with the provided updates. */
   private async update(
     gameToUpdate: Game,
     updatesToApply: Game,
@@ -159,10 +153,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method extracts the game title from a given file name string using a
    * regular expression.
-   *
-   * @private
-   * @param filePath - A string representing the files path.
-   * @returns - The extracted game title string.
    */
   private extractTitle(filePath: string): string {
     const basename = path.basename(filePath, path.extname(filePath));
@@ -173,11 +163,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method extracts the game version from a given file name string using a
    * regular expression.
-   *
-   * @private
-   * @param fileName - A string representing the file name.
-   * @returns - The extracted game version string or undefined if there's no
-   *   match.
    */
   private extractVersion(fileName: string): string | undefined {
     const match = RegExp(/\((v[^)]+)\)/).exec(fileName);
@@ -190,11 +175,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method extracts the game release year from a given file name string
    * using a regular expression.
-   *
-   * @private
-   * @param fileName - A string representing the file name.
-   * @returns - The extracted game release year string or null if there's no
-   *   match for the regular expression.
    */
   private extractReleaseYear(fileName: string): Date {
     try {
@@ -207,11 +187,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method extracts the early access flag from a given file name string
    * using a regular expression.
-   *
-   * @private
-   * @param fileName - A string representing the file name.
-   * @returns - A boolean value indicating if the game is in early access or
-   *   not.
    */
   private extractEarlyAccessFlag(fileName: string): boolean {
     return /\(EA\)/.test(fileName);
@@ -365,13 +340,6 @@ export class FilesService implements OnApplicationBootstrap {
    * This method performs an integrity check by comparing the games in the file
    * system with the games in the database, marking the deleted games as deleted
    * in the database.
-   *
-   * @async
-   * @param gamesInFileSystem - An array of objects representing game files in
-   *   the file system.
-   * @param gamesInDatabase - An array of objects representing game records in
-   *   the database.
-   * @returns
    */
   private async checkIntegrity(
     gamesInFileSystem: IGameVaultFile[],
@@ -412,10 +380,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method retrieves an array of objects representing game files in the
    * file system.
-   *
-   * @returns - An array of objects representing game files in the file system.
-   * @throws {Error} - If there's an error during the process.
-   * @public
    */
   private fetch(): IGameVaultFile[] {
     try {
@@ -452,12 +416,6 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method downloads a game file by ID and returns it as a StreamableFile
    * object.
-   *
-   * @async
-   * @param gameId - The ID of the game to download.
-   * @returns - A promise that resolves to a StreamableFile object representing
-   *   the downloaded game file.
-   * @public
    */
   public async download(
     gameId: number,
@@ -511,11 +469,7 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
-  /**
-   * Checks and creates necessary folders if they do not exist.
-   *
-   * @private
-   */
+  /** Checks and creates necessary folders if they do not exist. */
   private checkFolders() {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn(
@@ -552,13 +506,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
-  /**
-   * Creates a directory if it does not exist.
-   *
-   * @param {string} path - The path of the directory.
-   * @param {string} errorMessage - The error message to log if the directory
-   *   does not exist.
-   */
+  /** Creates a directory if it does not exist. */
   private createDirectoryIfNotExist(path: string, errorMessage: string): void {
     if (!existsSync(path)) {
       this.logger.error(errorMessage);

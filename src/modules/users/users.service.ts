@@ -85,15 +85,6 @@ export class UsersService implements OnApplicationBootstrap {
   /**
    * Retrieves a user by their ID or throws an exception if the user is not
    * found.
-   *
-   * @async
-   * @param id The ID of the user.
-   * @param inludeDeletedUsers Optional. Determines whether to include deleted
-   *   users in the search. Default is `false`.
-   * @returns A Promise that resolves to the user object matching the provided
-   *   ID.
-   * @throws {NotFoundException} If the user with the specified ID does not
-   *   exist.
    */
   public async findByUserIdOrFail(
     id: number,
@@ -116,14 +107,7 @@ export class UsersService implements OnApplicationBootstrap {
       });
   }
 
-  /**
-   * Get user by username or throw an exception if not found
-   *
-   * @param username - The username of the user to retrieve
-   * @returns - The user object with specified username
-   * @throws {NotFoundException} - If the user with specified username is not
-   *   found
-   */
+  /** Get user by username or throw an exception if not found */
   public async findByUsernameOrFail(
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
@@ -147,11 +131,7 @@ export class UsersService implements OnApplicationBootstrap {
       });
   }
 
-  /**
-   * Get a rough overview of all users
-   *
-   * @returns - Overview of all users
-   */
+  /** Get a rough overview of all users */
   public async getAll(
     includeDeleted = false,
     includeDeactivated = false,
@@ -165,14 +145,7 @@ export class UsersService implements OnApplicationBootstrap {
     return await this.userRepository.find(query);
   }
 
-  /**
-   * Register a new user
-   *
-   * @param dto - The user data to register
-   * @returns - The newly registered user object
-   * @throws {ForbiddenException} - If a user with the same email or username
-   *   already exists
-   */
+  /** Register a new user */
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
     await this.throwIfAlreadyExists(dto.username, dto.email);
     const user = new GamevaultUser();
@@ -197,17 +170,7 @@ export class UsersService implements OnApplicationBootstrap {
     return await this.userRepository.save(user);
   }
 
-  /**
-   * Logs in a user with the provided username and password.
-   *
-   * @param username - The username of the user.
-   * @param password - The password of the user.
-   * @returns The logged-in user.
-   * @throws {UnauthorizedException} If the login fails due to an incorrect
-   *   username or password.
-   * @throws {NotFoundException} If the user has been deleted.
-   * @throws {ForbiddenException} If the user is not activated.
-   */
+  /** Logs in a user with the provided username and password. */
   public async login(
     username: string,
     password: string,
@@ -240,16 +203,7 @@ export class UsersService implements OnApplicationBootstrap {
     return user;
   }
 
-  /**
-   * Updates an existing user with the specified ID.
-   *
-   * @param id - The ID of the user to update.
-   * @param dto - The DTO containing the updated user data.
-   * @returns - A promise that resolves to the updated user.
-   * @throws {ForbiddenException} - If a user with the same email or username
-   *   already exists.
-   * @throws {NotFoundException} - If no user with the specified ID exists.
-   */
+  /** Updates an existing user with the specified ID. */
   public async update(
     id: number,
     dto: UpdateUserDto,
@@ -321,21 +275,13 @@ export class UsersService implements OnApplicationBootstrap {
     return this.userRepository.save(user);
   }
 
-  /**
-   * Soft deletes a user with the specified ID.
-   *
-   * @param id - The ID of the user to delete.
-   */
+  /** Soft deletes a user with the specified ID. */
   public async delete(id: number): Promise<GamevaultUser> {
     const user = await this.findByUserIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
-  /**
-   * Recovers a deleted user with the specified ID.
-   *
-   * @param id - The ID of the user to recover.
-   */
+  /** Recovers a deleted user with the specified ID. */
   public async recover(id: number): Promise<GamevaultUser> {
     const user = await this.findByUserIdOrFail(id);
     return this.userRepository.recover(user);
@@ -350,18 +296,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
   }
 
-  /**
-   * Check if the username matches the user ID or is an administrator
-   *
-   * @param userId - The ID of the user to check
-   * @param username - The username of the user to check
-   * @returns - True if the username matches the user ID, false otherwise
-   * @throws {UnauthorizedException} - If no authorization is provided or the
-   *   username does not match the user ID
-   * @throws {NotFoundException} - If the user with specified ID is not found
-   * @throws {ForbiddenException} - If authentication is disabled or the
-   *   username does not match the user ID
-   */
+  /** Check if the username matches the user ID or is an administrator */
   public async checkIfUsernameMatchesIdOrIsAdmin(
     userId: number,
     username: string,
@@ -423,20 +358,5 @@ export class UsersService implements OnApplicationBootstrap {
         `A user with this ${duplicateField} already exists. (case-insensitive)`,
       );
     }
-  }
-
-  async getUserBySocketSecretOrFail(socketSecret: string) {
-    return await this.userRepository.findOneByOrFail({
-      socket_secret: socketSecret,
-    });
-  }
-
-  async getSocketSecretOrFail(userId: number): Promise<string> {
-    const user = await this.userRepository.findOneOrFail({
-      select: ["id", "socket_secret"],
-      where: { id: userId },
-    });
-
-    return user.socket_secret;
   }
 }

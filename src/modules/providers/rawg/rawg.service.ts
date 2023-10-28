@@ -31,10 +31,6 @@ export class RawgService {
   /**
    * Check the games in the database against the RAWG API to see if they need to
    * be updated in the database or not.
-   *
-   * @async
-   * @param games - An array of Game objects to check against the RAWG API.
-   * @returns Returns a Promise with no return value.
    */
   public async checkCache(games: Game[]): Promise<void> {
     if (configuration.TESTING.RAWG_API_DISABLED) {
@@ -77,12 +73,6 @@ export class RawgService {
   /**
    * Caches the specified game in the database by finding a matching game in the
    * RAWG API and mapping the data to a Game object.
-   *
-   * @async
-   * @private
-   * @param game - The Game object to cache in the database.
-   * @returns Returns a Promise with a mapped Game object that has been saved in
-   *   the database.
    */
   private async cache(game: Game): Promise<Game> {
     this.logger.debug(`Caching Game: "${game.title}"`);
@@ -119,12 +109,6 @@ export class RawgService {
   /**
    * Searches for the best matching game in the RAWG API based on the specified
    * title and release year.
-   *
-   * @async
-   * @private
-   * @param title - The title of the game to search for.
-   * @param releaseYear - The release year of the game to search for.
-   * @returns Returns a Promise with the best matching RawgGame object.
    */
   private async getBestMatch(
     title: string,
@@ -155,12 +139,6 @@ export class RawgService {
   /**
    * Search for games in RAWG API based on the provided title and optional
    * release year.
-   *
-   * @param {string} title - The title of the game to search for.
-   * @param {number} [releaseYear] - The optional release year of the game.
-   * @returns {Promise<RawgResult[]>} An array of RawgResult objects
-   *   representing search results.
-   * @throws {NotFoundException} If no game is found in RAWG.
    */
   public async fetchMatching(
     title: string,
@@ -220,12 +198,7 @@ export class RawgService {
     return searchResults;
   }
 
-  /**
-   * Determines whether a game's cache is outdated.
-   *
-   * @param game - The game to check for an outdated cache.
-   * @returns True if the cache is outdated, false otherwise.
-   */
+  /** Determines whether a game's cache is outdated. */
   private isOutdated(game: Game) {
     if (!game.cache_date) {
       this.logger.debug(`➥ "${game.title}" | Uncached`);
@@ -244,12 +217,7 @@ export class RawgService {
     return false;
   }
 
-  /**
-   * Returns the RawgGame object associated with the specified ID.
-   *
-   * @param id - The RAWG ID of the game to retrieve.
-   * @returns The RawgGame object associated with the specified ID.
-   */
+  /** Returns the RawgGame object associated with the specified ID. */
   private async fetchByRawgId(id: number): Promise<RawgGame> {
     try {
       const response = await firstValueFrom(
@@ -278,16 +246,6 @@ export class RawgService {
   /**
    * Retrieves a list of games from the RAWG API based on optional search
    * criteria.
-   *
-   * @async
-   * @param [search] - The game title to search for.
-   * @param [releaseYear] - The year of release to search for.
-   * @param [precise=true] - Whether the search should be precise or not.
-   *   Default is `true`
-   * @returns - A promise that resolves to a SearchResult object containing the
-   *   results of the search.
-   * @throws {InternalServerErrorException} - Throws an error if the request to
-   *   the RAWG API fails.
    */
   private async fetch(
     search?: string,

@@ -25,18 +25,18 @@ import { UpdateUserDto } from "./models/update-user.dto";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "./models/role.enum";
 import { Public } from "../../decorators/public.decorator";
+import { SocketSecretService } from "./socket-secret.service";
 
 @ApiBasicAuth()
 @ApiTags("user")
 @Controller("users")
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private socketSecretService: SocketSecretService,
+  ) {}
 
-  /**
-   * Get an overview of all activated and non-deleted users.
-   *
-   * @returns List of all activated and non-deleted users
-   */
+  /** Get an overview of all activated and non-deleted users. */
   @Get()
   @ApiOperation({
     summary: "get an overview of all activated and non-deleted users",
@@ -48,11 +48,7 @@ export class UsersController {
     return await this.usersService.getAll();
   }
 
-  /**
-   * Get an overview of all users.
-   *
-   * @returns List of all users
-   */
+  /** Get an overview of all users. */
   @Get("all")
   @MinimumRole(Role.ADMIN)
   @ApiOperation({
@@ -64,14 +60,7 @@ export class UsersController {
     return await this.usersService.getAll(true, true);
   }
 
-  /**
-   * Retrieve user information based on the provided request object.
-   *
-   * @async
-   * @param request - The request object.
-   * @returns - The user object matching the provided username.
-   * @throws {Error} If no user is found with the provided username.
-   */
+  /** Retrieve user information based on the provided request object. */
   @Get("me")
   @ApiOperation({
     summary: "get details of your user",
@@ -85,19 +74,13 @@ export class UsersController {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    user.socket_secret = await this.usersService.getSocketSecretOrFail(user.id);
+    user.socket_secret = await this.socketSecretService.getSocketSecretOrFail(
+      user.id,
+    );
     return user;
   }
 
-  /**
-   * Updates details of the user.
-   *
-   * @param dto - The updated user data.
-   * @param request - The request object.
-   * @returns The updated user.
-   * @route PUT /me
-   * @summary Update details of your user
-   */
+  /** Updates details of the user. */
   @Put("me")
   @ApiBody({ type: () => UpdateUserDto })
   @ApiOperation({
@@ -121,12 +104,7 @@ export class UsersController {
     );
   }
 
-  /**
-   * Deletes your own user.
-   *
-   * @param request - The request object.
-   * @returns The deleted user.
-   */
+  /** Deletes your own user. */
   @Delete("me")
   @ApiOperation({
     summary: "delete your own user",
@@ -141,14 +119,7 @@ export class UsersController {
     return await this.usersService.delete(user.id);
   }
 
-  /**
-   * Get details on a user.
-   *
-   * @param params - The parameters for the request.
-   * @returns - A Promise that resolves to the GamevaultUser object.
-   * @throws {NotFoundException} - If the user with the specified ID does not
-   *   exist.
-   */
+  /** Get details on a user. */
   @Get(":id")
   @ApiOperation({
     summary: "get details on a user",
@@ -160,13 +131,7 @@ export class UsersController {
     return await this.usersService.findByUserIdOrFail(Number(params.id));
   }
 
-  /**
-   * Updates details of any user.
-   *
-   * @param params - The user ID.
-   * @param dto - The updated user data.
-   * @returns The updated user.
-   */
+  /** Updates details of any user. */
   @Put(":id")
   @ApiBody({ type: () => UpdateUserDto })
   @ApiOperation({
@@ -188,12 +153,7 @@ export class UsersController {
     );
   }
 
-  /**
-   * Deletes any user with the specified ID.
-   *
-   * @param params - The ID of the user to delete.
-   * @returns The deleted user.
-   */
+  /** Deletes any user with the specified ID. */
   @Delete(":id")
   @ApiOperation({
     summary: "delete any user",
@@ -205,12 +165,7 @@ export class UsersController {
     return await this.usersService.delete(Number(params.id));
   }
 
-  /**
-   * Recover a deleted user.
-   *
-   * @param params - The ID of the user to recover.
-   * @returns The recovered user.
-   */
+  /** Recover a deleted user. */
   @Post(":id/recover")
   @MinimumRole(Role.ADMIN)
   @ApiOperation({
@@ -224,14 +179,7 @@ export class UsersController {
     return await this.usersService.recover(Number(params.id));
   }
 
-  /**
-   * Register a new user.
-   *
-   * @async
-   * @param dto - The data of the user being registered
-   * @returns The registered user data
-   * @throws {MethodNotAllowedException} Registration is disabled
-   */
+  /** Register a new user. */
   @Post("register")
   @ApiOperation({
     summary: "register a new user",

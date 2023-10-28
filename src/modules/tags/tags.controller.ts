@@ -28,10 +28,6 @@ export class TagsController {
   /**
    * Get a paginated list of tags, sorted by the number of games tagged with
    * each tag (by default).
-   *
-   * @returns A paginated list of tags.
-   * @throws {HttpException} If the pagination options are invalid or the
-   *   database query fails.
    */
   @Get()
   @ApiOperation({

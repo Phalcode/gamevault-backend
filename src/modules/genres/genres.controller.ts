@@ -23,8 +23,6 @@ export class GenresController {
   /**
    * Get a list of genres sorted by the amount of games that are associated with
    * each genre.
-   *
-   * @returns A promise that resolves to an array of Genre objects.
    */
   @Get()
   @ApiOperation({
