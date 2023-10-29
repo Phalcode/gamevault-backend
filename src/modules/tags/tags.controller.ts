@@ -57,8 +57,6 @@ export class TagsController {
       withDeleted: false,
     });
 
-    console.log(paginatedResults.data);
-
     if (!query.sortBy || query.sortBy.length === 0) {
       paginatedResults.data.sort((a, b) => b.games.length - a.games.length);
     }

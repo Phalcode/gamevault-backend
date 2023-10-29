@@ -50,6 +50,8 @@ describe("TagsController", () => {
 
   it("should be defined", () => {
     expect(tagsController).toBeDefined();
+    expect(tagRepository).toBeDefined();
+    expect(gameRepository).toBeDefined();
   });
 
   it("should get tag", async () => {
@@ -67,16 +69,16 @@ describe("TagsController", () => {
   });
 
   it("should sort tags by the amount of games tagged with them", async () => {
-    const testingTag1: Tag = Builder(Tag).name("stealth").rawg_id(1111).build();
-    const testingTag2: Tag = Builder(Tag).name("action").rawg_id(2222).build();
-    await tagRepository.save([testingTag1, testingTag2]);
+    const tag1: Tag = Builder(Tag).name("stealth").rawg_id(1111).build();
+    const tag2: Tag = Builder(Tag).name("action").rawg_id(2222).build();
+    await tagRepository.save([tag1, tag2]);
 
     await gameRepository.save(
       Builder(Game)
         .title("Testgame")
         .file_path("filepath.zip")
         .early_access(false)
-        .tags([testingTag2])
+        .tags([tag2])
         .build(),
     );
 
@@ -85,6 +87,8 @@ describe("TagsController", () => {
     });
     expect(results.data.length).toBe(2);
     expect(results.data[0].rawg_id).toBe(2222);
+    expect(results.data[0].name).toBe("action");
     expect(results.data[1].rawg_id).toBe(1111);
+    expect(results.data[1].name).toBe("stealth");
   });
 });

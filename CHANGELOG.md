@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## Upcoming
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Fixed `GET /api/genres` not returning list of genres sorted descending by count of games
+
 ## 9.0.3
 
 Recommended Gamevault App Version: `v1.7.3`
