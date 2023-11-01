@@ -90,12 +90,11 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
-    return await this.userRepository
+    const user = await this.userRepository
       .findOneOrFail({
         where: {
           id,
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
-          progresses: { deleted_at: IsNull() },
         },
         relations: options.loadRelations
           ? ["progresses", "progresses.game"]
@@ -105,6 +104,7 @@ export class UsersService implements OnApplicationBootstrap {
       .catch(() => {
         throw new NotFoundException(`User with id ${id} was not found.`);
       });
+    return this.filterDeletedProgresses(user);
   }
 
   /** Get user by username or throw an exception if not found */
@@ -112,13 +112,13 @@ export class UsersService implements OnApplicationBootstrap {
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
-    return await this.userRepository
+    const user = await this.userRepository
       .findOneOrFail({
         where: {
           username: ILike(username),
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
-          progresses: { deleted_at: IsNull() },
         },
+
         relations: options.loadRelations
           ? ["progresses", "progresses.game"]
           : [],
@@ -129,6 +129,7 @@ export class UsersService implements OnApplicationBootstrap {
           `User with username ${username} was not found on the server.`,
         );
       });
+    return this.filterDeletedProgresses(user);
   }
 
   /** Get a rough overview of all users */
@@ -358,5 +359,12 @@ export class UsersService implements OnApplicationBootstrap {
         `A user with this ${duplicateField} already exists. (case-insensitive)`,
       );
     }
+  }
+
+  private filterDeletedProgresses(user: GamevaultUser) {
+    user.progresses = user.progresses.filter(
+      (progress) => !progress.deleted_at,
+    );
+    return user;
   }
 }
