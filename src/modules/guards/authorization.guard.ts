@@ -20,14 +20,7 @@ export class AuthorizationGuard implements CanActivate {
     }
   }
 
-  /**
-   * Determines whether the route can be activated.
-   *
-   * @param context - The execution context.
-   * @returns A boolean indicating if the route can be activated.
-   * @throws {ForbiddenException} If the user role is insufficient to access the
-   *   route.
-   */
+  /** Determines whether the route can be activated. */
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.get<boolean>(
       "public",

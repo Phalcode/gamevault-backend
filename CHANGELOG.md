@@ -1,5 +1,18 @@
 # GameVault Backend Server Changelog
 
+## 9.0.4
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Fixed Server not finding users with only deleted progresses
+- Fixed `GET /api/genres` not returning list of genres sorted descending by count of games
+
+### Thanks
+
+- @MobileManiC
+
 ## 9.0.3
 
 Recommended Gamevault App Version: `v1.7.3`

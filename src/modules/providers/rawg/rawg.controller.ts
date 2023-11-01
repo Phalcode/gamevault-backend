@@ -25,12 +25,7 @@ export class RawgController {
     private boxartService: BoxArtsService,
   ) {}
 
-  /**
-   * Searches the Rawg API manually.
-   *
-   * @param query The search query.
-   * @returns An array of game objects.
-   */
+  /** Searches the Rawg API manually. */
   @Get("search")
   @ApiOperation({
     summary: "search the rawg-api manually.",
@@ -62,9 +57,6 @@ export class RawgController {
   /**
    * Manually triggers a recache from rawg-api for a specific game, also updates
    * boxart.
-   *
-   * @param params - An object containing the game's ID.
-   * @returns - A promise that resolves with the updated game.
    */
   @Put(":id/recache")
   @ApiOperation({

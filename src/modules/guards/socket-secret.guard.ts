@@ -5,13 +5,13 @@ import {
   Logger,
 } from "@nestjs/common";
 import { Socket } from "socket.io";
-import { UsersService } from "../users/users.service";
+import { SocketSecretService } from "../users/socket-secret.service";
 
 @Injectable()
 export class SocketSecretGuard implements CanActivate {
   private readonly logger = new Logger(SocketSecretGuard.name);
 
-  constructor(private usersService: UsersService) {}
+  constructor(private socketSecretService: SocketSecretService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient<Socket>();
@@ -27,7 +27,7 @@ export class SocketSecretGuard implements CanActivate {
     }
 
     try {
-      const user = await this.usersService.getUserBySocketSecretOrFail(
+      const user = await this.socketSecretService.getUserBySocketSecretOrFail(
         socketSecret.toString(),
       );
       this.logger.debug(

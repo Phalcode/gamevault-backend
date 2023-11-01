@@ -32,8 +32,10 @@ const sqliteConfig: BetterSqlite3ConnectionOptions = {
     : `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
 };
 
-export function getDatabaseConfiguration(): TypeOrmModuleOptions {
-  switch (configuration.DB.SYSTEM) {
+export function getDatabaseConfiguration(
+  databaseType: string,
+): TypeOrmModuleOptions {
+  switch (databaseType) {
     case "SQLITE":
       return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
     case "POSTGRESQL":
@@ -41,4 +43,14 @@ export function getDatabaseConfiguration(): TypeOrmModuleOptions {
     default:
       return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
   }
+}
+
+export function getTestingDatabaseConfiguration(): TypeOrmModuleOptions {
+  return {
+    ...baseConfig,
+    ...sqliteConfig,
+    database: ":memory:",
+    synchronize: true,
+    migrationsRun: false,
+  } as TypeOrmModuleOptions;
 }

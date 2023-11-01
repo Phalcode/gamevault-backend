@@ -58,15 +58,7 @@ export class GamesService {
     }
   }
 
-  /**
-   * Checks if a game exists in the database.
-   *
-   * @param {Game} game - The game object to check.
-   * @returns {Promise<[GameExistence, Game]>} A promise that resolves to a
-   *   tuple containing the game existence status and the found game.
-   * @throws {InternalServerErrorException} If the game does not have necessary
-   *   data for dupe-checking.
-   */
+  /** Checks if a game exists in the database. */
   public async checkIfExistsInDatabase(
     game: Game,
   ): Promise<[GameExistence, Game]> {
@@ -141,13 +133,7 @@ export class GamesService {
     return [GameExistence.EXISTS, foundGame];
   }
 
-  /**
-   * Retrieves all games from the database.
-   *
-   * @returns A promise that resolves to an array of all games in the database.
-   * @throws {Error} If there is an error retrieving the games from the
-   *   database.
-   */
+  /** Retrieves all games from the database. */
   public async getAll(): Promise<Game[]> {
     return this.gamesRepository.find();
   }
@@ -169,12 +155,6 @@ export class GamesService {
   /**
    * Remaps the Rawg ID of a game and nulls out all related fields except
    * progresses. Then recaches the game.
-   *
-   * @param id - The ID of the game to remap.
-   * @param new_rawg_id - The new Rawg ID to set for the game.
-   * @returns - The remapped game object.
-   * @throws {NotFoundException} - If the game with the provided ID is not found
-   *   in the database.
    */
   public async remap(id: number, new_rawg_id: number): Promise<Game> {
     // Fetch the game to remap from the database and set the new rawg_id
@@ -207,21 +187,12 @@ export class GamesService {
     return game;
   }
 
-  /**
-   * Save a game to the database.
-   *
-   * @param game - The game object to save.
-   * @returns - The saved game object.
-   */
+  /** Save a game to the database. */
   public async save(game: Game): Promise<Game> {
     return this.gamesRepository.save(game);
   }
 
-  /**
-   * Soft delete a game from the database.
-   *
-   * @param id - The id of the game to delete.
-   */
+  /** Soft delete a game from the database. */
   public delete(game: Game) {
     return this.gamesRepository.softRemove(game);
   }
@@ -261,12 +232,7 @@ export class GamesService {
     return this.gamesRepository.save(game);
   }
 
-  /**
-   * Restore a game that has been soft deleted.
-   *
-   * @param id - The id of the game to restore.
-   * @returns - The restored game object.
-   */
+  /** Restore a game that has been soft deleted. */
   public async restore(id: number): Promise<Game> {
     await this.gamesRepository.recover({ id });
     return this.findByGameIdOrFail(id);

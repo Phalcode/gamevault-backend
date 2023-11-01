@@ -17,12 +17,7 @@ import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 import { LoggingExceptionFilter } from "./modules/log/exception.filter";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
-/**
- * Bootstraps the application by creating a NestJS application, configuring it,
- * and setting up global settings and routes.
- *
- * @returns A promise that resolves when the server is listening.
- */
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: winston,

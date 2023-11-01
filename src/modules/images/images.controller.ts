@@ -39,14 +39,7 @@ export class ImagesController {
 
   constructor(private imagesService: ImagesService) {}
 
-  /**
-   * Retrieve an image by its ID and send it as the response.
-   *
-   * @param id - The ID of the image to retrieve.
-   * @param res - The Express Response object to send the image data.
-   * @returns - A Promise that resolves when the response is sent.
-   * @throws {NotFoundException} If the image is not found on the server.
-   */
+  /** Retrieve an image by its ID and send it as the response. */
   @Get(":id")
   @ApiOperation({
     summary: "Retrieve an image using its id",

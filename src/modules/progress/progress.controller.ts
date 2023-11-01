@@ -33,11 +33,7 @@ export class ProgressController {
 
   constructor(private progressService: ProgressService) {}
 
-  /**
-   * Get an array of files to ignore for progress-tracking.
-   *
-   * @returns An array of files to ignore.
-   */
+  /** Get an array of files to ignore for progress-tracking. */
   @Get("ignorefile")
   @ApiOperation({
     summary: "get an array of files to ignore for progess-tracking",
@@ -49,11 +45,7 @@ export class ProgressController {
     return this.progressService.ignoreList;
   }
 
-  /**
-   * Get all progresses for all users and games.
-   *
-   * @returns A Promise that resolves to an array of Progress objects.
-   */
+  /** Get all progresses for all users and games. */
   @Get("")
   @ApiOperation({
     summary: "get all progresses for all users and games",
@@ -65,15 +57,7 @@ export class ProgressController {
     return await this.progressService.getAll();
   }
 
-  /**
-   * Retrieves a specific progress by its ID.
-   *
-   * @param params - The parameters containing the ID of the progress to
-   *   retrieve.
-   * @returns - A Promise resolving to an array of Progress objects that match
-   *   the specified ID.
-   * @throws {Error} - If there is an error retrieving the progress.
-   */
+  /** Retrieves a specific progress by its ID. */
   @Get(":id")
   @ApiOperation({
     summary: "get a specific progress by progress id",
@@ -85,16 +69,7 @@ export class ProgressController {
     return await this.progressService.findByProgressId(Number(params.id));
   }
 
-  /**
-   * Deletes a progress by its ID.
-   *
-   * @param params - The request parameters containing the ID of the progress to
-   *   delete.
-   * @param req - The request object, containing the username of the
-   *   authenticated user.
-   * @returns - A Promise that resolves to an array of the remaining Progress
-   *   objects.
-   */
+  /** Deletes a progress by its ID. */
   @Delete(":id")
   @ApiOperation({
     summary: "delete a progress by progress id.",
@@ -114,12 +89,7 @@ export class ProgressController {
     );
   }
 
-  /**
-   * Retrieves all progresses for a user by their ID.
-   *
-   * @param params The request parameters, containing the user ID.
-   * @returns An array of Progress objects.
-   */
+  /** Retrieves all progresses for a user by their ID. */
   @Get("/user/:id")
   @ApiOperation({
     summary: "get all progresses for a user",
@@ -131,13 +101,7 @@ export class ProgressController {
     return await this.progressService.findByUserId(Number(params.id));
   }
 
-  /**
-   * Returns an array of progresses for a game with the given ID.
-   *
-   * @param params - The object containing the game ID.
-   * @param params.id - The ID of the game to retrieve progresses for.
-   * @returns A promise that resolves to an array of Progress objects.
-   */
+  /** Returns an array of progresses for a game with the given ID. */
   @Get("/game/:id")
   @ApiOperation({
     summary: "get all progresses for a game",
@@ -149,16 +113,7 @@ export class ProgressController {
     return await this.progressService.findByGameId(Number(params.id));
   }
 
-  /**
-   * Get the progress of a specific game for a user.
-   *
-   * @param params - The parameters object containing the user ID and game ID.
-   * @param params.userId - The user ID.
-   * @param params.gameId - The game ID.
-   * @returns The progress of the specified game for the user.
-   * @throws {NotFoundException} If no progress is found for the specified user
-   *   and game.
-   */
+  /** Get the progress of a specific game for a user. */
   @Get("/user/:userId/game/:gameId")
   @ApiOperation({
     summary: "get a specific game progress for a user",
@@ -175,18 +130,7 @@ export class ProgressController {
     );
   }
 
-  /**
-   * Set progress for a user and game.
-   *
-   * @param params - Parameters from the request URL.
-   * @param params.userId - The ID of the user.
-   * @param params.gameId - The ID of the game.
-   * @param progress - The progress data to set.
-   * @param req - The request object.
-   * @param req.gamevaultuser.username - The username of the authenticated user.
-   * @returns The created or updated progress object.
-   * @throws {Error} If there was an error setting the progress.
-   */
+  /** Set progress for a user and game. */
   @Put("/user/:userId/game/:gameId")
   @ApiBody({ type: () => UpdateProgressDto })
   @ApiOperation({
@@ -211,13 +155,6 @@ export class ProgressController {
   /**
    * Endpoint to increment the progress for a specific game by one minute for a
    * given user.
-   *
-   * @param params - The parameters for the request containing the user ID and
-   *   game ID.
-   * @param req - The request object containing the username of the
-   *   authenticated user.
-   * @returns A Promise that resolves to the updated progress object for the
-   *   specified user and game.
    */
   @Put("/user/:userId/game/:gameId/increment")
   @ApiOperation({
@@ -240,14 +177,6 @@ export class ProgressController {
   /**
    * Increment a specific game progress for a user by a certain number of
    * minutes.
-   *
-   * @param params - An object containing userId, gameId, and minutes
-   *   properties.
-   * @param params.userId - The user ID for which to increment the progress.
-   * @param params.gameId - The game ID for which to increment the progress.
-   * @param params.minutes - The number of minutes to increment the progress by.
-   * @param req - The HTTP request object.
-   * @returns - A Promise that resolves to the updated progress object.
    */
   @Put("/user/:userId/game/:gameId/increment/:minutes")
   @ApiOperation({

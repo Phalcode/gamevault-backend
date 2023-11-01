@@ -23,8 +23,6 @@ export class GenresController {
   /**
    * Get a list of genres sorted by the amount of games that are associated with
    * each genre.
-   *
-   * @returns A promise that resolves to an array of Genre objects.
    */
   @Get()
   @ApiOperation({
@@ -36,7 +34,7 @@ export class GenresController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Genre, isArray: true })
   async getGenres(): Promise<Genre[]> {
-    const genres = await this.genreRepository.find();
+    const genres = await this.genreRepository.find({ relations: ["games"] });
     genres.sort((a, b) => b.games?.length - a.games?.length);
     return genres;
   }

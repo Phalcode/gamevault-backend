@@ -53,8 +53,6 @@ export class BoxArtsService {
   /**
    * Checks if the box art for the game is available and searches for it if
    * necessary.
-   *
-   * @param game - The game for which to check the box art.
    */
   public async check(game: Game): Promise<void> {
     if (
@@ -132,13 +130,7 @@ export class BoxArtsService {
     this.cooldownGames = 0;
   }
 
-  /**
-   * Performs an image search using the specified title and search query.
-   *
-   * @param title - The title of the game.
-   * @param searchQuery - The search query to be used.
-   * @returns The results of the image search.
-   */
+  /** Performs an image search using the specified title and search query. */
   private async performImageSearch(
     title: string,
     searchQuery: string,
@@ -193,12 +185,7 @@ export class BoxArtsService {
     return false;
   }
 
-  /**
-   * Formats the cooldown time into a string representation.
-   *
-   * @param milliseconds - The duration of the cooldown in milliseconds.
-   * @returns The formatted cooldown time string.
-   */
+  /** Formats the cooldown time into a string representation. */
   private formatCooldownTime(milliseconds: number): string {
     const hours = Math.floor(milliseconds / 3600000);
     const minutes = Math.floor((milliseconds % 3600000) / 60000);
