@@ -362,9 +362,11 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   private filterDeletedProgresses(user: GamevaultUser) {
-    user.progresses = user.progresses.filter(
-      (progress) => !progress.deleted_at,
-    );
+    if (user.progresses) {
+      user.progresses = user.progresses.filter(
+        (progress) => !progress.deleted_at,
+      );
+    }
     return user;
   }
 }
