@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## 9.0.5
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Updated Dependencies
+
 ## 9.0.4
 
 Recommended Gamevault App Version: `v1.7.3`
