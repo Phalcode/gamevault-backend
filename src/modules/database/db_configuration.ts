@@ -44,13 +44,3 @@ export function getDatabaseConfiguration(
       return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
   }
 }
-
-export function getTestingDatabaseConfiguration(): TypeOrmModuleOptions {
-  return {
-    ...baseConfig,
-    ...sqliteConfig,
-    database: ":memory:",
-    synchronize: true,
-    migrationsRun: false,
-  } as TypeOrmModuleOptions;
-}

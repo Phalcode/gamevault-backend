@@ -15,7 +15,7 @@ import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
-import { LoggingExceptionFilter } from "./modules/log/exception.filter";
+import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 
 async function bootstrap(): Promise<void> {

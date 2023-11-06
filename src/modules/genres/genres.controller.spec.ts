@@ -1,18 +1,11 @@
 import { Test } from "@nestjs/testing";
-import { TypeOrmModule, getRepositoryToken } from "@nestjs/typeorm";
-import { getTestingDatabaseConfiguration } from "../database/db_configuration";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { Genre } from "./genre.entity";
 import { Game } from "../games/game.entity";
-import { Image } from "../images/image.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Progress } from "../progress/progress.entity";
-import { Publisher } from "../publishers/publisher.entity";
-import { Developer } from "../developers/developer.entity";
-import { Store } from "../stores/store.entity";
 import { Builder } from "builder-pattern";
 import { Repository } from "typeorm/repository/Repository";
-import { Tag } from "../tags/tag.entity";
 import { GenresController } from "./genres.controller";
+import { AppModule } from "../../app.module";
 
 describe("GenresController", () => {
   let genresController: GenresController;
@@ -21,21 +14,8 @@ describe("GenresController", () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot(getTestingDatabaseConfiguration()),
-        TypeOrmModule.forFeature([
-          Tag,
-          Game,
-          Image,
-          GamevaultUser,
-          Progress,
-          Publisher,
-          Store,
-          Developer,
-          Genre,
-        ]),
-      ],
-      controllers: [GenresController],
+      imports: [AppModule],
+      controllers: [],
     }).compile();
 
     genresController = moduleRef.get<GenresController>(GenresController);
