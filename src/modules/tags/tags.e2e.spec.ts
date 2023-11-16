@@ -7,7 +7,7 @@ import { Builder } from "builder-pattern";
 import { Repository } from "typeorm/repository/Repository";
 import { AppModule } from "../../app.module";
 
-describe("TagsController", () => {
+describe("/api/tags", () => {
   let tagsController: TagsController;
   let tagRepository: Repository<Tag>;
   let gameRepository: Repository<Game>;
@@ -27,13 +27,7 @@ describe("TagsController", () => {
     tagRepository.clear();
   });
 
-  it("should be defined", () => {
-    expect(tagsController).toBeDefined();
-    expect(tagRepository).toBeDefined();
-    expect(gameRepository).toBeDefined();
-  });
-
-  it("should get tag", async () => {
+  it("GET /api/tags/", async () => {
     const testingTag: Tag = new Tag();
     testingTag.name = "stealth";
     testingTag.rawg_id = 1337;

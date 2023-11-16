@@ -193,7 +193,7 @@ export class RawgMapperService {
    * available.
    */
   private getReleaseDate(game: RawgGame): Date | null {
-    const pcReleaseDate = game.platforms.find((p) => p.platform.id === 4)
+    const pcReleaseDate = game.platforms?.find((p) => p.platform.id === 4)
       ?.released_at;
     const generalReleaseDate = game.released;
 
