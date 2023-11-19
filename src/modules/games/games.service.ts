@@ -161,7 +161,7 @@ export class GamesService {
     let game = await this.findByGameIdOrFail(id);
     game.rawg_id = new_rawg_id;
 
-    // Null all related fields but keep progresses
+    // Null all rawg fields but keep progresses
     game.rawg_title = null;
     game.rawg_release_date = null;
     game.cache_date = null;

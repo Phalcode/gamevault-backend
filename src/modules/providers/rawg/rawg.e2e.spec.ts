@@ -124,7 +124,7 @@ describe("/api/rawg", () => {
   });
 
   describe("PUT /api/rawg/{id}/recache", () => {
-    it("should not recache nc games", async () => {
+    it("should not recache '(NC)' flagged games", async () => {
       mockHttpService.get.mockReturnValue(
         of({
           data: {},

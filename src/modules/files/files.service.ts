@@ -30,6 +30,7 @@ import globals from "../../globals";
 import Throttle from "throttle";
 import filenameSanitizer from "sanitize-filename";
 import unidecode from "unidecode";
+import { randomBytes } from "crypto";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -432,6 +433,19 @@ export class FilesService implements OnApplicationBootstrap {
 
     const game = await this.gamesService.findByGameIdOrFail(gameId);
     let fileDownloadPath = game.file_path;
+
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn(
+        "Returning random download data because TESTING_MOCK_FILES is set to true",
+      );
+      return new StreamableFile(randomBytes(1000), {
+        disposition: `attachment; filename="${filenameSanitizer(
+          unidecode(path.basename(fileDownloadPath)),
+        )}"`,
+        length: 1000,
+        type: "application/x-zip",
+      });
+    }
 
     if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
