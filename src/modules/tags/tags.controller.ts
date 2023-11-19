@@ -46,6 +46,7 @@ export class TagsController {
       maxLimit: NO_PAGINATION,
       nullSort: "last",
       relations: ["games"],
+      loadEagerRelations: false,
       sortableColumns: ["id", "name"],
       searchableColumns: ["name", "games.title"],
       filterableColumns: {

@@ -34,7 +34,10 @@ export class GenresController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Genre, isArray: true })
   async getGenres(): Promise<Genre[]> {
-    const genres = await this.genreRepository.find({ relations: ["games"] });
+    const genres = await this.genreRepository.find({
+      relations: ["games"],
+      loadEagerRelations: false,
+    });
     genres.sort((a, b) => b.games?.length - a.games?.length);
     return genres;
   }

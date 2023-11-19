@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 9.0.6
+
+Recommended Gamevault App Version: `v1.7.3`
+
+- Improved Genre and Tags API Speed
+
 ## 9.0.5
 
 Recommended Gamevault App Version: `v1.7.3`
