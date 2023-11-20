@@ -5,6 +5,7 @@
 Recommended Gamevault App Version: `v1.7.3`
 
 - Improved Genre and Tags API Speed
+- Implement AND and OR logic for filters as described [here](https://github.com/ppetzold/nestjs-paginate/issues/402)
 
 ## 9.0.5
 
