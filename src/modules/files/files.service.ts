@@ -23,7 +23,6 @@ import mime from "mime";
 import { GameExistence } from "../games/models/game-existence.enum";
 import { add, list } from "node-7z";
 import { GameType } from "../games/models/game-type.enum";
-import { Cron } from "@nestjs/schedule";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
@@ -31,6 +30,8 @@ import Throttle from "throttle";
 import filenameSanitizer from "sanitize-filename";
 import unidecode from "unidecode";
 import { randomBytes } from "crypto";
+import { watch } from "chokidar";
+import { debounce } from "lodash";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -43,27 +44,27 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    try {
-      this.checkFolders();
-      this.index();
-    } catch (error) {
-      this.logger.error(error, "Error on FilesService Bootstrap");
-    }
+    watch(configuration.VOLUMES.FILES)
+      .on(
+        "all",
+        debounce(() => {
+          this.index();
+        }, 5000),
+      )
+      .on("error", (error) => {
+        this.logger.error(error, "Error in Filewatcher");
+      });
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
   public async index(): Promise<void> {
-    //Get all games in file system
+    this.logger.log(
+      `Started file indexer due to changes in ${configuration.VOLUMES.FILES}`,
+    );
     const gamesInFileSystem = this.fetch();
-    //Feed Game
     await this.ingest(gamesInFileSystem);
-    //Get all games in database
     const gamesInDatabase = await this.gamesService.getAll();
-    //Check integrity of games in database with games in file system
     await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
-    //Check cache of games in database
     await this.rawgService.checkCache(gamesInDatabase);
-    //Check boxart of games in database
     await this.boxartService.checkMultiple(gamesInDatabase);
   }
 
@@ -356,8 +357,8 @@ export class FilesService implements OnApplicationBootstrap {
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
-          (g) =>
-            `${configuration.VOLUMES.FILES}/${g.name}` ===
+          (game) =>
+            `${configuration.VOLUMES.FILES}/${game.name}` ===
             gameInDatabase.file_path,
         );
         // If game is not in file system, mark it as deleted
