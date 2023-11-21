@@ -20,8 +20,8 @@ function parseKibibytesToBytes(
   envVar: string,
   defaultNumber = Number.MAX_SAFE_INTEGER,
 ) {
-  const number = Number(envVar) * 1024;
-  if (!number || number < 0 || number > Number.MAX_SAFE_INTEGER) {
+  const value = Number(envVar) * 1024;
+  if (!value || value < 0 || value > Number.MAX_SAFE_INTEGER) {
     return defaultNumber;
   }
 }

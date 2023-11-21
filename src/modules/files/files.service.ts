@@ -44,7 +44,9 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    watch(configuration.VOLUMES.FILES)
+    watch(configuration.VOLUMES.FILES, {
+      depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
+    })
       .on(
         "all",
         debounce(() => {
