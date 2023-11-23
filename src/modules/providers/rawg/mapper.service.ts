@@ -177,6 +177,10 @@ export class RawgMapperService {
       entity.rawg_release_date =
         this.getReleaseDate(game) ?? entity.rawg_release_date;
 
+      if (!entity.release_date && entity.rawg_release_date) {
+        entity.release_date = entity.rawg_release_date;
+      }
+
       if (game.playtime) {
         entity.average_playtime = game.playtime * 60;
       }
@@ -199,12 +203,10 @@ export class RawgMapperService {
 
     if (pcReleaseDate) {
       return new Date(pcReleaseDate);
-    }
-
-    if (generalReleaseDate) {
+    } else if (generalReleaseDate) {
       return new Date(generalReleaseDate);
+    } else {
+      return null;
     }
-
-    return null;
   }
 }

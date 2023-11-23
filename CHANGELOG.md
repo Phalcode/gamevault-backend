@@ -7,6 +7,7 @@ Recommended Gamevault App Version: `v1.7.3`
 - Improved Genre and Tags API Speed
 - Implement AND and OR logic for filters as described [here](https://github.com/ppetzold/nestjs-paginate/issues/402)
 - Implemented a debounced file-watcher for indexing instead of a scheduled timer
+- If no Release-Year is given in the filename but there is one from RAWG we now save it as the files release year.
 
 ## 9.0.5
 
