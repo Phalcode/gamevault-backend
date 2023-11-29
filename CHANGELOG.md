@@ -1,13 +1,18 @@
 # GameVault Backend Server Changelog
 
-## 9.0.6
+## 9.1.0
 
 Recommended Gamevault App Version: `v1.7.3`
 
-- Improved Genre and Tags API Speed
-- Implement AND and OR logic for filters as described [here](https://github.com/ppetzold/nestjs-paginate/issues/402)
-- Implemented a debounced file-watcher for indexing instead of a scheduled timer
-- If no Release-Year is given in the filename but there is one from RAWG we now save it as the files release year.
+- Improved the speed of the Genre and Tags API for a smoother user experience.
+
+- Implemented advanced filtering logic using AND and OR operators. Refer to [this link](https://github.com/ppetzold/nestjs-paginate/issues/402) for details on the new filtering capabilities.
+
+- Replaced the previous scheduled timer with a debounced file-watcher for indexing. This dynamic approach enhances efficiency and responsiveness.
+
+- In cases where no Release-Year is specified in the filename, but information is available from RAWG, the system now intelligently saves it as the file's release year.
+
+- Introduced a detection mechanism for the `LINUX_PORTABLE` game type. Detection can occur through the `(L_P)` flag or the presence of `.sh` files in the `/files` directory or within any archive in that directory. This ensures seamless identification and handling of the `LINUX_PORTABLE` game type.
 
 ## 9.0.5
 

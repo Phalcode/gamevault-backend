@@ -17,10 +17,10 @@ import {
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
 import filenameSanitizer from "sanitize-filename";
-import mime from "mime";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
+import mime from "mime";
 
 @Injectable()
 export class DatabaseService {

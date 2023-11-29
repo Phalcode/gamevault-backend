@@ -244,6 +244,13 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
+      if (/\(L_P\)/.test(path)) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because of (L_P) override in filename.`,
+        );
+        return GameType.LINUX_PORTABLE;
+      }
+
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
         this.logger.debug(
@@ -252,26 +259,45 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
-      // Detect single File executable
+      // Detect single File executables
       if (path.toLowerCase().endsWith(".exe")) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe`,
         );
         return GameType.WINDOWS_SETUP;
       }
 
+      if (path.toLowerCase().endsWith(".sh")) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because it ends with .sh`,
+        );
+        return GameType.LINUX_PORTABLE;
+      }
+
+      // Detect Windows Executables in Archive
       const windowsExecutablesInArchive =
         await this.getAllExecutablesFromArchive(path, ["*.exe", "*.msi"]);
 
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
           this.logger.debug(
-            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows setup executables in the archive.`,
+            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows executables in the archive that look like installers.`,
           );
           return GameType.WINDOWS_SETUP;
         }
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are no windows setup executables in the archive.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}, because there are windows executables in the archive.`,
+        );
+        return GameType.WINDOWS_PORTABLE;
+      }
+
+      const linuxExecutablesInArchive = await this.getAllExecutablesFromArchive(
+        path,
+        ["*.sh"],
+      );
+      if (linuxExecutablesInArchive.length > 0) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because there are .sh files in the archive.`,
         );
         return GameType.WINDOWS_PORTABLE;
       }
