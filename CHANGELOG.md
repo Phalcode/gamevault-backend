@@ -16,6 +16,8 @@ Recommended Gamevault App Version: `v1.7.3`
 
 - Changed Release date for RAWG Search API to be null instead of 01.01.1970 when no release date is defined in rawg.
 
+- `/games` now also returns background images for better displaying results in different clients
+
 ## 9.0.5
 
 Recommended Gamevault App Version: `v1.7.3`
