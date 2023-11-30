@@ -48,7 +48,7 @@ export class RawgController {
       newGame.rawg_id = rawgGame.id;
       newGame.title = rawgGame.name;
       newGame.box_image_url = rawgGame.background_image;
-      if (rawgGame.released.trim()) {
+      if (rawgGame.released) {
         newGame.release_date = new Date(rawgGame.released);
       }
       games.push(newGame);
