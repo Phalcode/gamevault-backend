@@ -14,6 +14,8 @@ Recommended Gamevault App Version: `v1.7.3`
 
 - Introduced a detection mechanism for the `LINUX_PORTABLE` game type. Detection can occur through the `(L_P)` flag or the presence of `.sh` files in the `/files` directory or within any archive in that directory. This ensures seamless identification and handling of the `LINUX_PORTABLE` game type.
 
+- Changed Release date for RAWG Search API to be null instead of 01.01.1970 when no release date is defined in rawg.
+
 ## 9.0.5
 
 Recommended Gamevault App Version: `v1.7.3`
