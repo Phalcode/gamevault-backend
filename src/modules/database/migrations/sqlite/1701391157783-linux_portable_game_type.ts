@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class LinuxPortableGameType1701390536797 implements MigrationInterface {
-  name = "LinuxPortableGameType1701390536797";
+export class LinuxPortableGameType1701391157783 implements MigrationInterface {
+  name = "LinuxPortableGameType1701391157783";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
