@@ -1,0 +1,8 @@
+{
+  "ignore": {
+    "mime": {
+      "versions": "4",
+      "reason": "ESM"
+    }
+  }
+}
