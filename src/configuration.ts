@@ -24,6 +24,7 @@ function parseKibibytesToBytes(
   if (!value || value < 0 || value > Number.MAX_SAFE_INTEGER) {
     return defaultNumber;
   }
+  return value;
 }
 
 const configuration = {
