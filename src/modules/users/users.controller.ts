@@ -96,12 +96,7 @@ export class UsersController {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.update(
-      user.id,
-      dto,
-      false,
-      request.gamevaultuser.username,
-    );
+    return await this.usersService.update(user.id, dto, false);
   }
 
   /** Deletes your own user. */
@@ -143,14 +138,8 @@ export class UsersController {
   async putUserByUserId(
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
-    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.update(
-      Number(params.id),
-      dto,
-      true,
-      request.gamevaultuser.username,
-    );
+    return await this.usersService.update(Number(params.id), dto, true);
   }
 
   /** Deletes any user with the specified ID. */
