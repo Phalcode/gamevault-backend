@@ -26,11 +26,12 @@ Recommended Gamevault App Version: `v1.8.0`
 
 - Fixed a bug where `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` config would not be used
 
-- `SERVER_REGISTRATION_DISABLED` won't block registration calls by administrators anymore.
+- `SERVER_REGISTRATION_DISABLED` won't block registration calls by administrators anymore. [#221](https://github.com/Phalcode/gamevault-backend/issues/221)
 
 ### Thanks
 
 - @RIPSAW
+- @utlilb
 
 ## 9.0.5
 
