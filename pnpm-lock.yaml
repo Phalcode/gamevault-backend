@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@img/sharp-linux-x64':
+    specifier: ^0.33.0
+    version: 0.33.0
   '@nestjs/axios':
     specifier: 3.0.1
     version: 3.0.1(@nestjs/common@10.2.10)(axios@1.6.2)(reflect-metadata@0.1.14)(rxjs@7.8.1)
@@ -2010,7 +2013,6 @@ packages:
     optionalDependencies:
       '@img/sharp-libvips-linux-x64': 1.0.0
     dev: false
-    optional: true
 
   /@img/sharp-linuxmusl-arm64@0.33.0:
     resolution: {integrity: sha512-1QLbbN0zt+32eVrg7bb1lwtvEaZwlhEsY1OrijroMkwAqlHqFj6R33Y47s2XUv7P6Ie1PwCxK/uFnNqMnkd5kg==}
