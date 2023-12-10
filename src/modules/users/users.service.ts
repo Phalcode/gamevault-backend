@@ -209,7 +209,6 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     dto: UpdateUserDto,
     admin = false,
-    executorUsername?: string,
   ): Promise<GamevaultUser> {
     const user = await this.findByUserIdOrFail(id);
 
@@ -239,23 +238,9 @@ export class UsersService implements OnApplicationBootstrap {
       user.password = hashSync(dto.password, 10);
     }
 
-    if (dto.profile_picture_url != null) {
-      user.profile_picture = await this.imagesService.downloadByUrl(
-        dto.profile_picture_url,
-        executorUsername,
-      );
-    }
-
     if (dto.profile_picture_id != null) {
       user.profile_picture = await this.imagesService.findByImageIdOrFail(
         dto.profile_picture_id,
-      );
-    }
-
-    if (dto.background_image_url != null) {
-      user.background_image = await this.imagesService.downloadByUrl(
-        dto.background_image_url,
-        executorUsername,
       );
     }
 

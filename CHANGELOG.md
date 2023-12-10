@@ -1,8 +1,14 @@
 # GameVault Backend Server Changelog
 
-## 9.1.0
+## 10.0.0
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.8.0`
+
+### Breaking Changes & Migration
+
+- Improved security by removing Upload via URL APIs. The clients can still offer Upload via URL by downloading and then uploading the images locally.
+
+### Changes
 
 - Improved the speed of the Genre and Tags API for a smoother user experience.
 
@@ -18,7 +24,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 - `/games` now also returns background images for better displaying results in different clients
 
-- Fixed a bug where ``SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS`` config would not be used
+- Fixed a bug where `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` config would not be used
 
 ### Thanks
 

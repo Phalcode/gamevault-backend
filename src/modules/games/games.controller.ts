@@ -6,7 +6,6 @@ import {
   Logger,
   Param,
   Put,
-  Request,
   StreamableFile,
 } from "@nestjs/common";
 import {
@@ -36,7 +35,6 @@ import { GamesService } from "./games.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
-import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @ApiBasicAuth()
 @ApiTags("game")
@@ -168,12 +166,7 @@ export class GamesController {
   async putGameUpdate(
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Game> {
-    return await this.gamesService.update(
-      Number(params.id),
-      dto,
-      req.gamevaultuser.username,
-    );
+    return await this.gamesService.update(Number(params.id), dto);
   }
 }

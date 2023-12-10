@@ -256,7 +256,6 @@ describe("/api/games", () => {
           id: game.id.toString(),
         },
         { rawg_id: 1000 },
-        { gamevaultuser: { username: "alfagun74" } as any },
       );
 
       const result = await gameRepository.findOneByOrFail({ rawg_id: 1000 });
