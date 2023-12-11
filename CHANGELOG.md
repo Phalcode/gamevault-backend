@@ -28,10 +28,15 @@ Recommended Gamevault App Version: `v1.8.0`
 
 - `SERVER_REGISTRATION_DISABLED` won't block registration calls by administrators anymore. [#221](https://github.com/Phalcode/gamevault-backend/issues/221)
 
+- Fixed initial folder generation not happening
+
+- Fixed Server indexing games with invalid filenames. [#281](https://github.com/Phalcode/gamevault-app/issues/281)
+
 ### Thanks
 
 - @RIPSAW
 - @utlilb
+- @JoaGamo
 
 ## 9.0.5
 

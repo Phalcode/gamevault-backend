@@ -35,7 +35,7 @@ import { debounce } from "lodash";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(FilesService.name);
+  private logger = new Logger(FilesService.name);
 
   constructor(
     private gamesService: GamesService,
@@ -44,6 +44,7 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
+    this.checkFolders();
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
     })
@@ -152,6 +153,30 @@ export class FilesService implements OnApplicationBootstrap {
     );
 
     return this.gamesService.save(updatedGame);
+  }
+
+  private isValidFilename(filename: string) {
+    const invalidCharacters = /[\/<>:"\\|?*]/;
+
+    if (
+      !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+        extname(filename).toLowerCase(),
+      )
+    ) {
+      this.logger.debug(
+        `Indexer ignoring invalid filename: unsupported file extension - ${filename}`,
+      );
+      return false;
+    }
+
+    if (invalidCharacters.test(filename)) {
+      this.logger.warn(
+        `Indexer ignoring invalid filename: contains invalid characters - ${filename}`,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -421,11 +446,7 @@ export class FilesService implements OnApplicationBootstrap {
         encoding: "utf8",
         recursive: configuration.GAMES.SEARCH_RECURSIVE,
       })
-        .filter((file) =>
-          configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-            extname(file).toLowerCase(),
-          ),
-        )
+        .filter((file) => this.isValidFilename(file))
         .map(
           (file) =>
             ({
