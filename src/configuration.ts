@@ -29,6 +29,7 @@ function parseKibibytesToBytes(
 
 const configuration = {
   SERVER: {
+    PORT: Number(process.env.SERVER_PORT) || 8080,
     VERSION: process.env.npm_package_version || packageJson.version,
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: parseBooleanEnvVariable(
@@ -131,6 +132,7 @@ export function getCensoredConfiguration() {
   const censoredConfig = JSON.parse(JSON.stringify(configuration));
   censoredConfig.DB.PASSWORD = "**REDACTED**";
   censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
+  censoredConfig.RAWG_API.KEY = "**REDACTED**";
   return censoredConfig;
 }
 
