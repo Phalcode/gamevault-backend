@@ -1,30 +1,35 @@
 import globals from "./globals";
 import packageJson from "../package.json";
 
-function parseBooleanEnvVariable(envVar: string, defaultCase: boolean = false) {
-  return envVar?.toLowerCase() === "true" || defaultCase;
+function parseBooleanEnvVariable(
+  environmentVariable: string,
+  defaultCase: boolean = false,
+) {
+  return environmentVariable?.toLowerCase() === "true" || defaultCase;
 }
 
-function parsePath(envVar: string, defaultPath: string) {
-  return envVar?.replace(/\/$/, "") || defaultPath;
+function parsePath(environmentVariable: string, defaultPath: string) {
+  return environmentVariable?.replace(/\/$/, "") || defaultPath;
 }
 
-function parseList(envVar: string, defaultList: string[] = []) {
-  if (envVar) {
-    return envVar.split(",").map((item) => item.trim());
-  }
-  return defaultList;
+function parseList(
+  environmentVariable: string,
+  defaultList: string[] = [],
+): string[] {
+  return environmentVariable
+    ? environmentVariable.split(",").map((item) => item.trim())
+    : defaultList;
 }
 
 function parseKibibytesToBytes(
-  envVar: string,
-  defaultNumber = Number.MAX_SAFE_INTEGER,
-) {
-  const value = Number(envVar) * 1024;
-  if (!value || value < 0 || value > Number.MAX_SAFE_INTEGER) {
-    return defaultNumber;
+  environmentVariable: string,
+  defaultValue?: number,
+): number | undefined {
+  const bytes = Number(environmentVariable) * 1024;
+  if (isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
+    return defaultValue ?? undefined;
   }
-  return value;
+  return bytes;
 }
 
 const configuration = {
@@ -54,7 +59,6 @@ const configuration = {
     ),
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
-      10_737_418_240,
     ),
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,

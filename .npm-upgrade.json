@@ -3,6 +3,14 @@
     "mime": {
       "versions": "4",
       "reason": "ESM"
+    },
+    "better-sqlite3": {
+      "versions": "^9.0.0",
+      "reason": "No typeorm support"
+    },
+    "reflect-metadata": {
+      "versions": "^0.2.0",
+      "reason": "not supported yet"
     }
   }
 }

@@ -24,7 +24,7 @@ dependencies:
     specifier: 10.3.0
     version: 10.3.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)
   '@nestjs/platform-socket.io':
-    specifier: ^10.3.0
+    specifier: 10.3.0
     version: 10.3.0(@nestjs/common@10.3.0)(@nestjs/websockets@10.3.0)(rxjs@7.8.1)
   '@nestjs/schedule':
     specifier: 4.0.0
@@ -36,8 +36,11 @@ dependencies:
     specifier: 10.0.1
     version: 10.0.1(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)(typeorm@0.3.17)
   '@nestjs/websockets':
-    specifier: ^10.3.0
+    specifier: 10.3.0
     version: 10.3.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(@nestjs/platform-socket.io@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)
+  '@types/stream-throttle':
+    specifier: ^0.1.4
+    version: 0.1.4
   async-g-i-s:
     specifier: 1.5.1
     version: 1.5.1(node-fetch@2.7.0)
@@ -51,10 +54,10 @@ dependencies:
     specifier: ^8.7.0
     version: 8.7.0
   builder-pattern:
-    specifier: ^2.2.0
+    specifier: 2.2.0
     version: 2.2.0
   chokidar:
-    specifier: ^3.5.3
+    specifier: 3.5.3
     version: 3.5.3
   class-transformer:
     specifier: 0.5.1
@@ -78,7 +81,7 @@ dependencies:
     specifier: 4.25.1
     version: 4.25.1
   file-type-checker:
-    specifier: ^1.0.8
+    specifier: 1.0.8
     version: 1.0.8
   helmet:
     specifier: 7.1.0
@@ -96,7 +99,7 @@ dependencies:
     specifier: 1.9.4
     version: 1.9.4(@nestjs/common@10.3.0)(winston@3.11.0)
   nestjs-asyncapi:
-    specifier: ^1.2.1
+    specifier: 1.2.1
     version: 1.2.1(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(@nestjs/swagger@7.1.17)(@nestjs/websockets@10.3.0)(@types/node@20.10.5)
   nestjs-paginate:
     specifier: 8.6.0
@@ -123,20 +126,20 @@ dependencies:
     specifier: 7.8.1
     version: 7.8.1
   sanitize-filename:
-    specifier: ^1.6.3
+    specifier: 1.6.3
     version: 1.6.3
   sharp:
     specifier: 0.33.1
     version: 0.33.1
   socket.io:
-    specifier: ^4.7.2
+    specifier: 4.7.2
     version: 4.7.2
+  stream-throttle:
+    specifier: ^0.1.3
+    version: 0.1.3
   string-similarity-js:
     specifier: 2.1.4
     version: 2.1.4
-  throttle:
-    specifier: ^1.0.3
-    version: 1.0.3
   typeorm:
     specifier: 0.3.17
     version: 0.3.17(better-sqlite3@8.7.0)(pg@8.11.3)(ts-node@10.9.2)
@@ -205,9 +208,6 @@ devDependencies:
   '@types/supertest':
     specifier: ^2.0.16
     version: 2.0.16
-  '@types/throttle':
-    specifier: ^1.0.4
-    version: 1.0.4
   '@types/unidecode':
     specifier: ^0.1.3
     version: 0.1.3
@@ -227,8 +227,8 @@ devDependencies:
     specifier: 2.29.1
     version: 2.29.1(@typescript-eslint/parser@6.15.0)(eslint@8.56.0)
   eslint-plugin-prettier:
-    specifier: 5.0.1
-    version: 5.0.1(eslint-config-prettier@9.1.0)(eslint@8.56.0)(prettier@3.1.1)
+    specifier: 5.1.0
+    version: 5.1.0(eslint-config-prettier@9.1.0)(eslint@8.56.0)(prettier@3.1.1)
   jest:
     specifier: ^29.7.0
     version: 29.7.0(@types/node@20.10.5)(ts-node@10.9.2)
@@ -3411,6 +3411,12 @@ packages:
     resolution: {integrity: sha512-g7CK9nHdwjK2n0ymT2CW698FuWJRIx+RP6embAzZ2Qi8/ilIrA1Imt2LVSeHUzKvpoi7BhmmQcXz95eS0f2JXw==}
     dev: true
 
+  /@types/stream-throttle@0.1.4:
+    resolution: {integrity: sha512-VxXIHGjVuK8tYsVm60rIQMmF/0xguCeen5OmK5S4Y6K64A+z+y4/GI6anRnVzaUZaJB9Ah9IfbDcO0o1gZCc/w==}
+    dependencies:
+      '@types/node': 20.10.5
+    dev: false
+
   /@types/string-similarity@4.0.2:
     resolution: {integrity: sha512-LkJQ/jsXtCVMK+sKYAmX/8zEq+/46f1PTQw7YtmQwb74jemS1SlNLmARM2Zml9DgdDTWKAtc5L13WorpHPDjDA==}
     dev: true
@@ -3426,12 +3432,6 @@ packages:
     resolution: {integrity: sha512-6c2ogktZ06tr2ENoZivgm7YnprnhYE4ZoXGMY+oA7IuAf17M8FWvujXZGmxLv8y0PTyts4x5A+erSwVUFA8XSg==}
     dependencies:
       '@types/superagent': 4.1.20
-    dev: true
-
-  /@types/throttle@1.0.4:
-    resolution: {integrity: sha512-WhENYQ1Hl8AKJ4EkJvh9mFVhhKYpF55goIyPYdUk+4r9oWffT57ujWJn9kTGjM21tT0Zzq9Vbc4D5LNPd+W9SA==}
-    dependencies:
-      '@types/node': 20.10.5
     dev: true
 
   /@types/trusted-types@2.0.5:
@@ -3726,6 +3726,7 @@ packages:
 
   /abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
+    deprecated: Use your platform's native atob() and btoa() methods instead
     dev: false
 
   /abbrev@1.1.1:
@@ -4767,7 +4768,6 @@ packages:
 
   /commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
-    dev: true
 
   /commander@4.1.1:
     resolution: {integrity: sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA==}
@@ -5209,6 +5209,7 @@ packages:
   /domexception@2.0.1:
     resolution: {integrity: sha512-yxJ2mFy/sibVQlu5qHjOkf9J3K6zgmCxgJ94u2EdvDOV09H+32LtRswEcUsmUWN72pVLOEnTSRaIVVzVQgS0dg==}
     engines: {node: '>=8'}
+    deprecated: Use your platform's native DOMException instead
     dependencies:
       webidl-conversions: 5.0.0
     dev: false
@@ -5520,8 +5521,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-prettier@5.0.1(eslint-config-prettier@9.1.0)(eslint@8.56.0)(prettier@3.1.1):
-    resolution: {integrity: sha512-m3u5RnR56asrwV/lDC4GHorlW75DsFfmUcjfCYylTUs85dBRnB7VM6xG8eCMJdeDRnppzmxZVf1GEPJvl1JmNg==}
+  /eslint-plugin-prettier@5.1.0(eslint-config-prettier@9.1.0)(eslint@8.56.0)(prettier@3.1.1):
+    resolution: {integrity: sha512-hQc+2zbnMeXcIkg+pKZtVa+3Yqx4WY7SMkn1PLZ4VbBEU7jJIpVn9347P8BBhTbz6ne85aXvQf30kvexcqBeWw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       '@types/eslint': '>=8.0.0'
@@ -7622,6 +7623,10 @@ packages:
       set-cookie-parser: 2.6.0
     dev: false
 
+  /limiter@1.1.5:
+    resolution: {integrity: sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA==}
+    dev: false
+
   /lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
@@ -9235,7 +9240,7 @@ packages:
   /puppeteer@14.4.1:
     resolution: {integrity: sha512-+H0Gm84aXUvSLdSiDROtLlOofftClgw2TdceMvvCU9UvMryappoeS3+eOLfKvoy4sm8B8MWnYmPhWxVFudAOFQ==}
     engines: {node: '>=14.1.0'}
-    deprecated: < 19.4.0 is no longer supported
+    deprecated: < 21.3.7 is no longer supported
     requiresBuild: true
     dependencies:
       cross-fetch: 3.1.5
@@ -10049,12 +10054,13 @@ packages:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
 
-  /stream-parser@0.3.1:
-    resolution: {integrity: sha512-bJ/HgKq41nlKvlhccD5kaCr/P+Hu0wPNKPJOH7en+YrJu/9EgqUF+88w5Jb6KNcjOFMhfX4B2asfeAtIGuHObQ==}
+  /stream-throttle@0.1.3:
+    resolution: {integrity: sha512-889+B9vN9dq7/vLbGyuHeZ6/ctf5sNuGWsDy89uNxkFTAgzy0eK7+w5fL3KLNRTkLle7EgZGvHUphZW0Q26MnQ==}
+    engines: {node: '>= 0.10.0'}
+    hasBin: true
     dependencies:
-      debug: 2.6.9
-    transitivePeerDependencies:
-      - supports-color
+      commander: 2.20.3
+      limiter: 1.1.5
     dev: false
 
   /streamsearch@1.1.0:
@@ -10336,16 +10342,6 @@ packages:
     resolution: {integrity: sha512-kaDqm1DET9pp3NXwR8382WHbnpXnRkN9xGN9dQt3B2+dmXiW8X1SOwmFOxAErEQ47ObhZ96J6yhZNXuyCOL7KA==}
     dependencies:
       real-require: 0.2.0
-    dev: false
-
-  /throttle@1.0.3:
-    resolution: {integrity: sha512-VYINSQFQeFdmhCds0tTqvQmLmdAjzGX1D6GnRQa4zlq8OpTtWSMddNyRq8Z4Snw/d6QZrWt9cM/cH8xTiGUkYA==}
-    engines: {node: '>= v0.8.0'}
-    dependencies:
-      readable-stream: 4.3.0
-      stream-parser: 0.3.1
-    transitivePeerDependencies:
-      - supports-color
     dev: false
 
   /through@2.3.8:

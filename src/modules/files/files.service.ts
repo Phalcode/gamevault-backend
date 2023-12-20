@@ -26,12 +26,13 @@ import { GameType } from "../games/models/game-type.enum";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
-import Throttle from "throttle";
 import filenameSanitizer from "sanitize-filename";
 import unidecode from "unidecode";
 import { randomBytes } from "crypto";
 import { watch } from "chokidar";
 import { debounce } from "lodash";
+import { Readable } from "stream";
+import { Throttle } from "stream-throttle";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -465,25 +466,27 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method downloads a game file by ID and returns it as a StreamableFile
-   * object.
+   * Downloads a game file by ID and returns it as a StreamableFile object.
+   *
+   * @param gameId - The ID of the game to download.
+   * @param speedlimit - The maximum download speed limit in KBps (optional).
+   * @returns A Promise that resolves to a StreamableFile object.
+   * @throws NotFoundException if the game file could not be found.
    */
   public async download(
     gameId: number,
     speedlimit?: number,
   ): Promise<StreamableFile> {
-    if (
-      !speedlimit ||
-      speedlimit * 1024 > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
-    ) {
-      speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
-    } else {
-      speedlimit *= 1024;
-    }
+    // Set the download speed limit if provided, otherwise use the default value from configuration.
+    speedlimit =
+      speedlimit || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    speedlimit *= 1024;
 
+    // Find the game by ID.
     const game = await this.gamesService.findByGameIdOrFail(gameId);
     let fileDownloadPath = game.file_path;
 
+    // If mocking files for testing, return a StreamableFile with random bytes.
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn(
         "Returning random download data because TESTING_MOCK_FILES is set to true",
@@ -497,35 +500,35 @@ export class FilesService implements OnApplicationBootstrap {
       });
     }
 
+    // If the file format is not supported, create an archive and use it for download.
     if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
-      if (existsSync(fileDownloadPath)) {
-        this.logger.debug(
-          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
-        );
-      } else {
-        this.logger.debug(
-          `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
-        );
+      // If the archive file does not exist, create it.
+      if (!existsSync(fileDownloadPath)) {
         await this.archive(fileDownloadPath, game.file_path);
       }
     }
 
+    // If the file does not exist, throw an exception.
     if (!existsSync(fileDownloadPath)) {
       throw new NotFoundException(`The game file could not be found.`);
     }
 
-    const file = createReadStream(fileDownloadPath).pipe(
-      new Throttle(speedlimit),
-    );
+    // Read the file and apply speed limit if necessary.
+    let file: Readable = createReadStream(fileDownloadPath);
+    if (speedlimit) {
+      file = file.pipe(new Throttle({ rate: speedlimit }));
+    }
 
+    // Get the file length, type, and sanitized filename.
     const length = statSync(fileDownloadPath).size;
     const type = mime.getType(fileDownloadPath);
     const filename = filenameSanitizer(
       unidecode(path.basename(fileDownloadPath)),
     );
 
+    // Return a StreamableFile object with the file stream and metadata.
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filename}"`,
       length,
