@@ -91,7 +91,7 @@ describe("FilesService", () => {
       const validFilenames = [
         "Star Wars Jedi - Fallen Order (v1.0.10.0) (2019).zip",
         "HITMAN 3 (v3.10.1) (2021).7z",
-        "The Wandering Village (v0.1.32) (EA) (2022).iso",
+        "!mygames/!The Wandering Village (v0.1.32) (EA) (2022).iso",
         "Saints Row (W_S) (2022).zip",
         "My personal IndieGame (v1.2.9) (NC) (2018).zip",
         "Stray (2022).7z",

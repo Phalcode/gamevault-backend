@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 10.0.1
+
+### Changes
+
+- Fixed Server detecting invalid file names for games in subdirectories
+
+### Thanks
+
+- @Kudjo
+
 ## 10.0.0
 
 Recommended Gamevault App Version: `v1.8.0`

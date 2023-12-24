@@ -42,7 +42,7 @@ export class FilesService implements OnApplicationBootstrap {
     private gamesService: GamesService,
     private rawgService: RawgService,
     private boxartService: BoxArtsService,
-  ) {}
+  ) { }
 
   onApplicationBootstrap() {
     this.checkFolders();
@@ -158,10 +158,11 @@ export class FilesService implements OnApplicationBootstrap {
 
   private isValidFilename(filename: string) {
     const invalidCharacters = /[\/<>:"\\|?*]/;
+    const actualFilename = basename(filename);
 
     if (
       !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-        extname(filename).toLowerCase(),
+        extname(actualFilename).toLowerCase(),
       )
     ) {
       this.logger.debug(
@@ -170,7 +171,7 @@ export class FilesService implements OnApplicationBootstrap {
       return false;
     }
 
-    if (invalidCharacters.test(filename)) {
+    if (invalidCharacters.test(actualFilename)) {
       this.logger.warn(
         `Indexer ignoring invalid filename: contains invalid characters - ${filename}`,
       );
@@ -179,6 +180,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     return true;
   }
+
 
   /**
    * This method extracts the game title from a given file name string using a
