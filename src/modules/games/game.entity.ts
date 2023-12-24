@@ -53,11 +53,12 @@ export class Game extends DatabaseEntity {
   version?: string;
 
   @Column({ nullable: true })
-  @ApiProperty({
-    description: "release date of the game (extracted from filename)",
+  @ApiPropertyOptional({
+    description:
+      "release date of the game (ideally extracted from the filename; if unavailable, it may be obtained from RAWG).",
     example: "2013-09-17T00:00:00.000Z",
   })
-  release_date: Date;
+  release_date?: Date;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({

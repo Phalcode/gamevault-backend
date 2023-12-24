@@ -15,7 +15,7 @@ import { default as logger, default as winston, stream } from "./logging";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
-import { LoggingExceptionFilter } from "./modules/log/exception.filter";
+import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 
 async function bootstrap(): Promise<void> {
@@ -94,7 +94,10 @@ async function bootstrap(): Promise<void> {
           )
           .setVersion(configuration.SERVER.VERSION)
           .addBasicAuth()
-          .addServer(`http://localhost:8080`, "Local GameVault Server")
+          .addServer(
+            `http://localhost:${configuration.SERVER.PORT}`,
+            "Local GameVault Server",
+          )
           .addServer(`https://demo.gamevau.lt`, "Demo GameVault Server")
           .setLicense(
             "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
@@ -146,11 +149,11 @@ async function bootstrap(): Promise<void> {
       );
     });
 
-  await app.listen(8080);
+  await app.listen(configuration.SERVER.PORT);
 
-  logger.debug("Loaded Configuration", getCensoredConfiguration());
+  logger.log("Loaded Configuration", getCensoredConfiguration());
   logger.log(
-    `Started GameVault Server v${configuration.SERVER.VERSION} on port 8080.`,
+    `Started GameVault Server v${configuration.SERVER.VERSION} on port ${configuration.SERVER.PORT}.`,
   );
 }
 bootstrap();

@@ -161,7 +161,7 @@ export class GamesService {
     let game = await this.findByGameIdOrFail(id);
     game.rawg_id = new_rawg_id;
 
-    // Null all related fields but keep progresses
+    // Null all rawg fields but keep progresses
     game.rawg_title = null;
     game.rawg_release_date = null;
     game.cache_date = null;
@@ -197,33 +197,19 @@ export class GamesService {
     return this.gamesRepository.softRemove(game);
   }
 
-  public async update(id: number, dto: UpdateGameDto, username: string) {
+  public async update(id: number, dto: UpdateGameDto) {
     const game =
       dto.rawg_id != null
         ? await this.remap(id, dto.rawg_id)
         : await this.findByGameIdOrFail(id);
 
     // Updates BoxArt if Necessary
-    if (dto.box_image_url != null) {
-      game.box_image = await this.imagesService.downloadByUrl(
-        dto.box_image_url,
-        username,
-      );
-    }
-
     if (dto.box_image_id != null)
       game.box_image = await this.imagesService.findByImageIdOrFail(
         dto.box_image_id,
       );
 
     // Updates Background Image if Necessary
-    if (dto.background_image_url != null) {
-      game.background_image = await this.imagesService.downloadByUrl(
-        dto.background_image_url,
-        username,
-      );
-    }
-
     if (dto.background_image_id != null)
       game.background_image = await this.imagesService.findByImageIdOrFail(
         dto.background_image_id,

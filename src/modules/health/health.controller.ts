@@ -13,8 +13,7 @@ export class HealthController {
   @Get()
   @ApiOkResponse({ type: () => Health })
   @ApiOperation({
-    summary:
-      "returns a lifesign, if an admin calls this api additional server infos are returned.",
+    summary: "returns a lifesign",
     operationId: "getHealth",
   })
   @Public()

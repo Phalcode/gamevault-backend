@@ -61,7 +61,7 @@ export class RawgService {
           {
             gameId: game.id,
             title: game.title,
-            error: error,
+            error,
           },
           "Game Caching Failed",
         );
@@ -93,15 +93,12 @@ export class RawgService {
       return game;
     }
 
-    let rawgEntry: RawgGame;
-    if (game.rawg_id) {
-      rawgEntry = await this.fetchByRawgId(game.rawg_id);
-    } else {
-      rawgEntry = await this.getBestMatch(
-        game.title,
-        game.release_date?.getFullYear() || undefined,
-      );
-    }
+    const rawgEntry: RawgGame = game.rawg_id
+      ? await this.fetchByRawgId(game.rawg_id)
+      : await this.getBestMatch(
+          game.title,
+          game.release_date?.getFullYear() || undefined,
+        );
     const mappedGame = await this.mapper.mapRawgGameToGame(rawgEntry, game);
     return await this.gamesService.save(mappedGame);
   }

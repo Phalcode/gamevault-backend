@@ -1,33 +1,40 @@
 import globals from "./globals";
 import packageJson from "../package.json";
 
-function parseBooleanEnvVariable(envVar: string, defaultCase: boolean = false) {
-  return envVar?.toLowerCase() === "true" || defaultCase;
+function parseBooleanEnvVariable(
+  environmentVariable: string,
+  defaultCase: boolean = false,
+) {
+  return environmentVariable?.toLowerCase() === "true" || defaultCase;
 }
 
-function parsePath(envVar: string, defaultPath: string) {
-  return envVar?.replace(/\/$/, "") || defaultPath;
+function parsePath(environmentVariable: string, defaultPath: string) {
+  return environmentVariable?.replace(/\/$/, "") || defaultPath;
 }
 
-function parseList(envVar: string, defaultList: string[] = []) {
-  if (envVar) {
-    return envVar.split(",").map((item) => item.trim());
-  }
-  return defaultList;
+function parseList(
+  environmentVariable: string,
+  defaultList: string[] = [],
+): string[] {
+  return environmentVariable
+    ? environmentVariable.split(",").map((item) => item.trim())
+    : defaultList;
 }
 
 function parseKibibytesToBytes(
-  envVar: string,
-  defaultNumber = Number.MAX_SAFE_INTEGER,
-) {
-  const number = Number(envVar) * 1024;
-  if (!number || number < 0 || number > Number.MAX_SAFE_INTEGER) {
-    return defaultNumber;
+  environmentVariable: string,
+  defaultValue?: number,
+): number | undefined {
+  const bytes = Number(environmentVariable) * 1024;
+  if (isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
+    return defaultValue ?? undefined;
   }
+  return bytes;
 }
 
 const configuration = {
   SERVER: {
+    PORT: Number(process.env.SERVER_PORT) || 8080,
     VERSION: process.env.npm_package_version || packageJson.version,
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: parseBooleanEnvVariable(
@@ -52,7 +59,6 @@ const configuration = {
     ),
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
-      10_737_418_240,
     ),
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
@@ -130,6 +136,7 @@ export function getCensoredConfiguration() {
   const censoredConfig = JSON.parse(JSON.stringify(configuration));
   censoredConfig.DB.PASSWORD = "**REDACTED**";
   censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
+  censoredConfig.RAWG_API.KEY = "**REDACTED**";
   return censoredConfig;
 }
 

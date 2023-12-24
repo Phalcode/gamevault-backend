@@ -8,7 +8,6 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsUrl,
   MinLength,
 } from "class-validator";
 import { Role } from "./role.enum";
@@ -60,15 +59,6 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
-  @IsUrl()
-  @IsOptional()
-  @ApiPropertyOptional({
-    pattern: "url",
-    example: "https://example.com/profile-picture.png",
-    description: "url to the profile picture of the user",
-  })
-  profile_picture_url?: string;
-
   @IsNumber()
   @IsOptional()
   @ApiPropertyOptional({
@@ -76,15 +66,6 @@ export class UpdateUserDto {
     description: "id of the profile picture of the user",
   })
   profile_picture_id?: number;
-
-  @IsUrl()
-  @IsOptional()
-  @ApiPropertyOptional({
-    pattern: "url",
-    example: "https://example.com/profile-art.png",
-    description: "url to the profile art (background-image) of the User",
-  })
-  background_image_url?: string;
 
   @IsNumber()
   @IsOptional()

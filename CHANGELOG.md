@@ -1,5 +1,58 @@
 # GameVault Backend Server Changelog
 
+## 10.0.0
+
+Recommended Gamevault App Version: `v1.8.0`
+
+### Breaking Changes & Migration
+
+- Improved security by discontinuing "Upload via URL" APIs. Clients must now download via URL locally first and then uploading it via the API if they want to offer the functionality.
+
+### Changes
+
+- Improved Genre and Tags API speed for a smoother user experience.
+
+- Implemented advanced filtering logic using AND and OR operators in the API. For details, refer to [this link](https://github.com/ppetzold/nestjs-paginate/issues/402).
+
+- Replaced the scheduled timer with a debounced file-watcher for indexing, enhancing efficiency and responsiveness.
+
+- Intelligently saved the file's release year when no Release-Year is specified in the filename, but information is available from RAWG.
+
+- Introduced a detection mechanism for the `LINUX_PORTABLE` game type, ensuring seamless identification through the `(L_P)` flag or the presence of `.sh` files in the `/files` directory.
+
+- Changed RAWG Search API Release date to be null instead of 01.01.1970 when no release date is defined in RAWG.
+
+- Updated `/games` to return background images for better display in various clients.
+
+- Fixed a bug where the `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` config would not be used.
+
+- `SERVER_REGISTRATION_DISABLED` no longer blocks registration calls by administrators. [#221](https://github.com/Phalcode/gamevault-backend/issues/221)
+
+- Fixed initial folder generation not occurring.
+
+- Fixed Server indexing games with invalid filenames. [#281](https://github.com/Phalcode/gamevault-app/issues/281)
+
+- Reintroduced `SERVER_PORT` environment variable for native installations.
+
+- RAWG API Key is now redacted by default.
+
+- Server logs redacted config in info level by default to aid troubleshooting users.
+
+### Thanks
+
+- @RIPSAW
+- @utlilb
+- @JoaGamo
+- @TechSide
+
+## 9.0.5
+
+Recommended Gamevault App Version: `v1.7.3`
+
+### Changes
+
+- Updated Dependencies
+
 ## 9.0.4
 
 Recommended Gamevault App Version: `v1.7.3`

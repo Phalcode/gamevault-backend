@@ -1,41 +1,20 @@
 import { Test } from "@nestjs/testing";
 import { TagsController } from "./tags.controller";
-import { TypeOrmModule, getRepositoryToken } from "@nestjs/typeorm";
-import { getTestingDatabaseConfiguration } from "../database/db_configuration";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { Tag } from "./tag.entity";
 import { Game } from "../games/game.entity";
-import { Image } from "../images/image.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Progress } from "../progress/progress.entity";
-import { Publisher } from "../publishers/publisher.entity";
-import { Developer } from "../developers/developer.entity";
-import { Store } from "../stores/store.entity";
-import { Genre } from "../genres/genre.entity";
 import { Builder } from "builder-pattern";
 import { Repository } from "typeorm/repository/Repository";
+import { AppModule } from "../../app.module";
 
-describe("TagsController", () => {
+describe("/api/tags", () => {
   let tagsController: TagsController;
   let tagRepository: Repository<Tag>;
   let gameRepository: Repository<Game>;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot(getTestingDatabaseConfiguration()),
-        TypeOrmModule.forFeature([
-          Tag,
-          Game,
-          Image,
-          GamevaultUser,
-          Progress,
-          Publisher,
-          Store,
-          Developer,
-          Genre,
-        ]),
-      ],
-      controllers: [TagsController],
+      imports: [AppModule],
     }).compile();
 
     tagsController = moduleRef.get<TagsController>(TagsController);
@@ -48,13 +27,7 @@ describe("TagsController", () => {
     tagRepository.clear();
   });
 
-  it("should be defined", () => {
-    expect(tagsController).toBeDefined();
-    expect(tagRepository).toBeDefined();
-    expect(gameRepository).toBeDefined();
-  });
-
-  it("should get tag", async () => {
+  it("GET /api/tags/", async () => {
     const testingTag: Tag = new Tag();
     testingTag.name = "stealth";
     testingTag.rawg_id = 1337;

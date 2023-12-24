@@ -23,17 +23,20 @@ import mime from "mime";
 import { GameExistence } from "../games/models/game-existence.enum";
 import { add, list } from "node-7z";
 import { GameType } from "../games/models/game-type.enum";
-import { Cron } from "@nestjs/schedule";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import globals from "../../globals";
-import Throttle from "throttle";
 import filenameSanitizer from "sanitize-filename";
 import unidecode from "unidecode";
+import { randomBytes } from "crypto";
+import { watch } from "chokidar";
+import { debounce } from "lodash";
+import { Readable } from "stream";
+import { Throttle } from "stream-throttle";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(FilesService.name);
+  private logger = new Logger(FilesService.name);
 
   constructor(
     private gamesService: GamesService,
@@ -42,27 +45,30 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    try {
-      this.checkFolders();
-      this.index();
-    } catch (error) {
-      this.logger.error(error, "Error on FilesService Bootstrap");
-    }
+    this.checkFolders();
+    watch(configuration.VOLUMES.FILES, {
+      depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
+    })
+      .on(
+        "all",
+        debounce(() => {
+          this.index();
+        }, 5000),
+      )
+      .on("error", (error) => {
+        this.logger.error(error, "Error in Filewatcher");
+      });
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`)
   public async index(): Promise<void> {
-    //Get all games in file system
+    this.logger.log(
+      `Started file indexer due to changes in ${configuration.VOLUMES.FILES}`,
+    );
     const gamesInFileSystem = this.fetch();
-    //Feed Game
     await this.ingest(gamesInFileSystem);
-    //Get all games in database
     const gamesInDatabase = await this.gamesService.getAll();
-    //Check integrity of games in database with games in file system
     await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
-    //Check cache of games in database
     await this.rawgService.checkCache(gamesInDatabase);
-    //Check boxart of games in database
     await this.boxartService.checkMultiple(gamesInDatabase);
   }
 
@@ -148,6 +154,30 @@ export class FilesService implements OnApplicationBootstrap {
     );
 
     return this.gamesService.save(updatedGame);
+  }
+
+  private isValidFilename(filename: string) {
+    const invalidCharacters = /[\/<>:"\\|?*]/;
+
+    if (
+      !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
+        extname(filename).toLowerCase(),
+      )
+    ) {
+      this.logger.debug(
+        `Indexer ignoring invalid filename: unsupported file extension - ${filename}`,
+      );
+      return false;
+    }
+
+    if (invalidCharacters.test(filename)) {
+      this.logger.warn(
+        `Indexer ignoring invalid filename: contains invalid characters - ${filename}`,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -240,6 +270,13 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
+      if (/\(L_P\)/.test(path)) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because of (L_P) override in filename.`,
+        );
+        return GameType.LINUX_PORTABLE;
+      }
+
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
         this.logger.debug(
@@ -248,26 +285,45 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
-      // Detect single File executable
+      // Detect single File executables
       if (path.toLowerCase().endsWith(".exe")) {
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe`,
         );
         return GameType.WINDOWS_SETUP;
       }
 
+      if (path.toLowerCase().endsWith(".sh")) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because it ends with .sh`,
+        );
+        return GameType.LINUX_PORTABLE;
+      }
+
+      // Detect Windows Executables in Archive
       const windowsExecutablesInArchive =
         await this.getAllExecutablesFromArchive(path, ["*.exe", "*.msi"]);
 
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
           this.logger.debug(
-            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows setup executables in the archive.`,
+            `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are windows executables in the archive that look like installers.`,
           );
           return GameType.WINDOWS_SETUP;
         }
         this.logger.debug(
-          `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because there are no windows setup executables in the archive.`,
+          `Detected game "${path}" type as ${GameType.WINDOWS_PORTABLE}, because there are windows executables in the archive.`,
+        );
+        return GameType.WINDOWS_PORTABLE;
+      }
+
+      const linuxExecutablesInArchive = await this.getAllExecutablesFromArchive(
+        path,
+        ["*.sh"],
+      );
+      if (linuxExecutablesInArchive.length > 0) {
+        this.logger.debug(
+          `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because there are .sh files in the archive.`,
         );
         return GameType.WINDOWS_PORTABLE;
       }
@@ -355,8 +411,8 @@ export class FilesService implements OnApplicationBootstrap {
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
-          (g) =>
-            `${configuration.VOLUMES.FILES}/${g.name}` ===
+          (game) =>
+            `${configuration.VOLUMES.FILES}/${game.name}` ===
             gameInDatabase.file_path,
         );
         // If game is not in file system, mark it as deleted
@@ -391,11 +447,7 @@ export class FilesService implements OnApplicationBootstrap {
         encoding: "utf8",
         recursive: configuration.GAMES.SEARCH_RECURSIVE,
       })
-        .filter((file) =>
-          configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-            extname(file).toLowerCase(),
-          ),
-        )
+        .filter((file) => this.isValidFilename(file))
         .map(
           (file) =>
             ({
@@ -414,54 +466,69 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method downloads a game file by ID and returns it as a StreamableFile
-   * object.
+   * Downloads a game file by ID and returns it as a StreamableFile object.
+   *
+   * @param gameId - The ID of the game to download.
+   * @param speedlimit - The maximum download speed limit in KBps (optional).
+   * @returns A Promise that resolves to a StreamableFile object.
+   * @throws NotFoundException if the game file could not be found.
    */
   public async download(
     gameId: number,
     speedlimit?: number,
   ): Promise<StreamableFile> {
-    if (
-      !speedlimit ||
-      speedlimit * 1024 > configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS
-    ) {
-      speedlimit = configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
-    } else {
-      speedlimit *= 1024;
-    }
+    // Set the download speed limit if provided, otherwise use the default value from configuration.
+    speedlimit =
+      speedlimit || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    speedlimit *= 1024;
 
+    // Find the game by ID.
     const game = await this.gamesService.findByGameIdOrFail(gameId);
     let fileDownloadPath = game.file_path;
 
+    // If mocking files for testing, return a StreamableFile with random bytes.
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn(
+        "Returning random download data because TESTING_MOCK_FILES is set to true",
+      );
+      return new StreamableFile(randomBytes(1000), {
+        disposition: `attachment; filename="${filenameSanitizer(
+          unidecode(path.basename(fileDownloadPath)),
+        )}"`,
+        length: 1000,
+        type: "application/x-zip",
+      });
+    }
+
+    // If the file format is not supported, create an archive and use it for download.
     if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
-      if (existsSync(fileDownloadPath)) {
-        this.logger.debug(
-          `Reusing temporary tarball "${fileDownloadPath}" for "${game.file_path}"`,
-        );
-      } else {
-        this.logger.debug(
-          `Temporarily tarballing "${game.file_path}" as "${fileDownloadPath}" for downloading...`,
-        );
+      // If the archive file does not exist, create it.
+      if (!existsSync(fileDownloadPath)) {
         await this.archive(fileDownloadPath, game.file_path);
       }
     }
 
+    // If the file does not exist, throw an exception.
     if (!existsSync(fileDownloadPath)) {
       throw new NotFoundException(`The game file could not be found.`);
     }
 
-    const file = createReadStream(fileDownloadPath).pipe(
-      new Throttle(speedlimit),
-    );
+    // Read the file and apply speed limit if necessary.
+    let file: Readable = createReadStream(fileDownloadPath);
+    if (speedlimit) {
+      file = file.pipe(new Throttle({ rate: speedlimit }));
+    }
 
+    // Get the file length, type, and sanitized filename.
     const length = statSync(fileDownloadPath).size;
     const type = mime.getType(fileDownloadPath);
     const filename = filenameSanitizer(
       unidecode(path.basename(fileDownloadPath)),
     );
 
+    // Return a StreamableFile object with the file stream and metadata.
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filename}"`,
       length,

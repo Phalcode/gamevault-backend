@@ -26,6 +26,12 @@ import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "./models/role.enum";
 import { Public } from "../../decorators/public.decorator";
 import { SocketSecretService } from "./socket-secret.service";
+import { DoNothing } from "../../decorators/donothing.decorator";
+
+const ConditionalRegistrationDecorator = configuration.SERVER
+  .REGISTRATION_DISABLED
+  ? DoNothing
+  : Public();
 
 @ApiBasicAuth()
 @ApiTags("user")
@@ -96,12 +102,7 @@ export class UsersController {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.update(
-      user.id,
-      dto,
-      false,
-      request.gamevaultuser.username,
-    );
+    return await this.usersService.update(user.id, dto, false);
   }
 
   /** Deletes your own user. */
@@ -143,14 +144,8 @@ export class UsersController {
   async putUserByUserId(
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
-    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return await this.usersService.update(
-      Number(params.id),
-      dto,
-      true,
-      request.gamevaultuser.username,
-    );
+    return await this.usersService.update(Number(params.id), dto, true);
   }
 
   /** Deletes any user with the specified ID. */
@@ -189,9 +184,15 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @ApiBody({ type: () => RegisterUserDto })
-  @Public()
-  async postUserRegister(@Body() dto: RegisterUserDto): Promise<GamevaultUser> {
-    if (configuration.SERVER.REGISTRATION_DISABLED) {
+  @ConditionalRegistrationDecorator
+  async postUserRegister(
+    @Body() dto: RegisterUserDto,
+    @Request() req: { gamevaultuser: GamevaultUser },
+  ): Promise<GamevaultUser> {
+    if (
+      configuration.SERVER.REGISTRATION_DISABLED &&
+      (!req.gamevaultuser?.role || req.gamevaultuser.role < Role.ADMIN)
+    ) {
       throw new MethodNotAllowedException(
         "Registration is disabled on this server.",
       );

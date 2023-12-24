@@ -6,7 +6,6 @@ import {
   Logger,
   Param,
   Put,
-  Request,
   StreamableFile,
 } from "@nestjs/common";
 import {
@@ -31,13 +30,11 @@ import { ApiOkResponsePaginated } from "../pagination/paginated-api-response.mod
 import { PaginateQueryOptions } from "../pagination/pagination.decorator";
 import { IdDto } from "../database/models/id.dto";
 import { Game } from "./game.entity";
-import { all_filters } from "../pagination/all-filters.filter";
 import { FilesService } from "../files/files.service";
 import { GamesService } from "./games.service";
 import { MinimumRole } from "../pagination/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
-import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @ApiBasicAuth()
 @ApiTags("game")
@@ -62,7 +59,7 @@ export class GamesController {
   })
   @MinimumRole(Role.GUEST)
   async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
-    const relations = ["box_image"];
+    const relations = ["box_image", "background_image"];
     if (query.filter) {
       if (query.filter["genres.name"]) {
         relations.push("genres");
@@ -92,17 +89,17 @@ export class GamesController {
       ],
       searchableColumns: ["title", "description"],
       filterableColumns: {
-        id: all_filters,
-        title: all_filters,
-        release_date: all_filters,
-        created_at: all_filters,
-        size: all_filters,
-        metacritic_rating: all_filters,
-        average_playtime: all_filters,
-        early_access: all_filters,
-        type: all_filters,
-        "genres.name": all_filters,
-        "tags.name": all_filters,
+        id: true,
+        title: true,
+        release_date: true,
+        created_at: true,
+        size: true,
+        metacritic_rating: true,
+        average_playtime: true,
+        early_access: true,
+        type: true,
+        "genres.name": true,
+        "tags.name": true,
       },
       withDeleted: false,
     });
@@ -169,12 +166,7 @@ export class GamesController {
   async putGameUpdate(
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Game> {
-    return await this.gamesService.update(
-      Number(params.id),
-      dto,
-      req.gamevaultuser.username,
-    );
+    return await this.gamesService.update(Number(params.id), dto);
   }
 }
