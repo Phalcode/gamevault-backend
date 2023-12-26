@@ -134,64 +134,64 @@ export class RawgService {
   }
 
   /**
-   * Search for games in RAWG API based on the provided title and optional
-   * release year.
+   * Fetches matching game titles from the RAWG API. If a release year is
+   * provided, it fetches games with the given title and release year. If no
+   * release year is provided or no matching game is found with the release
+   * year, it fetches games with the given title only.
+   *
+   * @param title - The title of the game.
+   * @param releaseYear - The release year of the game (optional).
+   * @returns An array of RawgResult objects representing the matching game
+   *   titles.
+   * @throws NotFoundException if no matching game is found.
    */
   public async fetchMatching(
     title: string,
     releaseYear?: number,
   ): Promise<RawgResult[]> {
+    // Array to store the search results
     const searchResults: RawgResult[] = [];
 
-    // Step 1: Get games by title and release year (if provided)
+    // If releaseYear is provided, fetch games with the given title and release year
     if (releaseYear) {
       searchResults.push(...(await this.fetch(title, releaseYear)).results);
     }
 
-    // Step 2: Get games by title only if Step 1 had no results or releaseYear is not provided
+    // If no search results are found with the release year, fetch games with the given title only
     if (searchResults.length === 0) {
       searchResults.push(...(await this.fetch(title)).results);
     }
 
-    // If no results found in both steps, try fuzzy search
+    // If no search results are found, throw a NotFoundException
     if (searchResults.length === 0) {
-      searchResults.push(
-        ...(await this.fetch(title, undefined, false)).results,
-      );
-    }
-
-    // If still no results found, throw an exception
-    if (searchResults.length === 0) {
+      const errorMessage = `No game found in RAWG for "${title}" ${
+        releaseYear ? `(${releaseYear})` : ""
+      }`;
       this.logger.log(
-        `➥ "${title} (${
-          releaseYear || "No Year"
-        })" | No results found after all search steps`,
+        `➥ "${title} (${releaseYear || "No Year"})" | ${errorMessage}`,
       );
-
-      throw new NotFoundException(
-        `No game found in RAWG for "${title}" ${
-          releaseYear ? `(${releaseYear})` : undefined
-        })`,
-      );
+      throw new NotFoundException(errorMessage);
     }
-    // Calculate and assign probabilities
-    searchResults.forEach((game) => {
-      const titleCleaned = title.toLowerCase().replaceAll(/[^\w\s]/g, "");
-      const gameNameCleaned = game.name
-        .toLowerCase()
-        .replaceAll(/[^\w\s]/g, "");
 
-      // Calculate similarity based on title
+    // Calculate the probability of matching for each game
+    searchResults.forEach((game) => {
+      const titleCleaned = title.toLowerCase().replace(/[^\w\s]/g, "");
+      const gameNameCleaned = game.name.toLowerCase().replace(/[^\w\s]/g, "");
+
+      // Calculate string similarity between the title and game name
       game.probability = stringSimilarity(titleCleaned, gameNameCleaned);
 
-      // Reduce the probability the more the year does not match (if releaseYear is provided)
+      // If releaseYear is provided, adjust the probability based on the difference between the release year of the game and the provided release year
       if (releaseYear !== undefined) {
         const gameReleaseYear = new Date(game.released).getFullYear();
         game.probability -= Math.abs(releaseYear - gameReleaseYear) / 10;
       }
     });
-    // Sort search results by probability in descending order
+
+    // Sort the search results by probability in descending order
     searchResults.sort((a, b) => b.probability - a.probability);
+
+    // Return the search results
     return searchResults;
   }
 
@@ -247,7 +247,6 @@ export class RawgService {
   private async fetch(
     search?: string,
     releaseYear?: number,
-    precise = true,
   ): Promise<SearchResult> {
     const searchDates = releaseYear
       ? `${releaseYear}-01-01,${releaseYear}-12-31`
@@ -261,8 +260,7 @@ export class RawgService {
               search,
               key: configuration.RAWG_API.KEY,
               dates: searchDates,
-              search_precise: precise,
-              exclude_stores: configuration.RAWG_API.EXCLUDE_STORES,
+              stores: configuration.RAWG_API.INCLUDED_STORES.join(),
             },
           })
           .pipe(

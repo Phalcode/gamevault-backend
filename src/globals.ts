@@ -1,3 +1,5 @@
+import { RawgStore } from "./modules/providers/rawg/models/stores.enum";
+
 export default {
   get SUPPORTED_FILE_FORMATS() {
     return [...this.ARCHIVE_FORMATS, ...this.EXECUTABLE_FORMATS];
@@ -53,6 +55,17 @@ export default {
     "image/tiff",
     "image/gif",
     "image/x-icon",
+  ],
+  DEFAULT_INCLUDED_RAWG_STORES: [
+    RawgStore["Steam"].toString(),
+    RawgStore["Xbox Store"].toString(),
+    RawgStore["PlayStation Store"].toString(),
+    RawgStore["App Store"].toString(),
+    RawgStore["GOG"].toString(),
+    RawgStore["Nintendo Store"].toString(),
+    RawgStore["Xbox 360 Store"].toString(),
+    RawgStore["Google Play"].toString(),
+    RawgStore["EPIC Games"].toString(),
   ],
 };
 

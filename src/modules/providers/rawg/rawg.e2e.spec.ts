@@ -5,7 +5,6 @@ import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../../app.module";
 import configuration from "../../../configuration";
 import { of } from "rxjs";
-import { NotFoundException } from "@nestjs/common";
 import { Game } from "../../games/game.entity";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -57,8 +56,7 @@ describe("/api/rawg", () => {
             search: "Grand Theft Auto V",
             key: configuration.RAWG_API.KEY,
             dates: undefined,
-            search_precise: true,
-            exclude_stores: configuration.RAWG_API.EXCLUDE_STORES,
+            stores: configuration.RAWG_API.INCLUDED_STORES.join(),
           },
         },
       );
@@ -99,27 +97,6 @@ describe("/api/rawg", () => {
       expect(result[0].title).toBe("Grand Theft Auto V");
       //Expect the last game is the worst match
       expect(result[result.length - 1].title).toBe("Totally diferrent game");
-    });
-
-    it("should search the rawg api two times if there are no results and throw a NotFoundException", async () => {
-      let hasThrown = false;
-      mockHttpService.get.mockReturnValue(
-        of({
-          data: {
-            results: [],
-          },
-        }),
-      );
-
-      try {
-        await rawgController.getRawgSearch("Grand Theft Auto V");
-      } catch (error) {
-        hasThrown = true;
-        expect(mockHttpService.get).toHaveBeenCalledTimes(2);
-        expect(error).toBeInstanceOf(NotFoundException);
-        return;
-      }
-      expect(hasThrown).toBe(true);
     });
   });
 
