@@ -1,12 +1,12 @@
 # GameVault Backend Server Changelog
 
-## 11.0.0
+## 10.0.2
 
-### Breaking Changes & Migration
-
-- Improved RAWG API Matching and Search by deprecating the RAWG_API_EXCLUDE_STORES configuration variable in favor of RAWG_API_INCLUDED_STORES.
+Recommended Gamevault App Version: `v1.8.1`
 
 ### Changes
+
+- Improved RAWG API Matching and Search by deprecating the ``RAWG_API_EXCLUDE_STORES`` configuration variable in favor of ``RAWG_API_INCLUDED_STORES``.
 
 ### Thanks
 
