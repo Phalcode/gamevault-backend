@@ -42,7 +42,7 @@ export class FilesService implements OnApplicationBootstrap {
     private gamesService: GamesService,
     private rawgService: RawgService,
     private boxartService: BoxArtsService,
-  ) { }
+  ) {}
 
   onApplicationBootstrap() {
     this.checkFolders();
@@ -180,7 +180,6 @@ export class FilesService implements OnApplicationBootstrap {
 
     return true;
   }
-
 
   /**
    * This method extracts the game title from a given file name string using a
