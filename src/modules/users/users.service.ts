@@ -213,17 +213,11 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.findByUserIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
-      if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
-        await this.throwIfAlreadyExists(dto.username, undefined);
-      }
-      user.username = dto.username;
+      await this.updateUsername(dto, user);
     }
 
     if (dto.email != null && dto.email !== user.email) {
-      if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
-        await this.throwIfAlreadyExists(undefined, dto.email);
-      }
-      user.email = dto.email;
+      await this.updateEmail(dto, user);
     }
 
     if (dto.first_name != null) {
@@ -259,6 +253,26 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     return this.userRepository.save(user);
+  }
+
+  private async updateUsername(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
+      await this.throwIfAlreadyExists(dto.username, undefined);
+    }
+    user.username = dto.username;
+  }
+
+  private async updateEmail(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
+      await this.throwIfAlreadyExists(undefined, dto.email);
+    }
+    user.email = dto.email;
   }
 
   /** Soft deletes a user with the specified ID. */
