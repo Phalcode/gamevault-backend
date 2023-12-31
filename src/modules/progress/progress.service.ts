@@ -12,8 +12,8 @@ import { State } from "./models/state.enum";
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
 import path from "path";
-import * as fs from "fs";
 import { UpdateProgressDto } from "./models/update-progress.dto";
+import { readFile } from "fs/promises";
 
 @Injectable()
 export class ProgressService {
@@ -29,13 +29,13 @@ export class ProgressService {
     this.readIgnoreFile();
   }
 
-  private readIgnoreFile() {
+  private async readIgnoreFile() {
     try {
       const filePath = path.join(
         __dirname,
         "../../../assets/ignored-executables.txt",
       );
-      const fileContent = fs.readFileSync(filePath, "utf-8");
+      const fileContent = await readFile(filePath, "utf-8");
       this.ignoreList = fileContent.split("\n").map((line) => line.trim());
     } catch (error) {
       throw new InternalServerErrorException(

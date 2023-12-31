@@ -119,6 +119,9 @@ const configuration = {
       process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
       globals.SUPPORTED_IMAGE_FORMATS,
     ),
+    GC_DISABLED: parseBooleanEnvVariable(process.env.IMAGE_GC_DISABLED, false),
+    GC_INTERVAL_IN_MINUTES:
+      Number(process.env.IMAGE_GC_INTERVAL_IN_MINUTES) || 60,
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(

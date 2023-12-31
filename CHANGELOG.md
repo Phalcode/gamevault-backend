@@ -1,12 +1,22 @@
 # GameVault Backend Server Changelog
 
+## Upcoming
+
+### Changes
+
+- Reintroduced Image Garbage Collection! Unused Images now get cleaned up from the database and the file-system. [#230](https://github.com/Phalcode/gamevault-backend/issues/230)
+- Added Configuration variables `IMAGE_GC_DISABLED` and `IMAGE_GC_INTERVAL_IN_MINUTES`
+- Server Performance Optimizations
+
+### Thanks
+
 ## 10.0.2
 
 Recommended Gamevault App Version: `v1.8.1`
 
 ### Changes
 
-- Improved RAWG API Matching and Search by deprecating the ``RAWG_API_EXCLUDE_STORES`` configuration variable in favor of ``RAWG_API_INCLUDED_STORES``. [#234](https://github.com/Phalcode/gamevault-backend/issues/234)
+- Improved RAWG API Matching and Search by deprecating the `RAWG_API_EXCLUDE_STORES` configuration variable in favor of `RAWG_API_INCLUDED_STORES`. [#234](https://github.com/Phalcode/gamevault-backend/issues/234)
 
 ### Thanks
 

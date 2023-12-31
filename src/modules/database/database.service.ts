@@ -7,13 +7,6 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import configuration from "../../configuration";
-import {
-  copyFileSync,
-  createReadStream,
-  existsSync,
-  statSync,
-  writeFileSync,
-} from "fs";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
 import filenameSanitizer from "sanitize-filename";
@@ -21,6 +14,8 @@ import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import mime from "mime";
+import { copyFile, writeFile } from "fs/promises";
+import { createReadStream, existsSync, statSync } from "fs";
 
 @Injectable()
 export class DatabaseService {
@@ -116,7 +111,7 @@ export class DatabaseService {
 
   private async backupSqlite(backupFilePath: string): Promise<StreamableFile> {
     this.logger.log("Backing up SQLITE Database...");
-    copyFileSync(
+    await copyFile(
       `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
       backupFilePath,
     );
@@ -129,7 +124,7 @@ export class DatabaseService {
     try {
       await this.backupPostgresql("/tmp/gamevault_database_pre_restore.db");
 
-      writeFileSync("/tmp/gamevault_database_restore.db", file.buffer);
+      await writeFile("/tmp/gamevault_database_restore.db", file.buffer);
 
       await this.execPromise(
         `dropdb --if-exists -f -w -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} ${configuration.DB.DATABASE}`,
@@ -194,7 +189,7 @@ export class DatabaseService {
       if (existsSync(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)) {
         this.backupSqlite("/tmp/gamevault_database_pre_restore.db");
       }
-      writeFileSync(
+      await writeFile(
         `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
         file.buffer,
       );
@@ -202,7 +197,7 @@ export class DatabaseService {
       this.logger.error(error, "Error restoring SQLITE database");
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
-        copyFileSync(
+        await copyFile(
           "/tmp/gamevault_database_pre_restore.db",
           `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
         );

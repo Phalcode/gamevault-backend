@@ -18,7 +18,8 @@ import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { UsersService } from "../users/users.service";
-import { existsSync, unlinkSync, writeFileSync } from "fs";
+import { unlink, writeFile } from "fs/promises";
+import { existsSync } from "fs";
 
 @Injectable()
 export class ImagesService {
@@ -57,6 +58,13 @@ export class ImagesService {
     }
   }
 
+  /**
+   * Downloads an image from a given URL and saves it to the file system.
+   *
+   * @param {string} sourceUrl - The URL of the image to be downloaded.
+   * @param {string} uploaderUsername - (optional) The username of the uploader.
+   * @returns {Promise<Image>} The saved Image object.
+   */
   async downloadByUrl(
     sourceUrl: string,
     uploaderUsername?: string,
@@ -132,7 +140,7 @@ export class ImagesService {
     }
     this.logger.debug(`Compressing image...`);
     const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
-    writeFileSync(path, compressedImageBuffer);
+    await writeFile(path, compressedImageBuffer);
     this.logger.debug(`Saved image to '${path}'`);
   }
 
@@ -144,10 +152,10 @@ export class ImagesService {
       return;
     }
     await this.imageRepository.remove(image);
-    unlinkSync(image.path);
+    await unlink(image.path);
     this.logger.debug(
       { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-      `Image successfully hard deleted from the filesystem.`,
+      `Image successfully hard deleted from the database and filesystem.`,
     );
   }
 

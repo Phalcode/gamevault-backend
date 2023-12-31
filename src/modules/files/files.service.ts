@@ -9,13 +9,7 @@ import {
 import { IGameVaultFile } from "./models/file.model";
 import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
-import {
-  createReadStream,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  statSync,
-} from "fs";
+import { createReadStream, existsSync, statSync } from "fs";
 import path, { basename, extname } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
@@ -33,6 +27,7 @@ import { watch } from "chokidar";
 import { debounce } from "lodash";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
+import { mkdir, readdir, stat } from "fs/promises";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -64,7 +59,7 @@ export class FilesService implements OnApplicationBootstrap {
     this.logger.log(
       `Started file indexer due to changes in ${configuration.VOLUMES.FILES}`,
     );
-    const gamesInFileSystem = this.fetch();
+    const gamesInFileSystem = await this.fetch();
     await this.ingest(gamesInFileSystem);
     const gamesInDatabase = await this.gamesService.getAll();
     await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
@@ -404,7 +399,7 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<void> {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.log(
-        "Skipping Integrity Check because TESTING.MOCK_FILE is true",
+        "Skipping Integrity Check because TESTING.MOCK_FILES is set to true",
       );
       return;
     }
@@ -438,16 +433,18 @@ export class FilesService implements OnApplicationBootstrap {
    * This method retrieves an array of objects representing game files in the
    * file system.
    */
-  private fetch(): IGameVaultFile[] {
+  private async fetch(): Promise<IGameVaultFile[]> {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
       }
 
-      return readdirSync(configuration.VOLUMES.FILES, {
-        encoding: "utf8",
-        recursive: configuration.GAMES.SEARCH_RECURSIVE,
-      })
+      return (
+        await readdir(configuration.VOLUMES.FILES, {
+          encoding: "utf8",
+          recursive: configuration.GAMES.SEARCH_RECURSIVE,
+        })
+      )
         .filter((file) => this.isValidFilename(file))
         .map(
           (file) =>
@@ -523,7 +520,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     // Get the file length, type, and sanitized filename.
-    const length = statSync(fileDownloadPath).size;
+    const length = (await stat(fileDownloadPath)).size;
     const type = mime.getType(fileDownloadPath);
     const filename = filenameSanitizer(
       unidecode(path.basename(fileDownloadPath)),
@@ -575,10 +572,13 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /** Creates a directory if it does not exist. */
-  private createDirectoryIfNotExist(path: string, errorMessage: string): void {
+  private async createDirectoryIfNotExist(
+    path: string,
+    errorMessage: string,
+  ): Promise<void> {
     if (!existsSync(path)) {
       this.logger.error(errorMessage);
-      mkdirSync(path);
+      await mkdir(path);
     }
   }
 }
