@@ -152,7 +152,7 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   private isValidFilename(filename: string) {
-    const invalidCharacters = /[\/<>:"\\|?*]/;
+    const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
     if (
