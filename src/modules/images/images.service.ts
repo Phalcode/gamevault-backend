@@ -151,12 +151,16 @@ export class ImagesService {
       );
       return;
     }
-    await this.imageRepository.remove(image);
-    await unlink(image.path);
-    this.logger.debug(
-      { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-      `Image successfully hard deleted from the database and filesystem.`,
-    );
+    try {
+      await this.imageRepository.remove(image);
+      await unlink(image.path);
+      this.logger.debug(
+        { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
+        `Image successfully hard deleted from the database and filesystem.`,
+      );
+    } catch (error) {
+      this.logger.error(error, `Failed to delete image ${image.id}.`);
+    }
   }
 
   public async upload(
