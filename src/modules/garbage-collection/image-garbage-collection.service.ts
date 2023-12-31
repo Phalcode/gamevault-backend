@@ -96,7 +96,7 @@ export class ImageGarbageCollectionService {
     // Iterate over each object in the entityImageProperties array
     for (const { repository, properties } of entityImageProperties) {
       // Fetch all entities from the repository
-      const entities = await repository.find();
+      const entities = await repository.find({ withDeleted: true });
 
       // Iterate over each entity
       for (const entity of entities) {
