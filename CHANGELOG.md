@@ -9,6 +9,7 @@
 - Various Performance Optimizations
 - Fixed RAWG-Remap not triggering a Box-Art-Search. [#240](https://github.com/Phalcode/gamevault-backend/issues/240)
 - Loads of Code Cleanup
+- Improved Box-Art-Matcher
 
 ### Thanks
 

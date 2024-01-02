@@ -91,13 +91,24 @@ export class BoxArtsService {
       return game;
     }
 
-    let results: Result[] = await this.search(
+    let results: Result[] = [];
+
+    // Try SteamGridDB
+    results = await this.search(
       game.title,
-      `"${game.title}" inurl:steamgriddb.com`,
+      `"${game.title}" site:steamgriddb.com -profile`,
     );
 
     if (!results.length) {
-      // If no results found with SteamGridDB in the URL, perform a broad image search on Google
+      // Try PCGAMINGWIKI
+      results = await this.search(
+        game.title,
+        `"${game.title}" site:www.pcgamingwiki.com`,
+      );
+    }
+
+    if (!results.length) {
+      // Perform a broad image search on Google
       results = await this.search(game.title, `"${game.title}" game box art`);
     }
 
