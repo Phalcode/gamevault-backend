@@ -130,7 +130,6 @@ describe("/api/rawg", () => {
         id: mockGame.id.toString(),
       });
 
-      //Expect the first game is the exact match
       expect(result.title).toBe("Minecraft");
       expect(result.cache_date).toBeNull();
       expect(mockHttpService.get).toHaveBeenCalledTimes(1);
@@ -223,7 +222,8 @@ describe("/api/rawg", () => {
       await gameRepository.save(
         Builder(Game)
           .title("Grand Theft Auto V")
-          .cache_date(new Date("2022-07-04"))
+          .rawg_id(1000)
+          .cache_date(new Date("2021-07-04"))
           .file_path("filepath.zip")
           .early_access(false)
           .build(),
@@ -232,17 +232,18 @@ describe("/api/rawg", () => {
       await gameRepository.save(
         Builder(Game)
           .title("Grand Theft Auto IV")
+          .rawg_id(1000)
           .cache_date(new Date("2021-07-04"))
           .file_path("filepath2.zip")
           .early_access(false)
           .build(),
       );
       const result = await rawgController.putRawgRecacheAll();
-      expect(result).toBe("Recache successfuly completed");
+      expect(result).toBe("Successfully recached 2 games");
       const data = await gameRepository.find();
       // Only check if both are null, the rest is tested in the singular recache test
-      expect(data[0].cache_date).toBeNull();
-      expect(data[1].cache_date).toBeNull();
+      expect(data[0].cache_date).not.toEqual(new Date("2021-07-04"));
+      expect(data[1].cache_date).not.toEqual(new Date("2021-07-04"));
       expect(mockHttpService.get).toHaveBeenCalledTimes(4);
       expect(gis).toHaveBeenCalledTimes(2);
     });

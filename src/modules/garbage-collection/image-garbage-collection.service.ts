@@ -41,7 +41,7 @@ export class ImageGarbageCollectionService {
     if (configuration.IMAGE.GC_DISABLED) {
       // Log warning and skip garbage collection
       this.logger.warn(
-        "Skipping image garbage collection because GC_DISABLED is set to true",
+        "Skipping image garbage collection because IMAGE_GC_DISABLED is set to true",
       );
       return;
     }
@@ -62,13 +62,18 @@ export class ImageGarbageCollectionService {
     // Clean up the file system
     const fsRemovedCount = await this.cleanupFileSystem(usedImagePaths);
 
-    // Log the number of deleted images from the database and file system
-    this.logger.log(
-      `Deleted ${dbRemovedCount} unused images from the database.`,
-    );
-    this.logger.log(
-      `Deleted ${fsRemovedCount} unused image files from ${configuration.VOLUMES.IMAGES}`,
-    );
+    // Log the number of deleted images from the database and file system (if any)
+    if (dbRemovedCount) {
+      this.logger.log(
+        `Deleted ${dbRemovedCount} unused images from the database.`,
+      );
+    }
+
+    if (fsRemovedCount) {
+      this.logger.log(
+        `Deleted ${fsRemovedCount} unused image files from ${configuration.VOLUMES.IMAGES}`,
+      );
+    }
   }
 
   /**

@@ -7,8 +7,12 @@
 - Reintroduced Image Garbage Collection! Unused Images now get cleaned up from the database and the file-system. [#230](https://github.com/Phalcode/gamevault-backend/issues/230)
 - Added Configuration variables `IMAGE_GC_DISABLED` and `IMAGE_GC_INTERVAL_IN_MINUTES`
 - Various Performance Optimizations
+- Fixed RAWG-Remap not triggering a Box-Art-Search. [#240](https://github.com/Phalcode/gamevault-backend/issues/240)
+- Loads of Code Cleanup
 
 ### Thanks
+
+- @Jmatt110
 
 ## 10.0.2
 

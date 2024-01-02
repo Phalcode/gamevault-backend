@@ -156,12 +156,10 @@ export class GamesService {
    * Remaps the Rawg ID of a game and nulls out all related fields except
    * progresses. Then recaches the game.
    */
-  public async remap(id: number, new_rawg_id: number): Promise<Game> {
-    // Fetch the game to remap from the database and set the new rawg_id
-    let game = await this.findByGameIdOrFail(id);
+  public async remap(game: Game, new_rawg_id: number): Promise<Game> {
     game.rawg_id = new_rawg_id;
 
-    // Null all rawg fields but keep progresses
+    // Null all fields except progresses so that none of the old data is used
     game.rawg_title = null;
     game.rawg_release_date = null;
     game.cache_date = null;
@@ -171,7 +169,6 @@ export class GamesService {
     game.website_url = null;
     game.metacritic_rating = null;
     game.average_playtime = null;
-
     game.publishers = [];
     game.developers = [];
     game.stores = [];
@@ -179,12 +176,11 @@ export class GamesService {
     game.genres = [];
 
     game = await this.save(game);
-    // Recache the game
-    await this.rawgService.checkCache([game]);
-    // Refetch the boxart
-    await this.boxartService.check(game);
-    // Return the new game object
-    return game;
+
+    game = (await this.rawgService.checkCache([game]))[0];
+
+    // Refetch the boxart and return
+    return await this.boxartService.check(game);
   }
 
   /** Save a game to the database. */
@@ -197,19 +193,37 @@ export class GamesService {
     return this.gamesRepository.softRemove(game);
   }
 
+  /**
+   * Updates a game with the provided ID using the information in the DTO. If
+   * the DTO contains a rawg_id, the game will be remapped. Otherwise, the game
+   * will be found by the provided ID. If the DTO contains a box_image_id, the
+   * game's box_image will be updated. If the DTO contains a
+   * background_image_id, the game's background_image will be updated. Finally,
+   * the updated game will be saved and returned.
+   *
+   * @param id - The ID of the game to update.
+   * @param dto - The DTO containing the updated game information.
+   * @returns The updated game.
+   */
   public async update(id: number, dto: UpdateGameDto) {
-    const game =
-      dto.rawg_id != null
-        ? await this.remap(id, dto.rawg_id)
-        : await this.findByGameIdOrFail(id);
+    // Finds the game by ID
+    let game = await this.findByGameIdOrFail(id, {
+      loadDeletedEntities: true,
+      loadRelations: true,
+    });
 
-    // Updates BoxArt if Necessary
+    // Remaps the Game
+    if (dto.rawg_id != null) {
+      game = await this.remap(game, dto.rawg_id);
+    }
+
+    // Updates BoxArt
     if (dto.box_image_id != null)
       game.box_image = await this.imagesService.findByImageIdOrFail(
         dto.box_image_id,
       );
 
-    // Updates Background Image if Necessary
+    // Updates Background Image
     if (dto.background_image_id != null)
       game.background_image = await this.imagesService.findByImageIdOrFail(
         dto.background_image_id,

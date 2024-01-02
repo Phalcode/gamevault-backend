@@ -47,6 +47,9 @@ export class FilesService implements OnApplicationBootstrap {
       .on(
         "all",
         debounce(() => {
+          this.logger.log(
+            `Starting file indexer due to changes in ${configuration.VOLUMES.FILES}`,
+          );
           this.index();
         }, 5000),
       )
@@ -55,16 +58,14 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  public async index(): Promise<void> {
-    this.logger.log(
-      `Started file indexer due to changes in ${configuration.VOLUMES.FILES}`,
-    );
+  public async index(): Promise<Game[]> {
     const gamesInFileSystem = await this.fetch();
     await this.ingest(gamesInFileSystem);
-    const gamesInDatabase = await this.gamesService.getAll();
-    await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
-    await this.rawgService.checkCache(gamesInDatabase);
-    await this.boxartService.checkMultiple(gamesInDatabase);
+    let games = await this.gamesService.getAll();
+    games = await this.checkIntegrity(gamesInFileSystem, games);
+    games = await this.rawgService.checkCache(games);
+    games = await this.boxartService.checkMultiple(games);
+    return games;
   }
 
   private async ingest(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
@@ -132,7 +133,7 @@ export class FilesService implements OnApplicationBootstrap {
   private async update(
     gameToUpdate: Game,
     updatesToApply: Game,
-  ): Promise<Game> {
+  ): Promise<void> {
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path,
@@ -148,7 +149,7 @@ export class FilesService implements OnApplicationBootstrap {
       `Updated new Game Information for "${gameToUpdate.file_path}".`,
     );
 
-    return this.gamesService.save(updatedGame);
+    await this.gamesService.save(updatedGame);
   }
 
   private isValidFilename(filename: string) {
@@ -391,19 +392,20 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method performs an integrity check by comparing the games in the file
    * system with the games in the database, marking the deleted games as deleted
-   * in the database.
+   * in the database. Then returns the updated games in the database.
    */
   private async checkIntegrity(
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
-  ): Promise<void> {
+  ): Promise<Game[]> {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.log(
-        "Skipping Integrity Check because TESTING.MOCK_FILES is set to true",
+        "Skipping Integrity Check because TESTING_MOCK_FILES is set to true",
       );
       return;
     }
     this.logger.log("Started Integrity Check");
+    const updatedGames: Game[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
@@ -419,6 +421,7 @@ export class FilesService implements OnApplicationBootstrap {
           );
           continue;
         }
+        updatedGames.push(gameInDatabase);
       } catch (error) {
         this.logger.error(
           error,
@@ -427,6 +430,7 @@ export class FilesService implements OnApplicationBootstrap {
       }
     }
     this.logger.log("Finished Integrity Check");
+    return updatedGames;
   }
 
   /**

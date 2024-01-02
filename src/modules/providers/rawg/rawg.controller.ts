@@ -71,13 +71,9 @@ export class RawgController {
   async putRawgRecacheGameByGameId(@Param() params: IdDto): Promise<Game> {
     let game = await this.gamesService.findByGameIdOrFail(Number(params.id));
     game.cache_date = null;
-    game = await this.gamesService.save(game);
-    await this.rawgService.checkCache([game]);
-    await this.boxartService.check(game);
-    return await this.gamesService.findByGameIdOrFail(Number(params.id), {
-      loadDeletedEntities: true,
-      loadRelations: true,
-    });
+    game = (await this.rawgService.checkCache([game]))[0];
+    game = await this.boxartService.check(game);
+    return game;
   }
 
   /** Manually triggers a recache from rawg-api for all games. */
@@ -91,13 +87,12 @@ export class RawgController {
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putRawgRecacheAll(): Promise<string> {
-    const gamesInDatabase = await this.gamesService.getAll();
-    for (const game of gamesInDatabase) {
+    let games = await this.gamesService.getAll();
+    for (const game of games) {
       game.cache_date = null;
-      await this.gamesService.save(game);
     }
-    await this.rawgService.checkCache(gamesInDatabase);
-    await this.boxartService.checkMultiple(gamesInDatabase);
-    return "Recache successfuly completed";
+    games = await this.rawgService.checkCache(games);
+    games = await this.boxartService.checkMultiple(games);
+    return `Successfully recached ${games.length} games`;
   }
 }
