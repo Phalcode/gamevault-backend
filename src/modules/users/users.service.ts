@@ -101,8 +101,10 @@ export class UsersService implements OnApplicationBootstrap {
           : [],
         withDeleted: true,
       })
-      .catch(() => {
-        throw new NotFoundException(`User with id ${id} was not found.`);
+      .catch((error) => {
+        throw new NotFoundException(`User with id ${id} was not found.`, {
+          cause: error,
+        });
       });
     return this.filterDeletedProgresses(user);
   }
@@ -124,9 +126,12 @@ export class UsersService implements OnApplicationBootstrap {
           : [],
         withDeleted: true,
       })
-      .catch(() => {
+      .catch((error) => {
         throw new NotFoundException(
           `User with username ${username} was not found on the server.`,
+          {
+            cause: error,
+          },
         );
       });
     return this.filterDeletedProgresses(user);
@@ -183,10 +188,12 @@ export class UsersService implements OnApplicationBootstrap {
         withDeleted: true,
         loadEagerRelations: false,
       })
-      .catch(() => {
+      .catch((error) => {
         throw new UnauthorizedException(
-          "Login Failed: Incorrect Username",
-          `User ${username} not found.`,
+          `Login Failed: User "${username}" not found.`,
+          {
+            cause: error,
+          },
         );
       });
     if (!compareSync(password, user.password)) {

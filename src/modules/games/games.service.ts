@@ -54,6 +54,7 @@ export class GamesService {
     } catch (error) {
       throw new NotFoundException(
         `Game with id ${id} was not found on the server.`,
+        { cause: error },
       );
     }
   }

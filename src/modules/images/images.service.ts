@@ -53,8 +53,10 @@ export class ImagesService {
         throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
-    } catch (e) {
-      throw new NotFoundException(`Image with id ${id} was not found.`, e);
+    } catch (error) {
+      throw new NotFoundException(`Image with id ${id} was not found.`, {
+        cause: error,
+      });
     }
   }
 
@@ -93,8 +95,8 @@ export class ImagesService {
         await this.delete(image);
       }
       throw new InternalServerErrorException(
-        error,
         `Failed to download image from '${sourceUrl}'.`,
+        { cause: error },
       );
     }
   }
@@ -110,6 +112,7 @@ export class ImagesService {
           catchError((error: AxiosError) => {
             throw new Error(
               `Failed to download image from ${sourceUrl}: ${error.status} ${error.message}`,
+              { cause: error },
             );
           }),
         ),
@@ -177,6 +180,7 @@ export class ImagesService {
       await this.delete(image);
       throw new InternalServerErrorException(
         "Error uploading image. Please retry or try another one.",
+        { cause: error },
       );
     }
   }

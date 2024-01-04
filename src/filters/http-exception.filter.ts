@@ -13,35 +13,39 @@ export class LoggingExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(LoggingExceptionFilter.name);
 
   /** Handles exceptions that occur during request processing. */
-  catch(exception: Error, host: ArgumentsHost) {
+  catch(error: Error, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const httpStatusCode =
-      exception instanceof HttpException ? exception.getStatus() : 500;
-    if (exception instanceof HttpException) {
+      error instanceof HttpException ? error.getStatus() : 500;
+    if (error instanceof HttpException) {
       if (httpStatusCode >= 400 && httpStatusCode < 500) {
-        this.logger.warn(`${exception.name} occurred: ${exception.message}`, {
+        this.logger.warn(`${error.name} occurred: ${error.message}`, {
           path: request.url,
-          response: exception.getResponse(),
+          response: error.getResponse(),
         });
       } else {
         this.logger.error(
           {
             path: request.url,
-            exception,
+            error,
           },
-          `${exception.name} occurred: ${exception.message}`,
+          `${error.name} occurred: ${error.message}`,
         );
       }
-      response.status(httpStatusCode).json(exception.getResponse());
+      response.status(httpStatusCode).json(error.getResponse());
     } else {
       // All other unhandled Exceptions
       this.logger.error(
-        { url: request.url, error: exception },
-        `Unhandled ${exception.name} occurred: ${exception.message}`,
+        { url: request.url, error },
+        `Unhandled ${error.name} occurred: ${error.message}`,
       );
-      response.status(httpStatusCode).json(exception.message);
+      response.status(httpStatusCode).json({
+        message: "Please check the server logs for more details.",
+        error: "Unhandled Server Error",
+        statusCode: httpStatusCode,
+      });
     }
   }
 }

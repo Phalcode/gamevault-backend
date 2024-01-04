@@ -177,6 +177,7 @@ export class DatabaseService {
           );
           throw new InternalServerErrorException(
             "Error restoring pre-restore PostgreSQL Database.",
+            { cause: error },
           );
         }
       }
@@ -235,6 +236,8 @@ export class DatabaseService {
 
   private handleBackupError(error: unknown) {
     this.logger.error(error, "Error backing up database");
-    throw new InternalServerErrorException("Error backing up database.");
+    throw new InternalServerErrorException("Error backing up database.", {
+      cause: error,
+    });
   }
 }

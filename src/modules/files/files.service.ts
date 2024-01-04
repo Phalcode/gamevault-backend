@@ -461,8 +461,8 @@ export class FilesService implements OnApplicationBootstrap {
         );
     } catch (error) {
       throw new InternalServerErrorException(
-        error,
         "Error reading /files directory!",
+        { cause: error },
       );
     }
   }

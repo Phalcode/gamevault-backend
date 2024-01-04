@@ -252,28 +252,21 @@ export class RawgService {
 
   /** Returns the RawgGame object associated with the specified ID. */
   private async fetchByRawgId(id: number): Promise<RawgGame> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .get(`${configuration.RAWG_API.URL}/games/${id}`, {
-            params: { key: configuration.RAWG_API.KEY },
-          })
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw new InternalServerErrorException(
-                error,
-                `Serverside RAWG Request Error: ${error.status} ${error.message}`,
-              );
-            }),
-          ),
-      );
-      return response.data;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        "Fetching data from RAWG failed",
-      );
-    }
+    const response = await firstValueFrom(
+      this.httpService
+        .get(`${configuration.RAWG_API.URL}/games/${id}`, {
+          params: { key: configuration.RAWG_API.KEY },
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            throw new InternalServerErrorException(
+              `Serverside RAWG Request Error: ${error.status} ${error.message}`,
+              { cause: error },
+            );
+          }),
+        ),
+    );
+    return response.data;
   }
 
   /**
@@ -288,32 +281,25 @@ export class RawgService {
       ? `${releaseYear}-01-01,${releaseYear}-12-31`
       : undefined;
 
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .get(`${configuration.RAWG_API.URL}/games`, {
-            params: {
-              search,
-              key: configuration.RAWG_API.KEY,
-              dates: searchDates,
-              stores: configuration.RAWG_API.INCLUDED_STORES.join(),
-            },
-          })
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw new InternalServerErrorException(
-                error,
-                `Serverside RAWG Request Error`,
-              );
-            }),
-          ),
-      );
-      return response.data as SearchResult;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        "Fetching data from RAWG failed",
-      );
-    }
+    const response = await firstValueFrom(
+      this.httpService
+        .get(`${configuration.RAWG_API.URL}/games`, {
+          params: {
+            search,
+            key: configuration.RAWG_API.KEY,
+            dates: searchDates,
+            stores: configuration.RAWG_API.INCLUDED_STORES.join(),
+          },
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            throw new InternalServerErrorException(
+              `Serverside RAWG Request Error: ${error.status} ${error.message}`,
+              { cause: error },
+            );
+          }),
+        ),
+    );
+    return response.data as SearchResult;
   }
 }

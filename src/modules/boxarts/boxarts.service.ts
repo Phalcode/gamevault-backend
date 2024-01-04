@@ -38,7 +38,7 @@ export class BoxArtsService {
         );
       } catch (error) {
         this.logger.error(
-          { gameId: games[i].id, title: games[i].title, error },
+          { gameId: games[i].id, title: games[i].title, error: error },
           "BoxArt Check Failed",
         );
       }

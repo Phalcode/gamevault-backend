@@ -39,8 +39,8 @@ export class ProgressService {
       this.ignoreList = fileContent.split("\n").map((line) => line.trim());
     } catch (error) {
       throw new InternalServerErrorException(
-        error,
         "Error reading ignored-executables.txt file",
+        { cause: error },
       );
     }
   }
@@ -66,9 +66,10 @@ export class ProgressService {
         order: { minutes_played: "DESC" },
         withDeleted: true,
       });
-    } catch {
+    } catch (error) {
       throw new NotFoundException(
         `Progress with id ${progressId} was not found on the server.`,
+        { cause: error },
       );
     }
   }
