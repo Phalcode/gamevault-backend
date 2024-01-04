@@ -24,11 +24,13 @@ export class LoggingExceptionFilter implements ExceptionFilter {
         this.logger.warn(`${error.name} occurred: ${error.message}`, {
           path: request.url,
           response: error.getResponse(),
+          error,
         });
       } else {
         this.logger.error(
           {
             path: request.url,
+            response: error.getResponse(),
             error,
           },
           `${error.name} occurred: ${error.message}`,
@@ -38,7 +40,10 @@ export class LoggingExceptionFilter implements ExceptionFilter {
     } else {
       // All other unhandled Exceptions
       this.logger.error(
-        { url: request.url, error },
+        {
+          path: request.url,
+          error,
+        },
         `Unhandled ${error.name} occurred: ${error.message}`,
       );
       response.status(httpStatusCode).json({
