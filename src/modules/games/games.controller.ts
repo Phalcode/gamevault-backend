@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Headers,
-  InternalServerErrorException,
   Logger,
   Param,
   Put,
