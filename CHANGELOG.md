@@ -10,10 +10,12 @@
 - Fixed RAWG-Remap not triggering a Box-Art-Search. [#240](https://github.com/Phalcode/gamevault-backend/issues/240)
 - Loads of Code Cleanup
 - Improved Box-Art-Matcher
+- Fixed server not being able to create multiple users with a blank email
 
 ### Thanks
 
 - @Jmatt110
+- @JoaGamo
 
 ## 10.0.2
 
