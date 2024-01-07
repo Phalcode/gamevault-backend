@@ -158,9 +158,9 @@ export class UsersService implements OnApplicationBootstrap {
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
     user.socket_secret = randomBytes(32).toString("hex");
-    user.email = dto.email;
-    user.first_name = dto.first_name;
-    user.last_name = dto.last_name;
+    user.first_name = dto.first_name || undefined;
+    user.last_name = dto.last_name || undefined;
+    user.email = dto.email || undefined;
 
     if (
       configuration.SERVER.ACCOUNT_ACTIVATION_DISABLED ||
