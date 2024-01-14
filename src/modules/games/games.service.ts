@@ -90,7 +90,7 @@ export class GamesService {
     }
 
     if (foundGame.deleted_at) {
-      return [GameExistence.EXISTS_BUT_DELETED, foundGame];
+      return [GameExistence.EXISTS_BUT_DELETED_IN_DATABASE, foundGame];
     }
 
     const differences: string[] = [];

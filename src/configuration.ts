@@ -21,6 +21,18 @@ function parseList(
     : defaultList;
 }
 
+function parseNumberList(
+  environmentVariable: string,
+  defaultList: number[] = [],
+): number[] {
+  return environmentVariable
+    ? environmentVariable
+        .split(",")
+        .map((item) => Number(item.trim()))
+        .filter((item) => !isNaN(item))
+    : defaultList;
+}
+
 function parseKibibytesToBytes(
   environmentVariable: string,
   defaultValue?: number,
@@ -84,9 +96,13 @@ const configuration = {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
     CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
-    INCLUDED_STORES: parseList(
+    INCLUDED_STORES: parseNumberList(
       process.env.RAWG_API_INCLUDED_STORES,
       globals.DEFAULT_INCLUDED_RAWG_STORES,
+    ),
+    INCLUDED_PLATFORMS: parseNumberList(
+      process.env.RAWG_API_INCLUDED_PLATFORMS,
+      globals.DEFAULT_INCLUDED_RAWG_PLATFORMS,
     ),
   } as const,
   USERS: {

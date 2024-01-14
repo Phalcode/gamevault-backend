@@ -16,6 +16,8 @@ import { catchError, firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { AxiosError } from "axios";
 import stringSimilarity from "string-similarity-js";
+import { RawgPlatform } from "./models/platforms";
+import { RawgStore } from "./models/stores";
 
 @Injectable()
 export class RawgService {
@@ -281,15 +283,26 @@ export class RawgService {
       ? `${releaseYear}-01-01,${releaseYear}-12-31`
       : undefined;
 
+    const requestParameters = {
+      search,
+      key: configuration.RAWG_API.KEY,
+      dates: searchDates,
+      stores: configuration.RAWG_API.INCLUDED_STORES.includes(
+        RawgStore["All Stores"],
+      )
+        ? undefined
+        : configuration.RAWG_API.INCLUDED_STORES.join(),
+      platforms: configuration.RAWG_API.INCLUDED_PLATFORMS.includes(
+        RawgPlatform["All Platforms"],
+      )
+        ? undefined
+        : configuration.RAWG_API.INCLUDED_PLATFORMS.join(),
+    };
+
     const response = await firstValueFrom(
       this.httpService
         .get(`${configuration.RAWG_API.URL}/games`, {
-          params: {
-            search,
-            key: configuration.RAWG_API.KEY,
-            dates: searchDates,
-            stores: configuration.RAWG_API.INCLUDED_STORES.join(),
-          },
+          params: requestParameters,
         })
         .pipe(
           catchError((error: AxiosError) => {

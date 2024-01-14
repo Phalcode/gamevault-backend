@@ -98,7 +98,7 @@ export class FilesService implements OnApplicationBootstrap {
             continue;
           }
 
-          case GameExistence.EXISTS_BUT_DELETED: {
+          case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
             this.logger.debug(
               `A soft-deleted duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
             );
