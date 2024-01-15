@@ -1,12 +1,31 @@
 # GameVault Backend Server Changelog
 
+## 10.1.0
+
+### Changes
+
+- Reintroduced Image Garbage Collection: Now, unused images are systematically purged from both the database and the file system. [#230](https://github.com/Phalcode/gamevault-backend/issues/230)
+- Introduced Configuration Variables `IMAGE_GC_DISABLED` and `IMAGE_GC_INTERVAL_IN_MINUTES`
+- Implemented Various Performance Optimizations and did some code cleanup.
+- Resolved RAWG-Remap Issue: Now, Box-Art-Search is triggered correctly. [#240](https://github.com/Phalcode/gamevault-backend/issues/240)
+- Enhanced Box-Art-Matcher.
+- Fixed User Creation Bug: The server can now create multiple users with a blank email.
+- Added Configuration Variable `RAWG_API_INCLUDED_PLATFORMS` to customize which platforms are included in RAWG API requests by default. [#239](https://github.com/Phalcode/gamevault-backend/issues/239)
+- Allowed to pass 0 to `RAWG_API_INCLUDED_PLATFORMS` and `RAWG_API_INCLUDED_STORES` to completely disable filtering on platforms and stores. [#239](https://github.com/Phalcode/gamevault-backend/issues/239)
+
+### Thanks
+
+- @Jmatt110
+- @JoaGamo
+- @drustan-hawk
+
 ## 10.0.2
 
 Recommended Gamevault App Version: `v1.8.1`
 
 ### Changes
 
-- Improved RAWG API Matching and Search by deprecating the ``RAWG_API_EXCLUDE_STORES`` configuration variable in favor of ``RAWG_API_INCLUDED_STORES``. [#234](https://github.com/Phalcode/gamevault-backend/issues/234)
+- Improved RAWG API Matching and Search by deprecating the `RAWG_API_EXCLUDE_STORES` configuration variable in favor of `RAWG_API_INCLUDED_STORES`. [#234](https://github.com/Phalcode/gamevault-backend/issues/234)
 
 ### Thanks
 

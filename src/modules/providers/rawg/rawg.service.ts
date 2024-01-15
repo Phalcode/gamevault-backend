@@ -16,6 +16,8 @@ import { catchError, firstValueFrom } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import { AxiosError } from "axios";
 import stringSimilarity from "string-similarity-js";
+import { RawgPlatform } from "./models/platforms";
+import { RawgStore } from "./models/stores";
 
 @Injectable()
 export class RawgService {
@@ -29,78 +31,114 @@ export class RawgService {
   ) {}
 
   /**
-   * Check the games in the database against the RAWG API to see if they need to
-   * be updated in the database or not.
+   * Check the cache for each game in the provided list. If the RAWG API is
+   * disabled or the API key is not set, the cache check will be skipped.
+   * Otherwise, each game will be cached using the cacheGame method. Any errors
+   * that occur during caching will be logged. Finally, the updated game list
+   * will be returned.
+   *
+   * @param games - The list of games to check the cache for
+   * @returns The updated list of games after caching
    */
-  public async checkCache(games: Game[]): Promise<void> {
+  public async checkCache(games: Game[]): Promise<Game[]> {
+    // Skip cache check if RAWG API is disabled
     if (configuration.TESTING.RAWG_API_DISABLED) {
       this.logger.warn(
-        "Skipping RAWG Cache Check because RAWG API is disabled",
+        "Skipping RAWG Cache Check because TESTING_RAWG_API_DISABLED is set to true.",
       );
-      return;
+      return games;
     }
 
+    // Skip cache check if RAWG API key is not set
     if (!configuration.RAWG_API.KEY) {
       this.logger.warn(
-        "Skipping RAWG Cache Check because RAWG API Key is not set",
+        "Skipping RAWG Cache Check because RAWG_API_KEY is not set.",
       );
-      return;
+      return games;
     }
 
     this.logger.log("STARTED RAWG CACHE CHECK");
 
-    for (const game of games) {
+    // Cache each game in the list
+    for (let i = 0; i < games.length; i++) {
       try {
-        await this.cache(game);
+        games[i] = await this.cacheGame(games[i]);
         this.logger.debug(
-          { gameId: game.id, title: game.title },
-          `Game Cached Successfully`,
+          { gameId: games[i].id, title: games[i].title },
+          "Game Cached Successfully",
         );
       } catch (error) {
         this.logger.error(
           {
-            gameId: game.id,
-            title: game.title,
+            gameId: games[i].id,
+            title: games[i].title,
             error,
           },
           "Game Caching Failed",
         );
       }
     }
+
     this.logger.log("FINISHED RAWG CACHE CHECK");
+    return games;
   }
 
   /**
-   * Caches the specified game in the database by finding a matching game in the
-   * RAWG API and mapping the data to a Game object.
+   * Caches a Game object.
+   *
+   * @param game - The Game object to be cached.
+   * @returns The cached Game object.
    */
-  private async cache(game: Game): Promise<Game> {
-    this.logger.debug(`Caching Game: "${game.title}"`);
+  private async cacheGame(game: Game): Promise<Game> {
+    // Log the game being cached
+    this.logger.debug(
+      {
+        gameId: game.id,
+        title: game.title,
+      },
+      `Caching Game.`,
+    );
 
+    // Skip caching if the file path contains (NC) flag
     if (game.file_path.includes("(NC)")) {
       this.logger.debug(
-        { gameId: game.id, title: game.title, file_path: game.file_path },
+        {
+          gameId: game.id,
+          title: game.title,
+          file_path: game.file_path,
+        },
         `Game Caching Skipped, because file path contains NO CACHE flag (NC).`,
       );
       return game;
     }
 
+    // Skip caching if the game is not outdated
     if (!this.isOutdated(game)) {
       this.logger.debug(
-        { gameId: game.id, title: game.title, cachedAt: game.cache_date },
-        `Game Caching Skipped, because game is already up to date.`,
+        {
+          gameId: game.id,
+          title: game.title,
+          cachedAt: game.cache_date,
+        },
+        `Game Caching Skipped, because cache is still fresh.`,
       );
       return game;
     }
 
+    // Fetch the game data from external API using Rawg ID or title and release date
     const rawgEntry: RawgGame = game.rawg_id
       ? await this.fetchByRawgId(game.rawg_id)
       : await this.getBestMatch(
           game.title,
           game.release_date?.getFullYear() || undefined,
         );
+
+    // Map the RawgGame to a Game object
     const mappedGame = await this.mapper.mapRawgGameToGame(rawgEntry, game);
-    return await this.gamesService.save(mappedGame);
+    // Save the mapped Game object
+    await this.gamesService.save(mappedGame);
+
+    return mappedGame;
   }
 
   /**
@@ -216,28 +254,21 @@ export class RawgService {
 
   /** Returns the RawgGame object associated with the specified ID. */
   private async fetchByRawgId(id: number): Promise<RawgGame> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .get(`${configuration.RAWG_API.URL}/games/${id}`, {
-            params: { key: configuration.RAWG_API.KEY },
-          })
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw new InternalServerErrorException(
-                error,
-                `Serverside RAWG Request Error: ${error.status} ${error.message}`,
-              );
-            }),
-          ),
-      );
-      return response.data;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        "Fetching data from RAWG failed",
-      );
-    }
+    const response = await firstValueFrom(
+      this.httpService
+        .get(`${configuration.RAWG_API.URL}/games/${id}`, {
+          params: { key: configuration.RAWG_API.KEY },
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            throw new InternalServerErrorException(
+              `Serverside RAWG Request Error: ${error.status} ${error.message}`,
+              { cause: error },
+            );
+          }),
+        ),
+    );
+    return response.data;
   }
 
   /**
@@ -252,32 +283,36 @@ export class RawgService {
       ? `${releaseYear}-01-01,${releaseYear}-12-31`
       : undefined;
 
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .get(`${configuration.RAWG_API.URL}/games`, {
-            params: {
-              search,
-              key: configuration.RAWG_API.KEY,
-              dates: searchDates,
-              stores: configuration.RAWG_API.INCLUDED_STORES.join(),
-            },
-          })
-          .pipe(
-            catchError((error: AxiosError) => {
-              throw new InternalServerErrorException(
-                error,
-                `Serverside RAWG Request Error`,
-              );
-            }),
-          ),
-      );
-      return response.data as SearchResult;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        error,
-        "Fetching data from RAWG failed",
-      );
-    }
+    const requestParameters = {
+      search,
+      key: configuration.RAWG_API.KEY,
+      dates: searchDates,
+      stores: configuration.RAWG_API.INCLUDED_STORES.includes(
+        RawgStore["All Stores"],
+      )
+        ? undefined
+        : configuration.RAWG_API.INCLUDED_STORES.join(),
+      platforms: configuration.RAWG_API.INCLUDED_PLATFORMS.includes(
+        RawgPlatform["All Platforms"],
+      )
+        ? undefined
+        : configuration.RAWG_API.INCLUDED_PLATFORMS.join(),
+    };
+
+    const response = await firstValueFrom(
+      this.httpService
+        .get(`${configuration.RAWG_API.URL}/games`, {
+          params: requestParameters,
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            throw new InternalServerErrorException(
+              `Serverside RAWG Request Error: ${error.status} ${error.message}`,
+              { cause: error },
+            );
+          }),
+        ),
+    );
+    return response.data as SearchResult;
   }
 }

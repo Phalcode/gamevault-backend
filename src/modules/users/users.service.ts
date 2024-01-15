@@ -101,8 +101,10 @@ export class UsersService implements OnApplicationBootstrap {
           : [],
         withDeleted: true,
       })
-      .catch(() => {
-        throw new NotFoundException(`User with id ${id} was not found.`);
+      .catch((error) => {
+        throw new NotFoundException(`User with id ${id} was not found.`, {
+          cause: error,
+        });
       });
     return this.filterDeletedProgresses(user);
   }
@@ -124,9 +126,12 @@ export class UsersService implements OnApplicationBootstrap {
           : [],
         withDeleted: true,
       })
-      .catch(() => {
+      .catch((error) => {
         throw new NotFoundException(
           `User with username ${username} was not found on the server.`,
+          {
+            cause: error,
+          },
         );
       });
     return this.filterDeletedProgresses(user);
@@ -153,9 +158,9 @@ export class UsersService implements OnApplicationBootstrap {
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
     user.socket_secret = randomBytes(32).toString("hex");
-    user.email = dto.email;
-    user.first_name = dto.first_name;
-    user.last_name = dto.last_name;
+    user.first_name = dto.first_name || undefined;
+    user.last_name = dto.last_name || undefined;
+    user.email = dto.email || undefined;
 
     if (
       configuration.SERVER.ACCOUNT_ACTIVATION_DISABLED ||
@@ -183,10 +188,12 @@ export class UsersService implements OnApplicationBootstrap {
         withDeleted: true,
         loadEagerRelations: false,
       })
-      .catch(() => {
+      .catch((error) => {
         throw new UnauthorizedException(
-          "Login Failed: Incorrect Username",
-          `User ${username} not found.`,
+          `Login Failed: User "${username}" not found.`,
+          {
+            cause: error,
+          },
         );
       });
     if (!compareSync(password, user.password)) {
@@ -213,17 +220,11 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.findByUserIdOrFail(id);
 
     if (dto.username != null && dto.username !== user.username) {
-      if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
-        await this.throwIfAlreadyExists(dto.username, undefined);
-      }
-      user.username = dto.username;
+      await this.updateUsername(dto, user);
     }
 
     if (dto.email != null && dto.email !== user.email) {
-      if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
-        await this.throwIfAlreadyExists(undefined, dto.email);
-      }
-      user.email = dto.email;
+      await this.updateEmail(dto, user);
     }
 
     if (dto.first_name != null) {
@@ -259,6 +260,26 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     return this.userRepository.save(user);
+  }
+
+  private async updateUsername(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
+      await this.throwIfAlreadyExists(dto.username, undefined);
+    }
+    user.username = dto.username;
+  }
+
+  private async updateEmail(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
+      await this.throwIfAlreadyExists(undefined, dto.email);
+    }
+    user.email = dto.email;
   }
 
   /** Soft deletes a user with the specified ID. */

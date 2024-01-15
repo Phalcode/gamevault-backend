@@ -131,6 +131,7 @@ export class GamesController {
       loadDeletedEntities: true,
     });
   }
+
   /** Download a game by its ID. */
   @Get(":id/download")
   @ApiHeader({

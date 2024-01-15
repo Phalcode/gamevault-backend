@@ -21,6 +21,18 @@ function parseList(
     : defaultList;
 }
 
+function parseNumberList(
+  environmentVariable: string,
+  defaultList: number[] = [],
+): number[] {
+  return environmentVariable
+    ? environmentVariable
+        .split(",")
+        .map((item) => Number(item.trim()))
+        .filter((item) => !isNaN(item))
+    : defaultList;
+}
+
 function parseKibibytesToBytes(
   environmentVariable: string,
   defaultValue?: number,
@@ -84,9 +96,13 @@ const configuration = {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
     CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
-    INCLUDED_STORES: parseList(
+    INCLUDED_STORES: parseNumberList(
       process.env.RAWG_API_INCLUDED_STORES,
       globals.DEFAULT_INCLUDED_RAWG_STORES,
+    ),
+    INCLUDED_PLATFORMS: parseNumberList(
+      process.env.RAWG_API_INCLUDED_PLATFORMS,
+      globals.DEFAULT_INCLUDED_RAWG_PLATFORMS,
     ),
   } as const,
   USERS: {
@@ -119,6 +135,9 @@ const configuration = {
       process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
       globals.SUPPORTED_IMAGE_FORMATS,
     ),
+    GC_DISABLED: parseBooleanEnvVariable(process.env.IMAGE_GC_DISABLED, false),
+    GC_INTERVAL_IN_MINUTES:
+      Number(process.env.IMAGE_GC_INTERVAL_IN_MINUTES) || 60,
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(

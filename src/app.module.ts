@@ -16,8 +16,10 @@ import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
+import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
 @Module({
   imports: [
+    GarbageCollectionModule,
     AdminModule,
     DatabaseModule,
     ScheduleModule.forRoot(),

@@ -1,4 +1,5 @@
-import { RawgStore } from "./modules/providers/rawg/models/stores.enum";
+import { RawgPlatform } from "./modules/providers/rawg/models/platforms";
+import { RawgStore } from "./modules/providers/rawg/models/stores";
 
 export default {
   get SUPPORTED_FILE_FORMATS() {
@@ -56,17 +57,11 @@ export default {
     "image/gif",
     "image/x-icon",
   ],
-  DEFAULT_INCLUDED_RAWG_STORES: [
-    RawgStore["Steam"].toString(),
-    RawgStore["Xbox Store"].toString(),
-    RawgStore["PlayStation Store"].toString(),
-    RawgStore["App Store"].toString(),
-    RawgStore["GOG"].toString(),
-    RawgStore["Nintendo Store"].toString(),
-    RawgStore["Xbox 360 Store"].toString(),
-    RawgStore["Google Play"].toString(),
-    RawgStore["EPIC Games"].toString(),
-  ],
+  DEFAULT_INCLUDED_RAWG_STORES: Object.values(RawgStore).filter(
+    (platform) =>
+      platform !== RawgStore["All Stores"] && platform !== RawgStore["Itch.io"],
+  ),
+  DEFAULT_INCLUDED_RAWG_PLATFORMS: [RawgPlatform["All Platforms"]],
 };
 
 export interface FindOptions {

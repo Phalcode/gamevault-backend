@@ -18,7 +18,8 @@ import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { UsersService } from "../users/users.service";
-import { existsSync, unlinkSync, writeFileSync } from "fs";
+import { unlink, writeFile } from "fs/promises";
+import { existsSync } from "fs";
 
 @Injectable()
 export class ImagesService {
@@ -52,11 +53,20 @@ export class ImagesService {
         throw new NotFoundException("Image not found on filesystem.");
       }
       return image;
-    } catch (e) {
-      throw new NotFoundException(`Image with id ${id} was not found.`, e);
+    } catch (error) {
+      throw new NotFoundException(`Image with id ${id} was not found.`, {
+        cause: error,
+      });
     }
   }
 
+  /**
+   * Downloads an image from a given URL and saves it to the file system.
+   *
+   * @param {string} sourceUrl - The URL of the image to be downloaded.
+   * @param {string} uploaderUsername - (optional) The username of the uploader.
+   * @returns {Promise<Image>} The saved Image object.
+   */
   async downloadByUrl(
     sourceUrl: string,
     uploaderUsername?: string,
@@ -85,8 +95,8 @@ export class ImagesService {
         await this.delete(image);
       }
       throw new InternalServerErrorException(
-        error,
         `Failed to download image from '${sourceUrl}'.`,
+        { cause: error },
       );
     }
   }
@@ -102,6 +112,7 @@ export class ImagesService {
           catchError((error: AxiosError) => {
             throw new Error(
               `Failed to download image from ${sourceUrl}: ${error.status} ${error.message}`,
+              { cause: error },
             );
           }),
         ),
@@ -132,7 +143,7 @@ export class ImagesService {
     }
     this.logger.debug(`Compressing image...`);
     const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
-    writeFileSync(path, compressedImageBuffer);
+    await writeFile(path, compressedImageBuffer);
     this.logger.debug(`Saved image to '${path}'`);
   }
 
@@ -143,12 +154,16 @@ export class ImagesService {
       );
       return;
     }
-    await this.imageRepository.remove(image);
-    unlinkSync(image.path);
-    this.logger.debug(
-      { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-      `Image successfully hard deleted from the filesystem.`,
-    );
+    try {
+      await this.imageRepository.remove(image);
+      await unlink(image.path);
+      this.logger.debug(
+        { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
+        `Image successfully hard deleted from the database and filesystem.`,
+      );
+    } catch (error) {
+      this.logger.error(error, `Failed to delete image ${image.id}.`);
+    }
   }
 
   public async upload(
@@ -165,6 +180,7 @@ export class ImagesService {
       await this.delete(image);
       throw new InternalServerErrorException(
         "Error uploading image. Please retry or try another one.",
+        { cause: error },
       );
     }
   }

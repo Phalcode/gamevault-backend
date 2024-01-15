@@ -9,13 +9,7 @@ import {
 import { IGameVaultFile } from "./models/file.model";
 import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
-import {
-  createReadStream,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  statSync,
-} from "fs";
+import { createReadStream, existsSync, statSync } from "fs";
 import path, { basename, extname } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
@@ -33,6 +27,7 @@ import { watch } from "chokidar";
 import { debounce } from "lodash";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
+import { mkdir, readdir, stat } from "fs/promises";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -52,6 +47,9 @@ export class FilesService implements OnApplicationBootstrap {
       .on(
         "all",
         debounce(() => {
+          this.logger.log(
+            `Starting file indexer due to changes in ${configuration.VOLUMES.FILES}`,
+          );
           this.index();
         }, 5000),
       )
@@ -60,16 +58,14 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  public async index(): Promise<void> {
-    this.logger.log(
-      `Started file indexer due to changes in ${configuration.VOLUMES.FILES}`,
-    );
-    const gamesInFileSystem = this.fetch();
+  public async index(): Promise<Game[]> {
+    const gamesInFileSystem = await this.fetch();
     await this.ingest(gamesInFileSystem);
-    const gamesInDatabase = await this.gamesService.getAll();
-    await this.checkIntegrity(gamesInFileSystem, gamesInDatabase);
-    await this.rawgService.checkCache(gamesInDatabase);
-    await this.boxartService.checkMultiple(gamesInDatabase);
+    let games = await this.gamesService.getAll();
+    games = await this.checkIntegrity(gamesInFileSystem, games);
+    games = await this.rawgService.checkCache(games);
+    games = await this.boxartService.checkMultiple(games);
+    return games;
   }
 
   private async ingest(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
@@ -102,7 +98,7 @@ export class FilesService implements OnApplicationBootstrap {
             continue;
           }
 
-          case GameExistence.EXISTS_BUT_DELETED: {
+          case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
             this.logger.debug(
               `A soft-deleted duplicate of file "${gameToIndex.file_path}" has been detected in the database. Restoring it and updating the information.`,
             );
@@ -137,7 +133,7 @@ export class FilesService implements OnApplicationBootstrap {
   private async update(
     gameToUpdate: Game,
     updatesToApply: Game,
-  ): Promise<Game> {
+  ): Promise<void> {
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path,
@@ -153,11 +149,11 @@ export class FilesService implements OnApplicationBootstrap {
       `Updated new Game Information for "${gameToUpdate.file_path}".`,
     );
 
-    return this.gamesService.save(updatedGame);
+    await this.gamesService.save(updatedGame);
   }
 
   private isValidFilename(filename: string) {
-    const invalidCharacters = /[\/<>:"\\|?*]/;
+    const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
     if (
@@ -396,19 +392,20 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * This method performs an integrity check by comparing the games in the file
    * system with the games in the database, marking the deleted games as deleted
-   * in the database.
+   * in the database. Then returns the updated games in the database.
    */
   private async checkIntegrity(
     gamesInFileSystem: IGameVaultFile[],
     gamesInDatabase: Game[],
-  ): Promise<void> {
+  ): Promise<Game[]> {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.log(
-        "Skipping Integrity Check because TESTING.MOCK_FILE is true",
+        "Skipping Integrity Check because TESTING_MOCK_FILES is set to true",
       );
       return;
     }
     this.logger.log("Started Integrity Check");
+    const updatedGames: Game[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
@@ -424,6 +421,7 @@ export class FilesService implements OnApplicationBootstrap {
           );
           continue;
         }
+        updatedGames.push(gameInDatabase);
       } catch (error) {
         this.logger.error(
           error,
@@ -432,22 +430,25 @@ export class FilesService implements OnApplicationBootstrap {
       }
     }
     this.logger.log("Finished Integrity Check");
+    return updatedGames;
   }
 
   /**
    * This method retrieves an array of objects representing game files in the
    * file system.
    */
-  private fetch(): IGameVaultFile[] {
+  private async fetch(): Promise<IGameVaultFile[]> {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
       }
 
-      return readdirSync(configuration.VOLUMES.FILES, {
-        encoding: "utf8",
-        recursive: configuration.GAMES.SEARCH_RECURSIVE,
-      })
+      return (
+        await readdir(configuration.VOLUMES.FILES, {
+          encoding: "utf8",
+          recursive: configuration.GAMES.SEARCH_RECURSIVE,
+        })
+      )
         .filter((file) => this.isValidFilename(file))
         .map(
           (file) =>
@@ -460,8 +461,8 @@ export class FilesService implements OnApplicationBootstrap {
         );
     } catch (error) {
       throw new InternalServerErrorException(
-        error,
         "Error reading /files directory!",
+        { cause: error },
       );
     }
   }
@@ -523,7 +524,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     // Get the file length, type, and sanitized filename.
-    const length = statSync(fileDownloadPath).size;
+    const length = (await stat(fileDownloadPath)).size;
     const type = mime.getType(fileDownloadPath);
     const filename = filenameSanitizer(
       unidecode(path.basename(fileDownloadPath)),
@@ -575,10 +576,13 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /** Creates a directory if it does not exist. */
-  private createDirectoryIfNotExist(path: string, errorMessage: string): void {
+  private async createDirectoryIfNotExist(
+    path: string,
+    errorMessage: string,
+  ): Promise<void> {
     if (!existsSync(path)) {
       this.logger.error(errorMessage);
-      mkdirSync(path);
+      await mkdir(path);
     }
   }
 }

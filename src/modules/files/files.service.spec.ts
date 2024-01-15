@@ -41,14 +41,10 @@ describe("FilesService", () => {
       // Create spies for logger.debug and logger.warn methods
       loggerDebugSpy = jest
         .spyOn(filesService["logger"], "debug")
-        .mockImplementation((text) => {
-          console.log(text);
-        });
+        .mockImplementation(() => {});
       loggerWarnSpy = jest
         .spyOn(filesService["logger"], "warn")
-        .mockImplementation((text) => {
-          console.warn(text);
-        });
+        .mockImplementation(() => {});
     });
 
     afterEach(() => {
