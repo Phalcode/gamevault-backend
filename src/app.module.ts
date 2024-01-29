@@ -17,7 +17,8 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventEmitterModule } from "@nestjs/event-emitter";
+
 @Module({
   imports: [
     GarbageCollectionModule,
