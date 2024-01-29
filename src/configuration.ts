@@ -116,7 +116,7 @@ const configuration = {
   } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES:
-      Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 5,
+      Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 60,
     SUPPORTED_FILE_FORMATS: parseList(
       process.env.GAMES_SUPPORTED_FILE_FORMATS,
       globals.SUPPORTED_FILE_FORMATS,

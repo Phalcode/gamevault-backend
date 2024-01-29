@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 10.1.1
+
+### Changes
+
+- Reimplented Interval-based Indexing, because of edge-cases where filewatcher was not triggered. [#246](https://github.com/Phalcode/gamevault-backend/issues/246)
+
+### Thanks
+
+- @JoaGamo
+
 ## 10.1.0
 
 ### Changes

@@ -24,6 +24,6 @@ export class FilesController {
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putFilesReindex() {
-    return await this.filesService.index();
+    return await this.filesService.index("Reindex API was called");
   }
 }

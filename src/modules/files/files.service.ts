@@ -28,6 +28,7 @@ import { debounce } from "lodash";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import { mkdir, readdir, stat } from "fs/promises";
+import { Cron } from "@nestjs/schedule";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -41,16 +42,23 @@ export class FilesService implements OnApplicationBootstrap {
 
   onApplicationBootstrap() {
     this.checkFolders();
+    this.index("Initial indexing on application start").catch((error) => {
+      this.logger.error(error, "Error in initial file indexing");
+    });
+
+    if (configuration.TESTING.MOCK_FILES) {
+      return;
+    }
+
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
     })
       .on(
         "all",
         debounce(() => {
-          this.logger.log(
-            `Starting file indexer due to changes in ${configuration.VOLUMES.FILES}`,
+          this.index(
+            `Filewatcher detected changes in '${configuration.VOLUMES.FILES}'`,
           );
-          this.index();
         }, 5000),
       )
       .on("error", (error) => {
@@ -58,7 +66,11 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  public async index(): Promise<Game[]> {
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
+    disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
+  })
+  public async index(reason: string): Promise<Game[]> {
+    this.logger.log(`Indexing files. Reason: '${reason}'`);
     const gamesInFileSystem = await this.fetch();
     await this.ingest(gamesInFileSystem);
     let games = await this.gamesService.getAll();
