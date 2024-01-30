@@ -152,6 +152,10 @@ const configuration = {
       process.env.TESTING_GOOGLE_API_DISABLED,
     ),
   } as const,
+  PLUGIN: {
+    ENABLED: parseBooleanEnvVariable(process.env.PLUGIN_ENABLED),
+    SOURCES: parseList(process.env.PLUGIN_SOURCES, []),
+  } as const,
 } as const;
 
 export function getCensoredConfiguration() {

@@ -1,3 +1,4 @@
+import { PluginModule } from "./modules/plugin/plugin.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { DatabaseModule } from "./modules/database/database.module";
 import { FilesModule } from "./modules/files/files.module";
@@ -39,6 +40,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
     GenresModule,
     GamesModule,
     EventEmitterModule.forRoot(),
+    PluginModule,
   ],
   providers: [DefaultStrategy],
 })
