@@ -152,7 +152,10 @@ export class BoxArtsService {
       const tolerance = 0.1;
 
       // Perform the image search
-      const searchResults = await gis(searchQuery);
+      const searchResults = await gis(searchQuery, {
+        userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.3",
+      });
 
       this.logger.debug(searchResults, "Google Image Search Results");
       // Filter the search results based on the aspect ratio
