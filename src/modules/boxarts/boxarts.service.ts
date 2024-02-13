@@ -154,6 +154,7 @@ export class BoxArtsService {
       // Perform the image search
       const searchResults = await gis(searchQuery);
 
+      this.logger.debug(searchResults, "Google Image Search Results");
       // Filter the search results based on the aspect ratio
       const matches = searchResults.filter((image) => {
         const aspectRatio = image.width / image.height;

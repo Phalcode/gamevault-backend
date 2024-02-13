@@ -15,5 +15,6 @@ import { Image } from "../images/image.entity";
   ],
   controllers: [],
   providers: [ImageGarbageCollectionService],
+  exports: [ImageGarbageCollectionService],
 })
 export class GarbageCollectionModule {}

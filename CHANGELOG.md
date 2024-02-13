@@ -1,5 +1,25 @@
 # GameVault Backend Server Changelog
 
+## 10.2.0
+
+### Changes
+
+- Reimplented Interval-based Indexing, because of edge-cases where filewatcher was not triggered. [#246](https://github.com/Phalcode/gamevault-backend/issues/246)
+- Implemented experimental dynamic plugin loader for GameVault.
+  - Theres no standardized format or official documentation yet, but it will come in the future.
+  - See [here](https://github.com/Phalcode/gamevault-backend-example-plugins/tree/master) for example plugins. (more coming soon)
+  - Added Configuration Variable `PLUGIN_ENABLED` to enable/disable plugins.
+  - Added Configuration Variable `PLUGIN_SOURCES` to define plugin sources.
+- Fixed Box-Image Search Algortihm.
+- Improved Error-Handling for HTTP Errors.
+
+### Thanks
+
+- @Kudjo
+- @JoaGamo
+- @ozhound
+- @RelaxAti0n
+
 ## 10.1.0
 
 ### Changes

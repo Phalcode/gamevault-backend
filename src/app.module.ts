@@ -1,3 +1,4 @@
+import { PluginModule } from "./modules/plugin/plugin.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { DatabaseModule } from "./modules/database/database.module";
 import { FilesModule } from "./modules/files/files.module";
@@ -17,6 +18,8 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+
 @Module({
   imports: [
     GarbageCollectionModule,
@@ -36,6 +39,8 @@ import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-co
     HealthModule,
     GenresModule,
     GamesModule,
+    EventEmitterModule.forRoot(),
+    PluginModule,
   ],
   providers: [DefaultStrategy],
 })

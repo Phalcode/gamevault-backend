@@ -263,7 +263,7 @@ export class RawgService {
           catchError((error: AxiosError) => {
             throw new InternalServerErrorException(
               `Serverside RAWG Request Error: ${error.status} ${error.message}`,
-              { cause: error },
+              { cause: error.toJSON() },
             );
           }),
         ),
@@ -308,7 +308,7 @@ export class RawgService {
           catchError((error: AxiosError) => {
             throw new InternalServerErrorException(
               `Serverside RAWG Request Error: ${error.status} ${error.message}`,
-              { cause: error },
+              { cause: error.toJSON() },
             );
           }),
         ),

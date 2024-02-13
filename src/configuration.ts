@@ -116,7 +116,7 @@ const configuration = {
   } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES:
-      Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 5,
+      Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 60,
     SUPPORTED_FILE_FORMATS: parseList(
       process.env.GAMES_SUPPORTED_FILE_FORMATS,
       globals.SUPPORTED_FILE_FORMATS,
@@ -151,6 +151,10 @@ const configuration = {
     GOOGLE_API_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_GOOGLE_API_DISABLED,
     ),
+  } as const,
+  PLUGIN: {
+    ENABLED: parseBooleanEnvVariable(process.env.PLUGIN_ENABLED),
+    SOURCES: parseList(process.env.PLUGIN_SOURCES, []),
   } as const,
 } as const;
 
