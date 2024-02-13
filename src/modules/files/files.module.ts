@@ -6,7 +6,11 @@ import { RawgModule } from "../providers/rawg/rawg.module";
 import { BoxartsModule } from "../boxarts/boxarts.module";
 
 @Module({
-  imports: [forwardRef(() => GamesModule), forwardRef(() => RawgModule), forwardRef(() => BoxartsModule)],
+  imports: [
+    forwardRef(() => GamesModule),
+    forwardRef(() => RawgModule),
+    forwardRef(() => BoxartsModule),
+  ],
   controllers: [FilesController],
   providers: [FilesService],
   exports: [FilesService],
