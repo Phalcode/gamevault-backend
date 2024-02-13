@@ -112,7 +112,7 @@ export class ImagesService {
           catchError((error: AxiosError) => {
             throw new Error(
               `Failed to download image from ${sourceUrl}: ${error.status} ${error.message}`,
-              { cause: error },
+              { cause: error.toJSON() },
             );
           }),
         ),

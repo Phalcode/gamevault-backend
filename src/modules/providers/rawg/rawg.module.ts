@@ -15,7 +15,7 @@ import { ImagesModule } from "../../images/images.module";
 @Module({
   imports: [
     forwardRef(() => GamesModule),
-    BoxartsModule,
+    forwardRef(() => BoxartsModule),
     HttpModule,
     TagsModule,
     GenresModule,

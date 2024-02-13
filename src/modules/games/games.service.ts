@@ -25,6 +25,7 @@ export class GamesService {
     private gamesRepository: Repository<Game>,
     @Inject(forwardRef(() => RawgService))
     private rawgService: RawgService,
+    @Inject(forwardRef(() => BoxArtsService))
     private boxartService: BoxArtsService,
     private imagesService: ImagesService,
   ) {}

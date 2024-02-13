@@ -13,7 +13,7 @@ import { ImagesModule } from "../images/images.module";
     TypeOrmModule.forFeature([Game]),
     forwardRef(() => RawgModule),
     forwardRef(() => FilesModule),
-    BoxartsModule,
+    forwardRef(() => BoxartsModule),
     ImagesModule,
   ],
   controllers: [GamesController],
