@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 10.2.1
+
+### Changes
+
+- Fixed a bug where not all frames of uploaded .gif images would be saved to the filesystem.
+
 ## 10.2.0
 
 ### Changes
