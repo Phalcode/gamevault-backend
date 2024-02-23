@@ -142,8 +142,8 @@ export class ImagesService {
       return;
     }
     this.logger.debug(`Compressing image...`);
-    const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
-    await writeFile(path, compressedImageBuffer);
+    //const compressedImageBuffer = await sharp(imageBuffer).toBuffer();
+    await writeFile(path, imageBuffer);
     this.logger.debug(`Saved image to '${path}'`);
   }
 
