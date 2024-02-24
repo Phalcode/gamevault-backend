@@ -188,20 +188,26 @@ export class ImagesService {
   }
 
   private async validate(imageBuffer: Buffer) {
-    const fileType = fileTypeChecker.detectFile(imageBuffer);
-    if (!fileType?.extension || !fileType?.mimeType) {
+    const type = fileTypeChecker.detectFile(imageBuffer);
+    this.logger.debug(
+      {
+        type: type,
+        bufferLength: imageBuffer.length,
+        bufferStart: imageBuffer.toString("hex", 0, 16), // assuming you want to log the hexadecimal representation of the start of the buffer
+      },
+      `Validated file type of uploaded image.`,
+    );
+    if (!type?.extension || !type?.mimeType) {
       throw new BadRequestException(
         "File type could not be detected. Please try another image.",
       );
     }
-    if (
-      !configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(fileType.mimeType)
-    ) {
+    if (!configuration.IMAGE.SUPPORTED_IMAGE_FORMATS.includes(type.mimeType)) {
       throw new BadRequestException(
-        `This file is a "${fileType.mimeType}", which is not supported.`,
+        `This file is a "${type.mimeType}", which is not supported.`,
       );
     }
-    return fileType;
+    return type;
   }
 
   private async createFromUpload(
