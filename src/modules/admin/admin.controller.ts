@@ -15,7 +15,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Health } from "../health/models/health.model";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { DatabaseService } from "../database/database.service";
 import { FileInterceptor } from "@nestjs/platform-express";

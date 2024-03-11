@@ -22,15 +22,15 @@ import { RegisterUserDto } from "./models/register-user.dto";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./models/update-user.dto";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "./models/role.enum";
 import { Public } from "../../decorators/public.decorator";
 import { SocketSecretService } from "./socket-secret.service";
-import { DoNothing } from "../../decorators/donothing.decorator";
+import { noop } from "rxjs";
 
 const ConditionalRegistrationDecorator = configuration.SERVER
   .REGISTRATION_DISABLED
-  ? DoNothing
+  ? noop
   : Public();
 
 @ApiBasicAuth()

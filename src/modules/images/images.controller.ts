@@ -24,7 +24,7 @@ import {
 import { ImagesService } from "./images.service";
 import fs from "fs";
 import { Response } from "express";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Image } from "./image.entity";

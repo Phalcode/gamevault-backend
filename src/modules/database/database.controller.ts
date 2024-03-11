@@ -12,7 +12,7 @@ import {
   ApiBasicAuth,
   ApiHeader,
 } from "@nestjs/swagger";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 import { DatabaseService } from "./database.service";
 import { FileInterceptor } from "@nestjs/platform-express";

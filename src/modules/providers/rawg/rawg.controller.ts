@@ -8,7 +8,7 @@ import {
 } from "@nestjs/swagger";
 import { RawgService } from "./rawg.service";
 import { Game } from "../../games/game.entity";
-import { MinimumRole } from "../../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../../decorators/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
 import { IdDto } from "../../database/models/id.dto";
 import { GamesService } from "../../games/games.service";

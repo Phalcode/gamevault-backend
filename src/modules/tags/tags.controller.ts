@@ -11,10 +11,10 @@ import {
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 import { ApiOkResponsePaginated } from "../pagination/paginated-api-response.model";
-import { PaginateQueryOptions } from "../pagination/pagination.decorator";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { Tag } from "./tag.entity";
 import { all_filters } from "../pagination/all-filters.filter";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 
 @Controller("tags")

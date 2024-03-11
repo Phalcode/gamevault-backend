@@ -3,7 +3,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Public } from "../../decorators/public.decorator";
 import { Health } from "./models/health.model";
 import { HealthService } from "./health.service";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 @Controller("health")
 @ApiTags("health")
