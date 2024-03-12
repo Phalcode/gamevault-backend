@@ -41,18 +41,15 @@ export class UsersService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap() {
     try {
-      await this.setAdmin();
+      await this.recoverAdmin();
     } catch (error) {
       this.logger.error(error, "Error on FilesService Bootstrap");
     }
   }
 
-  private async setAdmin() {
+  private async recoverAdmin() {
     try {
       if (!configuration.SERVER.ADMIN_USERNAME) {
-        this.logger.warn(
-          "No admin user has been configured. Ensure to set up one as follows: https://gamevau.lt/docs/server-docs/user-management#initial-setup",
-        );
         return;
       }
 
@@ -72,12 +69,12 @@ export class UsersService implements OnApplicationBootstrap {
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(
-          `The admin user wasn't configured because the user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user.`,
+          `The admin user wasn't recovered because the user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user.`,
         );
       } else {
         this.logger.error(
           error,
-          "An error occurred while configuring the server admin.",
+          "An error occurred while recovering the server admin.",
         );
       }
     }
