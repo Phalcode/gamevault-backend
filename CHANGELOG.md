@@ -100,6 +100,8 @@ Recommended Gamevault App Version: `v1.8.0`
 
 - Fixed a bug where the `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` config would not be used.
 
+- Default `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` is now unlimited.
+
 - `SERVER_REGISTRATION_DISABLED` no longer blocks registration calls by administrators. [#221](https://github.com/Phalcode/gamevault-backend/issues/221)
 
 - Fixed initial folder generation not occurring.
