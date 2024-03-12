@@ -63,7 +63,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   async getUsersAdmin(): Promise<GamevaultUser[]> {
-    return await this.usersService.getAll(true, true);
+    return await this.usersService.getAll(true);
   }
 
   /** Retrieve user information based on the provided request object. */

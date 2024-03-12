@@ -6,6 +6,12 @@
 
 - Fixed a bug where not all frames of uploaded .gif images would be saved to the filesystem.
 - Fixed deleted sub-entities being returned in /api/games/{id}
+- You can now mark bot users for API access, that are hidden from the public user list, by prefixing usernames with `gvbot_`.
+- The first registered user is now granted automatically granted admin privileges.
+
+### Thanks
+
+- @lordfransie
 
 ## 10.2.0
 

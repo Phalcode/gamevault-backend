@@ -16,6 +16,7 @@ import {
   FindOperator,
   ILike,
   IsNull,
+  Not,
   Repository,
 } from "typeorm";
 import configuration from "../../configuration";
@@ -137,15 +138,15 @@ export class UsersService implements OnApplicationBootstrap {
     return this.filterDeletedProgresses(user);
   }
 
-  /** Get a rough overview of all users */
   public async getAll(
-    includeDeleted = false,
-    includeDeactivated = false,
+    includeHidden: boolean = false,
   ): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
-      withDeleted: includeDeleted,
-      where: includeDeactivated ? undefined : { activated: true },
+      withDeleted: includeHidden,
+      where: includeHidden
+        ? { username: Not(ILike("gvbot_%")) }
+        : { activated: true },
     };
 
     return await this.userRepository.find(query);
@@ -154,6 +155,7 @@ export class UsersService implements OnApplicationBootstrap {
   /** Register a new user */
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
     await this.throwIfAlreadyExists(dto.username, dto.email);
+    const isFirstUser = (await this.userRepository.count()) === 0;
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
@@ -164,12 +166,13 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (
       configuration.SERVER.ACCOUNT_ACTIVATION_DISABLED ||
-      user.username === configuration.SERVER.ADMIN_USERNAME
+      user.username === configuration.SERVER.ADMIN_USERNAME ||
+      isFirstUser
     ) {
       user.activated = true;
     }
 
-    if (user.username === configuration.SERVER.ADMIN_USERNAME) {
+    if (user.username === configuration.SERVER.ADMIN_USERNAME || isFirstUser) {
       user.role = Role.ADMIN;
     }
 
