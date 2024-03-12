@@ -5,6 +5,7 @@
 ### Changes
 
 - Fixed a bug where not all frames of uploaded .gif images would be saved to the filesystem.
+- Fixed deleted sub-entities being returned in /api/games/{id}
 
 ## 10.2.0
 

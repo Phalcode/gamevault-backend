@@ -35,7 +35,7 @@ export class GamesService {
     options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
   ): Promise<Game> {
     try {
-      return await this.gamesRepository.findOneOrFail({
+      const games = await this.gamesRepository.findOneOrFail({
         where: { id },
         relations: options.loadRelations
           ? [
@@ -52,6 +52,7 @@ export class GamesService {
           : [],
         withDeleted: options.loadDeletedEntities,
       });
+      return this.filterDeletedSubEntities(games);
     } catch (error) {
       throw new NotFoundException(
         `Game with id ${id} was not found on the server.`,
@@ -238,5 +239,17 @@ export class GamesService {
   public async restore(id: number): Promise<Game> {
     await this.gamesRepository.recover({ id });
     return this.findByGameIdOrFail(id);
+  }
+
+  private filterDeletedSubEntities(game?: Game): Game {
+    return {
+      ...game,
+      genres: game?.genres?.filter((entity) => !entity.deleted_at),
+      tags: game?.tags?.filter((entity) => !entity.deleted_at),
+      developers: game?.developers?.filter((entity) => !entity.deleted_at),
+      publishers: game?.publishers?.filter((entity) => !entity.deleted_at),
+      stores: game?.stores?.filter((entity) => !entity.deleted_at),
+      progresses: game?.progresses?.filter((entity) => !entity.deleted_at),
+    };
   }
 }
