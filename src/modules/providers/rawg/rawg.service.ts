@@ -181,11 +181,15 @@ export class RawgService {
 
     // If releaseYear is provided, fetch games with the given title and release year
     if (releaseYear) {
+      this.logger.debug(
+        `Fetching games matching "${title}" (${releaseYear})...`,
+      );
       searchResults.push(...(await this.fetch(title, releaseYear)).results);
     }
 
     // If no search results are found with the release year, fetch games with the given title only
     if (searchResults.length === 0) {
+      this.logger.debug(`Fetching games matching "${title}"...`);
       searchResults.push(...(await this.fetch(title)).results);
     }
 
