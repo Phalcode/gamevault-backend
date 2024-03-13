@@ -414,7 +414,7 @@ export class FilesService implements OnApplicationBootstrap {
       this.logger.log(
         "Skipping Integrity Check because TESTING_MOCK_FILES is set to true",
       );
-      return;
+      return gamesInDatabase;
     }
     this.logger.log("Started Integrity Check");
     const updatedGames: Game[] = [];

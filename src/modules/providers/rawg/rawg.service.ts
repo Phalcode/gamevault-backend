@@ -141,34 +141,23 @@ export class RawgService {
     return mappedGame;
   }
 
-  /**
-   * Searches for the best matching game in the RAWG API based on the specified
-   * title and release year.
-   */
   private async getBestMatch(
     title: string,
     releaseYear?: number,
   ): Promise<RawgGame> {
     const sortedResults = await this.fetchMatching(title, releaseYear);
-    const bestMatch = sortedResults[0];
 
-    if (bestMatch.probability != 1) {
-      this.logger.log(`${sortedResults.length} matches found for "${title}"`);
-      this.logger.debug("-- START OF MATCHES --");
-      for (const match of sortedResults) {
-        if (match.probability === 0) continue;
-        this.logger.debug(
-          `➥ Match: "${match.name} (${new Date(
-            match.released,
-          ).getFullYear()})" | RAWG-ID: "${match.id}" | Probability: ${
-            match.probability
-          }`,
-        );
-      }
-      this.logger.debug("-- END OF MATCHES --");
-    }
+    const matches = sortedResults.map((match) => {
+      return {
+        probability: match.probability,
+        rawg_id: match.id,
+        rawg_title: match.name,
+        rawg_release_date: match.released,
+      };
+    });
+    this.logger.log(`${matches.length} Matches found for "${title}"`, matches);
 
-    return this.fetchByRawgId(bestMatch.id);
+    return this.fetchByRawgId(sortedResults[0].id);
   }
 
   /**
@@ -212,17 +201,23 @@ export class RawgService {
     }
 
     // Calculate the probability of matching for each game
-    searchResults.forEach((game) => {
-      const titleCleaned = title.toLowerCase().replace(/[^\w\s]/g, "");
-      const gameNameCleaned = game.name.toLowerCase().replace(/[^\w\s]/g, "");
+    searchResults.forEach((searchResult) => {
+      const cleanedGameTitle = title.toLowerCase().replace(/[^\w\s]/g, "");
+      const cleanedSearchResultTitle = searchResult.name
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "");
 
       // Calculate string similarity between the title and game name
-      game.probability = stringSimilarity(titleCleaned, gameNameCleaned);
+      searchResult.probability = stringSimilarity(
+        cleanedGameTitle,
+        cleanedSearchResultTitle,
+      );
 
       // If releaseYear is provided, adjust the probability based on the difference between the release year of the game and the provided release year
       if (releaseYear !== undefined) {
-        const gameReleaseYear = new Date(game.released).getFullYear();
-        game.probability -= Math.abs(releaseYear - gameReleaseYear) / 10;
+        const gameReleaseYear = new Date(searchResult.released).getFullYear();
+        searchResult.probability -=
+          Math.abs(releaseYear - gameReleaseYear) / 10;
       }
     });
 
