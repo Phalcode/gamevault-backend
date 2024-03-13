@@ -7,7 +7,9 @@
 - Fixed a bug where not all frames of uploaded .gif images would be saved to the filesystem.
 - Fixed deleted sub-entities being returned in /api/games/{id}
 - You can now mark bot users for API access, that are hidden from the public user list, by prefixing usernames with `gvbot_`.
-- The first registered user is now granted automatically granted admin privileges.
+- The first registered user is now granted automatically granted admin privileges
+- Enhanced logs within the RAWG GameMatcher
+- Adjusted the Image Garbage Collector to be less aggressive, now exclusively deleting files with filenames starting with a valid UUID4
 
 ### Thanks
 

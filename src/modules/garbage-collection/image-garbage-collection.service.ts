@@ -9,6 +9,7 @@ import { Cron } from "@nestjs/schedule";
 import { join } from "path";
 import { ImagesService } from "../images/images.service";
 import { readdir, unlink } from "fs/promises";
+import { isUUID } from "class-validator";
 
 @Injectable()
 export class ImageGarbageCollectionService {
@@ -166,34 +167,30 @@ export class ImageGarbageCollectionService {
     // Get the directory where the image files are stored
     const imagesDirectory = configuration.VOLUMES.IMAGES;
 
-    // Get a list of all files in the directory
-    const allFiles = (
+    // Get a list of all image files in the directory
+    const allImageFilePaths = (
       await readdir(imagesDirectory, {
         encoding: "utf8",
         withFileTypes: true,
         recursive: false,
       })
     )
-      .filter((file) => file.isFile())
-      .map((file) => file.name);
+      .filter((file) => file.isFile() && isUUID(file.name.substring(0, 35), 4))
+      .map((file) => join(file.path, file.name));
 
     let removedCount = 0;
 
     // Create an array of unlink promises for each file
-    const unlinkPromises = allFiles.map((fileName) => {
-      const filePath = join(imagesDirectory, fileName);
-
+    const unlinkPromises = allImageFilePaths.map((path) => {
       // If the file path is not in the usedImagePaths set, delete the file
-      if (!usedImagePaths.has(filePath)) {
-        return unlink(filePath)
+      if (!usedImagePaths.has(path)) {
+        return unlink(path)
           .then(() => {
-            this.logger.debug(`Garbage collected unused image: ${filePath}`);
+            this.logger.debug(`Garbage collected unused image: ${path}`);
             removedCount++;
           })
           .catch((error) => {
-            this.logger.error(
-              `Error deleting unused image ${filePath}: ${error}`,
-            );
+            this.logger.error(`Error deleting unused image ${path}: ${error}`);
           });
       }
 

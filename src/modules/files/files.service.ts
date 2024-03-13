@@ -467,9 +467,7 @@ export class FilesService implements OnApplicationBootstrap {
           (file) =>
             ({
               name: file.name,
-              size: BigInt(
-                statSync(join(configuration.VOLUMES.FILES, file.name)).size,
-              ),
+              size: BigInt(statSync(join(file.path, file.name)).size),
             }) as IGameVaultFile,
         );
     } catch (error) {
