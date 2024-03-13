@@ -10,7 +10,7 @@ import { IGameVaultFile } from "./models/file.model";
 import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
 import { createReadStream, existsSync, statSync } from "fs";
-import path, { basename, extname } from "path";
+import path, { basename, extname, join } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
 import mime from "mime";
@@ -459,15 +459,16 @@ export class FilesService implements OnApplicationBootstrap {
         await readdir(configuration.VOLUMES.FILES, {
           encoding: "utf8",
           recursive: configuration.GAMES.SEARCH_RECURSIVE,
+          withFileTypes: true,
         })
       )
-        .filter((file) => this.isValidFilename(file))
+        .filter((file) => file.isFile() && this.isValidFilename(file.name))
         .map(
           (file) =>
             ({
-              name: file,
+              name: file.name,
               size: BigInt(
-                statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
+                statSync(join(configuration.VOLUMES.FILES, file.name)).size,
               ),
             }) as IGameVaultFile,
         );

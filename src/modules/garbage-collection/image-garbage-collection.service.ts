@@ -167,7 +167,15 @@ export class ImageGarbageCollectionService {
     const imagesDirectory = configuration.VOLUMES.IMAGES;
 
     // Get a list of all files in the directory
-    const allFiles = await readdir(imagesDirectory);
+    const allFiles = (
+      await readdir(imagesDirectory, {
+        encoding: "utf8",
+        withFileTypes: true,
+        recursive: false,
+      })
+    )
+      .filter((file) => file.isFile())
+      .map((file) => file.name);
 
     let removedCount = 0;
 
