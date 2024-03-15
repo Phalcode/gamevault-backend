@@ -51,6 +51,7 @@ export class GamesService {
             ]
           : [],
         withDeleted: options.loadDeletedEntities,
+        relationLoadStrategy: "query",
       });
       return this.filterDeletedSubEntities(games);
     } catch (error) {
