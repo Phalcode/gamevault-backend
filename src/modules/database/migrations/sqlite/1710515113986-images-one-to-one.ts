@@ -1,16 +1,16 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class ImagesOneToOne1710515113986 implements MigrationInterface {
-    name = 'ImagesOneToOne1710515113986'
+  name = "ImagesOneToOne1710515113986";
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -37,7 +37,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_7770cb331bdc54951bb9046fa9d" UNIQUE ("file_path")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_game"(
                     "id",
                     "created_at",
@@ -86,26 +86,26 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_game"
                 RENAME TO "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -134,7 +134,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_ae67c9253e4c3d5ebedeb723b75" UNIQUE ("background_image_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_game"(
                     "id",
                     "created_at",
@@ -183,23 +183,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_game"
                 RENAME TO "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -221,7 +221,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_gamevault_user"(
                     "id",
                     "created_at",
@@ -256,20 +256,20 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_gamevault_user"
                 RENAME TO "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -293,7 +293,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_af25d313b2845d841e18ed3237f" UNIQUE ("background_image_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_gamevault_user"(
                     "id",
                     "created_at",
@@ -328,23 +328,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_gamevault_user"
                 RENAME TO "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -375,7 +375,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "FK_0e88ada3f37f7cabfb6d59ed0d0" FOREIGN KEY ("background_image_id") REFERENCES "image" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_game"(
                     "id",
                     "created_at",
@@ -424,23 +424,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_game"
                 RENAME TO "game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "temporary_gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -466,7 +466,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68" FOREIGN KEY ("background_image_id") REFERENCES "image" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "temporary_gamevault_user"(
                     "id",
                     "created_at",
@@ -501,27 +501,27 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "temporary_gamevault_user"
                 RENAME TO "gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "gamevault_user"
                 RENAME TO "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -545,7 +545,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_af25d313b2845d841e18ed3237f" UNIQUE ("background_image_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "gamevault_user"(
                     "id",
                     "created_at",
@@ -580,23 +580,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "game"
                 RENAME TO "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -625,7 +625,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_ae67c9253e4c3d5ebedeb723b75" UNIQUE ("background_image_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "game"(
                     "id",
                     "created_at",
@@ -674,23 +674,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "gamevault_user"
                 RENAME TO "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -712,7 +712,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "gamevault_user"(
                     "id",
                     "created_at",
@@ -747,20 +747,20 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_c2a3f8b06558be9508161af22e"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "gamevault_user"
                 RENAME TO "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "gamevault_user" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -783,7 +783,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "FK_c1779b9b22212754248aa404bad" FOREIGN KEY ("profile_picture_id") REFERENCES "image" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "gamevault_user"(
                     "id",
                     "created_at",
@@ -818,23 +818,23 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "socket_secret"
             FROM "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_gamevault_user"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "game"
                 RENAME TO "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -861,7 +861,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "UQ_7770cb331bdc54951bb9046fa9d" UNIQUE ("file_path")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "game"(
                     "id",
                     "created_at",
@@ -910,26 +910,26 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0152ed47a9e8963b5aaceb51e7"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "game"
                 RENAME TO "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "game" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -957,7 +957,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 CONSTRAINT "FK_52b4bb990c5a5fe76c6d675c002" FOREIGN KEY ("box_image_id") REFERENCES "image" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "game"(
                     "id",
                     "created_at",
@@ -1006,15 +1006,14 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
                 "type"
             FROM "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_game"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0152ed47a9e8963b5aaceb51e7" ON "game" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_352a30652cd352f552fef73dec" ON "game" ("id")
         `);
-    }
-
+  }
 }
