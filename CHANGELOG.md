@@ -10,6 +10,7 @@
 - The first registered user is now granted automatically granted admin privileges
 - Enhanced logs within the RAWG GameMatcher
 - Adjusted the Image Garbage Collector to be less aggressive, now exclusively deleting files with filenames starting with a valid UUID4
+- Huge Performance Improvement of /game/:id up to 1000% faster for slow-loading games. (they loaded up to 4s, now 40ms)
 
 ### Thanks
 
