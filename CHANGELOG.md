@@ -1,6 +1,6 @@
 # GameVault Backend Server Changelog
 
-## 10.2.1
+## 10.3.0
 
 ### Changes
 
