@@ -1,5 +1,21 @@
 # GameVault Backend Server Changelog
 
+## 10.3.0
+
+### Changes
+
+- Fixed a bug where not all frames of uploaded .gif images would be saved to the filesystem.
+- Fixed deleted sub-entities being returned in /api/games/{id}
+- You can now mark bot users for API access, that are hidden from the public user list, by prefixing usernames with `gvbot_`.
+- The first registered user is now granted automatically granted admin privileges
+- Enhanced logs within the RAWG GameMatcher
+- Adjusted the Image Garbage Collector to be less aggressive, now exclusively deleting files with filenames starting with a valid UUID4
+- Huge Performance Improvement of /game/:id up to 1000% faster for slow-loading games. (they loaded up to 4s, now 40ms)
+
+### Thanks
+
+- @lordfransie
+
 ## 10.2.0
 
 ### Changes
@@ -86,6 +102,8 @@ Recommended Gamevault App Version: `v1.8.0`
 - Updated `/games` to return background images for better display in various clients.
 
 - Fixed a bug where the `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` config would not be used.
+
+- Default `SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS` is now unlimited.
 
 - `SERVER_REGISTRATION_DISABLED` no longer blocks registration calls by administrators. [#221](https://github.com/Phalcode/gamevault-backend/issues/221)
 

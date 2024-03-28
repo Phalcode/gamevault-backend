@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Genre } from "./genre.entity";
-import { MinimumRole } from "../pagination/minimum-role.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
 
 @Controller("genres")

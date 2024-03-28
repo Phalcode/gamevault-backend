@@ -1,13 +1,12 @@
+
 # compiled output
 /dist
 /node_modules
-/images
-/files
-/logs
-/db
+
+.local/*/*
+!.gitkeep
 
 # Logs
-logs
 *.log
 npm-debug.log*
 pnpm-debug.log*

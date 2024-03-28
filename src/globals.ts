@@ -66,7 +66,8 @@ export default {
 
 export interface FindOptions {
   /**
-   * Indicates whether deleted (sub)entities should be loaded.
+   * Indicates whether deleted (sub)entities should be loaded. Subentities may
+   * be deleted by app-logic afterwards.
    *
    * @default false
    */

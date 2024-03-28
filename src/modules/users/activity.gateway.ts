@@ -18,12 +18,12 @@ import { GamevaultUser } from "./gamevault-user.entity";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import configuration from "../../configuration";
-import { DoNothing } from "../../decorators/donothing.decorator";
+import { noop } from "rxjs";
 
 // Conditionally decorate the WebSocket gateway class.
 const ConditionalWebSocketGateway = configuration.SERVER
   .ONLINE_ACTIVITIES_DISABLED
-  ? DoNothing
+  ? noop
   : WebSocketGateway({ cors: true });
 
 @UseGuards(SocketSecretGuard)

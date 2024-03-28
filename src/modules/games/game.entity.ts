@@ -7,7 +7,7 @@ import {
   Index,
   JoinTable,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
 } from "typeorm";
 import { Developer } from "../developers/developer.entity";
 import { Genre } from "../genres/genre.entity";
@@ -107,7 +107,7 @@ export class Game extends DatabaseEntity {
   })
   description?: string;
 
-  @ManyToOne(() => Image, {
+  @OneToOne(() => Image, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -120,7 +120,7 @@ export class Game extends DatabaseEntity {
   })
   box_image?: Image;
 
-  @ManyToOne(() => Image, {
+  @OneToOne(() => Image, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",

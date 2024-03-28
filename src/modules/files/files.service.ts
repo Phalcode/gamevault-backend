@@ -10,7 +10,7 @@ import { IGameVaultFile } from "./models/file.model";
 import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
 import { createReadStream, existsSync, statSync } from "fs";
-import path, { basename, extname } from "path";
+import path, { basename, extname, join } from "path";
 import configuration from "../../configuration";
 import mock from "../games/games.mock";
 import mime from "mime";
@@ -414,7 +414,7 @@ export class FilesService implements OnApplicationBootstrap {
       this.logger.log(
         "Skipping Integrity Check because TESTING_MOCK_FILES is set to true",
       );
-      return;
+      return gamesInDatabase;
     }
     this.logger.log("Started Integrity Check");
     const updatedGames: Game[] = [];
@@ -459,16 +459,15 @@ export class FilesService implements OnApplicationBootstrap {
         await readdir(configuration.VOLUMES.FILES, {
           encoding: "utf8",
           recursive: configuration.GAMES.SEARCH_RECURSIVE,
+          withFileTypes: true,
         })
       )
-        .filter((file) => this.isValidFilename(file))
+        .filter((file) => file.isFile() && this.isValidFilename(file.name))
         .map(
           (file) =>
             ({
-              name: file,
-              size: BigInt(
-                statSync(`${configuration.VOLUMES.FILES}/${file}`).size,
-              ),
+              name: file.name,
+              size: BigInt(statSync(join(file.path, file.name)).size),
             }) as IGameVaultFile,
         );
     } catch (error) {

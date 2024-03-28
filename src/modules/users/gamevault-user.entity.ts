@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from "typeorm";
+import { Entity, Column, OneToMany, JoinColumn, OneToOne } from "typeorm";
 import { Image } from "../images/image.entity";
 import { Progress } from "../progress/progress.entity";
 import { DatabaseEntity } from "../database/database.entity";
@@ -26,7 +26,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   socket_secret: string;
 
-  @ManyToOne(() => Image, {
+  @OneToOne(() => Image, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -39,7 +39,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   profile_picture?: Image;
 
-  @ManyToOne(() => Image, {
+  @OneToOne(() => Image, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",

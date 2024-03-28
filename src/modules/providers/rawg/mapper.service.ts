@@ -29,7 +29,9 @@ export class RawgMapperService {
     rawg_game: RawgGame,
     game: Game,
   ): Promise<Game> {
-    this.logger.debug(`Mapping game "${rawg_game.name}" to "${game.title}"`);
+    this.logger.debug(
+      `Mapping RAWG Game "${rawg_game.name}" to Game "${game.title}"`,
+    );
     game = await this.mapRawgStoresToGame(rawg_game, game);
     game = await this.mapRawgDevelopersToGame(rawg_game, game);
     game = await this.mapRawgPublishersToGame(rawg_game, game);
