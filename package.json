@@ -1,6 +1,6 @@
 {
   "name": "gamevault-backend",
-  "version": "10.3.0",
+  "version": "10.3.1",
   "description": "the self-hosted gaming platform for drm-free games",
   "author": "Alkan Alper, Schäfer Philip GbR / Phalcode",
   "private": true,

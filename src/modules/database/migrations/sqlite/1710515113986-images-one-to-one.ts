@@ -4,6 +4,54 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
   name = "ImagesOneToOne1710515113986";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Set non-unique background_image_id in the game table to NULL
+    await queryRunner.query(`
+    UPDATE "game"
+    SET "background_image_id" = NULL
+    WHERE "background_image_id" IN (
+        SELECT "background_image_id"
+        FROM "game"
+        GROUP BY "background_image_id"
+        HAVING COUNT(*) > 1
+    );
+    `);
+
+    // Set non-unique box_image_id in the game table to NULL
+    await queryRunner.query(`
+    UPDATE "game"
+    SET "box_image_id" = NULL
+    WHERE "box_image_id" IN (
+        SELECT "box_image_id"
+        FROM "game"
+        GROUP BY "box_image_id"
+        HAVING COUNT(*) > 1
+    );
+    `);
+
+    // Set non-unique profile_picture_id in the gamevault_user table to NULL
+    await queryRunner.query(`
+    UPDATE "gamevault_user"
+    SET "profile_picture_id" = NULL
+    WHERE "profile_picture_id" IN (
+        SELECT "profile_picture_id"
+        FROM "gamevault_user"
+        GROUP BY "profile_picture_id"
+        HAVING COUNT(*) > 1
+    );
+    `);
+
+    // Set non-unique background_image_id in the gamevault_user table to NULL
+    await queryRunner.query(`
+    UPDATE "gamevault_user"
+    SET "background_image_id" = NULL
+    WHERE "background_image_id" IN (
+        SELECT "background_image_id"
+        FROM "gamevault_user"
+        GROUP BY "background_image_id"
+        HAVING COUNT(*) > 1
+    );
+    `);
+    
     await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);

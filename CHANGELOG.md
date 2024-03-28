@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 10.3.1
+
+### Changes
+
+- Database Migration Hotfix for older servers that have used the old image deduplication algorithm.
+
 ## 10.3.0
 
 ### Changes
