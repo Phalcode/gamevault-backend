@@ -142,8 +142,8 @@ export class UsersService implements OnApplicationBootstrap {
       order: { id: "ASC" },
       withDeleted: includeHidden,
       where: includeHidden
-        ? { username: Not(ILike("gvbot_%")) }
-        : { activated: true },
+        ? undefined
+        : { activated: true, username: Not(ILike("gvbot_%")) },
     };
 
     return await this.userRepository.find(query);

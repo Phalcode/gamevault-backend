@@ -5,6 +5,7 @@
 ### Changes
 
 - Fixed a bug where updating a users email, which was set to null, would throw an error.
+- Fixed bug where `gvbot_` users were showing up in user list
 
 ## 10.3.2
 
