@@ -81,7 +81,7 @@ export class ProgressController {
   })
   @ApiOkResponse({ type: () => Progress, isArray: true })
   @MinimumRole(Role.USER)
-  @DisableApiIf(configuration.SERVER.DEMO_MODE)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteProgressByProgressId(
     @Param() params: IdDto,
     @Request() req: { gamevaultuser: GamevaultUser },

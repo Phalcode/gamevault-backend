@@ -10,7 +10,7 @@
 
 - Fixed a bug where updating a users email, which was set to null, would throw an error.
 - Fixed bug where `gvbot_` users were showing up in user list
-- Implement `SERVER_DEMO_MODE` to enable/disable demo mode. You wont need this but it will improve the functionality of our demo server.
+- Implement `SERVER_DEMO_MODE_ENABLED` to enable/disable demo mode. You wont need this but it will improve the functionality of our demo server.
 
 ## 10.3.2
 

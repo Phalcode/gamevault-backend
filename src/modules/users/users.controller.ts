@@ -99,7 +99,7 @@ export class UsersController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => GamevaultUser })
-  @DisableApiIf(configuration.SERVER.DEMO_MODE)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async putUserMe(
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
@@ -118,7 +118,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
-  @DisableApiIf(configuration.SERVER.DEMO_MODE)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteUserMe(@Request() request): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,

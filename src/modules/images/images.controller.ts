@@ -86,7 +86,7 @@ export class ImagesController {
   })
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.USER)
-  @DisableApiIf(configuration.SERVER.DEMO_MODE)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   postImage(
     @Request() req: { gamevaultuser: GamevaultUser },
     @UploadedFile(
