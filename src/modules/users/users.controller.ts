@@ -37,24 +37,33 @@ export class UsersController {
     private socketSecretService: SocketSecretService,
   ) {}
 
-  /** Get an overview of all activated and non-deleted users. */
   @Get()
   @ApiOperation({
-    summary: "get an overview of all activated and non-deleted non-bot users",
+    summary:
+      "get an overview of all users. admins can see hidden users using this endpoint aswell.",
     operationId: "getUsers",
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   @MinimumRole(Role.GUEST)
-  async getUsers(): Promise<GamevaultUser[]> {
-    return await this.usersService.getAll();
+  async getUsers(
+    @Request() req: { gamevaultuser: GamevaultUser },
+  ): Promise<GamevaultUser[]> {
+    const includeHidden = req.gamevaultuser.role >= Role.ADMIN;
+    return await this.usersService.getAll(includeHidden);
   }
 
-  /** Get an overview of all users. */
+  /**
+   * Get an overview of all users.\
+   * TODO: REMOVE with v12
+   *
+   * @deprecated Use `getUsers` instead.
+   */
   @Get("all")
   @MinimumRole(Role.ADMIN)
   @ApiOperation({
     summary: "get an overview of all users",
     operationId: "getUsersAdmin",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   async getUsersAdmin(): Promise<GamevaultUser[]> {

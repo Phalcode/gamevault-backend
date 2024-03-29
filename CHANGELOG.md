@@ -1,6 +1,10 @@
 # GameVault Backend Server Changelog
 
-## 10.3.3
+## 11.0.0
+
+### Breaking Changes & Migration
+
+- Deprecated `/api/users/all`, Admins should just use `/api/users` to get a list of all users. (will be removed in v12)
 
 ### Changes
 

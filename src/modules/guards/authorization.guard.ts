@@ -8,6 +8,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import configuration from "../../configuration";
 import { Role } from "../users/models/role.enum";
+import { MINIMUM_ROLE_KEY } from "../../decorators/minimum-role.decorator";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -36,7 +37,7 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const requiredRole = this.reflector.get<Role>(
-      "minimumRole",
+      MINIMUM_ROLE_KEY,
       context.getHandler(),
     );
 
