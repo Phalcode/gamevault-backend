@@ -170,7 +170,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     if (
       !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-        extname(actualFilename).toLowerCase(),
+        extname(actualFilename)?.toLowerCase(),
       )
     ) {
       this.logger.debug(
@@ -248,7 +248,7 @@ export class FilesService implements OnApplicationBootstrap {
     const detectedPatterns: string[] = [];
 
     for (const file of files) {
-      const fileName = basename(file).toLowerCase();
+      const fileName = basename(file)?.toLowerCase();
 
       for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
@@ -295,14 +295,14 @@ export class FilesService implements OnApplicationBootstrap {
       }
 
       // Detect single File executables
-      if (path.toLowerCase().endsWith(".exe")) {
+      if (path?.toLowerCase().endsWith(".exe")) {
         this.logger.debug(
           `Detected game "${path}" type as ${GameType.WINDOWS_SETUP}, because it ends with .exe`,
         );
         return GameType.WINDOWS_SETUP;
       }
 
-      if (path.toLowerCase().endsWith(".sh")) {
+      if (path?.toLowerCase().endsWith(".sh")) {
         this.logger.debug(
           `Detected game "${path}" type as ${GameType.LINUX_PORTABLE}, because it ends with .sh`,
         );

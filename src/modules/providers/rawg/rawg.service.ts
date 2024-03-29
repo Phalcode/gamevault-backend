@@ -206,9 +206,9 @@ export class RawgService {
 
     // Calculate the probability of matching for each game
     searchResults.forEach((searchResult) => {
-      const cleanedGameTitle = title.toLowerCase().replace(/[^\w\s]/g, "");
+      const cleanedGameTitle = title?.toLowerCase().replace(/[^\w\s]/g, "");
       const cleanedSearchResultTitle = searchResult.name
-        .toLowerCase()
+        ?.toLowerCase()
         .replace(/[^\w\s]/g, "");
 
       // Calculate string similarity between the title and game name

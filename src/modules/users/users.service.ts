@@ -266,7 +266,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     user: GamevaultUser,
   ): Promise<void> {
-    if (dto.username.toLowerCase() !== user.username.toLowerCase()) {
+    if (dto.username?.toLowerCase() !== user.username?.toLowerCase()) {
       await this.throwIfAlreadyExists(dto.username, undefined);
     }
     user.username = dto.username;
@@ -276,7 +276,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     user: GamevaultUser,
   ): Promise<void> {
-    if (dto.email.toLowerCase() !== user.email.toLowerCase()) {
+    if (dto.email?.toLowerCase() !== user.email?.toLowerCase()) {
       await this.throwIfAlreadyExists(undefined, dto.email);
     }
     user.email = dto.email;
@@ -318,7 +318,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (user.role === Role.ADMIN) {
       return true;
     }
-    if (user.username.toLowerCase() !== username.toLowerCase()) {
+    if (user.username?.toLowerCase() !== username?.toLowerCase()) {
       throw new ForbiddenException(
         {
           requestedId: userId,
@@ -358,7 +358,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (existingUser) {
       const duplicateField =
-        existingUser.username.toLowerCase() === username?.toLowerCase()
+        existingUser.username?.toLowerCase() === username?.toLowerCase()
           ? "username"
           : "email";
       throw new ForbiddenException(

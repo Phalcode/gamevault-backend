@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 10.3.3
+
+### Changes
+
+- Fixed a bug where updating a users email, which was set to null, would throw an error.
+
 ## 10.3.2
 
 ### Changes
