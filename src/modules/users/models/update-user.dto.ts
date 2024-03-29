@@ -1,19 +1,24 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsAlpha,
-  IsAlphanumeric,
   IsBoolean,
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  Length,
+  Matches,
   MinLength,
 } from "class-validator";
 import { Role } from "./role.enum";
 
 export class UpdateUserDto {
-  @IsAlphanumeric()
+  @Matches(/^\w+$/, {
+    message:
+      "Usernames can only contain latin letters, numbers and underscores",
+  })
+  @Length(2, 32)
   @IsOptional()
   @IsNotEmpty()
   @ApiPropertyOptional({

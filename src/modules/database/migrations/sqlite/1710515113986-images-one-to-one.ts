@@ -51,7 +51,7 @@ export class ImagesOneToOne1710515113986 implements MigrationInterface {
         HAVING COUNT(*) > 1
     );
     `);
-    
+
     await queryRunner.query(`
             DROP INDEX "IDX_352a30652cd352f552fef73dec"
         `);
