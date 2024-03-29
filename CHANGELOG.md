@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 10.3.2
+
+### Changes
+
+- Fix Username Validation not allowing underscores in usernames.
+
 ## 10.3.1
 
 ### Changes

@@ -1,16 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsAlpha,
-  IsAlphanumeric,
   IsEmail,
   IsNotEmpty,
+  Length,
+  Matches,
   MinLength,
   ValidateIf,
 } from "class-validator";
 import configuration from "../../../configuration";
 
 export class RegisterUserDto {
-  @IsAlphanumeric()
+  @Matches(/^\w+$/, {
+    message:
+      "Usernames can only contain latin letters, numbers and underscores",
+  })
+  @Length(2, 32)
   @IsNotEmpty()
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
   username: string;
