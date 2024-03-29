@@ -30,6 +30,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { Image } from "./image.entity";
 import configuration from "../../configuration";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 
 @ApiTags("images")
 @Controller("images")
@@ -85,6 +86,7 @@ export class ImagesController {
   })
   @UseInterceptors(FileInterceptor("file"))
   @MinimumRole(Role.USER)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE)
   postImage(
     @Request() req: { gamevaultuser: GamevaultUser },
     @UploadedFile(

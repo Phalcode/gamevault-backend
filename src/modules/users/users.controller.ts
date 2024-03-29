@@ -24,14 +24,9 @@ import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "./models/role.enum";
-import { Public } from "../../decorators/public.decorator";
 import { SocketSecretService } from "./socket-secret.service";
-import { noop } from "rxjs";
-
-const ConditionalRegistrationDecorator = configuration.SERVER
-  .REGISTRATION_DISABLED
-  ? noop
-  : Public();
+import { ConditionalRegistration } from "../../decorators/conditional-registration.decorator";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 
 @ApiBasicAuth()
 @ApiTags("user")
@@ -45,7 +40,7 @@ export class UsersController {
   /** Get an overview of all activated and non-deleted users. */
   @Get()
   @ApiOperation({
-    summary: "get an overview of all activated and non-deleted users",
+    summary: "get an overview of all activated and non-deleted non-bot users",
     operationId: "getUsers",
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
@@ -95,6 +90,7 @@ export class UsersController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => GamevaultUser })
+  @DisableApiIf(configuration.SERVER.DEMO_MODE)
   async putUserMe(
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
@@ -113,6 +109,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE)
   async deleteUserMe(@Request() request): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
@@ -184,7 +181,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @ApiBody({ type: () => RegisterUserDto })
-  @ConditionalRegistrationDecorator
+  @ConditionalRegistration
   async postUserRegister(
     @Body() dto: RegisterUserDto,
     @Request() req: { gamevaultuser: GamevaultUser },
