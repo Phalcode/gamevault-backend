@@ -24,14 +24,9 @@ import { UsersService } from "./users.service";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "./models/role.enum";
-import { Public } from "../../decorators/public.decorator";
 import { SocketSecretService } from "./socket-secret.service";
-import { noop } from "rxjs";
-
-const ConditionalRegistrationDecorator = configuration.SERVER
-  .REGISTRATION_DISABLED
-  ? noop
-  : Public();
+import { ConditionalRegistration } from "../../decorators/conditional-registration.decorator";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 
 @ApiBasicAuth()
 @ApiTags("user")
@@ -42,24 +37,33 @@ export class UsersController {
     private socketSecretService: SocketSecretService,
   ) {}
 
-  /** Get an overview of all activated and non-deleted users. */
   @Get()
   @ApiOperation({
-    summary: "get an overview of all activated and non-deleted users",
+    summary:
+      "get an overview of all users. admins can see hidden users using this endpoint aswell.",
     operationId: "getUsers",
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   @MinimumRole(Role.GUEST)
-  async getUsers(): Promise<GamevaultUser[]> {
-    return await this.usersService.getAll();
+  async getUsers(
+    @Request() req: { gamevaultuser: GamevaultUser },
+  ): Promise<GamevaultUser[]> {
+    const includeHidden = req.gamevaultuser.role >= Role.ADMIN;
+    return await this.usersService.getAll(includeHidden);
   }
 
-  /** Get an overview of all users. */
+  /**
+   * Get an overview of all users.\
+   * TODO: REMOVE with v12
+   *
+   * @deprecated Use `getUsers` instead.
+   */
   @Get("all")
   @MinimumRole(Role.ADMIN)
   @ApiOperation({
     summary: "get an overview of all users",
     operationId: "getUsersAdmin",
+    deprecated: true,
   })
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   async getUsersAdmin(): Promise<GamevaultUser[]> {
@@ -95,6 +99,7 @@ export class UsersController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => GamevaultUser })
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async putUserMe(
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
@@ -113,6 +118,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteUserMe(@Request() request): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
@@ -184,7 +190,7 @@ export class UsersController {
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @ApiBody({ type: () => RegisterUserDto })
-  @ConditionalRegistrationDecorator
+  @ConditionalRegistration
   async postUserRegister(
     @Body() dto: RegisterUserDto,
     @Request() req: { gamevaultuser: GamevaultUser },

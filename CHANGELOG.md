@@ -1,5 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 11.0.0
+
+### Breaking Changes & Migration
+
+- Deprecated `/api/users/all`, Admins should just use `/api/users` to get a list of all users. (will be removed in v12)
+
+### Changes
+
+- Fixed a bug where updating a users email, which was set to null, would throw an error.
+- Fixed bug where `gvbot_` users were showing up in user list
+- Implement `SERVER_DEMO_MODE_ENABLED` to enable/disable demo mode. You wont need this but it will improve the functionality of our demo server.
+
 ## 10.3.2
 
 ### Changes

@@ -48,6 +48,9 @@ const configuration = {
   SERVER: {
     PORT: Number(process.env.SERVER_PORT) || 8080,
     VERSION: process.env.npm_package_version || packageJson.version,
+    DEMO_MODE_ENABLED: parseBooleanEnvVariable(
+      process.env.SERVER_DEMO_MODE_ENABLED,
+    ),
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_LOG_FILES_ENABLED,

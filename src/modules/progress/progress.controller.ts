@@ -24,6 +24,8 @@ import { Role } from "../users/models/role.enum";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { UpdateProgressDto } from "./models/update-progress.dto";
 import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
+import configuration from "../../configuration";
 
 @Controller("progresses")
 @ApiTags("progress")
@@ -79,6 +81,7 @@ export class ProgressController {
   })
   @ApiOkResponse({ type: () => Progress, isArray: true })
   @MinimumRole(Role.USER)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteProgressByProgressId(
     @Param() params: IdDto,
     @Request() req: { gamevaultuser: GamevaultUser },

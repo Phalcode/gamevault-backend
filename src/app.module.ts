@@ -19,6 +19,8 @@ import { RawgModule } from "./modules/providers/rawg/rawg.module";
 import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { APP_INTERCEPTOR } from "@nestjs/core";
+import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
 
 @Module({
   imports: [
@@ -42,6 +44,12 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
     EventEmitterModule.forRoot(),
     PluginModule,
   ],
-  providers: [DefaultStrategy],
+  providers: [
+    DefaultStrategy,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DisableApiIfInterceptor,
+    },
+  ],
 })
 export class AppModule {}
