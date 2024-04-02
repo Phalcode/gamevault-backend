@@ -27,7 +27,7 @@ import { watch } from "chokidar";
 import { debounce } from "lodash";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
-import { mkdir, readdir, stat } from "fs/promises";
+import { readdir, stat } from "fs/promises";
 import { Cron } from "@nestjs/schedule";
 
 @Injectable()
@@ -41,7 +41,6 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    this.checkFolders();
     this.index("Initial indexing on application start").catch((error) => {
       this.logger.error(error, "Error in initial file indexing");
     });
@@ -549,53 +548,5 @@ export class FilesService implements OnApplicationBootstrap {
       length,
       type,
     });
-  }
-
-  /** Checks and creates necessary folders if they do not exist. */
-  private checkFolders() {
-    if (configuration.TESTING.MOCK_FILES) {
-      this.logger.warn(
-        "Not checking or creating any folders because TESTING_MOCK_FILES is set to true",
-      );
-      return;
-    }
-
-    this.createDirectoryIfNotExist(
-      configuration.VOLUMES.FILES,
-      `Directory "${configuration.VOLUMES.FILES}" does not exist. Trying to create a new one...`,
-    );
-
-    this.createDirectoryIfNotExist(
-      configuration.VOLUMES.IMAGES,
-      `Directory "${configuration.VOLUMES.IMAGES}" does not exist. Trying to create a new one...`,
-    );
-
-    if (configuration.SERVER.LOG_FILES_ENABLED) {
-      this.createDirectoryIfNotExist(
-        configuration.VOLUMES.LOGS,
-        `Directory "${configuration.VOLUMES.LOGS}" does not exist. Trying to create a new one...`,
-      );
-    }
-
-    if (
-      configuration.DB.SYSTEM === "SQLITE" &&
-      !configuration.TESTING.IN_MEMORY_DB
-    ) {
-      this.createDirectoryIfNotExist(
-        configuration.VOLUMES.SQLITEDB,
-        `Directory "${configuration.VOLUMES.SQLITEDB}" does not exist. Trying to create a new one...`,
-      );
-    }
-  }
-
-  /** Creates a directory if it does not exist. */
-  private async createDirectoryIfNotExist(
-    path: string,
-    errorMessage: string,
-  ): Promise<void> {
-    if (!existsSync(path)) {
-      this.logger.error(errorMessage);
-      await mkdir(path);
-    }
   }
 }
