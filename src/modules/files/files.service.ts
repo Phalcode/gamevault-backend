@@ -86,11 +86,13 @@ export class FilesService implements OnApplicationBootstrap {
       const gameToIndex = new Game();
       try {
         gameToIndex.size = file.size;
-        gameToIndex.file_path = `${configuration.VOLUMES.FILES}/${file.name}`;
-        gameToIndex.title = this.extractTitle(file.name);
-        gameToIndex.release_date = this.extractReleaseYear(file.name);
-        gameToIndex.version = this.extractVersion(file.name);
-        gameToIndex.early_access = this.extractEarlyAccessFlag(file.name);
+        gameToIndex.file_path = `${file.path}`;
+        gameToIndex.title = this.extractTitle(file.path);
+        gameToIndex.release_date = this.extractReleaseYear(file.path);
+        gameToIndex.version = this.extractVersion(file.path);
+        gameToIndex.early_access = this.extractEarlyAccessFlag(
+          basename(file.path),
+        );
         // For each file, check if it already exists in the database.
         const existingGameTuple: [GameExistence, Game] =
           await this.gamesService.checkIfExistsInDatabase(gameToIndex);
@@ -200,11 +202,11 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method extracts the game version from a given file name string using a
+   * This method extracts the game version from a given file path string using a
    * regular expression.
    */
-  private extractVersion(fileName: string): string | undefined {
-    const match = RegExp(/\((v[^)]+)\)/).exec(fileName);
+  private extractVersion(filePath: string): string | undefined {
+    const match = RegExp(/\((v[^)]+)\)/).exec(basename(filePath));
     if (match?.[1]) {
       return match[1];
     }
@@ -212,23 +214,23 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method extracts the game release year from a given file name string
+   * This method extracts the game release year from a given file path string
    * using a regular expression.
    */
-  private extractReleaseYear(fileName: string): Date {
+  private extractReleaseYear(filePath: string): Date {
     try {
-      return new Date(RegExp(/\((\d{4})\)/).exec(fileName)[1]);
+      return new Date(RegExp(/\((\d{4})\)/).exec(basename(filePath))[1]);
     } catch (error) {
       return undefined;
     }
   }
 
   /**
-   * This method extracts the early access flag from a given file name string
+   * This method extracts the early access flag from a given file path string
    * using a regular expression.
    */
-  private extractEarlyAccessFlag(fileName: string): boolean {
-    return /\(EA\)/.test(fileName);
+  private extractEarlyAccessFlag(filePath: string): boolean {
+    return /\(EA\)/.test(basename(filePath));
   }
 
   private detectWindowsSetupExecutable(files: string[]): boolean {
@@ -421,9 +423,7 @@ export class FilesService implements OnApplicationBootstrap {
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
-          (game) =>
-            `${configuration.VOLUMES.FILES}/${game.name}` ===
-            gameInDatabase.file_path,
+          (file) => file.path === gameInDatabase.file_path,
         );
         // If game is not in file system, mark it as deleted
         if (!gameInFileSystem) {
@@ -466,7 +466,7 @@ export class FilesService implements OnApplicationBootstrap {
         .map(
           (file) =>
             ({
-              name: file.name,
+              path: join(file.path, file.name),
               size: BigInt(statSync(join(file.path, file.name)).size),
             }) as IGameVaultFile,
         );

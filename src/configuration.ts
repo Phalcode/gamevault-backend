@@ -54,6 +54,7 @@ const configuration = {
     LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
     LOG_FILES_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_LOG_FILES_ENABLED,
+      true,
     ),
     REQUEST_LOG_FORMAT:
       process.env.SERVER_REQUEST_LOG_FORMAT || globals.LOGGING_FORMAT,

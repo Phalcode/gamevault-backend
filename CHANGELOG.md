@@ -1,5 +1,18 @@
 # GameVault Backend Server Changelog
 
+## 11.0.1
+
+Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
+
+### Changes
+
+- Fixed a bug where recursive files could not be downloaded. [#269](https://github.com/Phalcode/gamevault-backend/issues/269)
+- Set default value for `SERVER_LOG_FILES_ENABLED` to true.
+
+### Thanks
+
+- @Kudjo
+
 ## 11.0.0
 
 Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
