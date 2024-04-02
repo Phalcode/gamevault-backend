@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## 11.0.2
+
+Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
+
+### Changes
+
+- Moved folder-checks to entrypoint to avoid permissions issues.
+
 ## 11.0.1
 
 Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
