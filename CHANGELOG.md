@@ -6,7 +6,7 @@ Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
 
 ### Changes
 
-- Moved folder-checks to entrypoint to avoid permissions issues.
+- Build Image now includes auto-created default folders, due to a permissions bug with the /logs folder now being written to by default.
 
 ## 11.0.1
 
