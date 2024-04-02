@@ -525,7 +525,9 @@ export class FilesService implements OnApplicationBootstrap {
 
     // If the file does not exist, throw an exception.
     if (!existsSync(fileDownloadPath)) {
-      throw new NotFoundException(`The game file could not be found.`);
+      throw new NotFoundException(
+        `The game file "${fileDownloadPath}" could not be found.`,
+      );
     }
 
     // Read the file and apply speed limit if necessary.
