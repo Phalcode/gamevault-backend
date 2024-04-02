@@ -17,6 +17,12 @@ check_folders() {
     return
   fi
 
+  # Set default values if environment variables are not set or are empty
+  [ -z "$FILES_VOLUME" ] && FILES_VOLUME="/files"
+  [ -z "$IMAGES_VOLUME" ] && IMAGES_VOLUME="/images"
+  [ -z "$LOGS_VOLUME" ] && LOGS_VOLUME="/logs"
+  [ -z "$SQLITEDB_VOLUME" ] && SQLITEDB_VOLUME="/db"
+
   createDirectoryIfNotExist "$FILES_VOLUME"
   createDirectoryIfNotExist "$IMAGES_VOLUME"
   createDirectoryIfNotExist "$LOGS_VOLUME"
