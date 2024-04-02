@@ -1,6 +1,21 @@
 # GameVault Backend Server Changelog
 
+## 11.0.1
+
+Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
+
+### Changes
+
+- Fixed a bug where recursive files could not be downloaded. [#269](https://github.com/Phalcode/gamevault-backend/issues/269)
+- Set default value for `SERVER_LOG_FILES_ENABLED` to true.
+
+### Thanks
+
+- @Kudjo
+
 ## 11.0.0
+
+Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
 
 ### Breaking Changes & Migration
 
@@ -14,17 +29,23 @@
 
 ## 10.3.2
 
+Recommended Gamevault App Version: `v1.8.2.0`
+
 ### Changes
 
 - Fix Username Validation not allowing underscores in usernames.
 
 ## 10.3.1
 
+Recommended Gamevault App Version: `v1.8.2.0`
+
 ### Changes
 
 - Database Migration Hotfix for older servers that have used the old image deduplication algorithm.
 
 ## 10.3.0
+
+Recommended Gamevault App Version: `v1.8.2.0`
 
 ### Changes
 
@@ -41,6 +62,8 @@
 - @lordfransie
 
 ## 10.2.0
+
+Recommended Gamevault App Version: `v1.8.1.0`
 
 ### Changes
 
@@ -62,6 +85,8 @@
 
 ## 10.1.0
 
+Recommended Gamevault App Version: `v1.8.1.0`
+
 ### Changes
 
 - Reintroduced Image Garbage Collection: Now, unused images are systematically purged from both the database and the file system. [#230](https://github.com/Phalcode/gamevault-backend/issues/230)
@@ -81,7 +106,7 @@
 
 ## 10.0.2
 
-Recommended Gamevault App Version: `v1.8.1`
+Recommended Gamevault App Version: `v1.8.1.0`
 
 ### Changes
 
@@ -103,7 +128,7 @@ Recommended Gamevault App Version: `v1.8.1`
 
 ## 10.0.0
 
-Recommended Gamevault App Version: `v1.8.0`
+Recommended Gamevault App Version: `v1.8.0.0`
 
 ### Breaking Changes & Migration
 
@@ -150,7 +175,7 @@ Recommended Gamevault App Version: `v1.8.0`
 
 ## 9.0.5
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.7.3.0`
 
 ### Changes
 
@@ -158,7 +183,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 ## 9.0.4
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.7.3.0`
 
 ### Changes
 
@@ -171,7 +196,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 ## 9.0.3
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.7.3.0`
 
 ### Changes
 
@@ -184,7 +209,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 ## 9.0.2
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.7.3.0`
 
 ### Changes
 
@@ -197,7 +222,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 ## 9.0.1
 
-Recommended Gamevault App Version: `v1.7.3`
+Recommended Gamevault App Version: `v1.7.3.0`
 
 ### Changes
 
@@ -231,7 +256,7 @@ Recommended Gamevault App Version: `v1.7.3`
 
 ## 8.0.3
 
-Recommended Gamevault App Version: `v1.7.0`
+Recommended Gamevault App Version: `v1.7.0.0`
 
 ### Changes
 
@@ -239,7 +264,7 @@ Recommended Gamevault App Version: `v1.7.0`
 
 ## 8.0.2
 
-Recommended Gamevault App Version: `v1.7.0`
+Recommended Gamevault App Version: `v1.7.0.0`
 
 ### Changes
 
@@ -248,7 +273,7 @@ Recommended Gamevault App Version: `v1.7.0`
 
 ## 8.0.1
 
-Recommended Gamevault App Version: `v1.7.0`
+Recommended Gamevault App Version: `v1.7.0.0`
 
 ### Changes
 
@@ -257,7 +282,7 @@ Recommended Gamevault App Version: `v1.7.0`
 
 ## 8.0.0
 
-Recommended Gamevault App Version: `v1.7.0`
+Recommended Gamevault App Version: `v1.7.0.0`
 
 ### Breaking Changes & Migration
 
@@ -280,7 +305,7 @@ Recommended Gamevault App Version: `v1.7.0`
 
 ## 7.0.0
 
-Recommended Gamevault App Version: `v1.6.1`
+Recommended Gamevault App Version: `v1.6.1.0`
 
 ### Breaking Changes & Migration
 
@@ -312,7 +337,7 @@ Recommended Gamevault App Version: `v1.6.1`
 
 ## 6.0.0
 
-Recommended Gamevault App Version: `v1.6.0`
+Recommended Gamevault App Version: `v1.6.0.0`
 
 ### Breaking Changes & Migration
 
@@ -341,7 +366,7 @@ Recommended Gamevault App Version: `v1.6.0`
 
 ## 5.0.2
 
-Recommended Gamevault App Version: `v1.5.0`
+Recommended Gamevault App Version: `v1.5.0.0`
 
 ### Changes
 
@@ -353,7 +378,7 @@ Recommended Gamevault App Version: `v1.5.0`
 
 ## 5.0.1
 
-Recommended Gamevault App Version: `v1.5.0`
+Recommended Gamevault App Version: `v1.5.0.0`
 
 ### Changes
 
@@ -362,7 +387,7 @@ Recommended Gamevault App Version: `v1.5.0`
 
 ## 5.0.0
 
-Recommended Gamevault App Version: `v1.5.0`
+Recommended Gamevault App Version: `v1.5.0.0`
 
 ### Breaking Changes & Migration
 
