@@ -18,6 +18,7 @@ import { AxiosError } from "axios";
 import stringSimilarity from "string-similarity-js";
 import { RawgPlatform } from "./models/platforms";
 import { RawgStore } from "./models/stores";
+import { ClientRequest } from "http";
 
 @Injectable()
 export class RawgService {
@@ -312,6 +313,18 @@ export class RawgService {
           }),
         ),
     );
+
+    //Log the full request url and response data from RAWG
+    this.logger.debug(
+      {
+        url:
+          (response.request as ClientRequest)?.host +
+          (response.request as ClientRequest)?.path,
+        data: response?.data,
+      },
+      `RAWG API Request.`,
+    );
+
     return response.data as SearchResult;
   }
 }
