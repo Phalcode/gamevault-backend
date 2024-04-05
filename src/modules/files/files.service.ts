@@ -218,7 +218,8 @@ export class FilesService implements OnApplicationBootstrap {
    */
   private extractReleaseYear(filePath: string): Date {
     try {
-      return new Date(RegExp(/\((\d{4})\)/).exec(basename(filePath))[1]);
+      const date = new Date(RegExp(/\((\d{4})\)/).exec(basename(filePath))[1]);
+      this.logger.debug({ extractedDate: date, filePath });
     } catch (error) {
       return undefined;
     }
