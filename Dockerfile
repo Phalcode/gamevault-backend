@@ -1,12 +1,11 @@
 FROM node:lts-slim AS base
 
 # Default Variables
+ENV TZ="Etc/UTC"
+ENV NODE_ENV=production
 ENV PUID=1000
 ENV PGID=1000
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-# Build time variables
-## Allow non-root usage
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH=$PATH:/home/node/.npm-global/bin
 ENV PNPM_HOME=/pnpm
@@ -20,7 +19,7 @@ RUN mkdir -p /files /images /logs /db \
 # Install pnpm and other needed tools
 RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     && apt update \
-    && apt install -y sudo tzdata curl p7zip-full p7zip-rar postgresql-client \
+    && apt install -y sudo curl p7zip-full p7zip-rar postgresql-client \
     && apt clean \
     && npm i -g pnpm
 
@@ -42,8 +41,6 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 FROM base AS release
-
-ENV NODE_ENV=production
 
 COPY package.json pnpm-lock.yaml ./
 
