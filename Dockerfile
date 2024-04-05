@@ -1,8 +1,7 @@
 FROM node:lts-slim AS base
 
-# Default Variables
+# Variables
 ENV TZ="Etc/UTC"
-ENV NODE_ENV=production
 ENV PUID=1000
 ENV PGID=1000
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -41,6 +40,8 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 FROM base AS release
+
+ENV NODE_ENV=production
 
 COPY package.json pnpm-lock.yaml ./
 
