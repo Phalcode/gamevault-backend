@@ -48,6 +48,21 @@ export function getDatabaseConfiguration(
 }
 
 function preparePostgresConnector() {
-  // workaround for https://github.com/typeorm/typeorm/issues/2622 and https://github.com/brianc/node-postgres/issues/1746
+  /**
+   * @see https://github.com/brianc/node-postgres/issues/2141
+   * Other links that can be helpful:
+   *  - https://github.com/typeorm/typeorm/issues/4519
+   *  - https://github.com/brianc/node-postgres/issues/1746
+   *  - https://github.com/typeorm/typeorm/issues/2390
+   */
   pg.defaults.parseInputDatesAsUTC = true;
+  /**
+   * @see https://github.com/brianc/node-postgres/issues/993#issuecomment-267684417
+   * @see https://jdbc.postgresql.org/development/privateapi/constant-values.html to find 1114 number
+   */
+  pg.types.setTypeParser(1114, (stringValue: string) => {
+    const converted = new Date(`${stringValue}Z`);
+    logger.debug(`Converted timestamp "${stringValue}" to ${converted}`);
+    return converted;
+  });
 }
