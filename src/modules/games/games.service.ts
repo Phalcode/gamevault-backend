@@ -98,20 +98,24 @@ export class GamesService {
 
     const differences: string[] = [];
 
-    if (foundGame.file_path !== game.file_path) {
+    if (foundGame.file_path != game.file_path) {
       differences.push(
         `File Path: ${foundGame.file_path} -> ${game.file_path}`,
       );
     }
-    if (foundGame.title !== game.title) {
+    if (foundGame.title != game.title) {
       differences.push(`Title: ${foundGame.title} -> ${game.title}`);
     }
-    if (+foundGame.release_date !== +game.release_date) {
+    if (
+      +foundGame.release_date != +game.release_date &&
+      foundGame.rawg_release_date &&
+      +foundGame.release_date != +foundGame.rawg_release_date
+    ) {
       differences.push(
         `Release Date: ${foundGame.release_date} -> ${game.release_date}`,
       );
     }
-    if (foundGame.early_access !== game.early_access) {
+    if (foundGame.early_access != game.early_access) {
       differences.push(
         `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
       );
@@ -119,7 +123,7 @@ export class GamesService {
     if (foundGame.version != game.version) {
       differences.push(`Version: ${foundGame.version} -> ${game.version}`);
     }
-    if (foundGame.size.toString() !== game.size.toString()) {
+    if (foundGame.size.toString() != game.size.toString()) {
       differences.push(`Size: ${foundGame.size} -> ${game.size}`);
     }
 

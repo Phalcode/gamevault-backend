@@ -1,5 +1,22 @@
 # GameVault Backend Server Changelog
 
+## 11.0.3
+
+Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`
+
+### Changes
+
+- Added more verbose logging to RAWG API Calls
+- Fixed a bug where the ORM would convert UTC timestamps to localdate and save them in the database [#257](https://github.com/Phalcode/gamevault-backend/issues/257)
+- Fixed a bug where the Release Year in the filename would be ignored
+- Fixed permissions on container-internal folders, when using PGID and PUID
+- Fixed Boolean Env Variables Parsing and added support for more than just "true" and "false", like "0" and "1" etc.
+
+### Thanks
+
+- @nodiaque
+- @doctorase
+
 ## 11.0.2
 
 Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`

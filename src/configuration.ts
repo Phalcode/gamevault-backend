@@ -4,8 +4,25 @@ import packageJson from "../package.json";
 function parseBooleanEnvVariable(
   environmentVariable: string,
   defaultCase: boolean = false,
-) {
-  return environmentVariable?.toLowerCase() === "true" || defaultCase;
+): boolean {
+  switch (environmentVariable?.toLocaleLowerCase()) {
+    case "0":
+    case "false":
+    case "no":
+    case "off":
+    case "disable":
+    case "disabled":
+      return false;
+    case "1":
+    case "true":
+    case "yes":
+    case "on":
+    case "enable":
+    case "enabled":
+      return true;
+    default:
+      return defaultCase;
+  }
 }
 
 function parsePath(environmentVariable: string, defaultPath: string) {

@@ -1,12 +1,10 @@
 FROM node:lts-slim AS base
 
-# Default Variables
+# Variables
+ENV TZ="Etc/UTC"
 ENV PUID=1000
 ENV PGID=1000
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-# Build time variables
-## Allow non-root usage
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH=$PATH:/home/node/.npm-global/bin
 ENV PNPM_HOME=/pnpm
@@ -15,12 +13,13 @@ ENV SERVER_PORT=8080
 
 # Create directories and set more restrictive permissions
 RUN mkdir -p /files /images /logs /db \
-    && chown -R node:node /files /images /logs /db
+    && chown -R node:node /files /images /logs /db \
+    && chmod -R 777 /files /images /logs /db
 
 # Install pnpm and other needed tools
 RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     && apt update \
-    && apt install -y sudo tzdata curl p7zip-full p7zip-rar postgresql-client \
+    && apt install -y sudo curl p7zip-full p7zip-rar postgresql-client \
     && apt clean \
     && npm i -g pnpm
 
