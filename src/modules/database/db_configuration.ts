@@ -4,6 +4,7 @@ import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConne
 import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
 import configuration from "../../configuration";
 import pg from "pg";
+import logger from "../../logging";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
@@ -46,9 +47,11 @@ export function getDatabaseConfiguration(
 }
 
 function preparePostgresConnector() {
+  logger.debug("Initialed PostgreSQL type-parser...");
   // workaround for https://github.com/typeorm/typeorm/issues/2622
-  pg.types.setTypeParser(
-    1114,
-    (stringValue: string) => new Date(`${stringValue}+0000`),
-  );
+  pg.types.setTypeParser(1114, (stringValue: string) => {
+    const converted = new Date(`${stringValue}+0000`);
+    logger.debug("converted datetime: " + stringValue + " to " + converted);
+    return converted;
+  });
 }
