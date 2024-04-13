@@ -14,7 +14,6 @@ const baseConfig: TypeOrmModuleOptions = {
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
   logging: configuration.DB.DEBUG,
-  useUTC: true,
 };
 
 const postgresConfig: PostgresConnectionOptions = {
@@ -38,20 +37,17 @@ const sqliteConfig: BetterSqlite3ConnectionOptions = {
 export function getDatabaseConfiguration(
   databaseType: string,
 ): TypeOrmModuleOptions {
-  if (databaseType === "SQLITE") {
-    return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
-  } else {
-    preparePostgresConnector();
-    return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
+  switch (databaseType) {
+    case "SQLITE":
+      return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
+    case "POSTGRESQL":
+    default:
+      preparePostgresConnector();
+      return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
   }
 }
 
 function preparePostgresConnector() {
-  logger.debug("Initialed PostgreSQL type-parser...");
-  // workaround for https://github.com/typeorm/typeorm/issues/2622
-  pg.types.setTypeParser(1114, (stringValue: string) => {
-    const converted = new Date(`${stringValue}+0000`);
-    logger.debug("converted datetime: " + stringValue + " to " + converted);
-    return converted;
-  });
+  // workaround for https://github.com/typeorm/typeorm/issues/2622 and https://github.com/brianc/node-postgres/issues/1746
+  pg.defaults.parseInputDatesAsUTC = true;
 }
