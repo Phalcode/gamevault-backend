@@ -37,14 +37,11 @@ const sqliteConfig: BetterSqlite3ConnectionOptions = {
 export function getDatabaseConfiguration(
   databaseType: string,
 ): TypeOrmModuleOptions {
-  switch (databaseType) {
-    case "SQLITE":
-      return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
-    case "POSTGRESQL":
-      preparePostgresConnector();
-      return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
-    default:
-      return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
+  if (databaseType === "SQLITE") {
+    return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
+  } else {
+    preparePostgresConnector();
+    return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
   }
 }
 
