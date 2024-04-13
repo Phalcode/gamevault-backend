@@ -13,6 +13,7 @@ const baseConfig: TypeOrmModuleOptions = {
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
   logging: configuration.DB.DEBUG,
+  useUTC: true,
 };
 
 const postgresConfig: PostgresConnectionOptions = {
