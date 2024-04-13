@@ -4,7 +4,6 @@ import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConne
 import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
 import configuration from "../../configuration";
 import pg from "pg";
-import logger from "../../logging";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
@@ -56,13 +55,4 @@ function preparePostgresConnector() {
    *  - https://github.com/typeorm/typeorm/issues/2390
    */
   pg.defaults.parseInputDatesAsUTC = true;
-  /**
-   * @see https://github.com/brianc/node-postgres/issues/993#issuecomment-267684417
-   * @see https://jdbc.postgresql.org/development/privateapi/constant-values.html to find 1114 number
-   */
-  pg.types.setTypeParser(1114, (stringValue: string) => {
-    const converted = new Date(`${stringValue}Z`);
-    logger.debug(`Converted timestamp "${stringValue}" to ${converted}`);
-    return converted;
-  });
 }
