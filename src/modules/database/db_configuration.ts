@@ -3,6 +3,7 @@ import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
 import configuration from "../../configuration";
+import pg from "pg";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
@@ -12,7 +13,6 @@ const baseConfig: TypeOrmModuleOptions = {
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
   logging: configuration.DB.DEBUG,
-  useUTC: true,
 };
 
 const postgresConfig: PostgresConnectionOptions = {
@@ -40,8 +40,17 @@ export function getDatabaseConfiguration(
     case "SQLITE":
       return { ...baseConfig, ...sqliteConfig } as TypeOrmModuleOptions;
     case "POSTGRESQL":
+      preparePostgresConnector();
       return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
     default:
       return { ...baseConfig, ...postgresConfig } as TypeOrmModuleOptions;
   }
+}
+
+function preparePostgresConnector() {
+  // workaround for https://github.com/typeorm/typeorm/issues/2622
+  pg.types.setTypeParser(
+    1114,
+    (stringValue: string) => new Date(`${stringValue}+0000`),
+  );
 }
