@@ -220,6 +220,7 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       const date = new Date(RegExp(/\((\d{4})\)/).exec(basename(filePath))[1]);
       this.logger.debug({ extractedDate: date, filePath });
+      return date;
     } catch (error) {
       return undefined;
     }
