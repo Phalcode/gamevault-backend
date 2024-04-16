@@ -7,10 +7,12 @@ import { ImagesModule } from "../images/images.module";
 import { ActivityGateway } from "./activity.gateway";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import { SocketSecretService } from "./socket-secret.service";
+import { GamesModule } from "../games/games.module";
 @Module({
   imports: [
     TypeOrmModule.forFeature([GamevaultUser]),
     forwardRef(() => ImagesModule),
+    forwardRef(() => GamesModule),
   ],
   controllers: [UsersController],
   providers: [

@@ -27,6 +27,7 @@ import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
 import { FindOptions } from "../../globals";
 import { randomBytes } from "crypto";
+import { GamesService } from "../games/games.service";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -37,6 +38,8 @@ export class UsersService implements OnApplicationBootstrap {
     private userRepository: Repository<GamevaultUser>,
     @Inject(forwardRef(() => ImagesService))
     private imagesService: ImagesService,
+    @Inject(forwardRef(() => GamesService))
+    private gamesService: GamesService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -329,6 +332,22 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
     return true;
+  }
+
+  public async bookmarkGame(userId: number, gameId: number) {
+    const user = await this.findByUserIdOrFail(userId);
+    const game = await this.gamesService.findByGameIdOrFail(gameId);
+    user.bookmarks.push(game);
+    return this.userRepository.save(user);
+  }
+
+  public async unbookmarkGame(userId: number, gameId: number) {
+    const user = await this.findByUserIdOrFail(userId);
+    const game = await this.gamesService.findByGameIdOrFail(gameId);
+    user.bookmarks = user.bookmarks.filter((bookmark) => {
+      return bookmark.id !== game.id;
+    });
+    return this.userRepository.save(user);
   }
 
   private async throwIfAlreadyExists(
