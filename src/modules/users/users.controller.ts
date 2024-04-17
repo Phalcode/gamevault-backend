@@ -108,7 +108,7 @@ export class UsersController {
     return await this.usersService.delete(user.id);
   }
 
-  @Post("me/bookmark/:gameId")
+  @Post("me/bookmark/:id")
   @ApiOperation({
     summary: "bookmark a game",
     operationId: "postUsersMeBookmark",
@@ -117,14 +117,14 @@ export class UsersController {
   async postUsersMeBookmark(
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
-  ): Promise<void> {
+  ): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    this.usersService.bookmarkGame(user.id, Number(params.id));
+    return this.usersService.bookmarkGame(user.id, Number(params.id));
   }
 
-  @Delete("me/bookmark/:gameId")
+  @Delete("me/bookmark/:id")
   @ApiOperation({
     summary: "unbookmark a game",
     operationId: "deleteUsersMeBookmark",
@@ -133,11 +133,11 @@ export class UsersController {
   async deleteUsersMeBookmark(
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
-  ): Promise<void> {
+  ): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    this.usersService.unbookmarkGame(user.id, Number(params.id));
+    return this.usersService.unbookmarkGame(user.id, Number(params.id));
   }
 
   /** Get details on a user. */
