@@ -358,16 +358,27 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId);
+    const user = await this.findByUserIdOrFail(userId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
+    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
 
-    if (user.bookmarked_games.some((game) => game.id === gameId)) {
+    if (
+      user.bookmarked_games.some(
+        (bookmarkedGame) => bookmarkedGame.id === game.id,
+      )
+    ) {
       this.logger.log(
         `User "${user.username}" has already bookmarked game ${gameId}.`,
       );
+      user.bookmarked_games.push(game);
       return user;
     }
 
-    const game = await this.gamesService.findByGameIdOrFail(gameId);
     user.bookmarked_games.push(game);
     this.logger.log(
       `User "${user.username}" has bookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,
@@ -377,8 +388,14 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId);
-    const game = await this.gamesService.findByGameIdOrFail(gameId);
+    const user = await this.findByUserIdOrFail(userId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
       return bookmark.id !== game.id;
     });
