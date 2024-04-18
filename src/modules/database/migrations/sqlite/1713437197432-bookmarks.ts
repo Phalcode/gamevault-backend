@@ -5,17 +5,17 @@ export class Bookmarks1713437197432 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            CREATE TABLE "bookmarks" (
+            CREATE TABLE "bookmark" (
                 "gamevault_user_id" integer NOT NULL,
                 "game_id" integer NOT NULL,
                 PRIMARY KEY ("gamevault_user_id", "game_id")
             )
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmarks" ("gamevault_user_id")
+            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmark" ("gamevault_user_id")
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmarks" ("game_id")
+            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmark" ("game_id")
         `);
     await queryRunner.query(`
             DROP INDEX "IDX_90b8e2ed41d03127a4a9dbd839"
@@ -24,7 +24,7 @@ export class Bookmarks1713437197432 implements MigrationInterface {
             DROP INDEX "IDX_8990e34bae4dca1bed3c9ab14d"
         `);
     await queryRunner.query(`
-            CREATE TABLE "temporary_bookmarks" (
+            CREATE TABLE "temporary_bookmark" (
                 "gamevault_user_id" integer NOT NULL,
                 "game_id" integer NOT NULL,
                 CONSTRAINT "FK_90b8e2ed41d03127a4a9dbd8392" FOREIGN KEY ("gamevault_user_id") REFERENCES "gamevault_user" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -33,23 +33,23 @@ export class Bookmarks1713437197432 implements MigrationInterface {
             )
         `);
     await queryRunner.query(`
-            INSERT INTO "temporary_bookmarks"("gamevault_user_id", "game_id")
+            INSERT INTO "temporary_bookmark"("gamevault_user_id", "game_id")
             SELECT "gamevault_user_id",
                 "game_id"
-            FROM "bookmarks"
+            FROM "bookmark"
         `);
     await queryRunner.query(`
-            DROP TABLE "bookmarks"
+            DROP TABLE "bookmark"
         `);
     await queryRunner.query(`
-            ALTER TABLE "temporary_bookmarks"
-                RENAME TO "bookmarks"
+            ALTER TABLE "temporary_bookmark"
+                RENAME TO "bookmark"
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmarks" ("gamevault_user_id")
+            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmark" ("gamevault_user_id")
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmarks" ("game_id")
+            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmark" ("game_id")
         `);
   }
 
@@ -61,30 +61,30 @@ export class Bookmarks1713437197432 implements MigrationInterface {
             DROP INDEX "IDX_90b8e2ed41d03127a4a9dbd839"
         `);
     await queryRunner.query(`
-            ALTER TABLE "bookmarks"
-                RENAME TO "temporary_bookmarks"
+            ALTER TABLE "bookmark"
+                RENAME TO "temporary_bookmark"
         `);
     await queryRunner.query(`
-            CREATE TABLE "bookmarks" (
+            CREATE TABLE "bookmark" (
                 "gamevault_user_id" integer NOT NULL,
                 "game_id" integer NOT NULL,
                 PRIMARY KEY ("gamevault_user_id", "game_id")
             )
         `);
     await queryRunner.query(`
-            INSERT INTO "bookmarks"("gamevault_user_id", "game_id")
+            INSERT INTO "bookmark"("gamevault_user_id", "game_id")
             SELECT "gamevault_user_id",
                 "game_id"
-            FROM "temporary_bookmarks"
+            FROM "temporary_bookmark"
         `);
     await queryRunner.query(`
-            DROP TABLE "temporary_bookmarks"
+            DROP TABLE "temporary_bookmark"
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmarks" ("game_id")
+            CREATE INDEX "IDX_8990e34bae4dca1bed3c9ab14d" ON "bookmark" ("game_id")
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmarks" ("gamevault_user_id")
+            CREATE INDEX "IDX_90b8e2ed41d03127a4a9dbd839" ON "bookmark" ("gamevault_user_id")
         `);
     await queryRunner.query(`
             DROP INDEX "IDX_8990e34bae4dca1bed3c9ab14d"
@@ -93,7 +93,7 @@ export class Bookmarks1713437197432 implements MigrationInterface {
             DROP INDEX "IDX_90b8e2ed41d03127a4a9dbd839"
         `);
     await queryRunner.query(`
-            DROP TABLE "bookmarks"
+            DROP TABLE "bookmark"
         `);
   }
 }
