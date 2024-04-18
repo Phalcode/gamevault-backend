@@ -359,6 +359,14 @@ export class UsersService implements OnApplicationBootstrap {
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId);
+
+    if (user.bookmarked_games.some((game) => game.id === gameId)) {
+      this.logger.log(
+        `User "${user.username}" has already bookmarked game ${gameId}.`,
+      );
+      return user;
+    }
+
     const game = await this.gamesService.findByGameIdOrFail(gameId);
     user.bookmarked_games.push(game);
     this.logger.log(
