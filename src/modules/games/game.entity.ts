@@ -238,12 +238,4 @@ export class Game extends DatabaseEntity {
     isArray: true,
   })
   bookmarked_users?: GamevaultUser[];
-
-  @RelationId((game: Game) => game.bookmarked_users)
-  @ApiProperty({
-    description: "ids of users that bookmarked this games",
-    type: () => Number,
-    isArray: true,
-  })
-  bookmarked_users_ids?: number[];
 }

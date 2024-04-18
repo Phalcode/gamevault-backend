@@ -115,19 +115,11 @@ export class GamevaultUser extends DatabaseEntity {
   uploaded_images?: Image[];
 
   @ManyToMany(() => Game, (game) => game.bookmarked_users)
-  @JoinTable()
+  @JoinTable({ name: "bookmarks" })
   @ApiProperty({
     description: "games bookmarked by this user",
     type: () => Game,
     isArray: true,
   })
   bookmarked_games?: Game[];
-
-  @RelationId((user: GamevaultUser) => user.bookmarked_games)
-  @ApiProperty({
-    description: "ids of games bookmarked by this user",
-    type: () => Number,
-    isArray: true,
-  })
-  bookmarked_games_ids?: number[];
 }

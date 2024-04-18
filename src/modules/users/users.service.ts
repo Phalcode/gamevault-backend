@@ -91,7 +91,7 @@ export class UsersService implements OnApplicationBootstrap {
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
         relations: options.loadRelations
-          ? ["progresses", "progresses.game", "gamevault_user_bookmarks_games"]
+          ? ["progresses", "progresses.game", "bookmarked_games"]
           : [],
         withDeleted: true,
       })
@@ -116,7 +116,7 @@ export class UsersService implements OnApplicationBootstrap {
         },
 
         relations: options.loadRelations
-          ? ["progresses", "progresses.game", "gamevault_user_bookmarks_games"]
+          ? ["progresses", "progresses.game", "bookmarked_games"]
           : [],
         withDeleted: true,
       })
