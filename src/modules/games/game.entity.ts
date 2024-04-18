@@ -8,6 +8,7 @@ import {
   JoinTable,
   JoinColumn,
   OneToOne,
+  RelationId,
 } from "typeorm";
 import { Developer } from "../developers/developer.entity";
 import { Genre } from "../genres/genre.entity";
