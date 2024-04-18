@@ -362,8 +362,7 @@ export class UsersService implements OnApplicationBootstrap {
     const game = await this.gamesService.findByGameIdOrFail(gameId);
     user.bookmarked_games.push(game);
     this.logger.log(
-      user,
-      `User "${user.username}" has bookmarked game ${game.id} (${game.title} (${game.release_date.getUTCFullYear()})).`,
+      `User "${user.username}" has bookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,
     );
     return this.userRepository.save(user);
   }
@@ -376,8 +375,9 @@ export class UsersService implements OnApplicationBootstrap {
       return bookmark.id !== game.id;
     });
     this.logger.log(
-      `User "${user.username}" has unbookmarked game ${game.id} (${game.title} (${game.release_date.getUTCFullYear()})).`,
+      `User "${user.username}" has unbookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,
     );
+
     return this.userRepository.save(user);
   }
 
