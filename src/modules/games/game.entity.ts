@@ -8,6 +8,7 @@ import {
   JoinTable,
   JoinColumn,
   OneToOne,
+  RelationId,
 } from "typeorm";
 import { Developer } from "../developers/developer.entity";
 import { Genre } from "../genres/genre.entity";
@@ -18,6 +19,7 @@ import { Tag } from "../tags/tag.entity";
 import { Image } from "../images/image.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GameType } from "./models/game-type.enum";
+import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Entity()
 export class Game extends DatabaseEntity {
@@ -228,4 +230,12 @@ export class Game extends DatabaseEntity {
     isArray: true,
   })
   genres?: Genre[];
+
+  @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
+  @ApiProperty({
+    description: "users that bookmarked this game",
+    type: () => Game,
+    isArray: true,
+  })
+  bookmarked_users?: GamevaultUser[];
 }

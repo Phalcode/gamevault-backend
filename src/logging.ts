@@ -54,8 +54,8 @@ const logger = WinstonModule.createLogger({
 });
 
 const stream = {
-  write: function (message) {
-    logger.log(message, "Morgan");
+  write(message: string) {
+    logger.log(message, "HTTP Request");
   },
 };
 

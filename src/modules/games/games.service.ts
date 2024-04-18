@@ -48,6 +48,7 @@ export class GamesService {
               "progresses.user",
               "box_image",
               "background_image",
+              "bookmarked_users",
             ]
           : [],
         withDeleted: options.loadDeletedEntities,

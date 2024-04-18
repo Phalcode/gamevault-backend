@@ -1,5 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 12.0.0
+
+Recommended Gamevault App Version: `v1.9.0.0`
+
+### Changes
+
+- Implemented Bookmarking. Users can now bookmark games and filter by them.
+- Refactored Logging
+  - HTTP Requests now get logged to console in a better format by default
+  - TODO: Added more context to each log.
+- Bugfix: Duplicate email when creating a user would return extremely unhelpful error messages. [#351](https://github.com/Phalcode/gamevault-app/issues/351)
+
 ## 11.0.3
 
 Recommended Gamevault App Version: `v1.8.2.0` or `v1.9.0.0`

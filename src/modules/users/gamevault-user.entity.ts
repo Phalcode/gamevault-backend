@@ -1,9 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Entity, Column, OneToMany, JoinColumn, OneToOne } from "typeorm";
+import {
+  Entity,
+  Column,
+  OneToMany,
+  JoinColumn,
+  OneToOne,
+  ManyToMany,
+  RelationId,
+  JoinTable,
+} from "typeorm";
 import { Image } from "../images/image.entity";
 import { Progress } from "../progress/progress.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { Role } from "./models/role.enum";
+import { Game } from "../games/game.entity";
 
 @Entity()
 export class GamevaultUser extends DatabaseEntity {
@@ -103,4 +113,13 @@ export class GamevaultUser extends DatabaseEntity {
     isArray: true,
   })
   uploaded_images?: Image[];
+
+  @ManyToMany(() => Game, (game) => game.bookmarked_users)
+  @JoinTable({ name: "bookmarks" })
+  @ApiProperty({
+    description: "games bookmarked by this user",
+    type: () => Game,
+    isArray: true,
+  })
+  bookmarked_games?: Game[];
 }

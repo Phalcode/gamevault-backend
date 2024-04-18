@@ -52,33 +52,15 @@ export class UsersController {
     return await this.usersService.getAll(includeHidden);
   }
 
-  /**
-   * Get an overview of all users.\
-   * TODO: REMOVE with v12
-   *
-   * @deprecated Use `getUsers` instead.
-   */
-  @Get("all")
-  @MinimumRole(Role.ADMIN)
-  @ApiOperation({
-    summary: "get an overview of all users",
-    operationId: "getUsersAdmin",
-    deprecated: true,
-  })
-  @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
-  async getUsersAdmin(): Promise<GamevaultUser[]> {
-    return await this.usersService.getAll(true);
-  }
-
   /** Retrieve user information based on the provided request object. */
   @Get("me")
   @ApiOperation({
     summary: "get details of your user",
-    operationId: "getUserMe",
+    operationId: "getUsersMe",
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
-  async getUserMe(
+  async getUsersMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
@@ -95,12 +77,12 @@ export class UsersController {
   @ApiBody({ type: () => UpdateUserDto })
   @ApiOperation({
     summary: "update details of your user",
-    operationId: "putUserMe",
+    operationId: "putUsersMe",
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => GamevaultUser })
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  async putUserMe(
+  async putUsersMe(
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
@@ -119,11 +101,43 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  async deleteUserMe(@Request() request): Promise<GamevaultUser> {
+  async deleteUsersMe(@Request() request): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.delete(user.id);
+  }
+
+  @Post("me/bookmark/:id")
+  @ApiOperation({
+    summary: "bookmark a game",
+    operationId: "postUsersMeBookmark",
+  })
+  @MinimumRole(Role.GUEST)
+  async postUsersMeBookmark(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Param() params: IdDto,
+  ): Promise<GamevaultUser> {
+    const user = await this.usersService.findByUsernameOrFail(
+      request.gamevaultuser.username,
+    );
+    return this.usersService.bookmarkGame(user.id, Number(params.id));
+  }
+
+  @Delete("me/bookmark/:id")
+  @ApiOperation({
+    summary: "unbookmark a game",
+    operationId: "deleteUsersMeBookmark",
+  })
+  @MinimumRole(Role.GUEST)
+  async deleteUsersMeBookmark(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Param() params: IdDto,
+  ): Promise<GamevaultUser> {
+    const user = await this.usersService.findByUsernameOrFail(
+      request.gamevaultuser.username,
+    );
+    return this.usersService.unbookmarkGame(user.id, Number(params.id));
   }
 
   /** Get details on a user. */

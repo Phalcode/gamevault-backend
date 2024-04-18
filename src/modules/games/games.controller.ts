@@ -67,6 +67,9 @@ export class GamesController {
       if (query.filter["tags.name"]) {
         relations.push("tags");
       }
+      if (query.filter["bookmarked_users.id"]) {
+        relations.push("bookmarked_users");
+      }
     }
 
     return paginate(query, this.gamesRepository, {
@@ -86,6 +89,7 @@ export class GamesController {
         "average_playtime",
         "early_access",
         "type",
+        "bookmarked_users.id",
       ],
       searchableColumns: ["title", "description"],
       filterableColumns: {
@@ -98,6 +102,7 @@ export class GamesController {
         average_playtime: true,
         early_access: true,
         type: true,
+        "bookmarked_users.id": true,
         "genres.name": true,
         "tags.name": true,
       },
