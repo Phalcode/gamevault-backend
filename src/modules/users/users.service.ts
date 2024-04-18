@@ -366,19 +366,6 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: false,
     });
-
-    if (
-      user.bookmarked_games.some(
-        (bookmarkedGame) => bookmarkedGame.id === game.id,
-      )
-    ) {
-      this.logger.log(
-        `User "${user.username}" has already bookmarked game ${gameId}.`,
-      );
-      user.bookmarked_games.push(game);
-      return user;
-    }
-
     user.bookmarked_games.push(game);
     this.logger.log(
       `User "${user.username}" has bookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,

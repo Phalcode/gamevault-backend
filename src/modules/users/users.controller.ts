@@ -121,6 +121,9 @@ export class UsersController {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
     );
+    if (user.bookmarked_games.some((game) => game.id === Number(params.id))) {
+      return user;
+    }
     return this.usersService.bookmarkGame(user.id, Number(params.id));
   }
 
