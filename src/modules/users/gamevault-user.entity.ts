@@ -6,7 +6,6 @@ import {
   JoinColumn,
   OneToOne,
   ManyToMany,
-  RelationId,
   JoinTable,
 } from "typeorm";
 import { Image } from "../images/image.entity";
