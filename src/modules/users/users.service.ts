@@ -360,7 +360,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async bookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
       loadDeletedEntities: false,
-      loadRelations: false,
+      loadRelations: true,
     });
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
