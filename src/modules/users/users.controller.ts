@@ -123,7 +123,6 @@ export class UsersController {
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
     await this.usersService.bookmarkGame(user.id, Number(params.id));
-    return;
   }
 
   @Delete("me/bookmark/:id")
@@ -141,7 +140,6 @@ export class UsersController {
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
     await this.usersService.unbookmarkGame(user.id, Number(params.id));
-    return;
   }
 
   /** Get details on a user. */
