@@ -21,7 +21,7 @@ RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sourc
     && apt update \
     && apt install -y sudo curl p7zip-full p7zip-rar postgresql-client \
     && apt clean \
-    && npm i -g pnpm
+    && npm i -g pnpm@^9.0.0
 
 WORKDIR /app
 
