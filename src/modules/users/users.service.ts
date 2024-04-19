@@ -84,15 +84,22 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
+    let relations = [];
+
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        relations = ["progresses", "progresses.game", "bookmarked_games"];
+      } else if (Array.isArray(options.loadRelations))
+        relations = options.loadRelations;
+    }
+
     const user = await this.userRepository
       .findOneOrFail({
         where: {
           id,
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
-        relations: options.loadRelations
-          ? ["progresses", "progresses.game", "bookmarked_games"]
-          : [],
+        relations,
         withDeleted: true,
       })
       .catch((error) => {
@@ -108,6 +115,15 @@ export class UsersService implements OnApplicationBootstrap {
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
+    let relations = [];
+
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        relations = ["progresses", "progresses.game", "bookmarked_games"];
+      } else if (Array.isArray(options.loadRelations))
+        relations = options.loadRelations;
+    }
+
     const user = await this.userRepository
       .findOneOrFail({
         where: {
@@ -115,9 +131,7 @@ export class UsersService implements OnApplicationBootstrap {
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
 
-        relations: options.loadRelations
-          ? ["progresses", "progresses.game", "bookmarked_games"]
-          : [],
+        relations,
         withDeleted: true,
       })
       .catch((error) => {
@@ -360,7 +374,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async bookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
       loadDeletedEntities: false,
-      loadRelations: true,
+      loadRelations: ["bookmarked_games"],
     });
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
       loadDeletedEntities: false,

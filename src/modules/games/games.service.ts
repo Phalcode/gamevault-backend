@@ -35,22 +35,29 @@ export class GamesService {
     options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
   ): Promise<Game> {
     try {
+      let relations = [];
+
+      if (options.loadRelations) {
+        if (options.loadRelations === true) {
+          relations = [
+            "developers",
+            "publishers",
+            "genres",
+            "stores",
+            "tags",
+            "progresses",
+            "progresses.user",
+            "box_image",
+            "background_image",
+            "bookmarked_users",
+          ];
+        } else if (Array.isArray(options.loadRelations))
+          relations = options.loadRelations;
+      }
+
       const games = await this.gamesRepository.findOneOrFail({
         where: { id },
-        relations: options.loadRelations
-          ? [
-              "developers",
-              "publishers",
-              "genres",
-              "stores",
-              "tags",
-              "progresses",
-              "progresses.user",
-              "box_image",
-              "background_image",
-              "bookmarked_users",
-            ]
-          : [],
+        relations,
         withDeleted: options.loadDeletedEntities,
         relationLoadStrategy: "query",
       });

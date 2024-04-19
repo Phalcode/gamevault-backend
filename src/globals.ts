@@ -78,5 +78,5 @@ export interface FindOptions {
    *
    * @default false
    */
-  loadRelations: boolean;
+  loadRelations: boolean | string[];
 }
