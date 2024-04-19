@@ -9,7 +9,6 @@ const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
   entities: ["dist/**/*.entity.js"],
   synchronize: configuration.DB.SYNCHRONIZE,
-  cache: { alwaysEnabled: true, ignoreErrors: true },
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
   logging: configuration.DB.DEBUG,
