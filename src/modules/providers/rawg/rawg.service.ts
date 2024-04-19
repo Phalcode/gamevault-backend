@@ -131,7 +131,7 @@ export class RawgService {
       ? await this.fetchByRawgId(game.rawg_id)
       : await this.getBestMatch(
           game.title,
-          game.release_date?.getFullYear() || undefined,
+          game.release_date?.getUTCFullYear() || undefined,
         );
 
     // Map the RawgGame to a Game object
@@ -220,7 +220,9 @@ export class RawgService {
 
       // If releaseYear is provided, adjust the probability based on the difference between the release year of the game and the provided release year
       if (releaseYear !== undefined) {
-        const gameReleaseYear = new Date(searchResult.released).getFullYear();
+        const gameReleaseYear = new Date(
+          searchResult.released,
+        )?.getUTCFullYear();
         searchResult.probability -=
           Math.abs(releaseYear - gameReleaseYear) / 10;
       }
