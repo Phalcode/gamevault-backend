@@ -397,6 +397,10 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: true,
     });
+    if (!user.bookmarked_games.some((game) => game.id === gameId)) {
+      return user;
+    }
+
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
       loadRelations: false,

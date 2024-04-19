@@ -137,6 +137,7 @@ export class UsersController {
   ): Promise<GamevaultUser> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
+      { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
     return this.usersService.unbookmarkGame(user.id, Number(params.id));
   }
