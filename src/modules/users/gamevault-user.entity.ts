@@ -7,6 +7,7 @@ import {
   OneToOne,
   ManyToMany,
   JoinTable,
+  Index,
 } from "typeorm";
 import { Image } from "../images/image.entity";
 import { Progress } from "../progress/progress.entity";
@@ -16,6 +17,7 @@ import { Game } from "../games/game.entity";
 
 @Entity()
 export class GamevaultUser extends DatabaseEntity {
+  @Index()
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
   username: string;

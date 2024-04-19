@@ -7,6 +7,7 @@ Recommended Gamevault App Version: `v1.9.0.0`
 ### Changes
 
 - Implemented Bookmarking. Users can now bookmark games and filter by them.
+- Added some database indexes to improve performance
 - Refactored Logging
   - HTTP Requests now get logged to console in a better format by default
   - TODO: Added more context to each log.

@@ -53,6 +53,7 @@ export class Game extends DatabaseEntity {
   })
   version?: string;
 
+  @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
@@ -75,6 +76,7 @@ export class Game extends DatabaseEntity {
   })
   cache_date?: Date;
 
+  @Index({ unique: true })
   @Column({ unique: true })
   @ApiProperty({
     description: "filepath to the game (relative to the root)",
