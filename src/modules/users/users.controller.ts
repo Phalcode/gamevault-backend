@@ -117,12 +117,13 @@ export class UsersController {
   async postUsersMeBookmark(
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
-  ): Promise<GamevaultUser> {
+  ): Promise<void> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
-    return this.usersService.bookmarkGame(user.id, Number(params.id));
+    await this.usersService.bookmarkGame(user.id, Number(params.id));
+    return;
   }
 
   @Delete("me/bookmark/:id")
@@ -134,12 +135,13 @@ export class UsersController {
   async deleteUsersMeBookmark(
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
-  ): Promise<GamevaultUser> {
+  ): Promise<void> {
     const user = await this.usersService.findByUsernameOrFail(
       request.gamevaultuser.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
-    return this.usersService.unbookmarkGame(user.id, Number(params.id));
+    await this.usersService.unbookmarkGame(user.id, Number(params.id));
+    return;
   }
 
   /** Get details on a user. */
