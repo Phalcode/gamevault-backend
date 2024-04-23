@@ -18,7 +18,6 @@ if (configuration.SERVER.LOG_LEVEL != "off") {
           inspectOptions: {
             depth: 3,
             colors: true,
-            numericSeparator: true,
             sorted: true,
           },
         }),
