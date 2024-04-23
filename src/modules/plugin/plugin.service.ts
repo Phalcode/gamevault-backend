@@ -47,13 +47,11 @@ export class PluginService implements OnApplicationBootstrap {
       return;
     }
     // TODO: Fully work out experimental plugin loader
-    this.logger.warn(
-      "Experimental Plugin Loader Activated",
-      `${configuration.PLUGIN.SOURCES.length} plugin(s) discovered`,
-      {
-        sources: configuration.PLUGIN.SOURCES,
-      },
-    );
+    this.logger.warn({
+      message: `Experimental Plugin Loader Activated: ${configuration.PLUGIN.SOURCES.length} plugin(s) discovered.`,
+      reason: "PLUGIN_ENABLED is set to true.",
+      sources: configuration.PLUGIN.SOURCES,
+    });
 
     this.loadPlugins();
   }
@@ -90,13 +88,14 @@ export class PluginService implements OnApplicationBootstrap {
         script.runInContext(pluginContext);
         this.loadedPlugins.push(pluginContext.module.exports);
       } catch (error) {
-        this.logger.error({ source, error }, "Error loading plugin");
+        this.logger.error({ message: "Error loading plugin.", error, source });
       }
     }
 
     if (this.loadedPlugins.length) {
       const loadedPluginMetas = this.loadedPlugins.map((plugin) => plugin.meta);
-      this.logger.log(`${this.loadedPlugins.length} plugin(s) loaded.`, {
+      this.logger.log({
+        message: `Successfully loaded ${this.loadedPlugins.length} Plugin(s).`,
         plugins: loadedPluginMetas,
       });
     }

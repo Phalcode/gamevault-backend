@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Publisher } from "./publisher.entity";
+import { Builder } from "builder-pattern";
 
 @Injectable()
 export class PublishersService {
@@ -22,10 +23,13 @@ export class PublishersService {
 
     if (existingPublisher) return existingPublisher;
 
-    this.logger.log("Creating new Publisher with name: " + name);
-    const newPublisher = new Publisher();
-    newPublisher.name = name;
-    newPublisher.rawg_id = rawg_id;
-    return this.publisherRepository.save(newPublisher);
+    const publisher = await this.publisherRepository.save(
+      Builder(Publisher).name(name).rawg_id(rawg_id).build(),
+    );
+    this.logger.log({
+      message: "Created new Publisher.",
+      publisher,
+    });
+    return publisher;
   }
 }

@@ -15,9 +15,10 @@ export class AuthorizationGuard implements CanActivate {
   private readonly logger = new Logger(AuthorizationGuard.name);
   constructor(private readonly reflector: Reflector) {
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
-      this.logger.warn(
-        "Not checking Authorization as TESTING_AUTHENTICATION_DISABLED is true",
-      );
+      this.logger.warn({
+        message: "Skipping Authorization Checks.",
+        reason: "TESTING_AUTHENTICATION_DISABLED is set to true.",
+      });
     }
   }
 

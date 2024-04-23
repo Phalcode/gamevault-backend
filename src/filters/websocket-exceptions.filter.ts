@@ -5,8 +5,9 @@ import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
 export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
   private readonly logger = new Logger(WebsocketExceptionsFilter.name);
   catch(error: HttpException, host: ArgumentsHost) {
-    this.logger.error(error, error.stack, {
-      _context: "ExceptionHandler",
+    this.logger.error({
+      message: `Unhandled ${error.name} occurred in websocket: ${error.message}`,
+      error,
     });
     const convertedException = new WsException(error.getResponse());
     super.handleError(host.switchToWs().getClient(), convertedException);

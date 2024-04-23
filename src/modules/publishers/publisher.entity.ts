@@ -5,6 +5,7 @@ import { DatabaseEntity } from "../database/database.entity";
 
 @Entity()
 export class Publisher extends DatabaseEntity {
+  @Index()
   @Column({ unique: true })
   @ApiProperty({
     example: 1000,

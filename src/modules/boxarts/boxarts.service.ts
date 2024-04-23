@@ -21,30 +21,46 @@ export class BoxArtsService {
 
   public async checkMultiple(games: Game[]): Promise<Game[]> {
     if (configuration.TESTING.GOOGLE_API_DISABLED) {
-      this.logger.warn(
-        "Skipping Box Art Search, because TESTING_GOOGLE_API_DISABLED is set to true",
-      );
+      this.logger.warn({
+        message: "Skipping Box Art Search.",
+        reason: "TESTING_GOOGLE_API_DISABLED is set to true",
+      });
       return games;
     }
 
-    this.logger.log("STARTED BOXART CHECK");
+    this.logger.log({
+      message: "Starting Box Art Check.",
+      gamesCount: games.length,
+    });
 
     for (let i = 0; i < games.length; i++) {
       try {
         games[i] = await this.check(games[i]);
-        this.logger.debug(
-          { gameId: games[i].id, title: games[i].title },
-          "BoxArt Checked",
-        );
+        this.logger.debug({
+          message: `Checked Box Art.`,
+          game: {
+            id: games[i].id,
+            file_path: games[i].file_path,
+          },
+          box_image: games[i].box_image,
+        });
       } catch (error) {
-        this.logger.error(
-          { gameId: games[i].id, title: games[i].title, error: error },
-          "BoxArt Check Failed",
-        );
+        this.logger.error({
+          message: "Box Art Check Failed.",
+          game: {
+            id: games[i].id,
+            file_path: games[i].file_path,
+          },
+          box_image: games[i].box_image,
+          error,
+        });
       }
     }
 
-    this.logger.log("FINISHED BOXART CHECK");
+    this.logger.log({
+      message: "Finished Box Art Check.",
+      gamesCount: games.length,
+    });
 
     return games;
   }
@@ -58,9 +74,10 @@ export class BoxArtsService {
   public async check(game: Game): Promise<Game> {
     // Check if the Google API is disabled
     if (configuration.TESTING.GOOGLE_API_DISABLED) {
-      this.logger.warn(
-        "Skipping Box Art Search, because TESTING_GOOGLE_API_DISABLED is set to true",
-      );
+      this.logger.warn({
+        message: "Skipping Box Art Search.",
+        reason: "TESTING_GOOGLE_API_DISABLED is set to true",
+      });
       return game;
     }
 
@@ -69,7 +86,14 @@ export class BoxArtsService {
       game.box_image?.id &&
       (await this.imagesService.isAvailable(game.box_image.id))
     ) {
-      this.logger.debug(`Box Art for "${game.title}" is still available`);
+      this.logger.debug({
+        message: "Box Art is still available.",
+        game: {
+          id: game.id,
+          file_path: game.file_path,
+        },
+        box_image: game.box_image,
+      });
       return game;
     }
 
@@ -83,11 +107,11 @@ export class BoxArtsService {
         this.cooldownDurationInMilliseconds -
         Date.now();
 
-      this.logger.warn(
-        `Cooldown active. Skipping Box Art Search. Remaining cooldown: ${this.formatCooldownTime(
-          remainingCooldown,
-        )}`,
-      );
+      this.logger.warn({
+        message: "Skipping Box Art Search.",
+        reason: "Cooldown active. The cooldown expires after a server restart.",
+        remainingCooldown: this.formatCooldownTime(remainingCooldown),
+      });
       return game;
     }
 
@@ -95,21 +119,17 @@ export class BoxArtsService {
 
     // Try SteamGridDB
     results = await this.search(
-      game.title,
       `"${game.title}" site:steamgriddb.com -profile`,
     );
 
     if (!results.length) {
       // Try PCGAMINGWIKI
-      results = await this.search(
-        game.title,
-        `"${game.title}" site:www.pcgamingwiki.com`,
-      );
+      results = await this.search(`"${game.title}" site:www.pcgamingwiki.com`);
     }
 
     if (!results.length) {
       // Perform a broad image search on Google
-      results = await this.search(game.title, `"${game.title}" game box art`);
+      results = await this.search(`"${game.title}" game box art`);
     }
 
     if (!results.length) {
@@ -120,13 +140,16 @@ export class BoxArtsService {
           this.cooldownStartTime +
           this.cooldownDurationInMilliseconds -
           Date.now();
-        this.logger.warn(
-          `No Box Art Images found for multiple games. You probably hit the Google Image Search Rate-Limit. Cooldown activated for ${this.formatCooldownTime(
-            this.cooldownDurationInMilliseconds,
-          )}. Remaining cooldown: ${this.formatCooldownTime(
-            remainingCooldown,
-          )}. The cooldown will expire after a server restart.`,
-        );
+        this.logger.warn({
+          message: "No Box Art Images found for multiple games.",
+          game: {
+            id: game.id,
+            file_path: game.file_path,
+          },
+          reason:
+            "You probably hit the Google Image Search Rate-Limit. Cooldown activated.",
+          remainingCooldown: this.formatCooldownTime(remainingCooldown),
+        });
       }
       return game;
     }
@@ -145,7 +168,7 @@ export class BoxArtsService {
    * @param searchQuery - The search query.
    * @returns An array of matching images.
    */
-  private async search(title: string, searchQuery: string): Promise<Result[]> {
+  private async search(searchQuery: string): Promise<Result[]> {
     try {
       // Define the target aspect ratio and tolerance
       const targetAspectRatio = 0.66;
@@ -153,8 +176,6 @@ export class BoxArtsService {
 
       // Perform the image search
       const searchResults = await gis(searchQuery);
-
-      this.logger.debug(searchResults, "Google Image Search Results");
       // Filter the search results based on the aspect ratio
       const matches = searchResults.filter((image) => {
         const aspectRatio = image.width / image.height;
@@ -163,18 +184,22 @@ export class BoxArtsService {
       });
 
       // Log the number of matches found
-      this.logger.debug(
-        `Found ${matches.length} Box Art Images for "${title}" | Search: "${searchQuery}"`,
-      );
+      this.logger.debug({
+        message: `Found ${matches.length} matching Box Art Images.`,
+        searchQuery,
+        matchesCount: matches.length,
+        matches,
+      });
 
       // Return the matching images
       return matches;
     } catch (error) {
       // Log an error if the search fails
-      this.logger.error(
+      this.logger.error({
+        message: `Box Art Search failed`,
+        searchQuery,
         error,
-        `Box Art search failed for query: ${searchQuery}`,
-      );
+      });
     }
   }
 
@@ -203,21 +228,41 @@ export class BoxArtsService {
         await this.gamesService.save(game);
 
         // Log the details of the downloaded image
-        this.logger.log(
-          `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,
-        );
+        this.logger.log({
+          message: `Saved new Box Art Image.`,
+          game: {
+            id: game.id,
+            file_path: game.file_path,
+          },
+          image,
+        });
 
         found = true;
         break;
       } catch (error) {
         // Log an error if image download fails
-        this.logger.error(error, `Error downloading image from ${image.url}`);
+        this.logger.error({
+          message: "Error downloading Box Art Image.",
+          game: {
+            id: game.id,
+            file_path: game.file_path,
+          },
+          image,
+          error,
+        });
       }
     }
 
     if (!found) {
       // Log an error if no matching image is found
-      this.logger.error(`No Box Art Images found for "${game.title}"`);
+      this.logger.error({
+        message: `Could not download Box Art Image for game.`,
+        game: {
+          id: game.id,
+          file_path: game.file_path,
+        },
+        matchingImagesCount: images.length,
+      });
     }
 
     // Return the updated game object

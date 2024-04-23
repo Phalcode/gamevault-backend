@@ -18,7 +18,6 @@ if (configuration.SERVER.LOG_LEVEL != "off") {
           inspectOptions: {
             depth: 3,
             colors: true,
-            numericSeparator: true,
             sorted: true,
           },
         }),
@@ -54,8 +53,8 @@ const logger = WinstonModule.createLogger({
 });
 
 const stream = {
-  write: function (message) {
-    logger.log(message, "Morgan");
+  write(message: string) {
+    logger.log(message, "HTTP Request");
   },
 };
 

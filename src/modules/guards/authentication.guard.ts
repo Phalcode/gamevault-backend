@@ -10,9 +10,10 @@ export class AuthenticationGuard extends AuthGuard("basic") {
   constructor(private readonly reflector: Reflector) {
     super();
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
-      this.logger.warn(
-        "Not checking Authentication as TESTING_AUTHENTICATION_DISABLED is true",
-      );
+      this.logger.warn({
+        message: "Skipping Authentication Checks.",
+        reason: "TESTING_AUTHENTICATION_DISABLED is set to true.",
+      });
     }
   }
 

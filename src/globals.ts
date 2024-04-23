@@ -7,7 +7,7 @@ export default {
   },
 
   LOGGING_FORMAT:
-    "[:date[clf]] :remote-user @ :remote-addr - :method :url -> :status - :response-time ms - :res[content-length] - ':user-agent'",
+    ":remote-user @ :remote-addr - :method :url -> :status (:response-time ms) - :req[Content-Length] bytes in - :res[Content-Length] bytes out - via :user-agent",
   ARCHIVE_FORMATS: [
     ".7z",
     ".xz",
@@ -78,5 +78,5 @@ export interface FindOptions {
    *
    * @default false
    */
-  loadRelations: boolean;
+  loadRelations: boolean | string[];
 }

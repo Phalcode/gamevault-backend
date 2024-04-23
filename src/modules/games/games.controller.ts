@@ -59,7 +59,7 @@ export class GamesController {
   })
   @MinimumRole(Role.GUEST)
   async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
-    const relations = ["box_image", "background_image"];
+    const relations = ["box_image", "background_image", "bookmarked_users"];
     if (query.filter) {
       if (query.filter["genres.name"]) {
         relations.push("genres");
@@ -86,6 +86,7 @@ export class GamesController {
         "average_playtime",
         "early_access",
         "type",
+        "bookmarked_users.id",
       ],
       searchableColumns: ["title", "description"],
       filterableColumns: {
@@ -98,6 +99,7 @@ export class GamesController {
         average_playtime: true,
         early_access: true,
         type: true,
+        "bookmarked_users.id": true,
         "genres.name": true,
         "tags.name": true,
       },

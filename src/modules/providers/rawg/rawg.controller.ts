@@ -87,10 +87,10 @@ export class RawgController {
   @ApiOkResponse({ type: () => Game, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putRawgRecacheAll(): Promise<string> {
-    let games = await this.gamesService.getAll();
-    for (const game of games) {
+    let games = (await this.gamesService.getAll()).map((game) => {
       game.cache_date = null;
-    }
+      return game;
+    });
     games = await this.rawgService.checkCache(games);
     games = await this.boxartService.checkMultiple(games);
     return `Successfully recached ${games.length} games`;

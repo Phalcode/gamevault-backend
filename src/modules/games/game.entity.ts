@@ -18,6 +18,7 @@ import { Tag } from "../tags/tag.entity";
 import { Image } from "../images/image.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GameType } from "./models/game-type.enum";
+import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Entity()
 export class Game extends DatabaseEntity {
@@ -52,6 +53,7 @@ export class Game extends DatabaseEntity {
   })
   version?: string;
 
+  @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
@@ -74,6 +76,7 @@ export class Game extends DatabaseEntity {
   })
   cache_date?: Date;
 
+  @Index({ unique: true })
   @Column({ unique: true })
   @ApiProperty({
     description: "filepath to the game (relative to the root)",
@@ -228,4 +231,12 @@ export class Game extends DatabaseEntity {
     isArray: true,
   })
   genres?: Genre[];
+
+  @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
+  @ApiProperty({
+    description: "users that bookmarked this game",
+    type: () => Game,
+    isArray: true,
+  })
+  bookmarked_users?: GamevaultUser[];
 }

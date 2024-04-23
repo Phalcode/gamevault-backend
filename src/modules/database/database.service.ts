@@ -96,7 +96,10 @@ export class DatabaseService {
   }
 
   async backupPostgresql(backupFilePath: string): Promise<StreamableFile> {
-    this.logger.log("Backing up PostgreSQL Database...");
+    this.logger.log({
+      message: "Backing up PostgreSQL Database...",
+      backupFilePath,
+    });
     try {
       await this.execPromise(
         `pg_dump -w -F t -h ${configuration.DB.HOST} -p ${configuration.DB.PORT} -U ${configuration.DB.USERNAME} -d ${configuration.DB.DATABASE} -f ${backupFilePath}`,
@@ -110,7 +113,10 @@ export class DatabaseService {
   }
 
   private async backupSqlite(backupFilePath: string): Promise<StreamableFile> {
-    this.logger.log("Backing up SQLITE Database...");
+    this.logger.log({
+      message: "Backing up SQLite Database...",
+      backupFilePath,
+    });
     await copyFile(
       `${configuration.VOLUMES.SQLITEDB}/database.sqlite`,
       backupFilePath,
@@ -120,7 +126,10 @@ export class DatabaseService {
   }
 
   async restorePostgresql(file: Express.Multer.File) {
-    this.logger.log("Restoring PostgreSQL Database...");
+    this.logger.log({
+      message: "Restoring PostgreSQL Database...",
+      size: file.size,
+    });
     try {
       await this.backupPostgresql("/tmp/gamevault_database_pre_restore.db");
 
@@ -144,13 +153,17 @@ export class DatabaseService {
 
         this.logger.log("Successfully restored PostgreSQL Database.");
       } catch (error) {
-        this.logger.warn(
+        this.logger.warn({
+          message:
+            "Restoring your backup might have encountered an issue. Please examine the logs. If it reads 'pg_restore: warning: errors ignored on restore,' things are likely alright. It could have succeeded.",
           error,
-          "Restoring your backup might have encountered an issue. Please examine the logs. If it reads 'pg_restore: warning: errors ignored on restore,' things are likely alright. It could have succeeded.",
-        );
+        });
       }
     } catch (error) {
-      this.logger.error(error, "Error restoring PostgreSQL database.");
+      this.logger.error({
+        message: "Error restoring PostgreSQL database",
+        error,
+      });
 
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
@@ -171,10 +184,11 @@ export class DatabaseService {
           );
           this.logger.log("Restored pre-restore database.");
         } catch (error) {
-          this.logger.error(
+          this.logger.error({
+            message:
+              "Errors occured restoring pre-restore PostgreSQL database. Please restore the backup manually.",
             error,
-            "Errors occured restoring pre-restore PostgreSQL database. Please restore the backup manually.",
-          );
+          });
           throw new InternalServerErrorException(
             "Error restoring pre-restore PostgreSQL Database.",
             { cause: error },
@@ -185,7 +199,10 @@ export class DatabaseService {
   }
 
   private async restoreSqlite(file: Express.Multer.File) {
-    this.logger.log("Restoring SQLITE Database...");
+    this.logger.log({
+      message: "Restoring SQLITE Database...",
+      size: file.size,
+    });
     try {
       if (existsSync(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)) {
         this.backupSqlite("/tmp/gamevault_database_pre_restore.db");
@@ -195,7 +212,7 @@ export class DatabaseService {
         file.buffer,
       );
     } catch (error) {
-      this.logger.error(error, "Error restoring SQLITE database");
+      this.logger.error({ message: "Error restoring SQLITE database", error });
       if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         await copyFile(
@@ -235,7 +252,7 @@ export class DatabaseService {
   }
 
   private handleBackupError(error: unknown) {
-    this.logger.error(error, "Error backing up database");
+    this.logger.error({ message: "Error backing up database", error });
     throw new InternalServerErrorException("Error backing up database.", {
       cause: error,
     });

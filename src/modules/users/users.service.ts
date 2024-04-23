@@ -11,14 +11,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
-import {
-  FindManyOptions,
-  FindOperator,
-  ILike,
-  IsNull,
-  Not,
-  Repository,
-} from "typeorm";
+import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 import configuration from "../../configuration";
 import { RegisterUserDto } from "./models/register-user.dto";
 import { GamevaultUser } from "./gamevault-user.entity";
@@ -27,6 +20,7 @@ import { UpdateUserDto } from "./models/update-user.dto";
 import { Role } from "./models/role.enum";
 import { FindOptions } from "../../globals";
 import { randomBytes } from "crypto";
+import { GamesService } from "../games/games.service";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -37,14 +31,12 @@ export class UsersService implements OnApplicationBootstrap {
     private userRepository: Repository<GamevaultUser>,
     @Inject(forwardRef(() => ImagesService))
     private imagesService: ImagesService,
+    @Inject(forwardRef(() => GamesService))
+    private gamesService: GamesService,
   ) {}
 
   async onApplicationBootstrap() {
-    try {
-      await this.recoverAdmin();
-    } catch (error) {
-      this.logger.error(error, "Error on FilesService Bootstrap");
-    }
+    await this.recoverAdmin();
   }
 
   private async recoverAdmin() {
@@ -68,14 +60,13 @@ export class UsersService implements OnApplicationBootstrap {
       );
     } catch (error) {
       if (error instanceof NotFoundException) {
-        this.logger.warn(
-          `The admin user wasn't recovered because the user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user.`,
-        );
-      } else {
-        this.logger.error(
+        this.logger.warn({
+          message: `The admin user wasn't recovered.`,
+          reason: `The admin user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user first.`,
           error,
-          "An error occurred while recovering the server admin.",
-        );
+        });
+      } else {
+        this.logger.error({ message: "Error recovering admin user.", error });
       }
     }
   }
@@ -88,15 +79,22 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
+    let relations = [];
+
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        relations = ["progresses", "progresses.game", "bookmarked_games"];
+      } else if (Array.isArray(options.loadRelations))
+        relations = options.loadRelations;
+    }
+
     const user = await this.userRepository
       .findOneOrFail({
         where: {
           id,
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
-        relations: options.loadRelations
-          ? ["progresses", "progresses.game"]
-          : [],
+        relations,
         withDeleted: true,
       })
       .catch((error) => {
@@ -112,6 +110,15 @@ export class UsersService implements OnApplicationBootstrap {
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
+    let relations = [];
+
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        relations = ["progresses", "progresses.game", "bookmarked_games"];
+      } else if (Array.isArray(options.loadRelations))
+        relations = options.loadRelations;
+    }
+
     const user = await this.userRepository
       .findOneOrFail({
         where: {
@@ -119,9 +126,7 @@ export class UsersService implements OnApplicationBootstrap {
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
 
-        relations: options.loadRelations
-          ? ["progresses", "progresses.game"]
-          : [],
+        relations,
         withDeleted: true,
       })
       .catch((error) => {
@@ -153,6 +158,11 @@ export class UsersService implements OnApplicationBootstrap {
   public async register(dto: RegisterUserDto): Promise<GamevaultUser> {
     await this.throwIfAlreadyExists(dto.username, dto.email);
     const isFirstUser = (await this.userRepository.count()) === 0;
+    const isAdministrator =
+      dto.username === configuration.SERVER.ADMIN_USERNAME || isFirstUser;
+    const isActivated =
+      configuration.SERVER.ACCOUNT_ACTIVATION_DISABLED || isAdministrator;
+
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = hashSync(dto.password, 10);
@@ -160,20 +170,17 @@ export class UsersService implements OnApplicationBootstrap {
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
     user.email = dto.email || undefined;
+    user.activated = isActivated;
+    user.role = isAdministrator ? Role.ADMIN : undefined;
 
-    if (
-      configuration.SERVER.ACCOUNT_ACTIVATION_DISABLED ||
-      user.username === configuration.SERVER.ADMIN_USERNAME ||
-      isFirstUser
-    ) {
-      user.activated = true;
-    }
-
-    if (user.username === configuration.SERVER.ADMIN_USERNAME || isFirstUser) {
-      user.role = Role.ADMIN;
-    }
-
-    return await this.userRepository.save(user);
+    const registeredUser = await this.userRepository.save(user);
+    registeredUser.password = "**REDACTED**";
+    registeredUser.socket_secret = "**REDACTED**";
+    this.logger.log({
+      message: `User has been registered.`,
+      user: registeredUser,
+    });
+    return registeredUser;
   }
 
   /** Logs in a user with the provided username and password. */
@@ -218,44 +225,79 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
   ): Promise<GamevaultUser> {
     const user = await this.findByUserIdOrFail(id);
+    const logUpdate = (property: string, from: string, to: string) => {
+      this.logger.log({
+        message: "Updating user property",
+        user: user.username,
+        property,
+        from,
+        to,
+      });
+    };
 
     if (dto.username != null && dto.username !== user.username) {
+      logUpdate("username", user.username, dto.username);
       await this.updateUsername(dto, user);
     }
 
     if (dto.email != null && dto.email !== user.email) {
+      logUpdate("email", user.email, dto.email);
       await this.updateEmail(dto, user);
     }
 
     if (dto.first_name != null) {
+      logUpdate("first_name", user.first_name, dto.first_name);
       user.first_name = dto.first_name;
     }
 
     if (dto.last_name != null) {
+      logUpdate("last_name", user.last_name, dto.last_name);
       user.last_name = dto.last_name;
     }
 
     if (dto.password != null) {
+      logUpdate("password", user.password, "**REDACTED**");
       user.password = hashSync(dto.password, 10);
     }
 
     if (dto.profile_picture_id != null) {
-      user.profile_picture = await this.imagesService.findByImageIdOrFail(
+      const image = await this.imagesService.findByImageIdOrFail(
         dto.profile_picture_id,
       );
+      logUpdate(
+        "profile_picture_id",
+        user.profile_picture?.id.toString(),
+        image.id.toString(),
+      );
+      user.profile_picture = image;
     }
 
     if (dto.background_image_id != null) {
-      user.background_image = await this.imagesService.findByImageIdOrFail(
+      const image = await this.imagesService.findByImageIdOrFail(
         dto.background_image_id,
       );
+      logUpdate(
+        "background_image_id",
+        user.background_image?.id.toString(),
+        image.id.toString(),
+      );
+      user.background_image = image;
     }
 
     if (admin && dto.activated != null) {
+      logUpdate(
+        "activated",
+        user.activated.toString(),
+        dto.activated.toString(),
+      );
       user.activated = dto.activated;
+      this.logger.log({
+        message: { message: "User has been activated.", user: user.username },
+      });
     }
 
     if (admin && dto.role != null) {
+      logUpdate("role", user.role.toString(), dto.role.toString());
       user.role = dto.role;
     }
 
@@ -294,6 +336,7 @@ export class UsersService implements OnApplicationBootstrap {
     return this.userRepository.recover(user);
   }
 
+  /** Check if the user with the given username has at least the given role */
   public async checkIfUsernameIsAtLeastRole(username: string, role: Role) {
     try {
       const user = await this.findByUsernameOrFail(username);
@@ -331,6 +374,65 @@ export class UsersService implements OnApplicationBootstrap {
     return true;
   }
 
+  /** Bookmarks a game with the specified ID to the given user. */
+  public async bookmarkGame(userId: number, gameId: number) {
+    const user = await this.findByUserIdOrFail(userId, {
+      loadDeletedEntities: false,
+      loadRelations: ["bookmarked_games"],
+    });
+    if (user.bookmarked_games.some((game) => game.id === gameId)) {
+      return user;
+    }
+
+    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
+    user.bookmarked_games.push(game);
+    this.logger.log({
+      message: "User bookmarked game.",
+      user: user.username,
+      game: {
+        id: game.id,
+        file_path: game.file_path,
+      },
+    });
+    return this.userRepository.save(user);
+  }
+
+  /** Unbookmarks a game with the specified ID from the given user. */
+  public async unbookmarkGame(userId: number, gameId: number) {
+    const user = await this.findByUserIdOrFail(userId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+    if (!user.bookmarked_games.some((game) => game.id === gameId)) {
+      return user;
+    }
+
+    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
+    user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
+      return bookmark.id !== game.id;
+    });
+    this.logger.log({
+      message: "User unbookmarked game.",
+      user: user.username,
+      game: {
+        id: game.id,
+        file_path: game.file_path,
+      },
+    });
+
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * Throws an exception if there is already a user with the given username or
+   * email.
+   */
   private async throwIfAlreadyExists(
     username: string | undefined,
     email: string | undefined,
@@ -341,17 +443,13 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
 
-    const where = {} as {
-      username: FindOperator<string>;
-      email: FindOperator<string>;
-    };
-
+    const where = [];
     if (username) {
-      where.username = ILike(username);
+      where.push({ username: ILike(username) });
     }
 
     if (email) {
-      where.email = ILike(email);
+      where.push({ email: ILike(email) });
     }
 
     const existingUser = await this.userRepository.findOne({ where });
@@ -367,6 +465,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
   }
 
+  /** Filters deleted progresses from the user. */
   private filterDeletedProgresses(user: GamevaultUser) {
     if (user.progresses) {
       user.progresses = user.progresses.filter(

@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Store } from "./store.entity";
+import { Builder } from "builder-pattern";
 
 @Injectable()
 export class StoresService {
@@ -20,10 +21,13 @@ export class StoresService {
 
     if (existingStore) return existingStore;
 
-    this.logger.log("Creating new Store with name: " + name);
-    const newStore = new Store();
-    newStore.name = name;
-    newStore.rawg_id = rawg_id;
-    return this.storeRepository.save(newStore);
+    const store = await this.storeRepository.save(
+      Builder(Store).name(name).rawg_id(rawg_id).build(),
+    );
+    this.logger.log({
+      message: "Created new Store.",
+      store,
+    });
+    return store;
   }
 }

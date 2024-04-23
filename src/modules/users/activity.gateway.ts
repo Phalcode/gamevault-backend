@@ -100,12 +100,12 @@ export class ActivityGateway
   }
 
   handleConnection(client: Socket) {
-    this.logger.log(`Client ${client.id} connected.`);
+    this.logger.log({ message: "Client connected.", client: client.id });
     client.emit("activities", this.getAll());
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`Client ${client.id} disconnected.`);
+    this.logger.log({ message: "Client disconnected.", client: client.id });
     for (const [userId, activity] of this.activities) {
       if (activity.socket_id === client.id) {
         this.activities.delete(userId);
