@@ -32,7 +32,7 @@ export class SocketSecretGuard implements CanActivate {
       );
       this.logger.debug({
         message: `Websocket-Client successfully authenticated.`,
-        clientId: client.id,
+        client: client.id,
         user: user.username,
       });
       context.switchToWs().getClient().gamevaultuser = { id: user.id };
@@ -40,7 +40,7 @@ export class SocketSecretGuard implements CanActivate {
     } catch (error) {
       this.logger.error({
         message: "Websocket-Client authentication failed.",
-        clientId: client.id,
+        client: client.id,
         error,
       });
       client.emit("exception", {
