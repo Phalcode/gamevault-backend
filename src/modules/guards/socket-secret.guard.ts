@@ -30,16 +30,22 @@ export class SocketSecretGuard implements CanActivate {
       const user = await this.socketSecretService.getUserBySocketSecretOrFail(
         socketSecret.toString(),
       );
-      this.logger.debug(
-        `Client ${client.id} successfully authenticated as ${user.username}`,
-      );
+      this.logger.debug({
+        message: `Websocket-Client successfully authenticated.`,
+        clientId: client.id,
+        user: user.username,
+      });
       context.switchToWs().getClient().gamevaultuser = { id: user.id };
       return true;
     } catch (error) {
-      this.logger.error(error, `Authentication failed for client ${client.id}`);
+      this.logger.error({
+        message: "Websocket-Client authentication failed.",
+        clientId: client.id,
+        error,
+      });
       client.emit("exception", {
         status: "error",
-        message: "Unauthorized.",
+        message: "Unauthorized",
       });
       return false;
     }

@@ -79,7 +79,11 @@ export class ImagesService {
         image.uploader =
           await this.usersService.findByUsernameOrFail(uploaderUsername);
       }
-      this.logger.debug(`Downloading Image from "${image.source}" ...`);
+      this.logger.debug({
+        message: `Downloading image...`,
+        url: sourceUrl,
+        uploader: uploaderUsername,
+      });
       const response = await this.fetchFromUrl(image.source);
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkFileType(imageBuffer);
@@ -136,9 +140,10 @@ export class ImagesService {
     imageBuffer: Buffer,
   ): Promise<void> {
     if (configuration.TESTING.MOCK_FILES) {
-      this.logger.warn(
-        "Not saving image to the filesystem because TESTING_MOCK_FILES is set to true",
-      );
+      this.logger.warn({
+        message: "Not saving image to the filesystem.",
+        reason: "TESTING_MOCK_FILES is set to true.",
+      });
       return;
     }
     this.logger.debug(`Compressing image...`);
@@ -146,25 +151,33 @@ export class ImagesService {
       animated: true,
     }).toBuffer();
     await writeFile(path, compressedImageBuffer);
-    this.logger.debug(`Saved image to '${path}'`);
+    this.logger.debug({
+      message: "Image successfully saved to filesystem.",
+      path,
+    });
   }
 
   async delete(image: Image): Promise<void> {
     if (configuration.TESTING.MOCK_FILES) {
-      this.logger.warn(
-        "Not deleting image from the filesystem because TESTING_MOCK_FILES is set to true",
-      );
+      this.logger.warn({
+        message: "Not deleting image from filesystem.",
+        reason: "TESTING_MOCK_FILES is set to true.",
+      });
       return;
     }
     try {
       await this.imageRepository.remove(image);
       await unlink(image.path);
-      this.logger.debug(
-        { imageId: image.id, path: image.path, deletedAt: image.deleted_at },
-        `Image successfully hard deleted from the database and filesystem.`,
-      );
+      this.logger.debug({
+        message: "Image successfully deleted from filesystem and database.",
+        image,
+      });
     } catch (error) {
-      this.logger.error(error, `Failed to delete image ${image.id}.`);
+      this.logger.error({
+        message: "Error deleting image.",
+        image,
+        error,
+      });
     }
   }
 
@@ -176,8 +189,13 @@ export class ImagesService {
 
     try {
       await this.saveToFileSystem(image.path, file.buffer);
-      this.logger.log(`Uploaded image ${image.id} to "${image.path}"`);
-      return await this.imageRepository.save(image);
+      const uploadedImage = await this.imageRepository.save(image);
+      this.logger.log({
+        message: "Image successfully uploaded.",
+        image: uploadedImage,
+        uploader: username,
+      });
+      return uploadedImage;
     } catch (error) {
       await this.delete(image);
       throw new InternalServerErrorException(

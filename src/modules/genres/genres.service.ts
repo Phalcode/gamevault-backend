@@ -20,10 +20,14 @@ export class GenresService {
 
     if (existingGenre) return existingGenre;
 
-    this.logger.log("Creating new Genre with name: " + name);
     const newGenre = new Genre();
     newGenre.name = name;
     newGenre.rawg_id = rawg_id;
+
+    this.logger.log({
+      message: "Creating new Genre...",
+      newGenre,
+    });
     return this.tagRepository.save(newGenre);
   }
 }

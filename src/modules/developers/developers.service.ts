@@ -22,10 +22,13 @@ export class DevelopersService {
 
     if (existingDeveloper) return existingDeveloper;
 
-    this.logger.log("Creating new Developer with name: " + name);
     const newDeveloper = new Developer();
     newDeveloper.name = name;
     newDeveloper.rawg_id = rawg_id;
+    this.logger.log({
+      message: "Creating new Developer...",
+      newDeveloper,
+    });
     return this.developerRepository.save(newDeveloper);
   }
 }

@@ -158,7 +158,7 @@ export class BoxArtsService {
    * @param searchQuery - The search query.
    * @returns An array of matching images.
    */
-  private async search(title: string, searchQuery: string): Promise<Result[]> {
+  private async search(searchQuery: string): Promise<Result[]> {
     try {
       // Define the target aspect ratio and tolerance
       const targetAspectRatio = 0.66;
@@ -181,18 +181,22 @@ export class BoxArtsService {
       });
 
       // Log the number of matches found
-      this.logger.debug(
-        `Found ${matches.length} Box Art Images for "${title}" | Search: "${searchQuery}"`,
-      );
+      this.logger.debug({
+        message: `Found ${matches.length} matching Box Art Images.`,
+        searchQuery,
+        matchesCount: matches.length,
+        matches,
+      });
 
       // Return the matching images
       return matches;
     } catch (error) {
       // Log an error if the search fails
-      this.logger.error(
+      this.logger.error({
+        message: `Box Art Search failed`,
+        searchQuery,
         error,
-        `Box Art search failed for query: ${searchQuery}`,
-      );
+      });
     }
   }
 
@@ -221,21 +225,32 @@ export class BoxArtsService {
         await this.gamesService.save(game);
 
         // Log the details of the downloaded image
-        this.logger.log(
-          `Saved new Box Art for "${game.title}" (${image.width}px x ${image.height}px) | URL: ${image.url}`,
-        );
+        this.logger.log({
+          message: `Saved new Box Art Image.`,
+          game: game.title,
+          image,
+        });
 
         found = true;
         break;
       } catch (error) {
         // Log an error if image download fails
-        this.logger.error(error, `Error downloading image from ${image.url}`);
+        this.logger.error({
+          message: "Error downloading image.",
+          game: game.title,
+          image,
+          error,
+        });
       }
     }
 
     if (!found) {
       // Log an error if no matching image is found
-      this.logger.error(`No Box Art Images found for "${game.title}"`);
+      this.logger.error({
+        message: `Could not download Box Art Image for game.`,
+        game: game.title,
+        matchingImagesCount: images.length,
+      });
     }
 
     // Return the updated game object

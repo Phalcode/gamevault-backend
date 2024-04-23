@@ -85,10 +85,12 @@ export class ProgressService {
       executorUsername,
     );
 
-    this.logger.log(
-      `Deleting progress with id "${progressId}" for user "${executorUsername}"`,
-    );
-    return this.progressRepository.softRemove(progress);
+    const softRemoveResult = await this.progressRepository.softRemove(progress);
+    this.logger.log({
+      message: `Soft-deleted progress.`,
+      progress,
+    });
+    return softRemoveResult;
   }
 
   public async findByUserId(userId: number) {
@@ -165,11 +167,12 @@ export class ProgressService {
         !progress.minutes_played &&
         !updateProgressDto.minutes_played
       ) {
-        this.progressRepository.remove(progress);
-        this.logger.log(
-          `Deleted empty progress for user ${userId} and game ${gameId}`,
-        );
-        return;
+        const deleteResult = await this.progressRepository.remove(progress);
+        this.logger.log({
+          message: `Deleted empty progress.`,
+          progress,
+        });
+        return deleteResult;
       }
     }
 
@@ -190,7 +193,7 @@ export class ProgressService {
         progress.last_played_at = new Date();
       }
     }
-    this.logger.log(`Updated progress for user ${userId} and game ${gameId}`);
+    this.logger.log({ message: `Updating progress.`, progress });
     return this.progressRepository.save(progress);
   }
 
@@ -209,13 +212,19 @@ export class ProgressService {
       progress.state !== State.INFINITE &&
       progress.state !== State.COMPLETED
     ) {
+      this.logger.debug({
+        message: `Automatically setting progress state to "${State.PLAYING}".`,
+        reason: "Current state is not 'INFINITE' or 'COMPLETED'",
+        progress,
+      });
       progress.state = State.PLAYING;
     }
+    this.logger.log({
+      message: `Incrementing progress by ${incrementBy} minute(s)`,
+      progress,
+    });
     progress.last_played_at = new Date();
     progress.minutes_played += incrementBy;
-    this.logger.log(
-      `Incremented progress for user ${userId} and game ${gameId} by ${incrementBy} minute(s)`,
-    );
     return this.progressRepository.save(progress);
   }
 }

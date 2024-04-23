@@ -29,9 +29,11 @@ export class RawgMapperService {
     rawg_game: RawgGame,
     game: Game,
   ): Promise<Game> {
-    this.logger.debug(
-      `Mapping RAWG Game "${rawg_game.name}" to Game "${game.title}"`,
-    );
+    this.logger.debug({
+      message: `Mapping RAWG Game...`,
+      gameTitle: game.title,
+      rawgGameTitle: rawg_game.name,
+    });
     game = await this.mapRawgStoresToGame(rawg_game, game);
     game = await this.mapRawgDevelopersToGame(rawg_game, game);
     game = await this.mapRawgPublishersToGame(rawg_game, game);
@@ -57,7 +59,10 @@ export class RawgMapperService {
         );
       }
     } catch (error) {
-      this.logger.error(error, "Error mapping stores to entity");
+      this.logger.error({
+        message: "Error mapping stores to game entity.",
+        error,
+      });
     }
     return entity;
   }
@@ -79,7 +84,10 @@ export class RawgMapperService {
         );
       }
     } catch (error) {
-      this.logger.error(error, "Error mapping developers to entity");
+      this.logger.error({
+        message: "Error mapping developers to game entity.",
+        error,
+      });
     }
     return entity;
   }
@@ -101,7 +109,10 @@ export class RawgMapperService {
         );
       }
     } catch (error) {
-      this.logger.error(error, "Error mapping publishers to entity");
+      this.logger.error({
+        message: "Error mapping publishers to game entity.",
+        error,
+      });
     }
     return entity;
   }
@@ -120,17 +131,26 @@ export class RawgMapperService {
         const isAlphanumeric = /^[a-zA-Z0-9\s&.,-]+$/.test(tag.name);
 
         if (!isEnglish) {
-          this.logger.debug(
-            `Skipping tag "${tag.name}" (invalid language: ${tag.language})`,
-          );
+          this.logger.debug({
+            message: "Skipping tag.",
+            reason: `Tag has invalid language. Only english tags are supported.`,
+            tag,
+          });
         } else if (!isAlphanumeric) {
-          this.logger.debug(`Skipping tag "${tag.name}" (invalid characters)`);
+          this.logger.debug({
+            message: "Skipping tag.",
+            reason: `Tag contains invalid characters.`,
+            tag,
+          });
         } else {
           entity.tags.push(await this.tagService.getOrCreate(tag.name, tag.id));
         }
       }
     } catch (error) {
-      this.logger.error(error, "Error mapping tags to entity");
+      this.logger.error({
+        message: "Error mapping tags to game entity.",
+        error,
+      });
     }
 
     return entity;
@@ -150,7 +170,10 @@ export class RawgMapperService {
         );
       }
     } catch (error) {
-      this.logger.error(error, "Error mapping genres to entity");
+      this.logger.error({
+        message: "Error mapping genres to game entity.",
+        error,
+      });
     }
     return entity;
   }
@@ -189,7 +212,10 @@ export class RawgMapperService {
 
       return entity;
     } catch (error) {
-      this.logger.error(error, "Error mapping rawg game to entity");
+      this.logger.error({
+        message: "Error mapping rawg game to game entity.",
+        error,
+      });
       throw error;
     }
   }

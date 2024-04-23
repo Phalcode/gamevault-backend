@@ -41,9 +41,10 @@ export class ImageGarbageCollectionService {
     // Check if image garbage collection is disabled
     if (configuration.IMAGE.GC_DISABLED) {
       // Log warning and skip garbage collection
-      this.logger.warn(
-        "Skipping image garbage collection because IMAGE_GC_DISABLED is set to true",
-      );
+      this.logger.warn({
+        message: "Skipping image garbage collection",
+        reason: "IMAGE_GC_DISABLED is set to true",
+      });
       return;
     }
 
@@ -158,9 +159,10 @@ export class ImageGarbageCollectionService {
   ): Promise<number> {
     // Skip garbage collection if TESTING_MOCK_FILES is true
     if (configuration.TESTING.MOCK_FILES) {
-      this.logger.warn(
-        "Skipping garbage collection because TESTING_MOCK_FILES is true.",
-      );
+      this.logger.warn({
+        message: "Skipping image garbage collection.",
+        reason: "TESTING_MOCK_FILES is true",
+      });
       return 0;
     }
 
@@ -186,11 +188,18 @@ export class ImageGarbageCollectionService {
       if (!usedImagePaths.has(path)) {
         return unlink(path)
           .then(() => {
-            this.logger.debug(`Garbage collected unused image: ${path}`);
+            this.logger.debug({
+              message: "Garbage collected unused image.",
+              path,
+            });
             removedCount++;
           })
           .catch((error) => {
-            this.logger.error(`Error deleting unused image ${path}: ${error}`);
+            this.logger.error({
+              message: "Error garbage collecting unused image.",
+              path,
+              error,
+            });
           });
       }
 

@@ -108,11 +108,11 @@ export class GamesService {
 
     if (foundGame.file_path != game.file_path) {
       differences.push(
-        `File Path: ${foundGame.file_path} -> ${game.file_path}`,
+        `file_path: ${foundGame.file_path} -> ${game.file_path}`,
       );
     }
     if (foundGame.title != game.title) {
-      differences.push(`Title: ${foundGame.title} -> ${game.title}`);
+      differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
     if (
       +foundGame.release_date != +game.release_date &&
@@ -120,29 +120,27 @@ export class GamesService {
       +foundGame.release_date != +foundGame.rawg_release_date
     ) {
       differences.push(
-        `Release Date: ${foundGame.release_date} -> ${game.release_date}`,
+        `release_date: ${foundGame.release_date} -> ${game.release_date}`,
       );
     }
     if (foundGame.early_access != game.early_access) {
       differences.push(
-        `Early Access: ${foundGame.early_access} -> ${game.early_access}`,
+        `early_access: ${foundGame.early_access} -> ${game.early_access}`,
       );
     }
     if (foundGame.version != game.version) {
-      differences.push(`Version: ${foundGame.version} -> ${game.version}`);
+      differences.push(`version: ${foundGame.version} -> ${game.version}`);
     }
     if (foundGame.size.toString() != game.size.toString()) {
-      differences.push(`Size: ${foundGame.size} -> ${game.size}`);
+      differences.push(`size: ${foundGame.size} -> ${game.size}`);
     }
 
     if (differences.length > 0) {
-      this.logger.debug(
-        `Game "${
-          game.file_path
-        }" exists but has been altered. Differences:\n ${differences.join(
-          ",\n ",
-        )}`,
-      );
+      this.logger.debug({
+        message: "Game already exists in the database but has been altered.",
+        game: game.file_path,
+        differences,
+      });
       return [GameExistence.EXISTS_BUT_ALTERED, foundGame];
     }
 
