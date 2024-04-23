@@ -79,12 +79,12 @@ export class ImagesService {
         image.uploader =
           await this.usersService.findByUsernameOrFail(uploaderUsername);
       }
+      const response = await this.fetchFromUrl(image.source);
       this.logger.debug({
-        message: `Downloading image...`,
+        message: `Downloaded image.`,
         url: sourceUrl,
         uploader: uploaderUsername,
       });
-      const response = await this.fetchFromUrl(image.source);
       const imageBuffer = Buffer.from(response.data);
       const fileType = this.checkFileType(imageBuffer);
 

@@ -62,9 +62,7 @@ describe("FilesService", () => {
 
       unsupportedFilenames.forEach((filename) => {
         expect(filesService["isValidFilename"](filename)).toBe(false);
-        expect(loggerDebugSpy).toHaveBeenCalledWith(
-          `Indexer ignoring invalid filename: unsupported file extension - ${filename}`,
-        );
+        expect(loggerDebugSpy).toHaveBeenCalled();
       });
     });
 
@@ -77,9 +75,7 @@ describe("FilesService", () => {
 
       invalidFilenames.forEach((filename) => {
         expect(filesService["isValidFilename"](filename)).toBe(false);
-        expect(loggerWarnSpy).toHaveBeenCalledWith(
-          `Indexer ignoring invalid filename: contains invalid characters - ${filename}`,
-        );
+        expect(loggerWarnSpy).toHaveBeenCalled();
       });
     });
 

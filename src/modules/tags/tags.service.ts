@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Tag } from "./tag.entity";
+import { Builder } from "builder-pattern";
 
 @Injectable()
 export class TagsService {
@@ -21,10 +22,14 @@ export class TagsService {
 
     if (existingTag) return existingTag;
 
-    this.logger.log("Creating new Tag with name: " + name);
-    const newTag = new Tag();
-    newTag.name = name;
-    newTag.rawg_id = rawg_id;
-    return this.tagRepository.save(newTag);
+    const tag = await this.tagRepository.save(
+      Builder(Tag).name(name).rawg_id(rawg_id).build(),
+    );
+
+    this.logger.log({
+      message: "Created new Tag.",
+      tag,
+    });
+    return tag;
   }
 }

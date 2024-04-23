@@ -69,7 +69,7 @@ export class FilesService implements OnApplicationBootstrap {
     disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
   })
   public async index(reason: string): Promise<Game[]> {
-    this.logger.log({ message: "Indexing games", reason });
+    this.logger.log({ message: "Indexing games.", reason });
     const gamesInFileSystem = await this.fetch();
     await this.ingest(gamesInFileSystem);
     let games = await this.gamesService.getAll();
@@ -80,7 +80,10 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   private async ingest(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
-    this.logger.log("Started Game Ingestion");
+    this.logger.log({
+      message: "Started ingesting games.",
+      gamesCount: gamesInFileSystem.length,
+    });
     for (const file of gamesInFileSystem) {
       const gameToIndex = new Game();
       try {
@@ -100,8 +103,14 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.EXISTS: {
             this.logger.debug({
               message: `Identical file is already indexed in the database. Skipping it.`,
-              game: gameToIndex,
-              existingGame: existingGameTuple[1],
+              game: {
+                id: gameToIndex.id,
+                file_path: gameToIndex.file_path,
+              },
+              existingGame: {
+                id: existingGameTuple[1].id,
+                file_path: existingGameTuple[1].file_path,
+              },
             });
             continue;
           }
@@ -109,7 +118,10 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug({
               message: `Indexing new file.`,
-              game: gameToIndex,
+              game: {
+                id: gameToIndex.id,
+                file_path: gameToIndex.file_path,
+              },
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.gamesService.save(gameToIndex);
@@ -119,8 +131,14 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
             this.logger.debug({
               message: `A Soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
-              game: gameToIndex,
-              existingGame: existingGameTuple[1],
+              game: {
+                id: gameToIndex.id,
+                file_path: gameToIndex.file_path,
+              },
+              existingGame: {
+                id: existingGameTuple[1].id,
+                file_path: existingGameTuple[1].file_path,
+              },
             });
             const restoredGame = await this.gamesService.restore(
               existingGameTuple[1].id,
@@ -144,12 +162,15 @@ export class FilesService implements OnApplicationBootstrap {
       } catch (error) {
         this.logger.error({
           message: `Failed to index file "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?`,
-          file,
+          game: { file_path: file },
           error,
         });
       }
     }
-    this.logger.log("Finished Game Ingestion");
+    this.logger.log({
+      message: "Finished ingesting games.",
+      gamesCount: gamesInFileSystem.length,
+    });
   }
 
   /** Updates the game information with the provided updates. */
@@ -168,12 +189,14 @@ export class FilesService implements OnApplicationBootstrap {
       type: updatesToApply.type,
     };
 
-    this.logger.log({
-      message: `Updating new Game Information...`,
-      file: gameToUpdate.file_path,
-    });
-
     await this.gamesService.save(updatedGame);
+    this.logger.log({
+      message: `Updated new Game Information.`,
+      game: {
+        id: updatedGame.id,
+        file_path: updatedGame.file_path,
+      },
+    });
   }
 
   private isValidFilename(filename: string) {
@@ -186,8 +209,8 @@ export class FilesService implements OnApplicationBootstrap {
       )
     ) {
       this.logger.debug({
-        message: `Indexer ignoring invalid filename`,
-        reason: "Unsupported file extension",
+        message: `Indexer ignoring invalid filename.`,
+        reason: "Unsupported file extension.",
         filename,
       });
       return false;
@@ -195,8 +218,8 @@ export class FilesService implements OnApplicationBootstrap {
 
     if (invalidCharacters.test(actualFilename)) {
       this.logger.warn({
-        message: `Indexer ignoring invalid filename`,
-        reason: "Contains invalid characters",
+        message: `Indexer ignoring invalid filename.`,
+        reason: "Contains invalid characters.",
         filename,
       });
       return false;
@@ -268,9 +291,11 @@ export class FilesService implements OnApplicationBootstrap {
 
       for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
-          this.logger.debug(
-            `File "${file}" matched windows installer pattern "${pattern.description}"`,
-          );
+          this.logger.debug({
+            message: `File matched Windows Installer Game Type pattern.`,
+            game: { file_path: file },
+            pattern,
+          });
           detectedPatterns.push(pattern.description);
         }
       }
@@ -283,27 +308,27 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (/\(W_P\)/.test(path)) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_PORTABLE}`,
-          reason: "(W_P) override in filename",
-          file: path,
+          message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
+          reason: "(W_P) override in filename.",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
 
       if (/\(W_S\)/.test(path)) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_SETUP}`,
-          reason: "(W_S) override in filename",
-          file: path,
+          message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
+          reason: "(W_S) override in filename.",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
 
       if (/\(L_P\)/.test(path)) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.LINUX_PORTABLE}`,
-          reason: "(L_P) override in filename",
-          file: path,
+          message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
+          reason: "(L_P) override in filename.",
+          game: { file_path: path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -311,9 +336,9 @@ export class FilesService implements OnApplicationBootstrap {
       // Failsafe for Mock-Files because we cant look into them
       if (configuration.TESTING.MOCK_FILES) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_SETUP}`,
-          reason: "TESTING_MOCK_FILES is set to true",
-          file: path,
+          message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
+          reason: "TESTING_MOCK_FILES is set to true.",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -321,18 +346,18 @@ export class FilesService implements OnApplicationBootstrap {
       // Detect single File executables
       if (path?.toLowerCase().endsWith(".exe")) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_SETUP}`,
-          reason: "Filename ends with .exe",
-          file: path,
+          message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
+          reason: "Filename ends with .exe .",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
 
       if (path?.toLowerCase().endsWith(".sh")) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.LINUX_PORTABLE}`,
-          reason: "Filename ends with .sh",
-          file: path,
+          message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
+          reason: "Filename ends with .sh .",
+          game: { file_path: path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -344,17 +369,17 @@ export class FilesService implements OnApplicationBootstrap {
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
           this.logger.debug({
-            message: `Detected game type as ${GameType.WINDOWS_SETUP}`,
+            message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
             reason:
-              "There are windows executables in the archive that look like installers",
-            file: path,
+              "There are windows executables in the archive that look like installers.",
+            game: { file_path: path },
           });
           return GameType.WINDOWS_SETUP;
         }
         this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_PORTABLE}`,
-          reason: "There are windows executables in the archive",
-          file: path,
+          message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
+          reason: "There are windows executables in the archive.",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -365,20 +390,23 @@ export class FilesService implements OnApplicationBootstrap {
       );
       if (linuxExecutablesInArchive.length > 0) {
         this.logger.debug({
-          message: `Detected game type as ${GameType.LINUX_PORTABLE}`,
-          reason: "There are .sh files in the archive",
-          file: path,
+          message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
+          reason: "There are .sh files in the archive.",
+          game: { file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
 
       // More Platforms and Game Types can be added here.
-      this.logger.debug({ message: `Could not detect game type`, file: path });
+      this.logger.debug({
+        message: `Could not detect game type.`,
+        game: { file_path: path },
+      });
       return GameType.UNDETECTABLE;
     } catch (error) {
       this.logger.warn({
-        message: `Error detecting game type`,
-        file: path,
+        message: `Error detecting game type.`,
+        game: { file_path: path },
         error,
       });
       return GameType.UNDETECTABLE;
@@ -400,8 +428,8 @@ export class FilesService implements OnApplicationBootstrap {
 
       listStream.on("error", (error) => {
         this.logger.error({
-          message: `Error extracting executables list. Is the archive data corrupted?`,
-          file: path,
+          message: `Error extracting executables list. Archive could be corrupted.`,
+          game: { file_path: path },
           error,
         });
         reject(error);
@@ -410,14 +438,14 @@ export class FilesService implements OnApplicationBootstrap {
       listStream.on("end", () => {
         if (executablesList.length) {
           this.logger.debug({
-            message: `Found ${executablesList.length} executables in archive.`,
-            file: path,
+            message: `Found ${executablesList.length} executable(s) in archive.`,
+            game: { file_path: path },
             executables: executablesList,
           });
         } else {
           this.logger.warn({
             message: `Could not detect any executables in archive. Please note that the Game Type Detection algorithm does not support nested archives.`,
-            file: path,
+            game: { file_path: path },
           });
         }
         resolve(executablesList);
@@ -470,7 +498,10 @@ export class FilesService implements OnApplicationBootstrap {
       });
       return gamesInDatabase;
     }
-    this.logger.log("Started Integrity Check");
+    this.logger.log({
+      message: "Started Integrity Check.",
+      gamesCount: gamesInDatabase.length,
+    });
     const updatedGames: Game[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
@@ -483,8 +514,10 @@ export class FilesService implements OnApplicationBootstrap {
           this.logger.log({
             message: `Game marked as soft-deleted.`,
             reason: "Game file not found in filesystem.",
-            game: gameInDatabase.title,
-            file: gameInDatabase.file_path,
+            game: {
+              id: gameInDatabase.id,
+              file_path: gameInDatabase.file_path,
+            },
           });
           continue;
         }
@@ -492,12 +525,18 @@ export class FilesService implements OnApplicationBootstrap {
       } catch (error) {
         this.logger.error({
           message: `Error checking integrity of file.`,
-          file: gameInDatabase.file_path,
+          game: {
+            id: gameInDatabase.id,
+            file_path: gameInDatabase.file_path,
+          },
           error,
         });
       }
     }
-    this.logger.log("Finished Integrity Check");
+    this.logger.log({
+      message: "Finished Integrity Check.",
+      gamesCount: gamesInDatabase.length,
+    });
     return updatedGames;
   }
 
@@ -559,7 +598,7 @@ export class FilesService implements OnApplicationBootstrap {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
         message: "Returning random download data.",
-        reason: "TESTING_MOCK_FILES is set to true",
+        reason: "TESTING_MOCK_FILES is set to true.",
       });
       return new StreamableFile(randomBytes(1000), {
         disposition: `attachment; filename="${filenameSanitizer(

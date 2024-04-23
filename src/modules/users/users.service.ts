@@ -36,11 +36,7 @@ export class UsersService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    try {
-      await this.recoverAdmin();
-    } catch (error) {
-      this.logger.error(error, "Error on FilesService Bootstrap");
-    }
+    await this.recoverAdmin();
   }
 
   private async recoverAdmin() {
@@ -64,14 +60,13 @@ export class UsersService implements OnApplicationBootstrap {
       );
     } catch (error) {
       if (error instanceof NotFoundException) {
-        this.logger.warn(
-          `The admin user wasn't recovered because the user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user.`,
-        );
-      } else {
-        this.logger.error(
+        this.logger.warn({
+          message: `The admin user wasn't recovered.`,
+          reason: `The admin user "${configuration.SERVER.ADMIN_USERNAME}" could not be found in the database. Make sure to register the user first.`,
           error,
-          "An error occurred while recovering the server admin.",
-        );
+        });
+      } else {
+        this.logger.error({ message: "Error recovering admin user.", error });
       }
     }
   }
@@ -181,7 +176,10 @@ export class UsersService implements OnApplicationBootstrap {
     const registeredUser = await this.userRepository.save(user);
     registeredUser.password = "**REDACTED**";
     registeredUser.socket_secret = "**REDACTED**";
-    this.logger.log(`User "${user.username}" has been registered.`);
+    this.logger.log({
+      message: `User has been registered.`,
+      user: registeredUser,
+    });
     return registeredUser;
   }
 
@@ -227,10 +225,14 @@ export class UsersService implements OnApplicationBootstrap {
     admin = false,
   ): Promise<GamevaultUser> {
     const user = await this.findByUserIdOrFail(id);
-    const logUpdate = (prop: string, from: string, to: string) => {
-      this.logger.log(
-        `Updating user property "${prop}" of "${user.username}": "${from}" -> "${to}"`,
-      );
+    const logUpdate = (property: string, from: string, to: string) => {
+      this.logger.log({
+        message: "Updating user property",
+        user: user.username,
+        property,
+        from,
+        to,
+      });
     };
 
     if (dto.username != null && dto.username !== user.username) {
@@ -289,7 +291,9 @@ export class UsersService implements OnApplicationBootstrap {
         dto.activated.toString(),
       );
       user.activated = dto.activated;
-      this.logger.log(`User "${user.username}" has been activated.`);
+      this.logger.log({
+        message: { message: "User has been activated.", user: user.username },
+      });
     }
 
     if (admin && dto.role != null) {
@@ -385,9 +389,14 @@ export class UsersService implements OnApplicationBootstrap {
       loadRelations: false,
     });
     user.bookmarked_games.push(game);
-    this.logger.log(
-      `User "${user.username}" has bookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,
-    );
+    this.logger.log({
+      message: "User bookmarked game.",
+      user: user.username,
+      game: {
+        id: game.id,
+        file_path: game.file_path,
+      },
+    });
     return this.userRepository.save(user);
   }
 
@@ -408,9 +417,14 @@ export class UsersService implements OnApplicationBootstrap {
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
       return bookmark.id !== game.id;
     });
-    this.logger.log(
-      `User "${user.username}" has unbookmarked game ${game.id} (${game.title} (${game.release_date?.getUTCFullYear() ?? "????"})).`,
-    );
+    this.logger.log({
+      message: "User unbookmarked game.",
+      user: user.username,
+      game: {
+        id: game.id,
+        file_path: game.file_path,
+      },
+    });
 
     return this.userRepository.save(user);
   }

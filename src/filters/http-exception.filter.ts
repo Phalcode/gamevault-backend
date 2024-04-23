@@ -22,14 +22,14 @@ export class LoggingExceptionFilter implements ExceptionFilter {
     if (error instanceof HttpException) {
       if (httpStatusCode >= 400 && httpStatusCode < 500) {
         this.logger.warn({
-          message: `${error.name} occurred: ${error.message}`,
+          message: `${error.name} occurred.`,
           path: request.url,
           response: error.getResponse(),
           error,
         });
       } else {
         this.logger.error({
-          message: `${error.name} occurred: ${error.message}`,
+          message: `${error.name} occurred.`,
           path: request.url,
           response: error.getResponse(),
           error,
@@ -39,7 +39,7 @@ export class LoggingExceptionFilter implements ExceptionFilter {
     } else {
       // All other unhandled Exceptions
       this.logger.error({
-        message: `Unhandled ${error.name} occurred: ${error.message}`,
+        message: `Unhandled ${error.name} occurred.`,
         path: request.url,
         error,
       });

@@ -138,7 +138,14 @@ export class GamesService {
     if (differences.length > 0) {
       this.logger.debug({
         message: "Game already exists in the database but has been altered.",
-        game: game.file_path,
+        game: {
+          id: game.id,
+          file_path: game.file_path,
+        },
+        existingGame: {
+          id: foundGame.id,
+          file_path: foundGame.file_path,
+        },
         differences,
       });
       return [GameExistence.EXISTS_BUT_ALTERED, foundGame];

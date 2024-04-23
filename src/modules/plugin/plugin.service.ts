@@ -48,7 +48,7 @@ export class PluginService implements OnApplicationBootstrap {
     }
     // TODO: Fully work out experimental plugin loader
     this.logger.warn({
-      message: `Experimental Plugin Loader Activated: ${configuration.PLUGIN.SOURCES.length} plugin(s) discovered`,
+      message: `Experimental Plugin Loader Activated: ${configuration.PLUGIN.SOURCES.length} plugin(s) discovered.`,
       reason: "PLUGIN_ENABLED is set to true.",
       sources: configuration.PLUGIN.SOURCES,
     });

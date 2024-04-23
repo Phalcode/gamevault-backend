@@ -220,7 +220,7 @@ export class ProgressService {
       progress.state = State.PLAYING;
     }
     this.logger.log({
-      message: `Incrementing progress by ${incrementBy} minute(s)`,
+      message: `Incrementing progress by ${incrementBy} minute(s).`,
       progress,
     });
     progress.last_played_at = new Date();

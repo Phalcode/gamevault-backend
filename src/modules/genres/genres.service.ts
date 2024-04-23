@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Genre } from "./genre.entity";
+import { Builder } from "builder-pattern";
 
 @Injectable()
 export class GenresService {
@@ -20,14 +21,13 @@ export class GenresService {
 
     if (existingGenre) return existingGenre;
 
-    const newGenre = new Genre();
-    newGenre.name = name;
-    newGenre.rawg_id = rawg_id;
-
+    const genre = this.tagRepository.save(
+      Builder(Genre).name(name).rawg_id(rawg_id).build(),
+    );
     this.logger.log({
-      message: "Creating new Genre...",
-      newGenre,
+      message: "Created new Genre.",
+      genre,
     });
-    return this.tagRepository.save(newGenre);
+    return genre;
   }
 }

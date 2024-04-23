@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Developer } from "./developer.entity";
+import { Builder } from "builder-pattern";
 
 @Injectable()
 export class DevelopersService {
@@ -22,13 +23,13 @@ export class DevelopersService {
 
     if (existingDeveloper) return existingDeveloper;
 
-    const newDeveloper = new Developer();
-    newDeveloper.name = name;
-    newDeveloper.rawg_id = rawg_id;
+    const developer = await this.developerRepository.save(
+      Builder(Developer).name(name).rawg_id(rawg_id).build(),
+    );
     this.logger.log({
-      message: "Creating new Developer...",
-      newDeveloper,
+      message: "Created new Developer.",
+      developer,
     });
-    return this.developerRepository.save(newDeveloper);
+    return developer;
   }
 }

@@ -44,43 +44,54 @@ export class RawgService {
   public async checkCache(games: Game[]): Promise<Game[]> {
     // Skip cache check if RAWG API is disabled
     if (configuration.TESTING.RAWG_API_DISABLED) {
-      this.logger.warn(
-        "Skipping RAWG Cache Check because TESTING_RAWG_API_DISABLED is set to true.",
-      );
+      this.logger.warn({
+        message: "Skipping RAWG Cache Check.",
+        reason: "TESTING_RAWG_API_DISABLED is set to true.",
+      });
       return games;
     }
 
     // Skip cache check if RAWG API key is not set
     if (!configuration.RAWG_API.KEY) {
-      this.logger.warn(
-        "Skipping RAWG Cache Check because RAWG_API_KEY is not set.",
-      );
+      this.logger.warn({
+        message: "Skipping RAWG Cache Check.",
+        reason: "RAWG_API_KEY is not set.",
+      });
       return games;
     }
 
-    this.logger.log("STARTED RAWG CACHE CHECK");
+    this.logger.log({
+      message: "Starting RAWG Cache Check.",
+      gamesCount: games.length,
+    });
 
     // Cache each game in the list
     for (let i = 0; i < games.length; i++) {
       try {
         games[i] = await this.cacheGame(games[i]);
-        this.logger.debug(
-          { gameId: games[i].id, title: games[i].title },
-          "Game Cached Successfully",
-        );
-      } catch (error) {
-        this.logger.error(
-          {
-            gameId: games[i].id,
-            title: games[i].title,
-            error,
+        this.logger.debug({
+          message: "Game Cached Successfully.",
+          game: {
+            id: games[i].id,
+            file_path: games[i].file_path,
           },
-          "Game Caching Failed",
-        );
+        });
+      } catch (error) {
+        this.logger.error({
+          message: "Error Caching Game.",
+          game: {
+            id: games[i].id,
+            file_path: games[i].file_path,
+          },
+          error,
+        });
       }
     }
 
-    this.logger.log("FINISHED RAWG CACHE CHECK");
+    this.logger.log({
+      message: "Finished RAWG Cache Check.",
+      gamesCount: games.length,
+    });
     return games;
   }
 
@@ -91,40 +102,40 @@ export class RawgService {
    * @returns The cached Game object.
    */
   private async cacheGame(game: Game): Promise<Game> {
-    // Log the game being cached
-    this.logger.debug(
-      {
-        gameId: game.id,
-        title: game.title,
-      },
-      `Caching Game.`,
-    );
-
     // Skip caching if the file path contains (NC) flag
     if (game.file_path.includes("(NC)")) {
-      this.logger.debug(
-        {
-          gameId: game.id,
-          title: game.title,
+      this.logger.debug({
+        message: "Skipping Caching Game.",
+        reason: "File path contains (NC) flag.",
+        game: {
+          id: game.id,
           file_path: game.file_path,
         },
-        `Game Caching Skipped, because file path contains NO CACHE flag (NC).`,
-      );
+      });
       return game;
     }
 
     // Skip caching if the game is not outdated
     if (!this.isOutdated(game)) {
-      this.logger.debug(
-        {
-          gameId: game.id,
-          title: game.title,
-          cachedAt: game.cache_date,
+      this.logger.debug({
+        message: "Skipping Caching Game.",
+        reason: "Cached data is still fresh.",
+        game: {
+          id: game.id,
+          file_path: game.file_path,
         },
-        `Game Caching Skipped, because cache is still fresh.`,
-      );
+        cachedAt: game.cache_date,
+      });
       return game;
     }
+
+    this.logger.debug({
+      message: "Caching Game.",
+      game: {
+        id: game.id,
+        file_path: game.file_path,
+      },
+    });
 
     // Fetch the game data from external API using Rawg ID or title and release date
     const rawgEntry: RawgGame = game.rawg_id
@@ -156,7 +167,12 @@ export class RawgService {
         rawg_release_date: match.released,
       };
     });
-    this.logger.log(`${matches.length} Matches found for "${title}"`, matches);
+    this.logger.log({
+      message: `Found ${matches.length} matches on RAWG.`,
+      title,
+      releaseYear,
+      matches,
+    });
 
     return this.fetchByRawgId(sortedResults[0].id);
   }
@@ -182,27 +198,35 @@ export class RawgService {
 
     // If releaseYear is provided, fetch games with the given title and release year
     if (releaseYear) {
-      this.logger.debug(
-        `Fetching games matching "${title}" (${releaseYear})...`,
-      );
-      searchResults.push(...(await this.fetch(title, releaseYear)).results);
+      const search = await this.fetch(title, releaseYear);
+      this.logger.debug({
+        message: `Fetched ${search.results.length} RAWG game(s) matching title and release year.`,
+        title,
+        releaseYear,
+        temporarySearchResults: search,
+      });
+      searchResults.push(...search.results);
     }
 
     // If no search results are found with the release year, fetch games with the given title only
     if (searchResults.length === 0) {
-      this.logger.debug(`Fetching games matching "${title}"...`);
-      searchResults.push(...(await this.fetch(title)).results);
+      const search = await this.fetch(title);
+      this.logger.debug({
+        message: `Fetched ${search.results.length} RAWG game(s) matching title.`,
+        title,
+        temporarySearchResults: search,
+      });
+      searchResults.push(...search.results);
     }
 
     // If no search results are found, throw a NotFoundException
     if (searchResults.length === 0) {
-      const errorMessage = `No game found in RAWG for "${title}" ${
-        releaseYear ? `(${releaseYear})` : ""
-      }`;
-      this.logger.log(
-        `➥ "${title} (${releaseYear || "No Year"})" | ${errorMessage}`,
-      );
-      throw new NotFoundException(errorMessage);
+      this.logger.log({
+        message: "No matching RAWG game found.",
+        title,
+        releaseYear,
+      });
+      throw new NotFoundException("No matching RAWG game found");
     }
 
     // Calculate the probability of matching for each game
@@ -238,7 +262,13 @@ export class RawgService {
   /** Determines whether a game's cache is outdated. */
   private isOutdated(game: Game) {
     if (!game.cache_date) {
-      this.logger.debug(`➥ "${game.title}" | Uncached`);
+      this.logger.debug({
+        message: "Game is not cached.",
+        game: {
+          id: game.id,
+          file_path: game.file_path,
+        },
+      });
       return true;
     }
 
@@ -246,9 +276,13 @@ export class RawgService {
       new Date().getTime() - game.cache_date.getTime() >
       configuration.RAWG_API.CACHE_DAYS * 24 * 60 * 60 * 1000
     ) {
-      this.logger.debug(
-        `➥ "${game.title}" | Cache outdated | Cache Date: ${game.cache_date}`,
-      );
+      this.logger.debug({
+        message: "Game Cache is outdated.",
+        game: {
+          id: game.id,
+          file_path: game.file_path,
+        },
+      });
       return true;
     }
     return false;
@@ -317,16 +351,13 @@ export class RawgService {
     );
 
     //Log the full request url and response data from RAWG
-    this.logger.debug(
-      {
-        url:
-          (response.request as ClientRequest)?.host +
-          (response.request as ClientRequest)?.path,
-        data: response?.data,
-      },
-      `RAWG API Request.`,
-    );
-
+    this.logger.debug({
+      message: "RAWG Request",
+      url:
+        (response.request as ClientRequest)?.host +
+        (response.request as ClientRequest)?.path,
+      data: response.data,
+    });
     return response.data as SearchResult;
   }
 }

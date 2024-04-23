@@ -42,8 +42,8 @@ export class ImageGarbageCollectionService {
     if (configuration.IMAGE.GC_DISABLED) {
       // Log warning and skip garbage collection
       this.logger.warn({
-        message: "Skipping image garbage collection",
-        reason: "IMAGE_GC_DISABLED is set to true",
+        message: "Skipping image garbage collection.",
+        reason: "IMAGE_GC_DISABLED is set to true.",
       });
       return;
     }
@@ -73,7 +73,7 @@ export class ImageGarbageCollectionService {
 
     if (fsRemovedCount) {
       this.logger.log(
-        `Deleted ${fsRemovedCount} unused image files from ${configuration.VOLUMES.IMAGES}`,
+        `Deleted ${fsRemovedCount} unused image files from ${configuration.VOLUMES.IMAGES}.`,
       );
     }
   }
@@ -161,7 +161,7 @@ export class ImageGarbageCollectionService {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
         message: "Skipping image garbage collection.",
-        reason: "TESTING_MOCK_FILES is true",
+        reason: "TESTING_MOCK_FILES is true.",
       });
       return 0;
     }
