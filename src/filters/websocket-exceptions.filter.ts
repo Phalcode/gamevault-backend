@@ -7,7 +7,6 @@ export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
   catch(error: HttpException, host: ArgumentsHost) {
     this.logger.error({
       message: `Unhandled ${error.name} occurred in websocket: ${error.message}`,
-      stack: error.stack,
       error,
     });
     const convertedException = new WsException(error.getResponse());
