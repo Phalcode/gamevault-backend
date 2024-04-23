@@ -151,9 +151,11 @@ async function bootstrap(): Promise<void> {
 
   await app.listen(configuration.SERVER.PORT);
 
-  logger.log("Loaded Configuration", getCensoredConfiguration());
-  logger.log(
-    `Started GameVault Server v${configuration.SERVER.VERSION} on port ${configuration.SERVER.PORT}.`,
-  );
+  logger.log({
+    message: `Started GameVault Server.`,
+    version: configuration.SERVER.VERSION,
+    port: configuration.SERVER.PORT,
+    config: getCensoredConfiguration(),
+  });
 }
 bootstrap();

@@ -27,24 +27,35 @@ export class BoxArtsService {
       return games;
     }
 
-    this.logger.log("STARTED BOXART CHECK");
+    this.logger.log({
+      message: "Starting Box Art Check",
+      gamesCount: games.length,
+    });
 
     for (let i = 0; i < games.length; i++) {
       try {
         games[i] = await this.check(games[i]);
-        this.logger.debug(
-          { gameId: games[i].id, title: games[i].title },
-          "BoxArt Checked",
-        );
+        this.logger.debug({
+          message: `Checked Box Art`,
+          gameId: games[i].id,
+          gameTitle: games[i].title,
+          box_image: games[i].box_image,
+        });
       } catch (error) {
-        this.logger.error(
-          { gameId: games[i].id, title: games[i].title, error: error },
-          "BoxArt Check Failed",
-        );
+        this.logger.error({
+          message: "Box Art Check Failed",
+          gameId: games[i].id,
+          gameTitle: games[i].title,
+          box_image: games[i].box_image,
+          error,
+        });
       }
     }
 
-    this.logger.log("FINISHED BOXART CHECK");
+    this.logger.log({
+      message: "Finished Box Art Check",
+      gamesCount: games.length,
+    });
 
     return games;
   }
@@ -69,7 +80,12 @@ export class BoxArtsService {
       game.box_image?.id &&
       (await this.imagesService.isAvailable(game.box_image.id))
     ) {
-      this.logger.debug(`Box Art for "${game.title}" is still available`);
+      this.logger.debug({
+        message: "Box Art is still available",
+        gameId: game.id,
+        gameTitle: game.title,
+        box_image: game.box_image,
+      });
       return game;
     }
 
@@ -83,11 +99,10 @@ export class BoxArtsService {
         this.cooldownDurationInMilliseconds -
         Date.now();
 
-      this.logger.warn(
-        `Cooldown active. Skipping Box Art Search. Remaining cooldown: ${this.formatCooldownTime(
-          remainingCooldown,
-        )}`,
-      );
+      this.logger.warn({
+        message: `Cooldown active. Skipping Box Art Search. The cooldown will also expire after a server restart.`,
+        remainingCooldown: this.formatCooldownTime(remainingCooldown),
+      });
       return game;
     }
 
@@ -120,13 +135,11 @@ export class BoxArtsService {
           this.cooldownStartTime +
           this.cooldownDurationInMilliseconds -
           Date.now();
-        this.logger.warn(
-          `No Box Art Images found for multiple games. You probably hit the Google Image Search Rate-Limit. Cooldown activated for ${this.formatCooldownTime(
-            this.cooldownDurationInMilliseconds,
-          )}. Remaining cooldown: ${this.formatCooldownTime(
-            remainingCooldown,
-          )}. The cooldown will expire after a server restart.`,
-        );
+        this.logger.warn({
+          message:
+            "No Box Art Images found for multiple games. You probably hit the Google Image Search Rate-Limit. Cooldown activated.",
+          remainingCooldown: this.formatCooldownTime(remainingCooldown),
+        });
       }
       return game;
     }
@@ -154,7 +167,12 @@ export class BoxArtsService {
       // Perform the image search
       const searchResults = await gis(searchQuery);
 
-      this.logger.debug(searchResults, "Google Image Search Results");
+      this.logger.debug({
+        message: `Google Image Search Results`,
+        searchQuery,
+        resultsCount: searchResults.length,
+        searchResults,
+      });
       // Filter the search results based on the aspect ratio
       const matches = searchResults.filter((image) => {
         const aspectRatio = image.width / image.height;

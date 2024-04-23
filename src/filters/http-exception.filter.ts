@@ -21,33 +21,31 @@ export class LoggingExceptionFilter implements ExceptionFilter {
       error instanceof HttpException ? error.getStatus() : 500;
     if (error instanceof HttpException) {
       if (httpStatusCode >= 400 && httpStatusCode < 500) {
-        this.logger.warn(`${error.name} occurred: ${error.message}`, {
+        this.logger.warn({
+          message: `${error.name} occurred: ${error.message}`,
           path: request.url,
           response: error.getResponse(),
           error,
         });
       } else {
-        this.logger.error(
-          {
-            path: request.url,
-            response: error.getResponse(),
-            error,
-          },
-          `${error.name} occurred: ${error.message}`,
-        );
+        this.logger.error({
+          message: `${error.name} occurred: ${error.message}`,
+          path: request.url,
+          response: error.getResponse(),
+          error,
+        });
       }
       response.status(httpStatusCode).json(error.getResponse());
     } else {
       // All other unhandled Exceptions
-      this.logger.error(
-        {
-          path: request.url,
-          error,
-        },
-        `Unhandled ${error.name} occurred: ${error.message}`,
-      );
+      this.logger.error({
+        message: `Unhandled ${error.name} occurred: ${error.message}`,
+        path: request.url,
+        error,
+      });
       response.status(httpStatusCode).json({
-        message: "Please check the server logs for more details.",
+        message:
+          "Unhandled Server Error. Please check the server logs for more details.",
         error: "Unhandled Server Error",
         statusCode: httpStatusCode,
       });
