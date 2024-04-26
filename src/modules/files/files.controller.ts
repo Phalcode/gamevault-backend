@@ -1,12 +1,13 @@
 import { Controller, Put } from "@nestjs/common";
 import {
-  ApiOperation,
-  ApiOkResponse,
-  ApiTags,
   ApiBasicAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from "@nestjs/swagger";
-import { Game } from "../games/game.entity";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { Game } from "../games/game.entity";
 import { Role } from "../users/models/role.enum";
 import { FilesService } from "./files.service";
 

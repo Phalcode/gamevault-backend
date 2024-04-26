@@ -1,15 +1,17 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { Test } from "@nestjs/testing";
-import { RawgController } from "./rawg.controller";
 import { HttpService } from "@nestjs/axios";
+import { Test } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import gis, { Result } from "async-g-i-s";
+import { Builder } from "builder-pattern";
+import { of } from "rxjs";
+import { Repository } from "typeorm";
+
 import { AppModule } from "../../../app.module";
 import configuration from "../../../configuration";
-import { of } from "rxjs";
 import { Game } from "../../games/game.entity";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Builder } from "builder-pattern";
-import gis, { Result } from "async-g-i-s";
+import { RawgController } from "./rawg.controller";
+
 jest.mock("async-g-i-s");
 
 describe("/api/rawg", () => {

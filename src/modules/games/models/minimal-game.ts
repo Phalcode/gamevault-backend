@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
+
 import { Image } from "../../images/image.entity";
 
 export class MinimalGame {

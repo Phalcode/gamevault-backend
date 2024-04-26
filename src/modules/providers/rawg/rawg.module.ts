@@ -1,16 +1,17 @@
-import { Module, forwardRef } from "@nestjs/common";
-import { RawgService } from "./rawg.service";
-import { RawgController } from "./rawg.controller";
-import { RawgMapperService } from "./mapper.service";
-import { GamesModule } from "../../games/games.module";
-import { BoxartsModule } from "../../boxarts/boxarts.module";
 import { HttpModule } from "@nestjs/axios";
-import { TagsModule } from "../../tags/tags.module";
-import { GenresModule } from "../../genres/genres.module";
-import { PublishersModule } from "../../publishers/publishers.module";
+import { forwardRef, Module } from "@nestjs/common";
+
+import { BoxartsModule } from "../../boxarts/boxarts.module";
 import { DevelopersModule } from "../../developers/developers.module";
-import { StoresModule } from "../../stores/stores.module";
+import { GamesModule } from "../../games/games.module";
+import { GenresModule } from "../../genres/genres.module";
 import { ImagesModule } from "../../images/images.module";
+import { PublishersModule } from "../../publishers/publishers.module";
+import { StoresModule } from "../../stores/stores.module";
+import { TagsModule } from "../../tags/tags.module";
+import { RawgMapperService } from "./mapper.service";
+import { RawgController } from "./rawg.controller";
+import { RawgService } from "./rawg.service";
 
 @Module({
   imports: [

@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Entity, Column, ManyToMany, Index } from "typeorm";
-import { Game } from "../games/game.entity";
+import { Column, Entity, Index, ManyToMany } from "typeorm";
+
 import { DatabaseEntity } from "../database/database.entity";
+import { Game } from "../games/game.entity";
 
 @Entity()
 export class Store extends DatabaseEntity {

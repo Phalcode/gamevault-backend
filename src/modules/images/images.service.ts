@@ -1,25 +1,26 @@
+import { HttpService } from "@nestjs/axios";
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Image } from "./image.entity";
-import configuration from "../../configuration";
-import sharp from "sharp";
-import { HttpService } from "@nestjs/axios";
-import { catchError, firstValueFrom } from "rxjs";
 import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { UsersService } from "../users/users.service";
-import { unlink, writeFile } from "fs/promises";
 import { existsSync } from "fs";
+import { unlink, writeFile } from "fs/promises";
+import { catchError, firstValueFrom } from "rxjs";
+import sharp from "sharp";
+import { Repository } from "typeorm";
+
+import configuration from "../../configuration";
+import { UsersService } from "../users/users.service";
+import { Image } from "./image.entity";
 
 @Injectable()
 export class ImagesService {

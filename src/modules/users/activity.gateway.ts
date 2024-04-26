@@ -1,24 +1,25 @@
 import { Logger, UseFilters, UseGuards } from "@nestjs/common";
-import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
-import { Server, Socket } from "socket.io";
+import { ApiBasicAuth } from "@nestjs/swagger";
 import {
+  ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  ConnectedSocket,
 } from "@nestjs/websockets";
-import { Activity } from "./models/activity.dto";
-import { ApiBasicAuth } from "@nestjs/swagger";
-import { UsersService } from "./users.service";
-import { ActivityState } from "./models/activity-state.enum";
-import { GamevaultUser } from "./gamevault-user.entity";
+import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
+import { noop } from "rxjs";
+import { Server, Socket } from "socket.io";
+
+import configuration from "../../configuration";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
-import configuration from "../../configuration";
-import { noop } from "rxjs";
+import { GamevaultUser } from "./gamevault-user.entity";
+import { Activity } from "./models/activity.dto";
+import { ActivityState } from "./models/activity-state.enum";
+import { UsersService } from "./users.service";
 
 // Conditionally decorate the WebSocket gateway class.
 const ConditionalWebSocketGateway = configuration.SERVER

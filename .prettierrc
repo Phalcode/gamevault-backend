@@ -1,5 +1,4 @@
 {
   "singleQuote": false,
-  "endOfLine": "auto",
-  "plugins": ["prettier-plugin-jsdoc"]
+  "endOfLine": "auto"
 }

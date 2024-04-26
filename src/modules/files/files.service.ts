@@ -6,29 +6,30 @@ import {
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
-import { IGameVaultFile } from "./models/file.model";
-import { Game } from "../games/game.entity";
-import { GamesService } from "../games/games.service";
-import { createReadStream, existsSync, statSync } from "fs";
-import path, { basename, extname, join } from "path";
-import configuration from "../../configuration";
-import mock from "../games/games.mock";
-import mime from "mime";
-import { GameExistence } from "../games/models/game-existence.enum";
-import { add, list } from "node-7z";
-import { GameType } from "../games/models/game-type.enum";
-import { RawgService } from "../providers/rawg/rawg.service";
-import { BoxArtsService } from "../boxarts/boxarts.service";
-import globals from "../../globals";
-import filenameSanitizer from "sanitize-filename";
-import unidecode from "unidecode";
-import { randomBytes } from "crypto";
+import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
+import { randomBytes } from "crypto";
+import { createReadStream, existsSync, statSync } from "fs";
+import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
+import mime from "mime";
+import { add, list } from "node-7z";
+import path, { basename, extname, join } from "path";
+import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
-import { readdir, stat } from "fs/promises";
-import { Cron } from "@nestjs/schedule";
+import unidecode from "unidecode";
+
+import configuration from "../../configuration";
+import globals from "../../globals";
+import { BoxArtsService } from "../boxarts/boxarts.service";
+import { Game } from "../games/game.entity";
+import mock from "../games/games.mock";
+import { GamesService } from "../games/games.service";
+import { GameExistence } from "../games/models/game-existence.enum";
+import { GameType } from "../games/models/game-type.enum";
+import { RawgService } from "../providers/rawg/rawg.service";
+import { IGameVaultFile } from "./models/file.model";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {

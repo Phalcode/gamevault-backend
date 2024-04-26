@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Store } from "./store.entity";
 import { Builder } from "builder-pattern";
+import { Repository } from "typeorm";
+
+import { Store } from "./store.entity";
 
 @Injectable()
 export class StoresService {

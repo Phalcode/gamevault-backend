@@ -1,9 +1,10 @@
-import { FilesController } from "./files.controller";
-import { Module, forwardRef } from "@nestjs/common";
-import { FilesService } from "./files.service";
+import { forwardRef, Module } from "@nestjs/common";
+
+import { BoxartsModule } from "../boxarts/boxarts.module";
 import { GamesModule } from "../games/games.module";
 import { RawgModule } from "../providers/rawg/rawg.module";
-import { BoxartsModule } from "../boxarts/boxarts.module";
+import { FilesController } from "./files.controller";
+import { FilesService } from "./files.service";
 
 @Module({
   imports: [

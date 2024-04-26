@@ -1,3 +1,4 @@
+import { HttpService } from "@nestjs/axios";
 import {
   forwardRef,
   Inject,
@@ -6,19 +7,19 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { AxiosError } from "axios";
+import { ClientRequest } from "http";
+import { catchError, firstValueFrom } from "rxjs";
+import stringSimilarity from "string-similarity-js";
+
 import configuration from "../../../configuration";
+import { Game } from "../../games/game.entity";
 import { GamesService } from "../../games/games.service";
 import { RawgMapperService } from "./mapper.service";
 import { RawgGame } from "./models/game.interface";
 import { Result as RawgResult, SearchResult } from "./models/games.interface";
-import { Game } from "../../games/game.entity";
-import { catchError, firstValueFrom } from "rxjs";
-import { HttpService } from "@nestjs/axios";
-import { AxiosError } from "axios";
-import stringSimilarity from "string-similarity-js";
 import { RawgPlatform } from "./models/platforms";
 import { RawgStore } from "./models/stores";
-import { ClientRequest } from "http";
 
 @Injectable()
 export class RawgService {

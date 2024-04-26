@@ -6,14 +6,15 @@ import {
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
-import { RawgService } from "./rawg.service";
-import { Game } from "../../games/game.entity";
+
 import { MinimumRole } from "../../../decorators/minimum-role.decorator";
-import { Role } from "../../users/models/role.enum";
-import { IdDto } from "../../database/models/id.dto";
-import { GamesService } from "../../games/games.service";
 import { BoxArtsService } from "../../boxarts/boxarts.service";
+import { IdDto } from "../../database/models/id.dto";
+import { Game } from "../../games/game.entity";
+import { GamesService } from "../../games/games.service";
 import { MinimalGame } from "../../games/models/minimal-game";
+import { Role } from "../../users/models/role.enum";
+import { RawgService } from "./rawg.service";
 
 @ApiTags("rawg")
 @Controller("rawg")

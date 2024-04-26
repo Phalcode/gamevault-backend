@@ -11,6 +11,7 @@ import {
   Matches,
   MinLength,
 } from "class-validator";
+
 import { Role } from "./role.enum";
 
 export class UpdateUserDto {

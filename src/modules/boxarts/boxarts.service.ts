@@ -1,9 +1,10 @@
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import gis, { Result } from "async-g-i-s";
+
 import configuration from "../../configuration";
+import { Game } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
 import { ImagesService } from "../images/images.service";
-import { Game } from "../games/game.entity";
 
 @Injectable()
 export class BoxArtsService {

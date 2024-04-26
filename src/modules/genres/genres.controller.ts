@@ -7,9 +7,10 @@ import {
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Genre } from "./genre.entity";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Role } from "../users/models/role.enum";
+import { Genre } from "./genre.entity";
 
 @Controller("genres")
 @ApiTags("genres")

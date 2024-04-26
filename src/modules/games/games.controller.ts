@@ -26,14 +26,15 @@ import {
   PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
-import { ApiOkResponsePaginated } from "../pagination/paginated-api-response.model";
-import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { IdDto } from "../database/models/id.dto";
-import { Game } from "./game.entity";
-import { FilesService } from "../files/files.service";
-import { GamesService } from "./games.service";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+import { ApiOkResponsePaginated } from "../../globals";
+import { IdDto } from "../database/models/id.dto";
+import { FilesService } from "../files/files.service";
 import { Role } from "../users/models/role.enum";
+import { Game } from "./game.entity";
+import { GamesService } from "./games.service";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBasicAuth()

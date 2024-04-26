@@ -12,6 +12,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBasicAuth,
   ApiBody,
@@ -21,16 +22,16 @@ import {
   ApiProduces,
   ApiTags,
 } from "@nestjs/swagger";
-import { ImagesService } from "./images.service";
-import fs from "fs";
 import { Response } from "express";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Role } from "../users/models/role.enum";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { Image } from "./image.entity";
+import fs from "fs";
+
 import configuration from "../../configuration";
-import { GamevaultUser } from "../users/gamevault-user.entity";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { GamevaultUser } from "../users/gamevault-user.entity";
+import { Role } from "../users/models/role.enum";
+import { Image } from "./image.entity";
+import { ImagesService } from "./images.service";
 
 @ApiTags("images")
 @Controller("images")

@@ -1,4 +1,5 @@
 import { SetMetadata } from "@nestjs/common";
+
 import { Role } from "../modules/users/models/role.enum";
 
 export const MINIMUM_ROLE_KEY = "minimumRole";

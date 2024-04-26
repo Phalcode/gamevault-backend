@@ -6,16 +6,17 @@ import {
   StreamableFile,
   UnauthorizedException,
 } from "@nestjs/common";
-import configuration from "../../configuration";
+import { exec } from "child_process";
+import { createReadStream, existsSync, statSync } from "fs";
+import { copyFile, writeFile } from "fs/promises";
+import mime from "mime";
+import path from "path";
+import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
-import filenameSanitizer from "sanitize-filename";
-import path from "path";
-import { exec } from "child_process";
 import { promisify } from "util";
-import mime from "mime";
-import { copyFile, writeFile } from "fs/promises";
-import { createReadStream, existsSync, statSync } from "fs";
+
+import configuration from "../../configuration";
 
 @Injectable()
 export class DatabaseService {

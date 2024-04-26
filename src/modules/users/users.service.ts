@@ -1,26 +1,27 @@
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
   UnauthorizedException,
-  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
-import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
-import configuration from "../../configuration";
-import { RegisterUserDto } from "./models/register-user.dto";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { ImagesService } from "../images/images.service";
-import { UpdateUserDto } from "./models/update-user.dto";
-import { Role } from "./models/role.enum";
-import { FindOptions } from "../../globals";
 import { randomBytes } from "crypto";
+import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
+
+import configuration from "../../configuration";
+import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
+import { ImagesService } from "../images/images.service";
+import { GamevaultUser } from "./gamevault-user.entity";
+import { RegisterUserDto } from "./models/register-user.dto";
+import { Role } from "./models/role.enum";
+import { UpdateUserDto } from "./models/update-user.dto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -377,7 +378,7 @@ export class UsersService implements OnApplicationBootstrap {
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
-      loadDeletedEntities: true,
+      loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
     if (user.bookmarked_games.some((game) => game.id === gameId)) {
@@ -385,7 +386,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
-      loadDeletedEntities: true,
+      loadDeletedEntities: false,
       loadRelations: false,
     });
     user.bookmarked_games.push(game);
@@ -403,15 +404,15 @@ export class UsersService implements OnApplicationBootstrap {
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
-      loadDeletedEntities: true,
-      loadRelations: ["bookmarked_games"],
+      loadDeletedEntities: false,
+      loadRelations: true,
     });
     if (!user.bookmarked_games.some((game) => game.id === gameId)) {
       return user;
     }
 
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
-      loadDeletedEntities: true,
+      loadDeletedEntities: false,
       loadRelations: false,
     });
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {

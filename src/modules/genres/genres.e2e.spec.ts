@@ -1,11 +1,12 @@
 import { Test } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Genre } from "./genre.entity";
-import { Game } from "../games/game.entity";
 import { Builder } from "builder-pattern";
 import { Repository } from "typeorm/repository/Repository";
-import { GenresController } from "./genres.controller";
+
 import { AppModule } from "../../app.module";
+import { Game } from "../games/game.entity";
+import { Genre } from "./genre.entity";
+import { GenresController } from "./genres.controller";
 
 describe("GenresController", () => {
   let genresController: GenresController;

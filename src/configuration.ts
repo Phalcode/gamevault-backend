@@ -1,5 +1,5 @@
-import globals from "./globals";
 import packageJson from "../package.json";
+import globals from "./globals";
 
 function parseBooleanEnvVariable(
   environmentVariable: string,

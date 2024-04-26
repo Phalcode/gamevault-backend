@@ -2,20 +2,21 @@ import { Controller, Get } from "@nestjs/common";
 import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
-  Paginate,
-  PaginateQuery,
-  Paginated,
-  paginate,
   NO_PAGINATION,
+  Paginate,
+  paginate,
+  Paginated,
+  PaginateQuery,
   PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
-import { ApiOkResponsePaginated } from "../pagination/paginated-api-response.model";
-import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { Tag } from "./tag.entity";
-import { all_filters } from "../pagination/all-filters.filter";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+import { all_filters } from "../../filters/all-filters.filter";
+import { ApiOkResponsePaginated } from "../../globals";
 import { Role } from "../users/models/role.enum";
+import { Tag } from "./tag.entity";
 
 @Controller("tags")
 @ApiTags("tags")

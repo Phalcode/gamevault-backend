@@ -1,9 +1,10 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
-import configuration from "../../configuration";
 import pg from "pg";
+import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
+import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
+
+import configuration from "../../configuration";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,

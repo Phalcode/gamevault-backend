@@ -1,9 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Entity, Column, ManyToOne, Index } from "typeorm";
-import { State } from "./models/state.enum";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+
+import { DatabaseEntity } from "../database/database.entity";
 import { Game } from "../games/game.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
-import { DatabaseEntity } from "../database/database.entity";
+import { State } from "./models/state.enum";
 
 @Entity()
 export class Progress extends DatabaseEntity {

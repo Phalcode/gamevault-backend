@@ -1,12 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Game } from "../../games/game.entity";
-import { RawgGame } from "./models/game.interface";
+
 import { DevelopersService } from "../../developers/developers.service";
+import { Game } from "../../games/game.entity";
 import { GenresService } from "../../genres/genres.service";
 import { ImagesService } from "../../images/images.service";
 import { PublishersService } from "../../publishers/publishers.service";
 import { StoresService } from "../../stores/stores.service";
 import { TagsService } from "../../tags/tags.service";
+import { RawgGame } from "./models/game.interface";
 
 @Injectable()
 export class RawgMapperService {
