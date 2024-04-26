@@ -1,5 +1,13 @@
 # GameVault Backend Server Changelog
 
+## 12.0.1
+
+Recommended Gamevault App Version: `v1.9.2.0`
+
+### Changes
+
+- Fixed a bug where deleted bookmarked games would cause an error for all future bookmark calls.
+
 ## 12.0.0
 
 Recommended Gamevault App Version: `v1.9.2.0`

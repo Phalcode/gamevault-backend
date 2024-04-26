@@ -377,7 +377,7 @@ export class UsersService implements OnApplicationBootstrap {
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
-      loadDeletedEntities: false,
+      loadDeletedEntities: true,
       loadRelations: ["bookmarked_games"],
     });
     if (user.bookmarked_games.some((game) => game.id === gameId)) {
@@ -385,7 +385,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
+      loadDeletedEntities: true,
       loadRelations: false,
     });
     user.bookmarked_games.push(game);
@@ -403,15 +403,15 @@ export class UsersService implements OnApplicationBootstrap {
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
-      loadDeletedEntities: false,
-      loadRelations: true,
+      loadDeletedEntities: true,
+      loadRelations: ["bookmarked_games"],
     });
     if (!user.bookmarked_games.some((game) => game.id === gameId)) {
       return user;
     }
 
     const game = await this.gamesService.findByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
+      loadDeletedEntities: true,
       loadRelations: false,
     });
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
