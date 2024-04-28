@@ -41,7 +41,7 @@
     "async-g-i-s": "^1.5.2",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
-    "better-sqlite3": "^9.5.0",
+    "better-sqlite3": "^9.6.0",
     "builder-pattern": "^2.2.0",
     "chokidar": "^3.6.0",
     "class-transformer": "^0.5.1",

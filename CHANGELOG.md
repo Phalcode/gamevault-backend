@@ -6,6 +6,7 @@ Recommended Gamevault App Version: `v1.9.2.0`
 
 ### Changes
 
+- Fixed a Bug where deleted bookmark games would break bookmarking for users who had them bookmarked.
 - Formatted imports in entire codebase and refactored project structure
 - Made Rotating File logger handle TESTING_MOCK_FILES environment variable
 

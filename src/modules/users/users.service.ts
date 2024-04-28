@@ -389,7 +389,15 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: false,
     });
+
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(GamevaultUser, "bookmarked_games")
+      .of(user)
+      .add(game);
+
     user.bookmarked_games.push(game);
+
     this.logger.log({
       message: "User bookmarked game.",
       user: user.username,
@@ -398,14 +406,14 @@ export class UsersService implements OnApplicationBootstrap {
         file_path: game.file_path,
       },
     });
-    return this.userRepository.save(user);
+    return user;
   }
 
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
       loadDeletedEntities: false,
-      loadRelations: true,
+      loadRelations: ["bookmarked_games"],
     });
     if (!user.bookmarked_games.some((game) => game.id === gameId)) {
       return user;
@@ -415,9 +423,17 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: false,
     });
+
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(GamevaultUser, "bookmarked_games")
+      .of(user)
+      .remove(game);
+
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
       return bookmark.id !== game.id;
     });
+
     this.logger.log({
       message: "User unbookmarked game.",
       user: user.username,
@@ -427,7 +443,7 @@ export class UsersService implements OnApplicationBootstrap {
       },
     });
 
-    return this.userRepository.save(user);
+    return user;
   }
 
   /**
