@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Headers,
   Logger,
   Param,
@@ -150,6 +151,7 @@ export class GamesController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
+  @Header("Accept-Ranges", "bytes")
   async getGameDownload(
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
