@@ -153,10 +153,12 @@ export class GamesController {
   async getGameDownload(
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
+    @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
     return await this.filesService.download(
       Number(params.id),
       Number(speedlimit),
+      range,
     );
   }
 

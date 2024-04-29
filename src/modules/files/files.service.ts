@@ -17,6 +17,7 @@ import { add, list } from "node-7z";
 import path, { basename, extname, join } from "path";
 import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
+import slice from "stream-slice";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
@@ -30,6 +31,7 @@ import { GameExistence } from "../games/models/game-existence.enum";
 import { GameType } from "../games/models/game-type.enum";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { IGameVaultFile } from "./models/file.model";
+import { RangeHeader } from "./models/range-header.model";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -578,18 +580,20 @@ export class FilesService implements OnApplicationBootstrap {
    * Downloads a game file by ID and returns it as a StreamableFile object.
    *
    * @param gameId - The ID of the game to download.
-   * @param speedlimit - The maximum download speed limit in KBps (optional).
+   * @param speedlimitHeader - The maximum download speed limit in KBps (optional).
+   * @param rangeHeader - The range header (optional).
    * @returns A Promise that resolves to a StreamableFile object.
    * @throws NotFoundException if the game file could not be found.
    */
   public async download(
     gameId: number,
-    speedlimit?: number,
+    speedlimitHeader?: number,
+    rangeHeader?: string,
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
-    speedlimit =
-      speedlimit || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
-    speedlimit *= 1024;
+    speedlimitHeader =
+      speedlimitHeader || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    speedlimitHeader *= 1024;
 
     // Find the game by ID.
     const game = await this.gamesService.findByGameIdOrFail(gameId);
@@ -629,8 +633,14 @@ export class FilesService implements OnApplicationBootstrap {
 
     // Read the file and apply speed limit if necessary.
     let file: Readable = createReadStream(fileDownloadPath);
-    if (speedlimit) {
-      file = file.pipe(new Throttle({ rate: speedlimit }));
+
+    const range = this.parseRangeHeader(rangeHeader);
+    if (range) {
+      file = file.pipe(slice(range.start, range.end));
+    }
+
+    if (speedlimitHeader) {
+      file = file.pipe(new Throttle({ rate: speedlimitHeader }));
     }
 
     // Get the file length, type, and sanitized filename.
@@ -646,5 +656,17 @@ export class FilesService implements OnApplicationBootstrap {
       length,
       type,
     });
+  }
+
+  private parseRangeHeader(header: string): RangeHeader | undefined {
+    const rangeParts = header.replace("bytes=", "").split("-");
+    const startString = rangeParts[0] || "";
+    const endString = rangeParts[1] || "";
+    const start = startString ? BigInt(startString) : undefined;
+    const end = endString ? BigInt(endString) : undefined;
+    if (!start && !end) {
+      return undefined;
+    }
+    return { start, end };
   }
 }

@@ -140,6 +140,9 @@ importers:
       socket.io:
         specifier: ^4.7.5
         version: 4.7.5
+      stream-slice:
+        specifier: ^0.1.2
+        version: 0.1.2
       stream-throttle:
         specifier: ^0.1.3
         version: 0.1.3
@@ -5421,6 +5424,9 @@ packages:
   statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
+
+  stream-slice@0.1.2:
+    resolution: {integrity: sha512-QzQxpoacatkreL6jsxnVb7X5R/pGw9OUv2qWTYWnmLpg4NdN31snPy/f3TdQE1ZUXaThRvj1Zw4/OGg0ZkaLMA==}
 
   stream-throttle@0.1.3:
     resolution: {integrity: sha512-889+B9vN9dq7/vLbGyuHeZ6/ctf5sNuGWsDy89uNxkFTAgzy0eK7+w5fL3KLNRTkLle7EgZGvHUphZW0Q26MnQ==}
@@ -12745,6 +12751,8 @@ snapshots:
       escape-string-regexp: 2.0.0
 
   statuses@2.0.1: {}
+
+  stream-slice@0.1.2: {}
 
   stream-throttle@0.1.3:
     dependencies:
