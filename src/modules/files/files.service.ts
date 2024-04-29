@@ -633,7 +633,7 @@ export class FilesService implements OnApplicationBootstrap {
     let file: Readable = createReadStream(fileDownloadPath);
 
     // Apply range header if provided otherwise returns the entire file
-    const range = this.parseRangeHeader(
+    const range = this.calculateRange(
       rangeHeader,
       (await stat(fileDownloadPath)).size,
     );
@@ -658,7 +658,7 @@ export class FilesService implements OnApplicationBootstrap {
   /**
    * Parses the range header and returns the start, end, and size of the range.
    */
-  private parseRangeHeader(
+  private calculateRange(
     header: string | undefined,
     fileSize: number,
   ): RangeHeader {
