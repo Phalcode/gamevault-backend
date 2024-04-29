@@ -1,11 +1,12 @@
 # GameVault Backend Server Changelog
 
-## 12.0.1
+## 12.1.0
 
 Recommended Gamevault App Version: `v1.9.2.0`
 
 ### Changes
 
+- Support for HTTP `Range` Header for downloads [#14](https://github.com/Phalcode/gamevault-backend/issues/14)
 - Fixed a Bug where deleted bookmark games would break bookmarking for users who had them bookmarked.
 - Formatted imports in entire codebase and refactored project structure
 - Made Rotating File logger handle TESTING_MOCK_FILES environment variable
