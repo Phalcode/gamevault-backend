@@ -1,4 +1,5 @@
 export interface RangeHeader {
-  start: bigint;
-  end?: bigint;
+  start: number;
+  end: number;
+  size: number;
 }

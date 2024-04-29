@@ -606,9 +606,7 @@ export class FilesService implements OnApplicationBootstrap {
         reason: "TESTING_MOCK_FILES is set to true.",
       });
       return new StreamableFile(randomBytes(1000), {
-        disposition: `attachment; filename="${filenameSanitizer(
-          unidecode(path.basename(fileDownloadPath)),
-        )}"`,
+        disposition: `attachment; filename="testgame.zip"`,
         length: 1000,
         type: "application/x-zip",
       });
@@ -634,44 +632,47 @@ export class FilesService implements OnApplicationBootstrap {
     // Read the file and apply speed limit if necessary.
     let file: Readable = createReadStream(fileDownloadPath);
 
-    const range = this.parseRangeHeader(rangeHeader);
-    if (range) {
-      file = file.pipe(new ByteRangeStream(range.start, range.end));
-    }
+    // Apply range header if provided otherwise returns the entire file
+    const range = this.parseRangeHeader(
+      rangeHeader,
+      (await stat(fileDownloadPath)).size,
+    );
+    file = file.pipe(
+      new ByteRangeStream(BigInt(range.start), BigInt(range.end)),
+    );
 
     if (speedlimitHeader) {
       file = file.pipe(new Throttle({ rate: speedlimitHeader }));
     }
 
-    // Get the file length, type, and sanitized filename.
-    const length = (await stat(fileDownloadPath)).size;
-    const type = mime.getType(fileDownloadPath);
-    const filename = filenameSanitizer(
-      unidecode(path.basename(fileDownloadPath)),
-    );
-
     // Return a StreamableFile object with the file stream and metadata.
     return new StreamableFile(file, {
-      disposition: `attachment; filename="${filename}"`,
-      length,
-      type,
+      disposition: `attachment; filename="${filenameSanitizer(
+        unidecode(path.basename(fileDownloadPath)),
+      )}"`,
+      length: range.size,
+      type: mime.getType(fileDownloadPath),
     });
   }
 
+  /**
+   * Parses the range header and returns the start, end, and size of the range.
+   */
   private parseRangeHeader(
     header: string | undefined,
-  ): RangeHeader | undefined {
+    fileSize: number,
+  ): RangeHeader {
     if (!header || !header.includes("-")) {
-      return undefined;
+      return { start: 0, end: fileSize, size: fileSize };
     }
-    const rangeParts = header.replace("bytes=", "").split("-");
-    const startString = rangeParts[0] || "";
-    const endString = rangeParts[1] || "";
-    const start = startString ? BigInt(startString) : undefined;
-    const end = endString ? BigInt(endString) : undefined;
-    if (!start && !end) {
-      return undefined;
-    }
-    return { start, end };
+    const [extractedStart, extractedEnd] = header
+      .replace("bytes=", "")
+      .split("-")
+      .map(Number);
+    return {
+      start: extractedStart || 0,
+      end: extractedEnd || fileSize,
+      size: extractedEnd - extractedStart + 1,
+    };
   }
 }
