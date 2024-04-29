@@ -606,7 +606,9 @@ export class FilesService implements OnApplicationBootstrap {
         reason: "TESTING_MOCK_FILES is set to true.",
       });
       return new StreamableFile(randomBytes(1000), {
-        disposition: `attachment; filename="testgame.zip"`,
+        disposition: `attachment; filename="${filenameSanitizer(
+          unidecode(path.basename(fileDownloadPath)),
+        )}"`,
         length: 1000,
         type: "application/x-zip",
       });
@@ -672,7 +674,7 @@ export class FilesService implements OnApplicationBootstrap {
     return {
       start: extractedStart || 0,
       end: extractedEnd || fileSize,
-      size: extractedEnd - extractedStart + 1,
+      size: extractedEnd - extractedStart,
     };
   }
 }
