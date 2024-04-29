@@ -658,7 +658,12 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
-  private parseRangeHeader(header: string): RangeHeader | undefined {
+  private parseRangeHeader(
+    header: string | undefined,
+  ): RangeHeader | undefined {#
+    if (!header || !header.includes("-")) {
+      return undefined;
+    }
     const rangeParts = header.replace("bytes=", "").split("-");
     const startString = rangeParts[0] || "";
     const endString = rangeParts[1] || "";
