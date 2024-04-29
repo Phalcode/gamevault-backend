@@ -17,7 +17,6 @@ import { add, list } from "node-7z";
 import path, { basename, extname, join } from "path";
 import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
-import slice from "stream-slice";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
@@ -30,6 +29,7 @@ import { GamesService } from "../games/games.service";
 import { GameExistence } from "../games/models/game-existence.enum";
 import { GameType } from "../games/models/game-type.enum";
 import { RawgService } from "../providers/rawg/rawg.service";
+import ByteRangeStream from "./models/byte-range-stream";
 import { IGameVaultFile } from "./models/file.model";
 import { RangeHeader } from "./models/range-header.model";
 
@@ -636,7 +636,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     const range = this.parseRangeHeader(rangeHeader);
     if (range) {
-      file = file.pipe(slice(range.start, range.end));
+      file = file.pipe(new ByteRangeStream(range.start, range.end));
     }
 
     if (speedlimitHeader) {
@@ -660,7 +660,7 @@ export class FilesService implements OnApplicationBootstrap {
 
   private parseRangeHeader(
     header: string | undefined,
-  ): RangeHeader | undefined {#
+  ): RangeHeader | undefined {
     if (!header || !header.includes("-")) {
       return undefined;
     }
