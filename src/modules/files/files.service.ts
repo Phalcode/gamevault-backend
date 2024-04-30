@@ -639,7 +639,11 @@ export class FilesService implements OnApplicationBootstrap {
       rangeHeader,
       (await stat(fileDownloadPath)).size,
     );
-    this.logger.debug({ message: "Applying download range.", range });
+    this.logger.debug({
+      message: "Applying download range.",
+      rangeHeader,
+      range,
+    });
     file = file.pipe(
       new ByteRangeStream(BigInt(range.start), BigInt(range.end)),
     );
