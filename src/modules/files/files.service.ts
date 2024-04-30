@@ -672,7 +672,11 @@ export class FilesService implements OnApplicationBootstrap {
         .split("-")
         .map(Number);
 
-      if (extractedStart > extractedEnd) {
+      if (
+        isNaN(extractedStart) ||
+        isNaN(extractedEnd) ||
+        (extractedStart && extractedEnd && extractedStart > extractedEnd)
+      ) {
         [extractedStart, extractedEnd] = [undefined, undefined];
       }
     }
