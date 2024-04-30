@@ -639,6 +639,7 @@ export class FilesService implements OnApplicationBootstrap {
       rangeHeader,
       (await stat(fileDownloadPath)).size,
     );
+    this.logger.debug({ message: "Applying download range.", range });
     file = file.pipe(
       new ByteRangeStream(BigInt(range.start), BigInt(range.end)),
     );
@@ -647,7 +648,6 @@ export class FilesService implements OnApplicationBootstrap {
       file = file.pipe(new Throttle({ rate: speedlimitHeader }));
     }
 
-    // Return a StreamableFile object with the file stream and metadata.
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filenameSanitizer(
         unidecode(path.basename(fileDownloadPath)),
@@ -661,20 +661,28 @@ export class FilesService implements OnApplicationBootstrap {
    * Parses the range header and returns the start, end, and size of the range.
    */
   private calculateRange(
-    header: string | undefined,
+    rangeHeader: string | undefined,
     fileSize: number,
   ): RangeHeader {
-    if (!header || !header.includes("-")) {
-      return { start: 0, end: fileSize, size: fileSize };
+    let extractedStart: number = undefined;
+    let extractedEnd: number = undefined;
+    if (rangeHeader?.includes("-")) {
+      [extractedStart, extractedEnd] = rangeHeader
+        .replace("bytes=", "")
+        .split("-")
+        .map(Number);
+
+      if (extractedStart > extractedEnd) {
+        [extractedStart, extractedEnd] = [undefined, undefined];
+      }
     }
-    const [extractedStart, extractedEnd] = header
-      .replace("bytes=", "")
-      .split("-")
-      .map(Number);
+    const rangeStart = extractedStart || 0;
+    const rangeEnd = extractedEnd || fileSize;
+    const rangeSize = rangeEnd - rangeStart;
     return {
-      start: extractedStart || 0,
-      end: extractedEnd || fileSize,
-      size: extractedEnd - extractedStart,
+      start: rangeStart,
+      end: rangeEnd,
+      size: rangeSize,
     };
   }
 }
