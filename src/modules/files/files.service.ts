@@ -664,27 +664,28 @@ export class FilesService implements OnApplicationBootstrap {
     rangeHeader: string | undefined,
     fileSize: number,
   ): RangeHeader {
-    let extractedStart: number = undefined;
-    let extractedEnd: number = undefined;
+    let rangeStart: number = 0;
+    let rangeEnd: number = fileSize;
+
     if (rangeHeader?.includes("-")) {
-      [extractedStart, extractedEnd] = rangeHeader
+      const [extractedStart, extractedEnd] = rangeHeader
         .replace("bytes=", "")
         .split("-")
         .map(Number);
 
+      if (!isNaN(extractedStart) && extractedStart < fileSize) {
+        rangeStart = extractedStart;
+      }
       if (
-        isNaN(extractedStart) ||
-        isNaN(extractedEnd) ||
-        (extractedStart !== undefined &&
-          extractedEnd !== undefined &&
-          extractedStart > extractedEnd)
+        !isNaN(extractedEnd) &&
+        extractedEnd > rangeStart &&
+        extractedEnd < fileSize
       ) {
-        [extractedStart, extractedEnd] = [undefined, undefined];
+        rangeEnd = extractedEnd;
       }
     }
-    const rangeStart = extractedStart || 0;
-    const rangeEnd = extractedEnd || fileSize;
-    const rangeSize = rangeEnd - rangeStart;
+
+    const rangeSize: number = rangeEnd - rangeStart;
     return {
       start: rangeStart,
       end: rangeEnd,
