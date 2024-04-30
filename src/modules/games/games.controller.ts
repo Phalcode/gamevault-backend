@@ -142,14 +142,14 @@ export class GamesController {
     name: "X-Download-Speed-Limit",
     required: false,
     description:
-      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request. (Default: unlimited)",
+      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request.  If the header is not present the download speed limit will be unlimited.",
     example: "1024",
   })
   @ApiHeader({
     name: "Range",
     required: false,
     description:
-      "This header lets you control the range of bytes to download. (Default: all bytes)",
+      "This header lets you control the range of bytes to download. If the header is not present or not valid the entire file will be downloaded.",
     examples: {
       "bytes=0-1023": {
         description: "Download the first 1024 bytes",
