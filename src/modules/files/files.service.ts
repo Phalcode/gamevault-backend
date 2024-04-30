@@ -675,7 +675,9 @@ export class FilesService implements OnApplicationBootstrap {
       if (
         isNaN(extractedStart) ||
         isNaN(extractedEnd) ||
-        (extractedStart && extractedEnd && extractedStart > extractedEnd)
+        (extractedStart !== undefined &&
+          extractedEnd !== undefined &&
+          extractedStart > extractedEnd)
       ) {
         [extractedStart, extractedEnd] = [undefined, undefined];
       }
