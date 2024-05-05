@@ -11,6 +11,7 @@ Recommended Gamevault App Version: `v1.10.0.0`
 - Formatted imports in entire codebase and refactored project structure
 - Made Rotating File logger handle TESTING_MOCK_FILES environment variable
 - Fixed a bug where the Config parser would not accept 0 as a value. [#286](https://github.com/Phalcode/gamevault-backend/issues/286)
+- Added support for TLS Encrypted Postgres connections [#285](https://github.com/Phalcode/gamevault-backend/issues/285)
 
 ### Thanks
 

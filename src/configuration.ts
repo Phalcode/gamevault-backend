@@ -123,6 +123,15 @@ const configuration = {
     DATABASE: process.env.DB_DATABASE || "gamevault",
     DEBUG: parseBooleanEnvVariable(process.env.DB_DEBUG),
     SYNCHRONIZE: parseBooleanEnvVariable(process.env.DB_SYNCHRONIZE),
+    SSL: {
+      ENABLED: parseBooleanEnvVariable(process.env.DB_SSL_ENABLED),
+      REJECT_UNAUTHORIZED_ENABLED: parseBooleanEnvVariable(
+        process.env.DB_SSL_REJECT_UNAUTHORIZED_ENABLED,
+      ),
+      KEY_PATH: parsePath(process.env.DB_SSL_KEY_PATH, ""),
+      CERT_PATH: parsePath(process.env.DB_SSL_CERT_PATH, ""),
+      CA_CERT_PATH: parsePath(process.env.DB_SSL_CA_CERT_PATH, ""),
+    },
   } as const,
   RAWG_API: {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
