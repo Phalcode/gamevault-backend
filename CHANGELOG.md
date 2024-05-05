@@ -10,6 +10,11 @@ Recommended Gamevault App Version: `v1.10.0.0`
 - Fixed a Bug where deleted bookmarked games would break bookmarking for users who had them bookmarked.
 - Formatted imports in entire codebase and refactored project structure
 - Made Rotating File logger handle TESTING_MOCK_FILES environment variable
+- Fixed a bug where the Config parser would not accept 0 as a value. [#286](https://github.com/Phalcode/gamevault-backend/issues/286)
+
+### Thanks
+
+- @wieluk
 
 ## 12.0.0
 

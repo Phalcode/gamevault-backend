@@ -38,6 +38,17 @@ function parseList(
     : defaultList;
 }
 
+function parseNumber(
+  environmentVariable: string,
+  defaultValue?: number,
+): number | undefined {
+  const number = Number(environmentVariable);
+  if (isNaN(number) || number < 0 || number > Number.MAX_SAFE_INTEGER) {
+    return defaultValue ?? undefined;
+  }
+  return number;
+}
+
 function parseNumberList(
   environmentVariable: string,
   defaultList: number[] = [],
@@ -63,7 +74,7 @@ function parseKibibytesToBytes(
 
 const configuration = {
   SERVER: {
-    PORT: Number(process.env.SERVER_PORT) || 8080,
+    PORT: parseNumber(process.env.SERVER_PORT, 8080),
     VERSION: process.env.npm_package_version || packageJson.version,
     DEMO_MODE_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_DEMO_MODE_ENABLED,
@@ -106,7 +117,7 @@ const configuration = {
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
     HOST: process.env.DB_HOST || "localhost",
-    PORT: Number(process.env.DB_PORT) || 5432,
+    PORT: parseNumber(process.env.DB_PORT, 5432),
     USERNAME: process.env.DB_USERNAME || "default",
     PASSWORD: process.env.DB_PASSWORD || "default",
     DATABASE: process.env.DB_DATABASE || "gamevault",
@@ -116,7 +127,7 @@ const configuration = {
   RAWG_API: {
     URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
     KEY: process.env.RAWG_API_KEY || "",
-    CACHE_DAYS: Number(process.env.RAWG_API_CACHE_DAYS) || 30,
+    CACHE_DAYS: parseNumber(process.env.RAWG_API_CACHE_DAYS, 30),
     INCLUDED_STORES: parseNumberList(
       process.env.RAWG_API_INCLUDED_STORES,
       globals.DEFAULT_INCLUDED_RAWG_STORES,
@@ -136,8 +147,10 @@ const configuration = {
     ),
   } as const,
   GAMES: {
-    INDEX_INTERVAL_IN_MINUTES:
-      Number(process.env.GAMES_INDEX_INTERVAL_IN_MINUTES) || 60,
+    INDEX_INTERVAL_IN_MINUTES: parseNumber(
+      process.env.GAMES_INDEX_INTERVAL_IN_MINUTES,
+      60,
+    ),
     SUPPORTED_FILE_FORMATS: parseList(
       process.env.GAMES_SUPPORTED_FILE_FORMATS,
       globals.SUPPORTED_FILE_FORMATS,
@@ -149,16 +162,20 @@ const configuration = {
   } as const,
   IMAGE: {
     MAX_SIZE_IN_KB:
-      Number(process.env.IMAGE_MAX_SIZE_IN_KB) * 1000 || 10_000_000,
-    GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS:
-      Number(process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS) || 24,
+      parseNumber(process.env.IMAGE_MAX_SIZE_IN_KB, 1000) * 10_000,
+    GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS: parseNumber(
+      process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS,
+      24,
+    ),
     SUPPORTED_IMAGE_FORMATS: parseList(
       process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
       globals.SUPPORTED_IMAGE_FORMATS,
     ),
     GC_DISABLED: parseBooleanEnvVariable(process.env.IMAGE_GC_DISABLED, false),
-    GC_INTERVAL_IN_MINUTES:
-      Number(process.env.IMAGE_GC_INTERVAL_IN_MINUTES) || 60,
+    GC_INTERVAL_IN_MINUTES: parseNumber(
+      process.env.IMAGE_GC_INTERVAL_IN_MINUTES,
+      24,
+    ),
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
