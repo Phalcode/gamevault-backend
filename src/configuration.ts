@@ -123,14 +123,17 @@ const configuration = {
     DATABASE: process.env.DB_DATABASE || "gamevault",
     DEBUG: parseBooleanEnvVariable(process.env.DB_DEBUG),
     SYNCHRONIZE: parseBooleanEnvVariable(process.env.DB_SYNCHRONIZE),
-    SSL: {
-      ENABLED: parseBooleanEnvVariable(process.env.DB_SSL_ENABLED),
+    TLS: {
+      ENABLED: parseBooleanEnvVariable(process.env.DB_TLS_ENABLED),
       REJECT_UNAUTHORIZED_ENABLED: parseBooleanEnvVariable(
-        process.env.DB_SSL_REJECT_UNAUTHORIZED_ENABLED,
+        process.env.DB_TLS_REJECT_UNAUTHORIZED_ENABLED,
       ),
-      KEY_PATH: parsePath(process.env.DB_SSL_KEY_PATH, ""),
-      CERT_PATH: parsePath(process.env.DB_SSL_CERT_PATH, ""),
-      CA_CERT_PATH: parsePath(process.env.DB_SSL_CA_CERT_PATH, ""),
+      KEY_PATH: parsePath(process.env.DB_TLS_KEY_PATH, ""),
+      CERTIFICATE_PATH: parsePath(process.env.DB_TLS_CERTIFICATE_PATH, ""),
+      CA_CERTIFICATE_PATH: parsePath(
+        process.env.DB_TLS_CA_CERTIFICATE_PATH,
+        "",
+      ),
     },
   } as const,
   RAWG_API: {
