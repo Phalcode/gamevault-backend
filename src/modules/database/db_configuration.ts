@@ -62,19 +62,19 @@ function preparePostgresConnector() {
 }
 
 function getPostgresTlsOptions(): TlsOptions {
-  if (!configuration.DB.SSL.ENABLED) {
+  if (!configuration.DB.TLS.ENABLED) {
     return undefined;
   }
   return {
-    rejectUnauthorized: configuration.DB.SSL.REJECT_UNAUTHORIZED_ENABLED,
-    ca: configuration.DB.SSL.CA_CERT_PATH
-      ? readFileSync(configuration.DB.SSL.CA_CERT_PATH).toString()
+    rejectUnauthorized: configuration.DB.TLS.REJECT_UNAUTHORIZED_ENABLED,
+    ca: configuration.DB.TLS.CA_CERTIFICATE_PATH
+      ? readFileSync(configuration.DB.TLS.CA_CERTIFICATE_PATH).toString()
       : undefined,
-    key: configuration.DB.SSL.KEY_PATH
-      ? readFileSync(configuration.DB.SSL.KEY_PATH)
+    key: configuration.DB.TLS.KEY_PATH
+      ? readFileSync(configuration.DB.TLS.KEY_PATH)
       : undefined,
-    cert: configuration.DB.SSL.CERT_PATH
-      ? readFileSync(configuration.DB.SSL.CERT_PATH)
+    cert: configuration.DB.TLS.CERTIFICATE_PATH
+      ? readFileSync(configuration.DB.TLS.CERTIFICATE_PATH)
       : undefined,
   };
 }

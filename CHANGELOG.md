@@ -16,6 +16,7 @@ Recommended Gamevault App Version: `v1.10.0.0`
 ### Thanks
 
 - @wieluk
+- @hostmatic
 
 ## 12.0.0
 
