@@ -163,19 +163,11 @@ export class RawgService {
   ): Promise<RawgGame> {
     const sortedResults = await this.fetchMatching(title, releaseYear);
 
-    const matches = sortedResults.map((match) => {
-      return {
-        probability: match.probability,
-        rawg_id: match.id,
-        rawg_title: match.name,
-        rawg_release_date: match.released,
-      };
-    });
     this.logger.log({
-      message: `Found ${matches.length} matches on RAWG.`,
+      message: `Found ${sortedResults.length} matches on RAWG.`,
       title,
       releaseYear,
-      matches,
+      sortedResults,
     });
 
     return this.fetchByRawgId(sortedResults[0].id);
