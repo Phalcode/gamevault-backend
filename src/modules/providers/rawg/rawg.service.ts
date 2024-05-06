@@ -53,7 +53,10 @@ export class RawgService {
     }
 
     // Skip cache check if RAWG API key is not set
-    if (!configuration.RAWG_API.KEY) {
+    if (
+      !configuration.RAWG_API.KEY &&
+      configuration.RAWG_API.URL === "https://api.rawg.io/api"
+    ) {
       this.logger.warn({
         message: "Skipping RAWG Cache Check.",
         reason: "RAWG_API_KEY is not set.",
