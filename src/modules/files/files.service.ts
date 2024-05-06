@@ -6,29 +6,32 @@ import {
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
-import { IGameVaultFile } from "./models/file.model";
-import { Game } from "../games/game.entity";
-import { GamesService } from "../games/games.service";
-import { createReadStream, existsSync, statSync } from "fs";
-import path, { basename, extname, join } from "path";
-import configuration from "../../configuration";
-import mock from "../games/games.mock";
-import mime from "mime";
-import { GameExistence } from "../games/models/game-existence.enum";
-import { add, list } from "node-7z";
-import { GameType } from "../games/models/game-type.enum";
-import { RawgService } from "../providers/rawg/rawg.service";
-import { BoxArtsService } from "../boxarts/boxarts.service";
-import globals from "../../globals";
-import filenameSanitizer from "sanitize-filename";
-import unidecode from "unidecode";
-import { randomBytes } from "crypto";
+import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
+import { randomBytes } from "crypto";
+import { createReadStream, existsSync, statSync } from "fs";
+import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
+import mime from "mime";
+import { add, list } from "node-7z";
+import path, { basename, extname, join } from "path";
+import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
-import { readdir, stat } from "fs/promises";
-import { Cron } from "@nestjs/schedule";
+import unidecode from "unidecode";
+
+import configuration from "../../configuration";
+import globals from "../../globals";
+import { BoxArtsService } from "../boxarts/boxarts.service";
+import { Game } from "../games/game.entity";
+import mock from "../games/games.mock";
+import { GamesService } from "../games/games.service";
+import { GameExistence } from "../games/models/game-existence.enum";
+import { GameType } from "../games/models/game-type.enum";
+import { RawgService } from "../providers/rawg/rawg.service";
+import ByteRangeStream from "./models/byte-range-stream";
+import { IGameVaultFile } from "./models/file.model";
+import { RangeHeader } from "./models/range-header.model";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -577,18 +580,20 @@ export class FilesService implements OnApplicationBootstrap {
    * Downloads a game file by ID and returns it as a StreamableFile object.
    *
    * @param gameId - The ID of the game to download.
-   * @param speedlimit - The maximum download speed limit in KBps (optional).
+   * @param speedlimitHeader - The maximum download speed limit in KBps (optional).
+   * @param rangeHeader - The range header (optional).
    * @returns A Promise that resolves to a StreamableFile object.
    * @throws NotFoundException if the game file could not be found.
    */
   public async download(
     gameId: number,
-    speedlimit?: number,
+    speedlimitHeader?: number,
+    rangeHeader?: string,
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
-    speedlimit =
-      speedlimit || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
-    speedlimit *= 1024;
+    speedlimitHeader =
+      speedlimitHeader || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+    speedlimitHeader *= 1024;
 
     // Find the game by ID.
     const game = await this.gamesService.findByGameIdOrFail(gameId);
@@ -628,22 +633,67 @@ export class FilesService implements OnApplicationBootstrap {
 
     // Read the file and apply speed limit if necessary.
     let file: Readable = createReadStream(fileDownloadPath);
-    if (speedlimit) {
-      file = file.pipe(new Throttle({ rate: speedlimit }));
-    }
 
-    // Get the file length, type, and sanitized filename.
-    const length = (await stat(fileDownloadPath)).size;
-    const type = mime.getType(fileDownloadPath);
-    const filename = filenameSanitizer(
-      unidecode(path.basename(fileDownloadPath)),
+    // Apply range header if provided otherwise returns the entire file
+    const range = this.calculateRange(
+      rangeHeader,
+      (await stat(fileDownloadPath)).size,
+    );
+    this.logger.debug({
+      message: "Applying download range.",
+      rangeHeader,
+      range,
+    });
+    file = file.pipe(
+      new ByteRangeStream(BigInt(range.start), BigInt(range.end)),
     );
 
-    // Return a StreamableFile object with the file stream and metadata.
+    if (speedlimitHeader) {
+      file = file.pipe(new Throttle({ rate: speedlimitHeader }));
+    }
+
     return new StreamableFile(file, {
-      disposition: `attachment; filename="${filename}"`,
-      length,
-      type,
+      disposition: `attachment; filename="${filenameSanitizer(
+        unidecode(path.basename(fileDownloadPath)),
+      )}"`,
+      length: range.size,
+      type: mime.getType(fileDownloadPath),
     });
+  }
+
+  /**
+   * Parses the range header and returns the start, end, and size of the range.
+   */
+  private calculateRange(
+    rangeHeader: string | undefined,
+    fileSize: number,
+  ): RangeHeader {
+    let rangeStart: number = 0;
+    let rangeEnd: number = fileSize;
+
+    if (rangeHeader?.includes("-")) {
+      const [extractedStart, extractedEnd] = rangeHeader
+        .replace("bytes=", "")
+        .split("-")
+        .map(Number);
+
+      if (!isNaN(extractedStart) && extractedStart < fileSize) {
+        rangeStart = extractedStart;
+      }
+      if (
+        !isNaN(extractedEnd) &&
+        extractedEnd > rangeStart &&
+        extractedEnd < fileSize
+      ) {
+        rangeEnd = extractedEnd;
+      }
+    }
+
+    const rangeSize: number = rangeEnd - rangeStart;
+    return {
+      start: rangeStart,
+      end: rangeEnd,
+      size: rangeSize,
+    };
   }
 }

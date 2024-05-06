@@ -1,5 +1,24 @@
 # GameVault Backend Server Changelog
 
+## 12.1.0
+
+Recommended Gamevault App Version: `v1.10.0.0`
+
+### Changes
+
+- Support for Pausing and Resuming Downloads by implementing HTTP `Range` Header [#14](https://github.com/Phalcode/gamevault-backend/issues/14)
+- Fixed a Bug where deleted bookmarked games would break bookmarking for users who had them bookmarked.
+- Formatted imports in entire codebase and refactored project structure
+- Made Rotating File logger handle TESTING_MOCK_FILES environment variable
+- Fixed a bug where the Config parser would not accept 0 as a value. [#286](https://github.com/Phalcode/gamevault-backend/issues/286)
+- Added support for TLS Encrypted Postgres connections [#285](https://github.com/Phalcode/gamevault-backend/issues/285)
+- Support for [Rawg2Steam](https://github.com/Phalcode/rawg-to-steam-redirect) API (Removed Reliance on Rawg IDs and their API KEY, and implemented support for RawgToSteam Box Images)
+
+### Thanks
+
+- @wieluk
+- @hostmatic
+
 ## 12.0.0
 
 Recommended Gamevault App Version: `v1.9.2.0`

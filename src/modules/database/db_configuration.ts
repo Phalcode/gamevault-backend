@@ -1,9 +1,12 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
-import configuration from "../../configuration";
+import { readFileSync } from "fs";
 import pg from "pg";
+import { TlsOptions } from "tls";
+import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
+import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
+
+import configuration from "../../configuration";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
@@ -23,6 +26,7 @@ const postgresConfig: PostgresConnectionOptions = {
   password: configuration.DB.PASSWORD,
   database: configuration.DB.DATABASE,
   migrations: ["dist/src/modules/database/migrations/postgres/*.js"],
+  ssl: getPostgresTlsOptions(),
 };
 
 const sqliteConfig: BetterSqlite3ConnectionOptions = {
@@ -55,4 +59,22 @@ function preparePostgresConnector() {
    *  - https://github.com/typeorm/typeorm/issues/2390
    */
   pg.defaults.parseInputDatesAsUTC = true;
+}
+
+function getPostgresTlsOptions(): TlsOptions {
+  if (!configuration.DB.TLS.ENABLED) {
+    return undefined;
+  }
+  return {
+    rejectUnauthorized: configuration.DB.TLS.REJECT_UNAUTHORIZED_ENABLED,
+    ca: configuration.DB.TLS.CA_CERTIFICATE_PATH
+      ? readFileSync(configuration.DB.TLS.CA_CERTIFICATE_PATH).toString()
+      : undefined,
+    key: configuration.DB.TLS.KEY_PATH
+      ? readFileSync(configuration.DB.TLS.KEY_PATH)
+      : undefined,
+    cert: configuration.DB.TLS.CERTIFICATE_PATH
+      ? readFileSync(configuration.DB.TLS.CERTIFICATE_PATH)
+      : undefined,
+  };
 }

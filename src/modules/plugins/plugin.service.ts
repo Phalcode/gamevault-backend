@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import axios from "axios";
-import * as vm from "vm";
-import configuration from "../../configuration";
 import path from "path";
+import * as vm from "vm";
+
+import configuration from "../../configuration";
 import { BoxArtsService } from "../boxarts/boxarts.service";
 import { DatabaseService } from "../database/database.service";
 import { DevelopersService } from "../developers/developers.service";
@@ -12,7 +13,7 @@ import { ImageGarbageCollectionService } from "../garbage-collection/image-garba
 import { GenresService } from "../genres/genres.service";
 import { HealthService } from "../health/health.service";
 import { ImagesService } from "../images/images.service";
-import { ProgressService } from "../progress/progress.service";
+import { ProgressService } from "../progresses/progress.service";
 import { RawgService } from "../providers/rawg/rawg.service";
 import { PublishersService } from "../publishers/publishers.service";
 import { StoresService } from "../stores/stores.service";

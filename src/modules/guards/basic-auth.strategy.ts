@@ -1,6 +1,7 @@
-import { BasicStrategy } from "passport-http";
 import { Injectable, Logger } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+import { BasicStrategy } from "passport-http";
+
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { UsersService } from "../users/users.service";
 

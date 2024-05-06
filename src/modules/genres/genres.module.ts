@@ -1,9 +1,10 @@
-import { Module, forwardRef } from "@nestjs/common";
-import { GenresService } from "./genres.service";
-import { GenresController } from "./genres.controller";
+import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Genre } from "./genre.entity";
+
 import { FilesModule } from "../files/files.module";
+import { Genre } from "./genre.entity";
+import { GenresController } from "./genres.controller";
+import { GenresService } from "./genres.service";
 
 @Module({
   imports: [TypeOrmModule.forFeature([Genre]), forwardRef(() => FilesModule)],

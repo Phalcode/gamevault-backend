@@ -1,12 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Game } from "../../games/game.entity";
-import { RawgGame } from "./models/game.interface";
+
 import { DevelopersService } from "../../developers/developers.service";
+import { Game } from "../../games/game.entity";
 import { GenresService } from "../../genres/genres.service";
 import { ImagesService } from "../../images/images.service";
 import { PublishersService } from "../../publishers/publishers.service";
 import { StoresService } from "../../stores/stores.service";
 import { TagsService } from "../../tags/tags.service";
+import { RawgGame } from "./models/game.interface";
 
 @Injectable()
 export class RawgMapperService {
@@ -193,6 +194,17 @@ export class RawgMapperService {
           game.background_image,
         );
       }
+
+      if (
+        game.box_image &&
+        (!entity.box_image?.id ||
+          !(await this.imagesService.isAvailable(entity.box_image.id)))
+      ) {
+        entity.box_image = await this.imagesService.downloadByUrl(
+          game.box_image,
+        );
+      }
+
       entity.rawg_title = game.name ?? entity.rawg_title;
       entity.rawg_id = game.id ?? entity.rawg_id;
       entity.description = game.description_raw ?? entity.description;

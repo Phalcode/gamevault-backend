@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Entity, Column, Index, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne } from "typeorm";
+
 import { DatabaseEntity } from "../database/database.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 

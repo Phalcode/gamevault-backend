@@ -1,11 +1,12 @@
 import { Test } from "@nestjs/testing";
-import { TagsController } from "./tags.controller";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { Tag } from "./tag.entity";
-import { Game } from "../games/game.entity";
 import { Builder } from "builder-pattern";
 import { Repository } from "typeorm/repository/Repository";
+
 import { AppModule } from "../../app.module";
+import { Game } from "../games/game.entity";
+import { Tag } from "./tag.entity";
+import { TagsController } from "./tags.controller";
 
 describe("/api/tags", () => {
   let tagsController: TagsController;

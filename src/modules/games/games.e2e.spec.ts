@@ -1,14 +1,16 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { Test } from "@nestjs/testing";
 import { HttpService } from "@nestjs/axios";
+import { Test } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import gis, { Result } from "async-g-i-s";
+import { Builder } from "builder-pattern";
+import { of } from "rxjs";
+import { Repository } from "typeorm";
+
 import { AppModule } from "../../app.module";
 import { Game } from "../games/game.entity";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Builder } from "builder-pattern";
 import { GamesController } from "./games.controller";
-import gis, { Result } from "async-g-i-s";
-import { of } from "rxjs";
+
 jest.mock("async-g-i-s");
 
 describe("/api/games", () => {

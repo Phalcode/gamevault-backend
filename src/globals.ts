@@ -1,5 +1,33 @@
+import { applyDecorators, Type } from "@nestjs/common";
+import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
+
+import { PaginatedEntity } from "./modules/database/models/paginated-entity.model";
 import { RawgPlatform } from "./modules/providers/rawg/models/platforms";
 import { RawgStore } from "./modules/providers/rawg/models/stores";
+
+export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(
+  dataDto: DataDto,
+) =>
+  applyDecorators(
+    ApiExtraModels(PaginatedEntity, dataDto),
+    ApiOkResponse({
+      schema: {
+        required: ["data", "meta", "links"],
+        allOf: [
+          {
+            properties: {
+              data: {
+                description: "paginated list of entities",
+                type: "array",
+                items: { $ref: getSchemaPath(dataDto) },
+              },
+            },
+          },
+          { $ref: getSchemaPath(PaginatedEntity) },
+        ],
+      },
+    }),
+  );
 
 export default {
   get SUPPORTED_FILE_FORMATS() {

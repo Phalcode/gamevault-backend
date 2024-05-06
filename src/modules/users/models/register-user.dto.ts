@@ -8,6 +8,7 @@ import {
   MinLength,
   ValidateIf,
 } from "class-validator";
+
 import configuration from "../../../configuration";
 
 export class RegisterUserDto {

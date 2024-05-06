@@ -15,17 +15,18 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
-import { IdDto } from "../database/models/id.dto";
-import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
-import { Progress } from "./progress.entity";
-import { ProgressService } from "./progress.service";
+
+import configuration from "../../configuration";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Role } from "../users/models/role.enum";
+import { IdDto } from "../database/models/id.dto";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { Role } from "../users/models/role.enum";
+import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
 import { UpdateProgressDto } from "./models/update-progress.dto";
 import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import configuration from "../../configuration";
+import { Progress } from "./progress.entity";
+import { ProgressService } from "./progress.service";
 
 @Controller("progresses")
 @ApiTags("progress")

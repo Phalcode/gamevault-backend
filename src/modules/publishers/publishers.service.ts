@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Publisher } from "./publisher.entity";
 import { Builder } from "builder-pattern";
+import { Repository } from "typeorm";
+
+import { Publisher } from "./publisher.entity";
 
 @Injectable()
 export class PublishersService {
@@ -18,7 +19,7 @@ export class PublishersService {
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Publisher> {
     const existingPublisher = await this.publisherRepository.findOneBy({
-      rawg_id,
+      name,
     });
 
     if (existingPublisher) return existingPublisher;

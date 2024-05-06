@@ -26,7 +26,10 @@ if (configuration.SERVER.LOG_LEVEL != "off") {
   );
 }
 
-if (configuration.SERVER.LOG_FILES_ENABLED) {
+if (
+  configuration.SERVER.LOG_FILES_ENABLED &&
+  !configuration.TESTING.MOCK_FILES
+) {
   transports.push(
     new DailyRotateFile({
       level: "debug",

@@ -1,12 +1,12 @@
 /*
 https://docs.nestjs.com/fundamentals/testing#unit-testing
 */
-
 import { Test } from "@nestjs/testing";
-import { FilesService } from "./files.service";
+
+import { BoxArtsService } from "../boxarts/boxarts.service";
 import { GamesService } from "../games/games.service";
 import { RawgService } from "../providers/rawg/rawg.service";
-import { BoxArtsService } from "../boxarts/boxarts.service";
+import { FilesService } from "./files.service";
 
 describe("FilesService", () => {
   let filesService: FilesService;

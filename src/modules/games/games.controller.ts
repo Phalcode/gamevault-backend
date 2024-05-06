@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Headers,
   Logger,
   Param,
@@ -26,14 +27,15 @@ import {
   PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
-import { ApiOkResponsePaginated } from "../pagination/paginated-api-response.model";
-import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { IdDto } from "../database/models/id.dto";
-import { Game } from "./game.entity";
-import { FilesService } from "../files/files.service";
-import { GamesService } from "./games.service";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+import { ApiOkResponsePaginated } from "../../globals";
+import { IdDto } from "../database/models/id.dto";
+import { FilesService } from "../files/files.service";
 import { Role } from "../users/models/role.enum";
+import { Game } from "./game.entity";
+import { GamesService } from "./games.service";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBasicAuth()
@@ -140,8 +142,28 @@ export class GamesController {
     name: "X-Download-Speed-Limit",
     required: false,
     description:
-      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request. (Default unlimited)",
+      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request.  If the header is not present the download speed limit will be unlimited.",
     example: "1024",
+  })
+  @ApiHeader({
+    name: "Range",
+    required: false,
+    description:
+      "This header lets you control the range of bytes to download. If the header is not present or not valid the entire file will be downloaded.",
+    examples: {
+      "bytes=0-1023": {
+        description: "Download the first 1024 bytes",
+        value: "bytes=-1023",
+      },
+      "bytes=1024-2047": {
+        description: "Download the bytes 1024 through 2047",
+        value: "bytes=1024-2047",
+      },
+      "bytes=1024-": {
+        description: "Download the bytes 1024 through the end of the file",
+        value: "bytes=1024-",
+      },
+    },
   })
   @ApiOperation({
     summary: "download a game",
@@ -149,13 +171,16 @@ export class GamesController {
   })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
+  @Header("Accept-Ranges", "bytes")
   async getGameDownload(
     @Param() params: IdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
+    @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
     return await this.filesService.download(
       Number(params.id),
       Number(speedlimit),
+      range,
     );
   }
 

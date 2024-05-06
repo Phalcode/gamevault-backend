@@ -6,14 +6,15 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { readFile } from "fs/promises";
+import path from "path";
 import { IsNull, Repository } from "typeorm";
-import { Progress } from "./progress.entity";
-import { State } from "./models/state.enum";
+
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
-import path from "path";
+import { State } from "./models/state.enum";
 import { UpdateProgressDto } from "./models/update-progress.dto";
-import { readFile } from "fs/promises";
+import { Progress } from "./progress.entity";
 
 @Injectable()
 export class ProgressService {

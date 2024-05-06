@@ -1,26 +1,27 @@
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
   UnauthorizedException,
-  forwardRef,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
-import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
-import configuration from "../../configuration";
-import { RegisterUserDto } from "./models/register-user.dto";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { ImagesService } from "../images/images.service";
-import { UpdateUserDto } from "./models/update-user.dto";
-import { Role } from "./models/role.enum";
-import { FindOptions } from "../../globals";
 import { randomBytes } from "crypto";
+import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
+
+import configuration from "../../configuration";
+import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
+import { ImagesService } from "../images/images.service";
+import { GamevaultUser } from "./gamevault-user.entity";
+import { RegisterUserDto } from "./models/register-user.dto";
+import { Role } from "./models/role.enum";
+import { UpdateUserDto } from "./models/update-user.dto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -388,7 +389,15 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: false,
     });
+
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(GamevaultUser, "bookmarked_games")
+      .of(user)
+      .add(game);
+
     user.bookmarked_games.push(game);
+
     this.logger.log({
       message: "User bookmarked game.",
       user: user.username,
@@ -397,14 +406,14 @@ export class UsersService implements OnApplicationBootstrap {
         file_path: game.file_path,
       },
     });
-    return this.userRepository.save(user);
+    return user;
   }
 
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
     const user = await this.findByUserIdOrFail(userId, {
       loadDeletedEntities: false,
-      loadRelations: true,
+      loadRelations: ["bookmarked_games"],
     });
     if (!user.bookmarked_games.some((game) => game.id === gameId)) {
       return user;
@@ -414,9 +423,17 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: false,
     });
+
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(GamevaultUser, "bookmarked_games")
+      .of(user)
+      .remove(game);
+
     user.bookmarked_games = user.bookmarked_games.filter((bookmark) => {
       return bookmark.id !== game.id;
     });
+
     this.logger.log({
       message: "User unbookmarked game.",
       user: user.username,
@@ -426,7 +443,7 @@ export class UsersService implements OnApplicationBootstrap {
       },
     });
 
-    return this.userRepository.save(user);
+    return user;
   }
 
   /**

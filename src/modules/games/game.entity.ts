@@ -1,24 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  Entity,
   Column,
-  OneToMany,
-  ManyToMany,
+  Entity,
   Index,
-  JoinTable,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
   OneToOne,
 } from "typeorm";
+
+import { DatabaseEntity } from "../database/database.entity";
 import { Developer } from "../developers/developer.entity";
 import { Genre } from "../genres/genre.entity";
-import { Progress } from "../progress/progress.entity";
+import { Image } from "../images/image.entity";
+import { Progress } from "../progresses/progress.entity";
 import { Publisher } from "../publishers/publisher.entity";
 import { Store } from "../stores/store.entity";
 import { Tag } from "../tags/tag.entity";
-import { Image } from "../images/image.entity";
-import { DatabaseEntity } from "../database/database.entity";
-import { GameType } from "./models/game-type.enum";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { GameType } from "./models/game-type.enum";
 
 @Entity()
 export class Game extends DatabaseEntity {

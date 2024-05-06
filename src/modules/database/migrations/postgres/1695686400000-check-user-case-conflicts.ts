@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
+
 export class CheckUserCaseConflicts1695686400000 implements MigrationInterface {
   name?: string;
   transaction?: boolean;

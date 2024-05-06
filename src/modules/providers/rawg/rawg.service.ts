@@ -1,3 +1,4 @@
+import { HttpService } from "@nestjs/axios";
 import {
   forwardRef,
   Inject,
@@ -6,19 +7,19 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { AxiosError } from "axios";
+import { ClientRequest } from "http";
+import { catchError, firstValueFrom } from "rxjs";
+import stringSimilarity from "string-similarity-js";
+
 import configuration from "../../../configuration";
+import { Game } from "../../games/game.entity";
 import { GamesService } from "../../games/games.service";
 import { RawgMapperService } from "./mapper.service";
 import { RawgGame } from "./models/game.interface";
 import { Result as RawgResult, SearchResult } from "./models/games.interface";
-import { Game } from "../../games/game.entity";
-import { catchError, firstValueFrom } from "rxjs";
-import { HttpService } from "@nestjs/axios";
-import { AxiosError } from "axios";
-import stringSimilarity from "string-similarity-js";
 import { RawgPlatform } from "./models/platforms";
 import { RawgStore } from "./models/stores";
-import { ClientRequest } from "http";
 
 @Injectable()
 export class RawgService {
@@ -52,7 +53,10 @@ export class RawgService {
     }
 
     // Skip cache check if RAWG API key is not set
-    if (!configuration.RAWG_API.KEY) {
+    if (
+      !configuration.RAWG_API.KEY &&
+      configuration.RAWG_API.URL === "https://api.rawg.io/api"
+    ) {
       this.logger.warn({
         message: "Skipping RAWG Cache Check.",
         reason: "RAWG_API_KEY is not set.",
@@ -159,19 +163,11 @@ export class RawgService {
   ): Promise<RawgGame> {
     const sortedResults = await this.fetchMatching(title, releaseYear);
 
-    const matches = sortedResults.map((match) => {
-      return {
-        probability: match.probability,
-        rawg_id: match.id,
-        rawg_title: match.name,
-        rawg_release_date: match.released,
-      };
-    });
     this.logger.log({
-      message: `Found ${matches.length} matches on RAWG.`,
+      message: `Found ${sortedResults.length} matches on RAWG.`,
       title,
       releaseYear,
-      matches,
+      sortedResults,
     });
 
     return this.fetchByRawgId(sortedResults[0].id);

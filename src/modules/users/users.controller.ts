@@ -16,17 +16,18 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
+
 import configuration from "../../configuration";
-import { IdDto } from "../database/models/id.dto";
-import { RegisterUserDto } from "./models/register-user.dto";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { UsersService } from "./users.service";
-import { UpdateUserDto } from "./models/update-user.dto";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Role } from "./models/role.enum";
-import { SocketSecretService } from "./socket-secret.service";
 import { ConditionalRegistration } from "../../decorators/conditional-registration.decorator";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
+import { MinimumRole } from "../../decorators/minimum-role.decorator";
+import { IdDto } from "../database/models/id.dto";
+import { GamevaultUser } from "./gamevault-user.entity";
+import { RegisterUserDto } from "./models/register-user.dto";
+import { Role } from "./models/role.enum";
+import { UpdateUserDto } from "./models/update-user.dto";
+import { SocketSecretService } from "./socket-secret.service";
+import { UsersService } from "./users.service";
 
 @ApiBasicAuth()
 @ApiTags("user")

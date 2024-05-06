@@ -1,5 +1,6 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
 import { Logger } from "@nestjs/common";
+import { MigrationInterface, QueryRunner } from "typeorm";
+
 export class DeleteEmptyProgresses1696967362000 implements MigrationInterface {
   private readonly logger = new Logger(DeleteEmptyProgresses1696967362000.name);
   name?: string;

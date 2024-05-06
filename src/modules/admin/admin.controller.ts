@@ -6,7 +6,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
-import { HealthService } from "../health/health.service";
+import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBasicAuth,
   ApiHeader,
@@ -14,11 +14,12 @@ import {
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
-import { Health } from "../health/models/health.model";
+
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Role } from "../users/models/role.enum";
 import { DatabaseService } from "../database/database.service";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { HealthService } from "../health/health.service";
+import { Health } from "../health/models/health.model";
+import { Role } from "../users/models/role.enum";
 
 @ApiBasicAuth()
 @Controller("admin")

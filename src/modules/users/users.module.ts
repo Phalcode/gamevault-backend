@@ -1,13 +1,15 @@
-import { Module, forwardRef } from "@nestjs/common";
-import { UsersService } from "./users.service";
-import { UsersController } from "./users.controller";
+import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { GamevaultUser } from "./gamevault-user.entity";
+
+import { GamesModule } from "../games/games.module";
+import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import { ImagesModule } from "../images/images.module";
 import { ActivityGateway } from "./activity.gateway";
-import { SocketSecretGuard } from "../guards/socket-secret.guard";
+import { GamevaultUser } from "./gamevault-user.entity";
 import { SocketSecretService } from "./socket-secret.service";
-import { GamesModule } from "../games/games.module";
+import { UsersController } from "./users.controller";
+import { UsersService } from "./users.service";
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([GamevaultUser]),

@@ -1,22 +1,25 @@
+/* eslint-disable */
 import * as dotenv from "dotenv";
 dotenv.config();
+/* eslint-enable */
 
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import compression from "compression";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
-import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
+
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
+import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { default as logger, default as winston, stream } from "./logging";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
-import { LoggingExceptionFilter } from "./filters/http-exception.filter";
-import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

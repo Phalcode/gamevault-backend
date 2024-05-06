@@ -122,7 +122,8 @@ export interface RawgGame {
   released: string;
   tba: boolean;
   updated: Date;
-  background_image: string;
+  box_image?: string;
+  background_image?: string;
   background_image_additional: string;
   website: string;
   rating: number;

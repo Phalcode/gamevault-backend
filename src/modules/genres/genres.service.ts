@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Genre } from "./genre.entity";
 import { Builder } from "builder-pattern";
+import { Repository } from "typeorm";
+
+import { Genre } from "./genre.entity";
 
 @Injectable()
 export class GenresService {
@@ -17,7 +18,7 @@ export class GenresService {
    * does not already exist.
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Genre> {
-    const existingGenre = await this.tagRepository.findOneBy({ rawg_id });
+    const existingGenre = await this.tagRepository.findOneBy({ name });
 
     if (existingGenre) return existingGenre;
 

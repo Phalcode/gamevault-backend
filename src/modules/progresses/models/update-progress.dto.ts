@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from "class-validator";
+
 import { State } from "./state.enum";
 
 export class UpdateProgressDto {

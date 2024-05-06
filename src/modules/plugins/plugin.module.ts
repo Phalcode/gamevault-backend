@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { PluginService } from "./plugin.service";
+
 import { AdminModule } from "../admin/admin.module";
 import { BoxartsModule } from "../boxarts/boxarts.module";
 import { DatabaseModule } from "../database/database.module";
@@ -10,12 +10,13 @@ import { GarbageCollectionModule } from "../garbage-collection/garbage-collectio
 import { GenresModule } from "../genres/genres.module";
 import { HealthModule } from "../health/health.module";
 import { ImagesModule } from "../images/images.module";
-import { ProgressModule } from "../progress/progress.module";
+import { ProgressModule } from "../progresses/progress.module";
 import { RawgModule } from "../providers/rawg/rawg.module";
 import { PublishersModule } from "../publishers/publishers.module";
 import { StoresModule } from "../stores/stores.module";
 import { TagsModule } from "../tags/tags.module";
 import { UsersModule } from "../users/users.module";
+import { PluginService } from "./plugin.service";
 
 @Module({
   providers: [PluginService],

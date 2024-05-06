@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common";
-import { ProgressService } from "./progress.service";
-import { ProgressController } from "./progress.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Progress } from "./progress.entity";
-import { UsersModule } from "../users/users.module";
+
 import { GamesModule } from "../games/games.module";
+import { UsersModule } from "../users/users.module";
+import { ProgressController } from "./progress.controller";
+import { Progress } from "./progress.entity";
+import { ProgressService } from "./progress.service";
 
 @Module({
   imports: [TypeOrmModule.forFeature([Progress]), UsersModule, GamesModule],

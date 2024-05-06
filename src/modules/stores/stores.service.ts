@@ -1,8 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Store } from "./store.entity";
 import { Builder } from "builder-pattern";
+import { Repository } from "typeorm";
+
+import { Store } from "./store.entity";
 
 @Injectable()
 export class StoresService {
@@ -17,7 +18,7 @@ export class StoresService {
    * does not already exist.
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Store> {
-    const existingStore = await this.storeRepository.findOneBy({ rawg_id });
+    const existingStore = await this.storeRepository.findOneBy({ name });
 
     if (existingStore) return existingStore;
 

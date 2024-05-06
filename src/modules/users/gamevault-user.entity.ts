@@ -1,19 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  Entity,
   Column,
-  OneToMany,
-  JoinColumn,
-  OneToOne,
-  ManyToMany,
-  JoinTable,
+  Entity,
   Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
 } from "typeorm";
-import { Image } from "../images/image.entity";
-import { Progress } from "../progress/progress.entity";
+
 import { DatabaseEntity } from "../database/database.entity";
-import { Role } from "./models/role.enum";
 import { Game } from "../games/game.entity";
+import { Image } from "../images/image.entity";
+import { Progress } from "../progresses/progress.entity";
+import { Role } from "./models/role.enum";
 
 @Entity()
 export class GamevaultUser extends DatabaseEntity {
