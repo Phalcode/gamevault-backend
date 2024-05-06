@@ -12,7 +12,7 @@ Recommended Gamevault App Version: `v1.10.0.0`
 - Made Rotating File logger handle TESTING_MOCK_FILES environment variable
 - Fixed a bug where the Config parser would not accept 0 as a value. [#286](https://github.com/Phalcode/gamevault-backend/issues/286)
 - Added support for TLS Encrypted Postgres connections [#285](https://github.com/Phalcode/gamevault-backend/issues/285)
-- Support for [Rawg2Steam](https://github.com/Phalcode/rawg-to-steam-redirect) API (Removed Dependency on Rawg IDs and implemented support for RawgToSteam Box Images)
+- Support for [Rawg2Steam](https://github.com/Phalcode/rawg-to-steam-redirect) API (Removed Reliance on Rawg IDs and their API KEY, and implemented support for RawgToSteam Box Images)
 
 ### Thanks
 
