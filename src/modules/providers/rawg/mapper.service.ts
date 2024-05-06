@@ -194,6 +194,17 @@ export class RawgMapperService {
           game.background_image,
         );
       }
+
+      if (
+        game.box_image &&
+        (!entity.box_image?.id ||
+          !(await this.imagesService.isAvailable(entity.box_image.id)))
+      ) {
+        entity.box_image = await this.imagesService.downloadByUrl(
+          game.box_image,
+        );
+      }
+
       entity.rawg_title = game.name ?? entity.rawg_title;
       entity.rawg_id = game.id ?? entity.rawg_id;
       entity.description = game.description_raw ?? entity.description;

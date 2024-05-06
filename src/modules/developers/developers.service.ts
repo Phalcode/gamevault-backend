@@ -19,7 +19,7 @@ export class DevelopersService {
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Developer> {
     const existingDeveloper = await this.developerRepository.findOneBy({
-      rawg_id,
+      name,
     });
 
     if (existingDeveloper) return existingDeveloper;

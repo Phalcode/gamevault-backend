@@ -19,7 +19,7 @@ export class PublishersService {
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Publisher> {
     const existingPublisher = await this.publisherRepository.findOneBy({
-      rawg_id,
+      name,
     });
 
     if (existingPublisher) return existingPublisher;

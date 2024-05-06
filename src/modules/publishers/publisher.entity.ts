@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -7,12 +7,12 @@ import { Game } from "../games/game.entity";
 @Entity()
 export class Publisher extends DatabaseEntity {
   @Index()
-  @Column({ unique: true })
-  @ApiProperty({
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
     example: 1000,
     description: "unique rawg-api-identifier of the publisher",
   })
-  rawg_id: number;
+  rawg_id?: number;
 
   @Index()
   @Column({ unique: true })

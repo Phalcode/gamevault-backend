@@ -19,7 +19,7 @@ export class TagsService {
    * not already exist.
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Tag> {
-    const existingTag = await this.tagRepository.findOneBy({ rawg_id });
+    const existingTag = await this.tagRepository.findOneBy({ name });
 
     if (existingTag) return existingTag;
 

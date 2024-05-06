@@ -18,7 +18,7 @@ export class StoresService {
    * does not already exist.
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Store> {
-    const existingStore = await this.storeRepository.findOneBy({ rawg_id });
+    const existingStore = await this.storeRepository.findOneBy({ name });
 
     if (existingStore) return existingStore;
 

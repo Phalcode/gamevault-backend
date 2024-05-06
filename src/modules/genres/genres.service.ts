@@ -18,7 +18,7 @@ export class GenresService {
    * does not already exist.
    */
   async getOrCreate(name: string, rawg_id: number): Promise<Genre> {
-    const existingGenre = await this.tagRepository.findOneBy({ rawg_id });
+    const existingGenre = await this.tagRepository.findOneBy({ name });
 
     if (existingGenre) return existingGenre;
 
