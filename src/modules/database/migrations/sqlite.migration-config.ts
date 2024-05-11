@@ -9,4 +9,5 @@ export const dataSource = new DataSource({
   migrations: ["dist/src/modules/database/migrations/sqlite/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
+  cache: { alwaysEnabled: true, ignoreErrors: true },
 });

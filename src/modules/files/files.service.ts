@@ -68,7 +68,7 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES || 60} * * * *`, {
     disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
   })
   public async index(reason: string): Promise<Game[]> {

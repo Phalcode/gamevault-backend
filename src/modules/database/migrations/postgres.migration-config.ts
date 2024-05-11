@@ -13,4 +13,5 @@ export const dataSource = new DataSource({
   migrations: ["dist/src/modules/database/migrations/postgres/*.js"],
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: false,
+  cache: { alwaysEnabled: true, ignoreErrors: true },
 });
