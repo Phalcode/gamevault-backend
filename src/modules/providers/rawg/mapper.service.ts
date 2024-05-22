@@ -26,23 +26,20 @@ export class RawgMapperService {
    * Maps a RawgGame to a Game entity, filling missing information in the entity
    * using the RawgGame.
    */
-  public async mapRawgGameToGame(
-    rawg_game: RawgGame,
-    game: Game,
-  ): Promise<Game> {
+  public async mapRawgGameToGame(game: RawgGame, entity: Game): Promise<Game> {
     this.logger.debug({
       message: `Mapping RAWG Game...`,
-      gameTitle: game.title,
-      rawgGameTitle: rawg_game.name,
+      gameTitle: entity.title,
+      rawgGameTitle: game.name,
     });
-    game = await this.mapRawgStoresToGame(rawg_game, game);
-    game = await this.mapRawgDevelopersToGame(rawg_game, game);
-    game = await this.mapRawgPublishersToGame(rawg_game, game);
-    game = await this.mapRawgTagsToGame(rawg_game, game);
-    game = await this.mapRawgGenresToGame(rawg_game, game);
-    game = await this.mapRawgGameDetailsToGame(rawg_game, game);
-    game.cache_date = new Date();
-    return game;
+    entity = await this.mapRawgStoresToGame(game, entity);
+    entity = await this.mapRawgDevelopersToGame(game, entity);
+    entity = await this.mapRawgPublishersToGame(game, entity);
+    entity = await this.mapRawgTagsToGame(game, entity);
+    entity = await this.mapRawgGenresToGame(game, entity);
+    entity = await this.mapRawgGameDetailsToGame(game, entity);
+    entity.cache_date = new Date();
+    return entity;
   }
 
   /** Maps stores from RawgGame to Game entity. */
@@ -181,48 +178,64 @@ export class RawgMapperService {
 
   /** Maps a RawgGame object to a Game entity. */
   private async mapRawgGameDetailsToGame(
-    game: RawgGame,
-    entity: Game,
+    rawgGame: RawgGame,
+    game: Game,
   ): Promise<Game> {
     try {
       if (
-        game.background_image &&
-        (!entity.background_image?.id ||
-          !(await this.imagesService.isAvailable(entity.background_image.id)))
+        rawgGame.background_image &&
+        (!game.background_image?.id ||
+          !(await this.imagesService.isAvailable(game.background_image.id)))
       ) {
-        entity.background_image = await this.imagesService.downloadByUrl(
-          game.background_image,
-        );
+        try {
+          game.background_image = await this.imagesService.downloadByUrl(
+            rawgGame.background_image,
+          );
+        } catch (error) {
+          this.logger.error({
+            message: "Error downloading background image.",
+            game: { id: game.id, file_path: game.file_path },
+            error,
+          });
+        }
       }
 
       if (
-        game.box_image &&
-        (!entity.box_image?.id ||
-          !(await this.imagesService.isAvailable(entity.box_image.id)))
+        rawgGame.box_image &&
+        (!game.box_image?.id ||
+          !(await this.imagesService.isAvailable(game.box_image.id)))
       ) {
-        entity.box_image = await this.imagesService.downloadByUrl(
-          game.box_image,
-        );
+        try {
+          game.box_image = await this.imagesService.downloadByUrl(
+            rawgGame.box_image,
+          );
+        } catch (error) {
+          this.logger.error({
+            message: "Error downloading box image.",
+            game: { id: game.id, file_path: game.file_path },
+            error,
+          });
+        }
       }
 
-      entity.rawg_title = game.name ?? entity.rawg_title;
-      entity.rawg_id = game.id ?? entity.rawg_id;
-      entity.description = game.description_raw ?? entity.description;
-      entity.website_url = game.website ?? entity.website_url;
-      entity.metacritic_rating = game.metacritic ?? entity.metacritic_rating;
+      game.rawg_title = rawgGame.name ?? game.rawg_title;
+      game.rawg_id = rawgGame.id ?? game.rawg_id;
+      game.description = rawgGame.description_raw ?? game.description;
+      game.website_url = rawgGame.website ?? game.website_url;
+      game.metacritic_rating = rawgGame.metacritic ?? game.metacritic_rating;
 
-      entity.rawg_release_date =
-        this.getReleaseDate(game) ?? entity.rawg_release_date;
+      game.rawg_release_date =
+        this.getReleaseDate(rawgGame) ?? game.rawg_release_date;
 
-      if (!entity.release_date && entity.rawg_release_date) {
-        entity.release_date = entity.rawg_release_date;
+      if (!game.release_date && game.rawg_release_date) {
+        game.release_date = game.rawg_release_date;
       }
 
-      if (game.playtime) {
-        entity.average_playtime = game.playtime * 60;
+      if (rawgGame.playtime) {
+        game.average_playtime = rawgGame.playtime * 60;
       }
 
-      return entity;
+      return game;
     } catch (error) {
       this.logger.error({
         message: "Error mapping rawg game to game entity.",

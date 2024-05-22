@@ -174,14 +174,10 @@ export class GamesService {
     });
   }
 
-  /**
-   * Remaps the Rawg ID of a game and nulls out all related fields except
-   * progresses. Then recaches the game.
-   */
-  public async remap(game: Game, new_rawg_id: number): Promise<Game> {
-    game.rawg_id = new_rawg_id;
-
-    // Null all fields except progresses so that none of the old data is used
+  /** Unmaps the Rawg Metadata of a game then saves it. */
+  public async unmap(id: number): Promise<Game> {
+    const game = await this.findByGameIdOrFail(id);
+    game.rawg_id = null;
     game.rawg_title = null;
     game.rawg_release_date = null;
     game.cache_date = null;
@@ -191,14 +187,22 @@ export class GamesService {
     game.website_url = null;
     game.metacritic_rating = null;
     game.average_playtime = null;
-    game.publishers = [];
-    game.developers = [];
-    game.stores = [];
-    game.tags = [];
-    game.genres = [];
+    game.publishers = null;
+    game.developers = null;
+    game.stores = null;
+    game.tags = null;
+    game.genres = null;
+    this.logger.log({ message: "Unmapped Game", game });
+    return await this.gamesRepository.save(game);
+  }
 
-    game = await this.save(game);
-
+  /**
+   * Remaps the Rawg ID of a game then recaches the game.
+   */
+  public async remap(id: number, new_rawg_id: number): Promise<Game> {
+    let game = await this.unmap(id);
+    game.rawg_id = new_rawg_id;
+    await this.gamesRepository.save(game);
     game = (await this.rawgService.checkCache([game]))[0];
 
     // Refetch the boxart and return
@@ -211,8 +215,8 @@ export class GamesService {
   }
 
   /** Soft delete a game from the database. */
-  public delete(game: Game) {
-    return this.gamesRepository.softRemove(game);
+  public delete(id: number): Promise<Game> {
+    return this.gamesRepository.softRemove({ id });
   }
 
   /**
@@ -236,7 +240,7 @@ export class GamesService {
 
     // Remaps the Game
     if (dto.rawg_id != null) {
-      game = await this.remap(game, dto.rawg_id);
+      game = await this.remap(game.id, dto.rawg_id);
     }
 
     // Updates BoxArt

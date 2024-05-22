@@ -68,7 +68,7 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES || 60} * * * *`, {
     disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
   })
   public async index(reason: string): Promise<Game[]> {
@@ -154,8 +154,14 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.EXISTS_BUT_ALTERED: {
             this.logger.debug({
               message: `An altered duplicate of the file has been found in the database. Updating the information.`,
-              game: gameToIndex,
-              existingGame: existingGameTuple[1],
+              game: {
+                id: gameToIndex.id,
+                file_path: gameToIndex.file_path,
+              },
+              existingGame: {
+                id: existingGameTuple[1].id,
+                file_path: existingGameTuple[1].file_path,
+              },
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.update(existingGameTuple[1], gameToIndex);
@@ -165,7 +171,7 @@ export class FilesService implements OnApplicationBootstrap {
       } catch (error) {
         this.logger.error({
           message: `Failed to index file "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?`,
-          game: { file_path: file },
+          game: { id: gameToIndex.id, file_path: file },
           error,
         });
       }
@@ -273,7 +279,7 @@ export class FilesService implements OnApplicationBootstrap {
     return /\(EA\)/.test(basename(filePath));
   }
 
-  private detectWindowsSetupExecutable(files: string[]): boolean {
+  private detectWindowsSetupExecutable(filepaths: string[]): boolean {
     const windowsInstallerPatterns: { regex: RegExp; description: string }[] = [
       { regex: /^setup\.exe$/i, description: "setup.exe" },
       { regex: /^autorun\.exe$/i, description: "autorun.exe" },
@@ -289,14 +295,14 @@ export class FilesService implements OnApplicationBootstrap {
 
     const detectedPatterns: string[] = [];
 
-    for (const file of files) {
-      const fileName = basename(file)?.toLowerCase();
+    for (const path of filepaths) {
+      const fileName = basename(path)?.toLowerCase();
 
       for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
           this.logger.debug({
             message: `File matched Windows Installer Game Type pattern.`,
-            game: { file_path: file },
+            game: { id: undefined, file_path: path },
             pattern,
           });
           detectedPatterns.push(pattern.description);
@@ -313,7 +319,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
           reason: "(W_P) override in filename.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -322,7 +328,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "(W_S) override in filename.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -331,7 +337,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "(L_P) override in filename.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -341,7 +347,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "TESTING_MOCK_FILES is set to true.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -351,7 +357,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "Filename ends with .exe .",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -360,7 +366,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "Filename ends with .sh .",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -375,14 +381,14 @@ export class FilesService implements OnApplicationBootstrap {
             message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
             reason:
               "There are windows executables in the archive that look like installers.",
-            game: { file_path: path },
+            game: { id: undefined, file_path: path },
           });
           return GameType.WINDOWS_SETUP;
         }
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
           reason: "There are windows executables in the archive.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -395,7 +401,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "There are .sh files in the archive.",
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -403,13 +409,13 @@ export class FilesService implements OnApplicationBootstrap {
       // More Platforms and Game Types can be added here.
       this.logger.debug({
         message: `Could not detect game type.`,
-        game: { file_path: path },
+        game: { id: undefined, file_path: path },
       });
       return GameType.UNDETECTABLE;
     } catch (error) {
       this.logger.warn({
         message: `Error detecting game type.`,
-        game: { file_path: path },
+        game: { id: undefined, file_path: path },
         error,
       });
       return GameType.UNDETECTABLE;
@@ -432,7 +438,7 @@ export class FilesService implements OnApplicationBootstrap {
       listStream.on("error", (error) => {
         this.logger.error({
           message: `Error extracting executables list. Archive could be corrupted.`,
-          game: { file_path: path },
+          game: { id: undefined, file_path: path },
           error,
         });
         reject(error);
@@ -442,13 +448,13 @@ export class FilesService implements OnApplicationBootstrap {
         if (executablesList.length) {
           this.logger.debug({
             message: `Found ${executablesList.length} executable(s) in archive.`,
-            game: { file_path: path },
+            game: { id: undefined, file_path: path },
             executables: executablesList,
           });
         } else {
           this.logger.warn({
             message: `Could not detect any executables in archive. Please note that the Game Type Detection algorithm does not support nested archives.`,
-            game: { file_path: path },
+            game: { id: undefined, file_path: path },
           });
         }
         resolve(executablesList);
@@ -513,7 +519,7 @@ export class FilesService implements OnApplicationBootstrap {
         );
         // If game is not in file system, mark it as deleted
         if (!gameInFileSystem) {
-          await this.gamesService.delete(gameInDatabase);
+          await this.gamesService.delete(gameInDatabase.id);
           this.logger.log({
             message: `Game marked as soft-deleted.`,
             reason: "Game file not found in filesystem.",

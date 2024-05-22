@@ -1,5 +1,19 @@
 # GameVault Backend Server Changelog
 
+## 12.1.1
+
+Recommended Gamevault App Version: `v1.10.0.0`
+
+### Changes
+
+- Fixed a bug where the tables for the query result-cache would not be created.
+- Fixed a bug where the Config parser would still not accept 0 as a value. [#286](https://github.com/Phalcode/gamevault-backend/issues/286)
+
+### Thanks
+
+- @JoaGamo
+- @wieluk
+
 ## 12.1.0
 
 Recommended Gamevault App Version: `v1.10.0.0`
