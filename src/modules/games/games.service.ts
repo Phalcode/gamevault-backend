@@ -240,7 +240,7 @@ export class GamesService {
 
     // Remaps the Game
     if (dto.rawg_id != null) {
-      game = await this.remap(game, dto.rawg_id);
+      game = await this.remap(game.id, dto.rawg_id);
     }
 
     // Updates BoxArt

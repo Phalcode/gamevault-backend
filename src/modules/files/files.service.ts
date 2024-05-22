@@ -519,7 +519,7 @@ export class FilesService implements OnApplicationBootstrap {
         );
         // If game is not in file system, mark it as deleted
         if (!gameInFileSystem) {
-          await this.gamesService.delete(gameInDatabase);
+          await this.gamesService.delete(gameInDatabase.id);
           this.logger.log({
             message: `Game marked as soft-deleted.`,
             reason: "Game file not found in filesystem.",
