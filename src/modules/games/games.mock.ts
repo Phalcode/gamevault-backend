@@ -1,4 +1,4 @@
-import { IGameVaultFile } from "../files/models/file.model";
+import { IGameVaultFile } from "./models/file.model";
 
 export default [
   {

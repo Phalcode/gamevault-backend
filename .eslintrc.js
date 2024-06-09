@@ -3,7 +3,7 @@ module.exports = {
   parserOptions: {
     project: "tsconfig.json",
     sourceType: "module",
-    ecmaVersion: "latest"
+    ecmaVersion: "latest",
   },
   plugins: ["@typescript-eslint/eslint-plugin", "simple-import-sort"],
   extends: [
@@ -20,6 +20,6 @@ module.exports = {
   ignorePatterns: [".eslintrc.js"],
   rules: {
     "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error"
+    "simple-import-sort/exports": "error",
   },
 };

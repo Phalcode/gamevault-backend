@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 
-import { Image } from "../../images/image.entity";
+import { Media } from "../../media/media.entity";
 
 export class MinimalGame {
   @ApiPropertyOptional({
@@ -29,9 +29,9 @@ export class MinimalGame {
 
   @ApiPropertyOptional({
     description: "box image of the game",
-    type: () => Image,
+    type: () => Media,
   })
-  box_image?: Image;
+  box_image?: Media;
 
   @ApiPropertyOptional({
     description: "box image url of the game",

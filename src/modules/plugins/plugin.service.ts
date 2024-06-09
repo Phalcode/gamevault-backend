@@ -4,20 +4,18 @@ import path from "path";
 import * as vm from "vm";
 
 import configuration from "../../configuration";
-import { BoxArtsService } from "../boxarts/boxarts.service";
 import { DatabaseService } from "../database/database.service";
-import { DevelopersService } from "../developers/developers.service";
-import { FilesService } from "../files/files.service";
+import { FilesService } from "../games/files.service";
 import { GamesService } from "../games/games.service";
-import { ImageGarbageCollectionService } from "../garbage-collection/image-garbage-collection.service";
-import { GenresService } from "../genres/genres.service";
+import { MediaGarbageCollectionService } from "../garbage-collection/media-garbage-collection.service";
 import { HealthService } from "../health/health.service";
-import { ImagesService } from "../images/images.service";
+import { MediaService } from "../media/media.service";
+import { DeveloperMetadataService } from "../metadata/services/data/developers-metadata.service";
+import { GenreMetadataService } from "../metadata/services/data/genre-metadata.service";
+import { PublisherMetadataService } from "../metadata/services/data/publisher-metadata.service";
+import { StoreMetadataService } from "../metadata/services/data/store-metadata.service";
+import { TagMetadataService } from "../metadata/services/data/tag-metadata.service";
 import { ProgressService } from "../progresses/progress.service";
-import { RawgService } from "../providers/rawg/rawg.service";
-import { PublishersService } from "../publishers/publishers.service";
-import { StoresService } from "../stores/stores.service";
-import { TagsService } from "../tags/tags.service";
 import { UsersService } from "../users/users.service";
 
 @Injectable()
@@ -26,20 +24,18 @@ export class PluginService implements OnApplicationBootstrap {
   public loadedPlugins = [];
 
   constructor(
-    private boxartService: BoxArtsService,
     private databaseService: DatabaseService,
-    private developersService: DevelopersService,
+    private developersService: DeveloperMetadataService,
     private filesService: FilesService,
     private gamesService: GamesService,
-    private imageGarbageCollectionService: ImageGarbageCollectionService,
-    private genresService: GenresService,
+    private mediaGarbageCollectionService: MediaGarbageCollectionService,
+    private genresService: GenreMetadataService,
     private healthService: HealthService,
-    private imagesService: ImagesService,
+    private mediaService: MediaService,
     private progressService: ProgressService,
-    private rawgService: RawgService,
-    private publishersService: PublishersService,
-    private storesService: StoresService,
-    private tagsService: TagsService,
+    private publishersService: PublisherMetadataService,
+    private storesService: StoreMetadataService,
+    private tagsService: TagMetadataService,
     private usersService: UsersService,
   ) {}
 
@@ -67,18 +63,16 @@ export class PluginService implements OnApplicationBootstrap {
           fetch,
           logger: new Logger(filename),
           configuration: process.env,
-          boxartService: this.boxartService,
           databaseService: this.databaseService,
           developersService: this.developersService,
           filesService: this.filesService,
-          gamesService: this.gamesService,
-          imageGarbageCollectionService: this.imageGarbageCollectionService,
+          mediaGarbageCollectionService: this.mediaGarbageCollectionService,
           genresService: this.genresService,
           healthService: this.healthService,
           pluginService: this,
-          imagesService: this.imagesService,
+          mediaService: this.mediaService,
+          gamesService: this.gamesService,
           progressService: this.progressService,
-          rawgService: this.rawgService,
           publishersService: this.publishersService,
           storesService: this.storesService,
           tagsService: this.tagsService,

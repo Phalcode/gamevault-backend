@@ -38,7 +38,6 @@
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.3.9",
     "@types/stream-throttle": "^0.1.4",
-    "async-g-i-s": "^1.5.2",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.0.0",

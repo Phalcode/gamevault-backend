@@ -2,8 +2,6 @@ import { applyDecorators, Type } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
 
 import { PaginatedEntity } from "./modules/database/models/paginated-entity.model";
-import { RawgPlatform } from "./modules/providers/rawg/models/platforms";
-import { RawgStore } from "./modules/providers/rawg/models/stores";
 
 export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(
   dataDto: DataDto,
@@ -77,19 +75,31 @@ export default {
     ".z",
   ],
   EXECUTABLE_FORMATS: [".exe", ".sh"],
-  SUPPORTED_IMAGE_FORMATS: [
-    "image/bmp",
-    "image/jpeg",
-    "image/png",
-    "image/tiff",
-    "image/gif",
-    "image/x-icon",
+  SUPPORTED_MEDIA_FORMATS: [
+    "audio/mpeg", // MP3
+    "audio/wav", // WAV
+    "audio/ogg", // OGG
+    "audio/aac", // AAC
+    "audio/flac", // FLAC
+    "audio/x-ms-wma", // WMA
+    "audio/amr", // AMR
+    "audio/mp4", // MP4 Audio
+    "image/bmp", // BMP
+    "image/jpeg", // JPEG
+    "image/png", // PNG
+    "image/tiff", // TIFF
+    "image/gif", // GIF
+    "image/x-icon", // ICO
+    "video/mp4", // MP4
+    "video/x-msvideo", // AVI
+    "video/quicktime", // MOV
+    "video/x-ms-wmv", // WMV
+    "video/x-flv", // FLV
+    "video/x-matroska", // MKV
+    "video/webm", // WEBM
+    "video/mpeg", // MPEG
+    "video/3gpp", // 3GP
   ],
-  DEFAULT_INCLUDED_RAWG_STORES: Object.values(RawgStore).filter(
-    (platform) =>
-      platform !== RawgStore["All Stores"] && platform !== RawgStore["Itch.io"],
-  ),
-  DEFAULT_INCLUDED_RAWG_PLATFORMS: [RawgPlatform["All Platforms"]],
 };
 
 export interface FindOptions {

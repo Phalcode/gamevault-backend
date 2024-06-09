@@ -17,7 +17,7 @@ import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 import configuration from "../../configuration";
 import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
-import { ImagesService } from "../images/images.service";
+import { MediaService } from "../media/media.service";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { RegisterUserDto } from "./models/register-user.dto";
 import { Role } from "./models/role.enum";
@@ -30,8 +30,8 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(GamevaultUser)
     private userRepository: Repository<GamevaultUser>,
-    @Inject(forwardRef(() => ImagesService))
-    private imagesService: ImagesService,
+    @Inject(forwardRef(() => MediaService))
+    private mediaService: MediaService,
     @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
   ) {}
@@ -261,28 +261,22 @@ export class UsersService implements OnApplicationBootstrap {
       user.password = hashSync(dto.password, 10);
     }
 
-    if (dto.profile_picture_id != null) {
-      const image = await this.imagesService.findByImageIdOrFail(
-        dto.profile_picture_id,
-      );
-      logUpdate(
-        "profile_picture_id",
-        user.profile_picture?.id.toString(),
-        image.id.toString(),
-      );
-      user.profile_picture = image;
+    if (dto.avatar_id != null) {
+      const image = await this.mediaService.findByMediaIdOrFail(dto.avatar_id);
+      logUpdate("avatar_id", user.avatar?.id.toString(), image.id.toString());
+      user.avatar = image;
     }
 
-    if (dto.background_image_id != null) {
-      const image = await this.imagesService.findByImageIdOrFail(
-        dto.background_image_id,
+    if (dto.background_id != null) {
+      const image = await this.mediaService.findByMediaIdOrFail(
+        dto.background_id,
       );
       logUpdate(
-        "background_image_id",
-        user.background_image?.id.toString(),
+        "background_id",
+        user.background?.id.toString(),
         image.id.toString(),
       );
-      user.background_image = image;
+      user.background = image;
     }
 
     if (admin && dto.activated != null) {
@@ -403,7 +397,7 @@ export class UsersService implements OnApplicationBootstrap {
       user: user.username,
       game: {
         id: game.id,
-        file_path: game.file_path,
+        path: game.path,
       },
     });
     return user;
@@ -439,7 +433,7 @@ export class UsersService implements OnApplicationBootstrap {
       user: user.username,
       game: {
         id: game.id,
-        file_path: game.file_path,
+        path: game.path,
       },
     });
 

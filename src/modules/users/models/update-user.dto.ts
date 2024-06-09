@@ -69,17 +69,17 @@ export class UpdateUserDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 69_420,
-    description: "id of the profile picture of the user",
+    description: "id of the avatar image of the user",
   })
-  profile_picture_id?: number;
+  avatar_id?: number;
 
   @IsNumber()
   @IsOptional()
   @ApiPropertyOptional({
     example: 69_420,
-    description: "id of the profile art (background-image) of the User",
+    description: "id of the background image of the User",
   })
-  background_image_id?: number;
+  background_id?: number;
 
   @IsBoolean()
   @IsOptional()

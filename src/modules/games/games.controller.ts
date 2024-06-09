@@ -32,9 +32,9 @@ import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
 import { IdDto } from "../database/models/id.dto";
-import { FilesService } from "../files/files.service";
 import { Role } from "../users/models/role.enum";
-import { Game } from "./game.entity";
+import { FilesService } from "./files.service";
+import { GamevaultGame } from "./game.entity";
 import { GamesService } from "./games.service";
 import { UpdateGameDto } from "./models/update-game.dto";
 
@@ -47,20 +47,33 @@ export class GamesController {
   constructor(
     private gamesService: GamesService,
     private filesService: FilesService,
-    @InjectRepository(Game)
-    private readonly gamesRepository: Repository<Game>,
+    @InjectRepository(GamevaultGame)
+    private readonly gamesRepository: Repository<GamevaultGame>,
   ) {}
+
+  @Put("reindex")
+  @ApiOperation({
+    summary: "manually triggers an index of all games",
+    operationId: "putFilesReindex",
+  })
+  @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
+  @MinimumRole(Role.ADMIN)
+  async putFilesReindex() {
+    return await this.filesService.index("Reindex API was called");
+  }
 
   /** Get paginated games list based on the given query parameters. */
   @Get()
   @PaginateQueryOptions()
-  @ApiOkResponsePaginated(Game)
+  @ApiOkResponsePaginated(GamevaultGame)
   @ApiOperation({
     summary: "get a list of games",
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
-  async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
+  async getGames(
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<GamevaultGame>> {
     const relations = ["box_image", "background_image", "bookmarked_users"];
     if (query.filter) {
       if (query.filter["genres.name"]) {
@@ -81,16 +94,18 @@ export class GamesController {
         "id",
         "title",
         "release_date",
-        "rawg_release_date",
         "created_at",
         "size",
-        "metacritic_rating",
-        "average_playtime",
+        //"metacritic_rating",
+        //"average_playtime",
         "early_access",
         "type",
         "bookmarked_users.id",
       ],
-      searchableColumns: ["title", "description"],
+      searchableColumns: [
+        "title",
+        //"description"
+      ],
       filterableColumns: {
         id: true,
         title: true,
@@ -115,9 +130,9 @@ export class GamesController {
     summary: "get a random game",
     operationId: "getGameRandom",
   })
-  @ApiOkResponse({ type: () => Game })
+  @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameRandom(): Promise<Game> {
+  async getGameRandom(): Promise<GamevaultGame> {
     return await this.gamesService.getRandom();
   }
 
@@ -127,9 +142,9 @@ export class GamesController {
     summary: "get details on a game",
     operationId: "getGameByGameId",
   })
-  @ApiOkResponse({ type: () => Game })
+  @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameByGameId(@Param() params: IdDto): Promise<Game> {
+  async getGameByGameId(@Param() params: IdDto): Promise<GamevaultGame> {
     return await this.gamesService.findByGameIdOrFail(Number(params.id), {
       loadRelations: true,
       loadDeletedEntities: true,
@@ -194,7 +209,7 @@ export class GamesController {
   async putGameUpdate(
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
-  ): Promise<Game> {
+  ): Promise<GamevaultGame> {
     return await this.gamesService.update(Number(params.id), dto);
   }
 }

@@ -1,6 +1,4 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -9,11 +7,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
+import { DeletedEntitiesFilter } from "../../filters/deleted-entities.filter";
 import { FindOptions } from "../../globals";
-import { BoxArtsService } from "../boxarts/boxarts.service";
-import { ImagesService } from "../images/images.service";
-import { RawgService } from "../providers/rawg/rawg.service";
-import { Game } from "./game.entity";
+import { MediaService } from "../media/media.service";
+import { GamevaultGame } from "./game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
 
@@ -22,19 +19,15 @@ export class GamesService {
   private readonly logger = new Logger(GamesService.name);
 
   constructor(
-    @InjectRepository(Game)
-    private gamesRepository: Repository<Game>,
-    @Inject(forwardRef(() => RawgService))
-    private rawgService: RawgService,
-    @Inject(forwardRef(() => BoxArtsService))
-    private boxartService: BoxArtsService,
-    private imagesService: ImagesService,
+    @InjectRepository(GamevaultGame)
+    private gamesRepository: Repository<GamevaultGame>,
+    private mediaService: MediaService,
   ) {}
 
   public async findByGameIdOrFail(
     id: number,
     options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
-  ): Promise<Game> {
+  ): Promise<GamevaultGame> {
     try {
       let relations = [];
 
@@ -56,13 +49,13 @@ export class GamesService {
           relations = options.loadRelations;
       }
 
-      const games = await this.gamesRepository.findOneOrFail({
+      const game = await this.gamesRepository.findOneOrFail({
         where: { id },
         relations,
         withDeleted: options.loadDeletedEntities,
         relationLoadStrategy: "query",
       });
-      return this.filterDeletedSubEntities(games);
+      return DeletedEntitiesFilter.filterDeleted(game) as GamevaultGame;
     } catch (error) {
       throw new NotFoundException(
         `Game with id ${id} was not found on the server.`,
@@ -73,16 +66,16 @@ export class GamesService {
 
   /** Checks if a game exists in the database. */
   public async checkIfExistsInDatabase(
-    game: Game,
-  ): Promise<[GameExistence, Game]> {
-    if (!game.file_path || (!game.title && !game.release_date)) {
+    game: GamevaultGame,
+  ): Promise<[GameExistence, GamevaultGame]> {
+    if (!game.path || (!game.title && !game.release_date)) {
       throw new InternalServerErrorException(
         game,
         "Dupe-Checking Data not available in indexed game!",
       );
     }
     const existingGameByPath = await this.gamesRepository.findOne({
-      where: { file_path: game.file_path },
+      where: { path: game.path },
       withDeleted: true,
     });
 
@@ -107,19 +100,13 @@ export class GamesService {
 
     const differences: string[] = [];
 
-    if (foundGame.file_path != game.file_path) {
-      differences.push(
-        `file_path: ${foundGame.file_path} -> ${game.file_path}`,
-      );
+    if (foundGame.path != game.path) {
+      differences.push(`path: ${foundGame.path} -> ${game.path}`);
     }
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if (
-      +foundGame.release_date != +game.release_date &&
-      foundGame.rawg_release_date &&
-      +foundGame.release_date != +foundGame.rawg_release_date
-    ) {
+    if (+foundGame.release_date != +game.release_date) {
       differences.push(
         `release_date: ${foundGame.release_date} -> ${game.release_date}`,
       );
@@ -141,11 +128,11 @@ export class GamesService {
         message: "Game already exists in the database but has been altered.",
         game: {
           id: game.id,
-          file_path: game.file_path,
+          path: game.path,
         },
         existingGame: {
           id: foundGame.id,
-          file_path: foundGame.file_path,
+          path: foundGame.path,
         },
         differences,
       });
@@ -156,11 +143,11 @@ export class GamesService {
   }
 
   /** Retrieves all games from the database. */
-  public async getAll(): Promise<Game[]> {
+  public async getAll(): Promise<GamevaultGame[]> {
     return this.gamesRepository.find();
   }
 
-  public async getRandom(): Promise<Game> {
+  public async getRandom(): Promise<GamevaultGame> {
     const game = await this.gamesRepository
       .createQueryBuilder("game")
       .select("game.id")
@@ -174,24 +161,10 @@ export class GamesService {
     });
   }
 
-  /** Unmaps the Rawg Metadata of a game then saves it. */
-  public async unmap(id: number): Promise<Game> {
+  /** Unmaps Metadata of a game then saves it. */
+  public async unmap(id: number): Promise<GamevaultGame> {
     const game = await this.findByGameIdOrFail(id);
-    game.rawg_id = null;
-    game.rawg_title = null;
-    game.rawg_release_date = null;
-    game.cache_date = null;
-    game.description = null;
-    game.box_image = null;
-    game.background_image = null;
-    game.website_url = null;
-    game.metacritic_rating = null;
-    game.average_playtime = null;
-    game.publishers = null;
-    game.developers = null;
-    game.stores = null;
-    game.tags = null;
-    game.genres = null;
+    //TODO: Unmap Metadata
     this.logger.log({ message: "Unmapped Game", game });
     return await this.gamesRepository.save(game);
   }
@@ -199,23 +172,19 @@ export class GamesService {
   /**
    * Remaps the Rawg ID of a game then recaches the game.
    */
-  public async remap(id: number, new_rawg_id: number): Promise<Game> {
-    let game = await this.unmap(id);
-    game.rawg_id = new_rawg_id;
-    await this.gamesRepository.save(game);
-    game = (await this.rawgService.checkCache([game]))[0];
-
-    // Refetch the boxart and return
-    return await this.boxartService.check(game);
+  public async remap(id: number): Promise<GamevaultGame> {
+    const game = await this.unmap(id);
+    //TODO: Remap Metadata
+    return await this.gamesRepository.save(game);
   }
 
   /** Save a game to the database. */
-  public async save(game: Game): Promise<Game> {
+  public async save(game: GamevaultGame): Promise<GamevaultGame> {
     return this.gamesRepository.save(game);
   }
 
   /** Soft delete a game from the database. */
-  public delete(id: number): Promise<Game> {
+  public delete(id: number): Promise<GamevaultGame> {
     return this.gamesRepository.softRemove({ id });
   }
 
@@ -243,36 +212,12 @@ export class GamesService {
       game = await this.remap(game.id, dto.rawg_id);
     }
 
-    // Updates BoxArt
-    if (dto.box_image_id != null)
-      game.box_image = await this.imagesService.findByImageIdOrFail(
-        dto.box_image_id,
-      );
-
-    // Updates Background Image
-    if (dto.background_image_id != null)
-      game.background_image = await this.imagesService.findByImageIdOrFail(
-        dto.background_image_id,
-      );
-
     return this.gamesRepository.save(game);
   }
 
   /** Restore a game that has been soft deleted. */
-  public async restore(id: number): Promise<Game> {
+  public async restore(id: number): Promise<GamevaultGame> {
     await this.gamesRepository.recover({ id });
     return this.findByGameIdOrFail(id);
-  }
-
-  private filterDeletedSubEntities(game?: Game): Game {
-    return {
-      ...game,
-      genres: game?.genres?.filter((entity) => !entity.deleted_at),
-      tags: game?.tags?.filter((entity) => !entity.deleted_at),
-      developers: game?.developers?.filter((entity) => !entity.deleted_at),
-      publishers: game?.publishers?.filter((entity) => !entity.deleted_at),
-      stores: game?.stores?.filter((entity) => !entity.deleted_at),
-      progresses: game?.progresses?.filter((entity) => !entity.deleted_at),
-    };
   }
 }

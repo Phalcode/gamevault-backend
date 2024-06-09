@@ -1,5 +1,21 @@
 # GameVault Backend Server Changelog
 
+## 13.0.0
+
+Recommended Gamevault App Version: `v1.11.0.0`
+
+### Breaking Changes & Migration
+
+- Added support for more media than just images. -> **From now on you need to mount your /images volume as /media**
+- Renamed a bunch of stuff to be more consistent.
+- Removed RAWG Integration aswell as all configuration for it.
+- Removed Boxart Scraper.
+- TODO: Introduced a new Metadata Framework that universally supports any metadata provider.
+- TODO: Migrated old Games to new Metadata System.
+- TODO: Implemented IGDB as default metadata provider.
+
+### Changes
+
 ## 12.1.1
 
 Recommended Gamevault App Version: `v1.10.0.0`

@@ -11,8 +11,8 @@ import {
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { Game } from "../games/game.entity";
-import { Image } from "../images/image.entity";
+import { GamevaultGame } from "../games/game.entity";
+import { Media } from "../media/media.entity";
 import { Progress } from "../progresses/progress.entity";
 import { Role } from "./models/role.enum";
 
@@ -38,7 +38,8 @@ export class GamevaultUser extends DatabaseEntity {
   })
   socket_secret: string;
 
-  @OneToOne(() => Image, {
+  //TODO: Validate the uploaded media is an image
+  @OneToOne(() => Media, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -46,12 +47,13 @@ export class GamevaultUser extends DatabaseEntity {
   })
   @JoinColumn()
   @ApiPropertyOptional({
-    type: () => Image,
-    description: "the user's profile picture",
+    type: () => Media,
+    description: "the user's avatar image",
   })
-  profile_picture?: Image;
+  avatar?: Media;
 
-  @OneToOne(() => Image, {
+  //TODO: Validate the uploaded media is an image
+  @OneToOne(() => Media, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -59,10 +61,10 @@ export class GamevaultUser extends DatabaseEntity {
   })
   @JoinColumn()
   @ApiPropertyOptional({
-    type: () => Image,
-    description: "the user's profile art (background-picture)",
+    type: () => Media,
+    description: "the user's profile background image",
   })
-  background_image?: Image;
+  background?: Media;
 
   @Column({ unique: true, nullable: true })
   @ApiProperty({
@@ -78,6 +80,14 @@ export class GamevaultUser extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiProperty({ example: "Doe", description: "last name of the user" })
   last_name: string;
+
+  @Index()
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "birthday of the user",
+    example: "2013-09-17T00:00:00.000Z",
+  })
+  birth_date?: Date;
 
   @Column({ default: false })
   @ApiProperty({
@@ -108,20 +118,20 @@ export class GamevaultUser extends DatabaseEntity {
   })
   role: Role;
 
-  @OneToMany(() => Image, (image) => image.uploader)
+  @OneToMany(() => Media, (media) => media.uploader)
   @ApiPropertyOptional({
-    description: "images uploaded by this user",
-    type: () => Image,
+    description: "media uploaded by this user",
+    type: () => Media,
     isArray: true,
   })
-  uploaded_images?: Image[];
+  uploaded_media?: Media[];
 
-  @ManyToMany(() => Game, (game) => game.bookmarked_users)
+  @ManyToMany(() => GamevaultGame, (game) => game.bookmarked_users)
   @JoinTable({ name: "bookmark" })
   @ApiProperty({
     description: "games bookmarked by this user",
-    type: () => Game,
+    type: () => GamevaultGame,
     isArray: true,
   })
-  bookmarked_games?: Game[];
+  bookmarked_games?: GamevaultGame[];
 }

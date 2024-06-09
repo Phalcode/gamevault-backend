@@ -12,9 +12,9 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 
 # Create directories and set more restrictive permissions
-RUN mkdir -p /files /images /logs /db \
-    && chown -R node:node /files /images /logs /db \
-    && chmod -R 777 /files /images /logs /db
+RUN mkdir -p /files /media /logs /db \
+    && chown -R node:node /files /media /logs /db \
+    && chmod -R 777 /files /media /logs /db
 
 # Install pnpm and other needed tools
 RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \

@@ -1,89 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  OneToOne,
-} from "typeorm";
+import { Column, Entity, Index, ManyToMany, OneToMany } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { Developer } from "../developers/developer.entity";
-import { Genre } from "../genres/genre.entity";
-import { Image } from "../images/image.entity";
+import { GameMetadata } from "../metadata/entities/data/game-metadata.entity";
 import { Progress } from "../progresses/progress.entity";
-import { Publisher } from "../publishers/publisher.entity";
-import { Store } from "../stores/store.entity";
-import { Tag } from "../tags/tag.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { GameType } from "./models/game-type.enum";
 
 @Entity()
-export class Game extends DatabaseEntity {
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "unique rawg-api-identifier of the game",
-    example: 1212,
-  })
-  rawg_id?: number;
-
-  @Column()
-  @Index()
-  @ApiProperty({
-    description: "title of the game (extracted from the filename)",
-    example: "Grand Theft Auto V",
-  })
-  title: string;
-
-  @Column()
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description:
-      "rawg-api-title of the game (a correction needed if different from title)",
-    example: "Grand Theft Auto V",
-  })
-  rawg_title?: string;
-
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
-    example: "v1.0.0",
-  })
-  version?: string;
-
-  @Index()
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description:
-      "release date of the game (ideally extracted from the filename; if unavailable, it may be obtained from RAWG).",
-    example: "2013-09-17T00:00:00.000Z",
-  })
-  release_date?: Date;
-
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "release date of the game (from rawg-api)",
-    example: "2013-09-17T00:00:00.000Z",
-  })
-  rawg_release_date?: Date;
-
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "date the game was last updated using the rawg-api",
-    example: "2021-03-01T00:00:00.000Z",
-  })
-  cache_date?: Date;
-
+export class GamevaultGame extends DatabaseEntity {
   @Index({ unique: true })
   @Column({ unique: true })
   @ApiProperty({
-    description: "filepath to the game (relative to the root)",
-    example: "Grand Theft Auto V (v1.0.0).zip",
+    description:
+      "file path to the game or the game manifest (relative to root)",
+    example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
-  file_path: string;
+  path: string;
 
   @Column({
     type: "bigint",
@@ -105,67 +38,35 @@ export class Game extends DatabaseEntity {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
-    description: "rawg-api description of the game",
-    example:
-      "An open world action-adventure video game developed by Rockstar North and published by Rockstar Games.",
+    description: "title of the game (extracted from the filename')",
+    example: "Grand Theft Auto V",
   })
-  description?: string;
-
-  @OneToOne(() => Image, {
-    nullable: true,
-    eager: true,
-    onDelete: "CASCADE",
-    orphanedRowAction: "soft-delete",
-  })
-  @JoinColumn()
-  @ApiPropertyOptional({
-    description: "box image of the game",
-    type: () => Image,
-  })
-  box_image?: Image;
-
-  @OneToOne(() => Image, {
-    nullable: true,
-    eager: true,
-    onDelete: "CASCADE",
-    orphanedRowAction: "soft-delete",
-  })
-  @JoinColumn()
-  @ApiPropertyOptional({
-    description: "background image of the game",
-    type: () => Image,
-  })
-  background_image?: Image;
+  title?: string;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
-    description: "website url of the game from rawg-api",
-    example: "https://www.escapefromtarkov.com/",
+    description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
+    example: "v1.0.0",
   })
-  website_url?: string;
+  version?: string;
 
+  @Index()
   @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "metacritic rating from rawg-api of the game",
-    example: 90,
-  })
-  metacritic_rating?: number;
-
-  @Column({ nullable: true, type: "integer" })
   @ApiPropertyOptional({
     description:
-      "average playtime of other people in the game (similar to howlongtobeat.com) from rawg-api (in minutes)",
-    example: 180,
+      "release date of the game (extracted from filename e.g. '(2013)')",
+    example: "2013-01-01T00:00:00.000Z",
   })
-  average_playtime?: number;
+  release_date?: Date;
 
-  @Column()
+  @Column({ default: false })
   @ApiProperty({
     description:
-      "indicates if the game is an early access title ('(EA)' Flag in the filename)",
+      "indicates if the game is an early access title (extracted from filename e.g. '(EA)')",
     example: true,
+    default: false,
   })
-  early_access: boolean;
+  early_access: boolean = false;
 
   @Column({
     type: "simple-enum",
@@ -173,12 +74,21 @@ export class Game extends DatabaseEntity {
     default: GameType.UNDETECTABLE,
   })
   @ApiProperty({
-    description: "type of the game",
+    description:
+      "type of the game, see https://gamevau.lt/docs/server-docs/game-types for all possible values",
     type: "enum",
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })
   type: GameType;
+
+  @OneToMany(() => GameMetadata, (metadata) => metadata.gamevault_game)
+  @ApiPropertyOptional({
+    description: "metadatas associated to the game",
+    type: () => GameMetadata,
+    isArray: true,
+  })
+  metadatas?: GameMetadata[];
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
@@ -188,55 +98,10 @@ export class Game extends DatabaseEntity {
   })
   progresses?: Progress[];
 
-  @JoinTable()
-  @ManyToMany(() => Publisher, (publisher) => publisher.games)
-  @ApiPropertyOptional({
-    description: "publishers of the game",
-    type: () => Publisher,
-    isArray: true,
-  })
-  publishers?: Publisher[];
-
-  @JoinTable()
-  @ManyToMany(() => Developer, (developer) => developer.games)
-  @ApiPropertyOptional({
-    description: "developers of the game",
-    type: () => Developer,
-    isArray: true,
-  })
-  developers?: Developer[];
-
-  @JoinTable()
-  @ManyToMany(() => Store, (store) => store.games)
-  @ApiPropertyOptional({
-    description: "stores of the game",
-    type: () => Store,
-    isArray: true,
-  })
-  stores?: Store[];
-
-  @JoinTable()
-  @ManyToMany(() => Tag, (tag) => tag.games)
-  @ApiPropertyOptional({
-    description: "tags of the game",
-    type: () => Tag,
-    isArray: true,
-  })
-  tags?: Tag[];
-
-  @JoinTable()
-  @ManyToMany(() => Genre, (genre) => genre.games)
-  @ApiPropertyOptional({
-    description: "genres of the game",
-    type: () => Genre,
-    isArray: true,
-  })
-  genres?: Genre[];
-
   @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
   @ApiProperty({
     description: "users that bookmarked this game",
-    type: () => Game,
+    type: () => GamevaultGame,
     isArray: true,
   })
   bookmarked_users?: GamevaultUser[];

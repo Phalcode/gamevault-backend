@@ -47,9 +47,6 @@ importers:
       '@types/stream-throttle':
         specifier: ^0.1.4
         version: 0.1.4
-      async-g-i-s:
-        specifier: ^1.5.2
-        version: 1.5.2(node-fetch@2.7.0(encoding@0.1.13))
       axios:
         specifier: ^1.7.2
         version: 1.7.2
@@ -2158,11 +2155,6 @@ packages:
   astring@1.8.6:
     resolution: {integrity: sha512-ISvCdHdlTDlH5IpxQJIex7BWBywFWgjJSVdwst+/iQCoEYnyOaQ95+X1JGshuBjGp6nxKUy1jMgE3zPqN7fQdg==}
     hasBin: true
-
-  async-g-i-s@1.5.2:
-    resolution: {integrity: sha512-Mmu2gupaX9ghKZ6Nublzl8dzVGVwTDf6QaK7QPvGYzcdl8OlijSZrasXmKPCDZzKYpamTQeL8EJLiGlk/nstJQ==}
-    peerDependencies:
-      node-fetch: ^2.7.0
 
   async@3.2.4:
     resolution: {integrity: sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==}
@@ -8822,10 +8814,6 @@ snapshots:
   assert-plus@1.0.0: {}
 
   astring@1.8.6: {}
-
-  async-g-i-s@1.5.2(node-fetch@2.7.0(encoding@0.1.13)):
-    dependencies:
-      node-fetch: 2.7.0(encoding@0.1.13)
 
   async@3.2.4: {}
 
