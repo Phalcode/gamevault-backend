@@ -95,8 +95,8 @@
     "@types/pg": "^8.11.6",
     "@types/string-similarity": "^4.0.2",
     "@types/unidecode": "^0.1.3",
-    "@typescript-eslint/eslint-plugin": "^7.12.0",
-    "@typescript-eslint/parser": "^7.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
@@ -122,10 +122,10 @@
     ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      ".+\\.(t|j)s$": "ts-jest"
+      ".+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

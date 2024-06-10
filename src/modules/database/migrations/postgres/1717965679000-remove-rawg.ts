@@ -1,13 +1,21 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class QueryResultCache1715437343720 implements MigrationInterface {
-  name = "QueryResultCache1715437343720";
+export class RemoveRawg1717965679000 implements MigrationInterface {
+  name = "RemoveRawg1717965679000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    //TODO: Rename "image" to "media"
-    //TODO: Rename column "profile_picture_id" to "avatar_id" in "gamevault_user" table
-    //TODO: Rename column "background_image_id" to "background_id" in "gamevault_user" table
-    //TODO: Rename column "game_id" to "gamevault_game_id" in "bookmark" table
+    queryRunner.renameTable("image", "media");
+    queryRunner.renameColumn(
+      "gamevault_user",
+      "profile_picture_id",
+      "avatar_id",
+    );
+    queryRunner.renameColumn(
+      "gamevault_user",
+      "background_image_id",
+      "background_id",
+    );
+    queryRunner.renameColumn("bookmark", "game_id", "gamevault_game_id");
     //TODO: Create a new GamevaultGame for each entry in the "game" table
     //TODO: Create a new rawg-legacy provider
     //TODO: Create a new RAWG GameMetadata for each entry in the "game" table
@@ -18,7 +26,7 @@ export class QueryResultCache1715437343720 implements MigrationInterface {
     //TODO: Create a new RAWG StoreMetadata for each entry in the "store" table
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    //There is no going back for this migration
+  public async down(): Promise<void> {
+    //Try to generate this migration via AI
   }
 }

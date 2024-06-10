@@ -202,14 +202,15 @@ export class GamesService {
    */
   public async update(id: number, dto: UpdateGameDto) {
     // Finds the game by ID
-    let game = await this.findByGameIdOrFail(id, {
+    const game = await this.findByGameIdOrFail(id, {
       loadDeletedEntities: true,
       loadRelations: true,
     });
 
     // Remaps the Game
     if (dto.rawg_id != null) {
-      game = await this.remap(game.id, dto.rawg_id);
+      //TODO: Remap a game
+      //game = await this.remap(game.id, dto.rawg_id);
     }
 
     return this.gamesRepository.save(game);

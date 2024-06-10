@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { MediaModule } from "../media/media.module";
+import { FilesService } from "./files.service";
 import { GamevaultGame } from "./game.entity";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
@@ -9,7 +10,7 @@ import { GamesService } from "./games.service";
 @Module({
   imports: [TypeOrmModule.forFeature([GamevaultGame]), MediaModule],
   controllers: [GamesController],
-  providers: [GamesService],
-  exports: [GamesService],
+  providers: [GamesService, FilesService],
+  exports: [GamesService, FilesService],
 })
 export class GamesModule {}
