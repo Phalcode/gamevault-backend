@@ -26,7 +26,7 @@ import { GamevaultGame } from "./game.entity";
 import mock from "./games.mock";
 import { GamesService } from "./games.service";
 import ByteRangeStream from "./models/byte-range-stream";
-import { IGameVaultFile } from "./models/file.model";
+import { File } from "./models/file.model";
 import { GameExistence } from "./models/game-existence.enum";
 import { GameType } from "./models/game-type.enum";
 import { RangeHeader } from "./models/range-header.model";
@@ -67,15 +67,19 @@ export class FilesService implements OnApplicationBootstrap {
   })
   public async index(reason: string): Promise<GamevaultGame[]> {
     this.logger.log({ message: "Indexing games.", reason });
-    const gamesInFileSystem = await this.fetch();
+    const gamesInFileSystem = await this.readFiles();
     await this.ingest(gamesInFileSystem);
-    let games = await this.gamesService.getAll();
-    games = await this.checkIntegrity(gamesInFileSystem, games);
-    //games = await this.rawgService.checkCache(games); // Todo: Find metadata
-    return games;
+    let gamesInDatabase = await this.gamesService.getAll();
+    gamesInDatabase = await this.checkIntegrity(
+      gamesInFileSystem,
+      gamesInDatabase,
+    );
+    // Todo: Find metadata
+    //games = await this.rawgService.checkCache(games);
+    return gamesInDatabase;
   }
 
-  private async ingest(gamesInFileSystem: IGameVaultFile[]): Promise<void> {
+  private async ingest(gamesInFileSystem: File[]): Promise<void> {
     this.logger.log({
       message: "Started ingesting games.",
       gamesCount: gamesInFileSystem.length,
@@ -330,7 +334,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "(L_P) override in filename.",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -340,7 +344,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "TESTING_MOCK_FILES is set to true.",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -350,7 +354,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "Filename ends with .exe .",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.WINDOWS_SETUP;
       }
@@ -359,7 +363,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "Filename ends with .sh .",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.LINUX_PORTABLE;
       }
@@ -374,14 +378,14 @@ export class FilesService implements OnApplicationBootstrap {
             message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
             reason:
               "There are windows executables in the archive that look like installers.",
-            game: { id: undefined, path: path },
+            game: { id: undefined, path },
           });
           return GameType.WINDOWS_SETUP;
         }
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
           reason: "There are windows executables in the archive.",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -394,7 +398,7 @@ export class FilesService implements OnApplicationBootstrap {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "There are .sh files in the archive.",
-          game: { id: undefined, path: path },
+          game: { id: undefined, path },
         });
         return GameType.WINDOWS_PORTABLE;
       }
@@ -402,13 +406,13 @@ export class FilesService implements OnApplicationBootstrap {
       // More Platforms and Game Types can be added here.
       this.logger.debug({
         message: `Could not detect game type.`,
-        game: { id: undefined, path: path },
+        game: { id: undefined, path },
       });
       return GameType.UNDETECTABLE;
     } catch (error) {
       this.logger.warn({
         message: `Error detecting game type.`,
-        game: { id: undefined, path: path },
+        game: { id: undefined, path },
         error,
       });
       return GameType.UNDETECTABLE;
@@ -490,7 +494,7 @@ export class FilesService implements OnApplicationBootstrap {
    * in the database. Then returns the updated games in the database.
    */
   private async checkIntegrity(
-    gamesInFileSystem: IGameVaultFile[],
+    gamesInFileSystem: File[],
     gamesInDatabase: GamevaultGame[],
   ): Promise<GamevaultGame[]> {
     if (configuration.TESTING.MOCK_FILES) {
@@ -546,7 +550,7 @@ export class FilesService implements OnApplicationBootstrap {
    * This method retrieves an array of objects representing game files in the
    * file system.
    */
-  private async fetch(): Promise<IGameVaultFile[]> {
+  private async readFiles(): Promise<File[]> {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
@@ -563,9 +567,9 @@ export class FilesService implements OnApplicationBootstrap {
         .map(
           (file) =>
             ({
-              path: join(file.path, file.name),
-              size: BigInt(statSync(join(file.path, file.name)).size),
-            }) as IGameVaultFile,
+              path: join(file.parentPath, file.name),
+              size: BigInt(statSync(join(file.parentPath, file.name)).size),
+            }) as File,
         );
     } catch (error) {
       throw new InternalServerErrorException(

@@ -1,4 +1,4 @@
-export interface IGameVaultFile {
+export interface File {
   path: string;
   size: bigint;
 }
