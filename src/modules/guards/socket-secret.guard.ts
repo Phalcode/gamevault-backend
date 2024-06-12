@@ -28,7 +28,7 @@ export class SocketSecretGuard implements CanActivate {
     }
 
     try {
-      const user = await this.socketSecretService.getUserBySocketSecretOrFail(
+      const user = await this.socketSecretService.findUserBySocketSecretOrFail(
         socketSecret.toString(),
       );
       this.logger.debug({

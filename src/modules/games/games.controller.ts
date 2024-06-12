@@ -71,7 +71,7 @@ export class GamesController {
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
-  async getGames(
+  async findGames(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
     const relations = ["box_image", "background_image", "bookmarked_users"];
@@ -133,7 +133,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameRandom(): Promise<GamevaultGame> {
-    return await this.gamesService.getRandom();
+    return await this.gamesService.findRandom();
   }
 
   /** Retrieves details for a game with the specified ID. */
@@ -145,7 +145,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameByGameId(@Param() params: IdDto): Promise<GamevaultGame> {
-    return await this.gamesService.findByGameIdOrFail(Number(params.id), {
+    return await this.gamesService.findOneByGameIdOrFail(Number(params.id), {
       loadRelations: true,
       loadDeletedEntities: true,
     });

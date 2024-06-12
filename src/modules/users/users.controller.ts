@@ -50,7 +50,7 @@ export class UsersController {
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser[]> {
     const includeHidden = req.gamevaultuser.role >= Role.ADMIN;
-    return await this.usersService.getAll(includeHidden);
+    return await this.usersService.find(includeHidden);
   }
 
   /** Retrieve user information based on the provided request object. */
@@ -64,10 +64,10 @@ export class UsersController {
   async getUsersMe(
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    user.socket_secret = await this.socketSecretService.getSocketSecretOrFail(
+    user.socket_secret = await this.socketSecretService.findSocketSecretOrFail(
       user.id,
     );
     return user;
@@ -87,7 +87,7 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.update(user.id, dto, false);
@@ -103,7 +103,7 @@ export class UsersController {
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteUsersMe(@Request() request): Promise<GamevaultUser> {
-    const user = await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
     );
     return await this.usersService.delete(user.id);
@@ -119,7 +119,7 @@ export class UsersController {
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
@@ -136,7 +136,7 @@ export class UsersController {
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: IdDto,
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findByUsernameOrFail(
+    const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
@@ -152,7 +152,7 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
   async getUserByUserId(@Param() params: IdDto): Promise<GamevaultUser> {
-    return await this.usersService.findByUserIdOrFail(Number(params.id));
+    return await this.usersService.findOneByUserIdOrFail(Number(params.id));
   }
 
   /** Updates details of any user. */

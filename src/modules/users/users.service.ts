@@ -46,7 +46,7 @@ export class UsersService implements OnApplicationBootstrap {
         return;
       }
 
-      const user = await this.findByUsernameOrFail(
+      const user = await this.findOneByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -76,7 +76,7 @@ export class UsersService implements OnApplicationBootstrap {
    * Retrieves a user by their ID or throws an exception if the user is not
    * found.
    */
-  public async findByUserIdOrFail(
+  public async findOneByUserIdOrFail(
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
@@ -107,7 +107,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Get user by username or throw an exception if not found */
-  public async findByUsernameOrFail(
+  public async findOneByUsernameOrFail(
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
@@ -141,9 +141,7 @@ export class UsersService implements OnApplicationBootstrap {
     return this.filterDeletedProgresses(user);
   }
 
-  public async getAll(
-    includeHidden: boolean = false,
-  ): Promise<GamevaultUser[]> {
+  public async find(includeHidden: boolean = false): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
       withDeleted: includeHidden,
@@ -225,7 +223,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     admin = false,
   ): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     const logUpdate = (property: string, from: string, to: string) => {
       this.logger.log({
         message: "Updating user property",
@@ -262,13 +260,15 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.avatar_id != null) {
-      const image = await this.mediaService.findByMediaIdOrFail(dto.avatar_id);
+      const image = await this.mediaService.findOneByMediaIdOrFail(
+        dto.avatar_id,
+      );
       logUpdate("avatar_id", user.avatar?.id.toString(), image.id.toString());
       user.avatar = image;
     }
 
     if (dto.background_id != null) {
-      const image = await this.mediaService.findByMediaIdOrFail(
+      const image = await this.mediaService.findOneByMediaIdOrFail(
         dto.background_id,
       );
       logUpdate(
@@ -321,20 +321,20 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Soft deletes a user with the specified ID. */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
   /** Recovers a deleted user with the specified ID. */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     return this.userRepository.recover(user);
   }
 
   /** Check if the user with the given username has at least the given role */
   public async checkIfUsernameIsAtLeastRole(username: string, role: Role) {
     try {
-      const user = await this.findByUsernameOrFail(username);
+      const user = await this.findOneByUsernameOrFail(username);
       return user.role >= role;
     } catch {
       return false;
@@ -352,7 +352,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.findByUserIdOrFail(userId);
+    const user = await this.findOneByUserIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
@@ -371,7 +371,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId, {
+    const user = await this.findOneByUserIdOrFail(userId, {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
@@ -379,7 +379,7 @@ export class UsersService implements OnApplicationBootstrap {
       return user;
     }
 
-    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
       loadRelations: false,
     });
@@ -405,7 +405,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId, {
+    const user = await this.findOneByUserIdOrFail(userId, {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
@@ -413,7 +413,7 @@ export class UsersService implements OnApplicationBootstrap {
       return user;
     }
 
-    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
       loadRelations: false,
     });

@@ -38,14 +38,14 @@ export class MediaService {
       if (!id) {
         throw new NotFoundException("No media id given!");
       }
-      await this.findByMediaIdOrFail(id);
+      await this.findOneByMediaIdOrFail(id);
       return true;
     } catch (error) {
       return false;
     }
   }
 
-  public async findByMediaIdOrFail(id: number): Promise<Media> {
+  public async findOneByMediaIdOrFail(id: number): Promise<Media> {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
       if (!existsSync(media.path) || configuration.TESTING.MOCK_FILES) {
@@ -77,7 +77,7 @@ export class MediaService {
     try {
       if (uploaderUsername) {
         media.uploader =
-          await this.usersService.findByUsernameOrFail(uploaderUsername);
+          await this.usersService.findOneByUsernameOrFail(uploaderUsername);
       }
       const response = await this.fetchFromUrl(media.source);
       this.logger.debug({
@@ -235,7 +235,8 @@ export class MediaService {
     media.type = fileType.mimeType;
 
     if (username) {
-      media.uploader = await this.usersService.findByUsernameOrFail(username);
+      media.uploader =
+        await this.usersService.findOneByUsernameOrFail(username);
     }
 
     media.path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${

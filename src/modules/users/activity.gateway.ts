@@ -69,7 +69,7 @@ export class ActivityGateway
     const requestingUser = client as unknown as {
       gamevaultuser: GamevaultUser;
     };
-    const user = await this.usersService.findByUserIdOrFail(
+    const user = await this.usersService.findOneByUserIdOrFail(
       requestingUser.gamevaultuser.id,
     );
     dto.user_id = user.id;

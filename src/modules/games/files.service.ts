@@ -69,7 +69,7 @@ export class FilesService implements OnApplicationBootstrap {
     this.logger.log({ message: "Indexing games.", reason });
     const gamesInFileSystem = await this.readFiles();
     await this.ingest(gamesInFileSystem);
-    let gamesInDatabase = await this.gamesService.getAll();
+    let gamesInDatabase = await this.gamesService.find();
     gamesInDatabase = await this.checkIntegrity(
       gamesInFileSystem,
       gamesInDatabase,
@@ -370,7 +370,7 @@ export class FilesService implements OnApplicationBootstrap {
 
       // Detect Windows Executables in Archive
       const windowsExecutablesInArchive =
-        await this.getAllExecutablesFromArchive(path, ["*.exe", "*.msi"]);
+        await this.findAllExecutablesInArchive(path, ["*.exe", "*.msi"]);
 
       if (windowsExecutablesInArchive.length > 0) {
         if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
@@ -390,7 +390,7 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_PORTABLE;
       }
 
-      const linuxExecutablesInArchive = await this.getAllExecutablesFromArchive(
+      const linuxExecutablesInArchive = await this.findAllExecutablesInArchive(
         path,
         ["*.sh"],
       );
@@ -419,7 +419,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
-  private async getAllExecutablesFromArchive(
+  private async findAllExecutablesInArchive(
     path: string,
     matchers: string[],
   ): Promise<string[]> {
@@ -599,7 +599,7 @@ export class FilesService implements OnApplicationBootstrap {
     speedlimitHeader *= 1024;
 
     // Find the game by ID.
-    const game = await this.gamesService.findByGameIdOrFail(gameId);
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
     let fileDownloadPath = game.path;
 
     // If mocking files for testing, return a StreamableFile with random bytes.

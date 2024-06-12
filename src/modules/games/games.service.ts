@@ -24,7 +24,7 @@ export class GamesService {
     private mediaService: MediaService,
   ) {}
 
-  public async findByGameIdOrFail(
+  public async findOneByGameIdOrFail(
     id: number,
     options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
   ): Promise<GamevaultGame> {
@@ -143,11 +143,11 @@ export class GamesService {
   }
 
   /** Retrieves all games from the database. */
-  public async getAll(): Promise<GamevaultGame[]> {
+  public async find(): Promise<GamevaultGame[]> {
     return this.gamesRepository.find();
   }
 
-  public async getRandom(): Promise<GamevaultGame> {
+  public async findRandom(): Promise<GamevaultGame> {
     const game = await this.gamesRepository
       .createQueryBuilder("game")
       .select("game.id")
@@ -155,7 +155,7 @@ export class GamesService {
       .limit(1)
       .getOne();
 
-    return this.findByGameIdOrFail(game.id, {
+    return this.findOneByGameIdOrFail(game.id, {
       loadDeletedEntities: true,
       loadRelations: true,
     });
@@ -163,7 +163,7 @@ export class GamesService {
 
   /** Unmaps Metadata of a game then saves it. */
   public async unmap(id: number): Promise<GamevaultGame> {
-    const game = await this.findByGameIdOrFail(id);
+    const game = await this.findOneByGameIdOrFail(id);
     //TODO: Unmap Metadata
     this.logger.log({ message: "Unmapped Game", game });
     return await this.gamesRepository.save(game);
@@ -202,7 +202,7 @@ export class GamesService {
    */
   public async update(id: number, dto: UpdateGameDto) {
     // Finds the game by ID
-    const game = await this.findByGameIdOrFail(id, {
+    const game = await this.findOneByGameIdOrFail(id, {
       loadDeletedEntities: true,
       loadRelations: true,
     });
@@ -219,6 +219,6 @@ export class GamesService {
   /** Restore a game that has been soft deleted. */
   public async restore(id: number): Promise<GamevaultGame> {
     await this.gamesRepository.recover({ id });
-    return this.findByGameIdOrFail(id);
+    return this.findOneByGameIdOrFail(id);
   }
 }

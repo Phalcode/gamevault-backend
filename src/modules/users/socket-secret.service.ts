@@ -11,13 +11,13 @@ export class SocketSecretService {
     private userRepository: Repository<GamevaultUser>,
   ) {}
 
-  async getUserBySocketSecretOrFail(socketSecret: string) {
+  async findUserBySocketSecretOrFail(socketSecret: string) {
     return await this.userRepository.findOneByOrFail({
       socket_secret: socketSecret,
     });
   }
 
-  async getSocketSecretOrFail(userId: number): Promise<string> {
+  async findSocketSecretOrFail(userId: number): Promise<string> {
     const user = await this.userRepository.findOneOrFail({
       select: ["id", "socket_secret"],
       where: { id: userId },

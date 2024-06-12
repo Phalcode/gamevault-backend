@@ -46,7 +46,7 @@ export class ProgressService {
     }
   }
 
-  public async getAll() {
+  public async find() {
     return await this.progressRepository.find({
       where: {
         deleted_at: IsNull(),
@@ -57,7 +57,7 @@ export class ProgressService {
     });
   }
 
-  public async findByProgressId(progressId: number) {
+  public async findOneByProgressId(progressId: number) {
     try {
       return await this.progressRepository.findOneOrFail({
         where: {
@@ -79,7 +79,7 @@ export class ProgressService {
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    const progress = await this.findByProgressId(progressId);
+    const progress = await this.findOneByProgressId(progressId);
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
       progress.user.id,
@@ -94,7 +94,7 @@ export class ProgressService {
     return softRemoveResult;
   }
 
-  public async findByUserId(userId: number) {
+  public async findOneByUserId(userId: number) {
     return await this.progressRepository.find({
       order: { minutes_played: "DESC" },
       where: {
@@ -106,7 +106,7 @@ export class ProgressService {
     });
   }
 
-  public async findByGameId(gameId: number): Promise<Progress[]> {
+  public async findOneByGameId(gameId: number): Promise<Progress[]> {
     return await this.progressRepository.find({
       where: {
         game: { id: gameId },
@@ -118,7 +118,7 @@ export class ProgressService {
     });
   }
 
-  public async findOrCreateByUserIdAndGameId(
+  public async findOneByUserIdAndGameIdOrReturnEmptyProgress(
     userId: number,
     gameId: number,
   ): Promise<Progress> {
@@ -133,11 +133,11 @@ export class ProgressService {
       });
     } catch (error) {
       const newProgress = new Progress();
-      newProgress.user = await this.usersService.findByUserIdOrFail(userId, {
+      newProgress.user = await this.usersService.findOneByUserIdOrFail(userId, {
         loadDeletedEntities: true,
         loadRelations: false,
       });
-      newProgress.game = await this.gamesService.findByGameIdOrFail(gameId, {
+      newProgress.game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: true,
         loadRelations: false,
       });
@@ -158,7 +158,10 @@ export class ProgressService {
       executorUsername,
     );
 
-    const progress = await this.findOrCreateByUserIdAndGameId(userId, gameId);
+    const progress = await this.findOneByUserIdAndGameIdOrReturnEmptyProgress(
+      userId,
+      gameId,
+    );
 
     if (updateProgressDto.state != null) {
       progress.state = updateProgressDto.state;
@@ -208,7 +211,10 @@ export class ProgressService {
       userId,
       executorUsername,
     );
-    const progress = await this.findOrCreateByUserIdAndGameId(userId, gameId);
+    const progress = await this.findOneByUserIdAndGameIdOrReturnEmptyProgress(
+      userId,
+      gameId,
+    );
     if (
       progress.state !== State.INFINITE &&
       progress.state !== State.COMPLETED

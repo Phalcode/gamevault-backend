@@ -1,26 +1,23 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { MetadataController } from "./controllers/metadata.controller";
-import { DeveloperMetadata } from "./entities/data/developer-metadata.entity";
-import { GameMetadata } from "./entities/data/game-metadata.entity";
-import { GenreMetadata } from "./entities/data/genre-metadata.entity";
-import { PublisherMetadata } from "./entities/data/publisher-metadata.entity";
-import { StoreMetadata } from "./entities/data/store-metadata.entity";
-import { TagMetadata } from "./entities/data/tag-metadata.entity";
-import { MetadataProvider } from "./entities/metadata-provider.entity";
-import { DeveloperMetadataService } from "./services/data/developers-metadata.service";
-import { GameMetadataService } from "./services/data/game-metadata.service";
-import { GenreMetadataService } from "./services/data/genre-metadata.service";
-import { PublisherMetadataService } from "./services/data/publisher-metadata.service";
-import { StoreMetadataService } from "./services/data/store-metadata.service";
-import { TagMetadataService } from "./services/data/tag-metadata.service";
-import { MetadataProvidersService } from "./services/metadata-providers.service";
+import { StoreMetadata } from "././entities/store-metadata.entity";
+import { DeveloperMetadata } from "./entities/developer-metadata.entity";
+import { GameMetadata } from "./entities/game-metadata.entity";
+import { GenreMetadata } from "./entities/genre-metadata.entity";
+import { PublisherMetadata } from "./entities/publisher-metadata.entity";
+import { TagMetadata } from "./entities/tag-metadata.entity";
+import { DeveloperMetadataService } from "./services/developers-metadata.service";
+import { GameMetadataService } from "./services/game-metadata.service";
+import { GenreMetadataService } from "./services/genre-metadata.service";
+import { MetadataService } from "./services/metadata.service";
+import { PublisherMetadataService } from "./services/publisher-metadata.service";
+import { StoreMetadataService } from "./services/store-metadata.service";
+import { TagMetadataService } from "./services/tag-metadata.service";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      MetadataProvider,
       DeveloperMetadata,
       GameMetadata,
       GenreMetadata,
@@ -29,9 +26,8 @@ import { MetadataProvidersService } from "./services/metadata-providers.service"
       TagMetadata,
     ]),
   ],
-  controllers: [MetadataController],
   providers: [
-    MetadataProvidersService,
+    MetadataService,
     DeveloperMetadataService,
     GameMetadataService,
     GenreMetadataService,
@@ -40,7 +36,7 @@ import { MetadataProvidersService } from "./services/metadata-providers.service"
     TagMetadataService,
   ],
   exports: [
-    MetadataProvidersService,
+    MetadataService,
     DeveloperMetadataService,
     GameMetadataService,
     GenreMetadataService,

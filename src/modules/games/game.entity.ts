@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany, OneToMany } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { GameMetadata } from "../metadata/entities/data/game-metadata.entity";
+import { GameMetadata } from "../metadata/entities/game-metadata.entity";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { GameType } from "./models/game-type.enum";
@@ -82,13 +82,13 @@ export class GamevaultGame extends DatabaseEntity {
   })
   type: GameType;
 
-  @OneToMany(() => GameMetadata, (metadata) => metadata.gamevault_game)
+  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games)
   @ApiPropertyOptional({
     description: "metadatas associated to the game",
     type: () => GameMetadata,
     isArray: true,
   })
-  metadatas?: GameMetadata[];
+  metadata?: GameMetadata[];
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({

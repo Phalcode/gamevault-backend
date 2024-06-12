@@ -57,7 +57,7 @@ export class MediaController {
     @Param("id") id: string,
     @Res() res: Response,
   ): Promise<void> {
-    const media = await this.mediaService.findByMediaIdOrFail(Number(id));
+    const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
     fs.createReadStream(media.path).pipe(res);
   }

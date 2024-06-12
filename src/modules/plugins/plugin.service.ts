@@ -10,11 +10,11 @@ import { GamesService } from "../games/games.service";
 import { MediaGarbageCollectionService } from "../garbage-collection/media-garbage-collection.service";
 import { HealthService } from "../health/health.service";
 import { MediaService } from "../media/media.service";
-import { DeveloperMetadataService } from "../metadata/services/data/developers-metadata.service";
-import { GenreMetadataService } from "../metadata/services/data/genre-metadata.service";
-import { PublisherMetadataService } from "../metadata/services/data/publisher-metadata.service";
-import { StoreMetadataService } from "../metadata/services/data/store-metadata.service";
-import { TagMetadataService } from "../metadata/services/data/tag-metadata.service";
+import { DeveloperMetadataService } from "../metadata/services/developers-metadata.service";
+import { GenreMetadataService } from "../metadata/services/genre-metadata.service";
+import { PublisherMetadataService } from "../metadata/services/publisher-metadata.service";
+import { StoreMetadataService } from "../metadata/services/store-metadata.service";
+import { TagMetadataService } from "../metadata/services/tag-metadata.service";
 import { ProgressService } from "../progresses/progress.service";
 import { UsersService } from "../users/users.service";
 

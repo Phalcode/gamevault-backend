@@ -57,7 +57,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgresses(): Promise<Progress[]> {
-    return await this.progressService.getAll();
+    return await this.progressService.find();
   }
 
   /** Retrieves a specific progress by its ID. */
@@ -69,7 +69,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressByProgressId(@Param() params: IdDto): Promise<Progress> {
-    return await this.progressService.findByProgressId(Number(params.id));
+    return await this.progressService.findOneByProgressId(Number(params.id));
   }
 
   /** Deletes a progress by its ID. */
@@ -102,7 +102,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByUserId(@Param() params: IdDto) {
-    return await this.progressService.findByUserId(Number(params.id));
+    return await this.progressService.findOneByUserId(Number(params.id));
   }
 
   /** Returns an array of progresses for a game with the given ID. */
@@ -114,7 +114,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByGameId(@Param() params: IdDto): Promise<Progress[]> {
-    return await this.progressService.findByGameId(Number(params.id));
+    return await this.progressService.findOneByGameId(Number(params.id));
   }
 
   /** Get the progress of a specific game for a user. */
@@ -128,7 +128,7 @@ export class ProgressController {
   async getProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
   ): Promise<Progress> {
-    return await this.progressService.findOrCreateByUserIdAndGameId(
+    return await this.progressService.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       Number(params.userId),
       Number(params.gameId),
     );
