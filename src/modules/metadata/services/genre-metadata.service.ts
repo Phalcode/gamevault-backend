@@ -36,4 +36,12 @@ export class GenreMetadataService {
 
     return DeletedEntitiesFilter.filterDeleted(genres) as GenreMetadata[];
   }
+
+  async save(genre: GenreMetadata): Promise<GenreMetadata> {
+    return this.genreRepository.save(genre);
+  }
+
+  async delete(id: number): Promise<GenreMetadata> {
+    return await this.genreRepository.softRemove({ id });
+  }
 }

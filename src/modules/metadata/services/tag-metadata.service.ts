@@ -37,4 +37,12 @@ export class TagMetadataService {
 
     return DeletedEntitiesFilter.filterDeleted(tags) as TagMetadata[];
   }
+
+  async save(store: TagMetadata): Promise<TagMetadata> {
+    return this.tagRepository.save(store);
+  }
+
+  async delete(id: number): Promise<TagMetadata> {
+    return await this.tagRepository.softRemove({ id });
+  }
 }

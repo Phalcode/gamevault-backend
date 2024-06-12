@@ -6,6 +6,9 @@ import { GamevaultGame } from "../../games/game.entity";
 import { GameMetadata } from "./game-metadata.entity";
 
 @Entity()
+@Index("UQ_GENRE_METADATA", ["metadata_provider", "metadata_provider_id"], {
+  unique: true,
+})
 export class GenreMetadata extends DatabaseEntity {
   @Column()
   @Index()

@@ -20,8 +20,10 @@ import { StoreMetadata } from "./store-metadata.entity";
 import { TagMetadata } from "./tag-metadata.entity";
 
 @Entity()
+@Index("UQ_GAME_METADATA", ["metadata_provider", "metadata_provider_id"], {
+  unique: true,
+})
 export class GameMetadata extends DatabaseEntity {
-  @Index()
   @ManyToMany(() => GamevaultGame, (game) => game.metadata)
   @ApiPropertyOptional({
     description: "games the metadata belongs to",

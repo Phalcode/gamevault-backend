@@ -62,4 +62,12 @@ export class GameMetadataService {
       );
     }
   }
+
+  async save(game: GameMetadata): Promise<GameMetadata> {
+    return this.gameMetadataRepository.save(game);
+  }
+
+  async delete(id: number): Promise<GameMetadata> {
+    return await this.gameMetadataRepository.softRemove({ id });
+  }
 }

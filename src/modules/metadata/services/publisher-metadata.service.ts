@@ -38,4 +38,12 @@ export class PublisherMetadataService {
       publishers,
     ) as PublisherMetadata[];
   }
+
+  async save(publisher: PublisherMetadata): Promise<PublisherMetadata> {
+    return this.publisherRepository.save(publisher);
+  }
+
+  async delete(id: number): Promise<PublisherMetadata> {
+    return await this.publisherRepository.softRemove({ id });
+  }
 }

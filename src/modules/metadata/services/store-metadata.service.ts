@@ -36,4 +36,12 @@ export class StoreMetadataService {
 
     return DeletedEntitiesFilter.filterDeleted(stores) as StoreMetadata[];
   }
+
+  async save(store: StoreMetadata): Promise<StoreMetadata> {
+    return this.storeRepository.save(store);
+  }
+
+  async delete(id: number): Promise<StoreMetadata> {
+    return await this.storeRepository.softRemove({ id });
+  }
 }

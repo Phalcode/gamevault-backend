@@ -38,4 +38,12 @@ export class DeveloperMetadataService {
       developers,
     ) as DeveloperMetadata[];
   }
+
+  async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
+    return this.developerRepository.save(developer);
+  }
+
+  async delete(id: number): Promise<DeveloperMetadata> {
+    return await this.developerRepository.softRemove({ id });
+  }
 }

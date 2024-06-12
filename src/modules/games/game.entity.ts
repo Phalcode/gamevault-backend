@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToMany, OneToMany } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+} from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
 import { GameMetadata } from "../metadata/entities/game-metadata.entity";
@@ -82,9 +89,10 @@ export class GamevaultGame extends DatabaseEntity {
   })
   type: GameType;
 
+  @JoinTable()
   @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games)
   @ApiPropertyOptional({
-    description: "metadatas associated to the game",
+    description: "metadata associated to the game",
     type: () => GameMetadata,
     isArray: true,
   })

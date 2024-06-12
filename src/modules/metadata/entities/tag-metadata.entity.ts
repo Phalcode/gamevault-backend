@@ -5,6 +5,9 @@ import { DatabaseEntity } from "../../database/database.entity";
 import { GameMetadata } from "./game-metadata.entity";
 
 @Entity()
+@Index("UQ_TAG_METADATA", ["metadata_provider", "metadata_provider_id"], {
+  unique: true,
+})
 export class TagMetadata extends DatabaseEntity {
   @Column()
   @Index()
