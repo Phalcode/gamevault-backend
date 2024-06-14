@@ -18,6 +18,7 @@ import { join, resolve } from "path";
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
+import { GameVaultPluginModule } from "./globals";
 import { default as logger, default as winston, stream } from "./logging";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
@@ -30,12 +31,23 @@ async function loadPlugins() {
       recursive: true,
       withFileTypes: true,
     })
-  ).filter((file) => file.isFile() && file.name.includes(".module."));
+  ).filter((file) => file.isFile() && file.name.includes(".plugin.module."));
   const plugins = await Promise.all(
     pluginModuleFiles.map(
       (file) => import(resolve(join(file.path, file.name))),
     ),
   );
+
+  for (const plugin of plugins) {
+    const instance: GameVaultPluginModule = new plugin.default();
+    logger.log({
+      context: "PluginLoader",
+      message: `Loaded plugin.`,
+      plugin: plugin.default,
+      metadata: instance.metadata,
+    });
+  }
+
   return plugins.map((module) => module.default);
 }
 
@@ -44,8 +56,8 @@ async function bootstrap(): Promise<void> {
   const pluginModules = await loadPlugins();
 
   logger.log({
-    context: "Initialization",
-    message: `Loaded ${pluginModules.length} plugin modules.`,
+    context: "PluginLoader",
+    message: `Loaded ${pluginModules.length} plugins.`,
     plugins: pluginModules,
   });
   const modules = [...builtinModules, ...pluginModules];

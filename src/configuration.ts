@@ -152,8 +152,8 @@ const configuration = {
     MAX_SIZE_IN_KB:
       parseNumber(process.env.MEDIA_MAX_SIZE_IN_KB, 1000) * 10_000,
     GC_DISABLED: parseBooleanEnvVariable(process.env.MEDIA_GC_DISABLED, false),
-    SUPPORTED_MEDIA_FORMATS: parseList(
-      process.env.MEDIA_SUPPORTED_MEDIA_FORMATS,
+    SUPPORTED_FORMATS: parseList(
+      process.env.MEDIA_SUPPORTED_FORMATS,
       globals.SUPPORTED_MEDIA_FORMATS,
     ),
     GC_INTERVAL_IN_MINUTES: parseNumber(

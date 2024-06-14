@@ -125,9 +125,7 @@ export class MediaService {
 
   private checkFileType(mediaBuffer: Buffer) {
     const fileType = fileTypeChecker.detectFile(mediaBuffer);
-    if (
-      !configuration.MEDIA.SUPPORTED_MEDIA_FORMATS.includes(fileType.mimeType)
-    ) {
+    if (!configuration.MEDIA.SUPPORTED_FORMATS.includes(fileType.mimeType)) {
       throw new BadRequestException(
         `Content Type "${fileType.mimeType}" is not supported. Please select a different file or convert it to a supported format.`,
       );
@@ -217,7 +215,7 @@ export class MediaService {
         "File type could not be detected. Please use a different file.",
       );
     }
-    if (!configuration.MEDIA.SUPPORTED_MEDIA_FORMATS.includes(type.mimeType)) {
+    if (!configuration.MEDIA.SUPPORTED_FORMATS.includes(type.mimeType)) {
       throw new BadRequestException(
         errorContextObject,
         `This file is a "${type.mimeType}", which is not supported.`,
