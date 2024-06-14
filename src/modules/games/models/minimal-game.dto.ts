@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 
 import { Media } from "../../media/media.entity";
 
-export class MinimalGame {
+export class MinimalGameDto {
   @ApiPropertyOptional({
     description: "unique gamevault-identifier of the game",
     example: 1212,

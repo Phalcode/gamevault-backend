@@ -172,7 +172,6 @@ const configuration = {
   } as const,
   PLUGIN: {
     ENABLED: parseBooleanEnvVariable(process.env.PLUGIN_ENABLED),
-    SOURCES: parseList(process.env.PLUGIN_SOURCES, []),
   } as const,
 } as const;
 
