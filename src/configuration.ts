@@ -101,6 +101,7 @@ const configuration = {
     MEDIA: parsePath(process.env.VOLUMES_MEDIA, "/media"),
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
+    PLUGINS: parsePath(process.env.VOLUMES_PLUGINS, "/plugins"),
   } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
@@ -169,9 +170,6 @@ const configuration = {
     GOOGLE_API_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_GOOGLE_API_DISABLED,
     ),
-  } as const,
-  PLUGIN: {
-    ENABLED: parseBooleanEnvVariable(process.env.PLUGIN_ENABLED),
   } as const,
 } as const;
 

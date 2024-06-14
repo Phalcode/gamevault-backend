@@ -10,8 +10,10 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
+import { readdir } from "fs/promises";
 import helmet from "helmet";
 import morgan from "morgan";
+import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
@@ -21,7 +23,35 @@ import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 
+async function loadPlugins() {
+  const pluginModuleFiles = (
+    await readdir(configuration.VOLUMES.PLUGINS, {
+      encoding: "utf8",
+      recursive: true,
+      withFileTypes: true,
+    })
+  ).filter((file) => file.isFile() && file.name.includes(".module."));
+  const plugins = await Promise.all(
+    pluginModuleFiles.map(
+      (file) => import(resolve(join(file.path, file.name))),
+    ),
+  );
+  return plugins.map((module) => module.default);
+}
+
 async function bootstrap(): Promise<void> {
+  const builtinModules = Reflect.getOwnMetadata("imports", AppModule);
+  const pluginModules = await loadPlugins();
+
+  logger.log({
+    context: "Initialization",
+    message: `Loaded ${pluginModules.length} plugin modules.`,
+    plugins: pluginModules,
+  });
+  const modules = [...builtinModules, ...pluginModules];
+
+  Reflect.defineMetadata("imports", modules, AppModule);
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: winston,
   });
@@ -155,10 +185,12 @@ async function bootstrap(): Promise<void> {
   await app.listen(configuration.SERVER.PORT);
 
   logger.log({
+    context: "Initialization",
     message: `Started GameVault Server.`,
     version: configuration.SERVER.VERSION,
     port: configuration.SERVER.PORT,
     config: getCensoredConfiguration(),
   });
 }
+
 bootstrap();

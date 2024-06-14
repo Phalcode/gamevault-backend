@@ -12,7 +12,6 @@ import { DefaultStrategy } from "./modules/guards/basic-auth.strategy";
 import { HealthModule } from "./modules/health/health.module";
 import { MediaModule } from "./modules/media/media.module";
 import { MetadataModule } from "./modules/metadata/metadata.module";
-import { PluginModule } from "./modules/plugins/plugin.module";
 import { ProgressModule } from "./modules/progresses/progress.module";
 import { UsersModule } from "./modules/users/users.module";
 
@@ -29,7 +28,6 @@ import { UsersModule } from "./modules/users/users.module";
     GamesModule,
     EventEmitterModule.forRoot(),
     MetadataModule,
-    PluginModule,
   ],
   providers: [
     DefaultStrategy,

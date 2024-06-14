@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -21,6 +23,7 @@ export class GamesService {
   constructor(
     @InjectRepository(GamevaultGame)
     private gamesRepository: Repository<GamevaultGame>,
+    @Inject(forwardRef(() => MediaService))
     private mediaService: MediaService,
   ) {}
 
