@@ -15,7 +15,17 @@ Recommended Gamevault App Version: `v1.11.0.0`
 - TODO: Migrated old Games to new Metadata System.
 - TODO: Implemented IGDB as default metadata provider.
 
+## 12.1.2
+
+Recommended Gamevault App Version: `v1.10.1.0`
+
 ### Changes
+
+- Fixed a bug where demo mode was not blocking off malicious requests.
+
+### Thanks
+
+- @Toylerr
 
 ## 12.1.1
 
