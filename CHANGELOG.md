@@ -1,5 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 12.1.2
+
+Recommended Gamevault App Version: `v1.10.1.0`
+
+### Changes
+
+- Fixed a bug where demo mode was not blocking off malicious requests.
+
+### Thanks
+
+- @Toylerr
+
 ## 12.1.1
 
 Recommended Gamevault App Version: `v1.10.0.0`
