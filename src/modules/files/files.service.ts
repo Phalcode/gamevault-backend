@@ -675,7 +675,7 @@ export class FilesService implements OnApplicationBootstrap {
     fileSize: number,
   ): RangeHeader {
     let rangeStart: number = 0;
-    let rangeEnd: number = fileSize;
+    let rangeEnd: number = fileSize - 1;
 
     if (rangeHeader?.includes("-")) {
       const [extractedStart, extractedEnd] = rangeHeader
@@ -688,14 +688,14 @@ export class FilesService implements OnApplicationBootstrap {
       }
       if (
         !isNaN(extractedEnd) &&
-        extractedEnd > rangeStart &&
+        extractedEnd >= rangeStart &&
         extractedEnd < fileSize
       ) {
         rangeEnd = extractedEnd;
       }
     }
 
-    const rangeSize: number = rangeEnd - rangeStart;
+    const rangeSize: number = rangeEnd - rangeStart + 1;
     return {
       start: rangeStart,
       end: rangeEnd,
