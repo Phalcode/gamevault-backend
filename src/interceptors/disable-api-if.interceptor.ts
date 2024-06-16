@@ -7,7 +7,6 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
-import { map } from "rxjs/operators";
 
 import { DISABLE_API_IF_KEY } from "../decorators/disable-api-if.decorator";
 
@@ -23,11 +22,7 @@ export class DisableApiIfInterceptor implements NestInterceptor {
     );
 
     if (disabled) {
-      return next.handle().pipe(
-        map(() => {
-          throw new MethodNotAllowedException("This API endpoint is disabled.");
-        }),
-      );
+      throw new MethodNotAllowedException("This API endpoint is disabled.");
     }
 
     return next.handle();
