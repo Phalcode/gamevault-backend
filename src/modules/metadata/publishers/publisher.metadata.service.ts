@@ -4,20 +4,20 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
-import { GenreMetadata } from "../entities/genre-metadata.entity";
+import { PublisherMetadata } from "./publisher.metadata.entity";
 
 @Injectable()
-export class GenreMetadataService {
-  private readonly logger = new Logger(GenreMetadata.name);
+export class PublisherMetadataService {
+  private readonly logger = new Logger(PublisherMetadataService.name);
   constructor(
-    @InjectRepository(GenreMetadata)
-    private genreRepository: Repository<GenreMetadata>,
+    @InjectRepository(PublisherMetadata)
+    private publisherRepository: Repository<PublisherMetadata>,
   ) {}
 
   async find(
     metadata_provider: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
-  ): Promise<GenreMetadata[]> {
+  ): Promise<PublisherMetadata[]> {
     let relations = [];
 
     if (options.loadRelations) {
@@ -27,21 +27,23 @@ export class GenreMetadataService {
         relations = options.loadRelations;
     }
 
-    const genres = await this.genreRepository.find({
+    const publishers = await this.publisherRepository.find({
       where: { metadata_provider },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
 
-    return DeletedEntitiesFilter.filterDeleted(genres) as GenreMetadata[];
+    return DeletedEntitiesFilter.filterDeleted(
+      publishers,
+    ) as PublisherMetadata[];
   }
 
-  async save(genre: GenreMetadata): Promise<GenreMetadata> {
-    return this.genreRepository.save(genre);
+  async save(publisher: PublisherMetadata): Promise<PublisherMetadata> {
+    return this.publisherRepository.save(publisher);
   }
 
-  async delete(id: number): Promise<GenreMetadata> {
-    return await this.genreRepository.softRemove({ id });
+  async delete(id: number): Promise<PublisherMetadata> {
+    return await this.publisherRepository.softRemove({ id });
   }
 }

@@ -40,7 +40,6 @@ export class GamesService {
             "developers",
             "publishers",
             "genres",
-            "stores",
             "tags",
             "progresses",
             "progresses.user",

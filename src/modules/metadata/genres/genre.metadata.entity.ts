@@ -3,7 +3,7 @@ import { Column, Entity, Index, ManyToMany } from "typeorm";
 
 import { DatabaseEntity } from "../../database/database.entity";
 import { GamevaultGame } from "../../games/game.entity";
-import { GameMetadata } from "./game-metadata.entity";
+import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
 @Index("UQ_GENRE_METADATA", ["metadata_provider", "metadata_provider_id"], {

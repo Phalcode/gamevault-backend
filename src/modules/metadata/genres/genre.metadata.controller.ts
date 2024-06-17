@@ -10,7 +10,7 @@ import { Repository } from "typeorm";
 
 import { MinimumRole } from "../../../decorators/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
-import { GenreMetadata } from "../entities/genre-metadata.entity";
+import { GenreMetadata } from "./genre.metadata.entity";
 
 @Controller("genres")
 @ApiTags("genres")

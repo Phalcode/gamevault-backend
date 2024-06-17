@@ -1,19 +1,17 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { StoreMetadata } from "././entities/store-metadata.entity";
-import { DeveloperMetadata } from "./entities/developer-metadata.entity";
-import { GameMetadata } from "./entities/game-metadata.entity";
-import { GenreMetadata } from "./entities/genre-metadata.entity";
-import { PublisherMetadata } from "./entities/publisher-metadata.entity";
-import { TagMetadata } from "./entities/tag-metadata.entity";
-import { DeveloperMetadataService } from "./services/developers-metadata.service";
-import { GameMetadataService } from "./services/game-metadata.service";
-import { GenreMetadataService } from "./services/genre-metadata.service";
-import { MetadataService } from "./services/metadata.service";
-import { PublisherMetadataService } from "./services/publisher-metadata.service";
-import { StoreMetadataService } from "./services/store-metadata.service";
-import { TagMetadataService } from "./services/tag-metadata.service";
+import { DeveloperMetadata } from "./developers/developer.metadata.entity";
+import { DeveloperMetadataService } from "./developers/developer.metadata.service";
+import { GameMetadata } from "./games/game.metadata.entity";
+import { GameMetadataService } from "./games/game.metadata.service";
+import { GenreMetadata } from "./genres/genre.metadata.entity";
+import { GenreMetadataService } from "./genres/genre.metadata.service";
+import { MetadataService } from "./metadata.service";
+import { PublisherMetadata } from "./publishers/publisher.metadata.entity";
+import { PublisherMetadataService } from "./publishers/publisher.metadata.service";
+import { TagMetadata } from "./tags/tag.metadata.entity";
+import { TagMetadataService } from "./tags/tag.metadata.service";
 
 @Module({
   imports: [
@@ -22,7 +20,6 @@ import { TagMetadataService } from "./services/tag-metadata.service";
       GameMetadata,
       GenreMetadata,
       PublisherMetadata,
-      StoreMetadata,
       TagMetadata,
     ]),
   ],
@@ -32,7 +29,6 @@ import { TagMetadataService } from "./services/tag-metadata.service";
     GameMetadataService,
     GenreMetadataService,
     PublisherMetadataService,
-    StoreMetadataService,
     TagMetadataService,
   ],
   exports: [
@@ -41,7 +37,6 @@ import { TagMetadataService } from "./services/tag-metadata.service";
     GameMetadataService,
     GenreMetadataService,
     PublisherMetadataService,
-    StoreMetadataService,
     TagMetadataService,
   ],
 })

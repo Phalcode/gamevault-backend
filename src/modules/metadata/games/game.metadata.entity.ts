@@ -13,11 +13,10 @@ import {
 import { DatabaseEntity } from "../../database/database.entity";
 import { GamevaultGame } from "../../games/game.entity";
 import { Media } from "../../media/media.entity";
-import { DeveloperMetadata } from "./developer-metadata.entity";
-import { GenreMetadata } from "./genre-metadata.entity";
-import { PublisherMetadata } from "./publisher-metadata.entity";
-import { StoreMetadata } from "./store-metadata.entity";
-import { TagMetadata } from "./tag-metadata.entity";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity";
+import { GenreMetadata } from "../genres/genre.metadata.entity";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
+import { TagMetadata } from "../tags/tag.metadata.entity";
 
 @Entity()
 @Index("UQ_GAME_METADATA", ["metadata_provider", "metadata_provider_id"], {
@@ -177,15 +176,6 @@ export class GameMetadata extends DatabaseEntity {
     isArray: true,
   })
   developers?: DeveloperMetadata[];
-
-  @JoinTable()
-  @ManyToMany(() => StoreMetadata, (store) => store.games)
-  @ApiPropertyOptional({
-    description: "stores of the game",
-    type: () => StoreMetadata,
-    isArray: true,
-  })
-  stores?: StoreMetadata[];
 
   @JoinTable()
   @ManyToMany(() => TagMetadata, (tag) => tag.games)

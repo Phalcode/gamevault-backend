@@ -9,17 +9,15 @@ import {
 } from "class-validator";
 
 import { GamevaultGame } from "../../games/game.entity";
-import { DeveloperMetadata } from "../entities/developer-metadata.entity";
-import { GameMetadata } from "../entities/game-metadata.entity";
-import { GenreMetadata } from "../entities/genre-metadata.entity";
-import { StoreMetadata } from "../entities/store-metadata.entity";
-import { TagMetadata } from "../entities/tag-metadata.entity";
-import { DeveloperMetadataService } from "./developers-metadata.service";
-import { GameMetadataService } from "./game-metadata.service";
-import { GenreMetadataService } from "./genre-metadata.service";
-import { PublisherMetadataService } from "./publisher-metadata.service";
-import { StoreMetadataService } from "./store-metadata.service";
-import { TagMetadataService } from "./tag-metadata.service";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity";
+import { DeveloperMetadataService } from "../developers/developer.metadata.service";
+import { GameMetadata } from "../games/game.metadata.entity";
+import { GameMetadataService } from "../games/game.metadata.service";
+import { GenreMetadata } from "../genres/genre.metadata.entity";
+import { GenreMetadataService } from "../genres/genre.metadata.service";
+import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
+import { TagMetadata } from "../tags/tag.metadata.entity";
+import { TagMetadataService } from "../tags/tag.metadata.service";
 
 @Injectable()
 export abstract class MetadataProvider {
@@ -31,7 +29,6 @@ export abstract class MetadataProvider {
     private publisherMetadataService: PublisherMetadataService,
     private tagMetadataService: TagMetadataService,
     private genreMetadataService: GenreMetadataService,
-    private storeMetadataService: StoreMetadataService,
   ) {
     this.slug = slug;
     this.priority = priority;
@@ -90,9 +87,5 @@ export abstract class MetadataProvider {
 
   public async findGenres(): Promise<GenreMetadata[]> {
     return this.genreMetadataService.find(this.slug);
-  }
-
-  public async findStores(): Promise<StoreMetadata[]> {
-    return this.storeMetadataService.find(this.slug);
   }
 }

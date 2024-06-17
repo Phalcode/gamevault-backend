@@ -16,7 +16,7 @@ import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
 import { all_filters } from "../../../filters/all-filters.filter";
 import { ApiOkResponsePaginated } from "../../../globals";
 import { Role } from "../../users/models/role.enum";
-import { TagMetadata } from "../entities/tag-metadata.entity";
+import { TagMetadata } from "./tag.metadata.entity";
 
 @Controller("tags")
 @ApiTags("tags")

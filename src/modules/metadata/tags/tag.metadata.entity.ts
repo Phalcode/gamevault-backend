@@ -2,13 +2,13 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
 import { DatabaseEntity } from "../../database/database.entity";
-import { GameMetadata } from "./game-metadata.entity";
+import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
-@Index("UQ_STORE_METADATA", ["metadata_provider", "metadata_provider_id"], {
+@Index("UQ_TAG_METADATA", ["metadata_provider", "metadata_provider_id"], {
   unique: true,
 })
-export class StoreMetadata extends DatabaseEntity {
+export class TagMetadata extends DatabaseEntity {
   @Column()
   @Index()
   @ApiProperty({
@@ -27,14 +27,14 @@ export class StoreMetadata extends DatabaseEntity {
   @Index()
   @Column({ unique: true })
   @ApiProperty({
-    example: "Steam",
-    description: "name of the store",
+    example: "battle-royale",
+    description: "name of the tag",
   })
   name: string;
 
-  @ManyToMany(() => GameMetadata, (game) => game.stores)
+  @ManyToMany(() => GameMetadata, (game) => game.tags)
   @ApiProperty({
-    description: "games available on the store",
+    description: "games tagged with the tag",
     type: () => GameMetadata,
     isArray: true,
   })

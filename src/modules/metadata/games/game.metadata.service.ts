@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
-import { GameMetadata } from "../entities/game-metadata.entity";
+import { GameMetadata } from "./game.metadata.entity";
 
 @Injectable()
 export class GameMetadataService {
@@ -21,7 +21,7 @@ export class GameMetadataService {
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["developers", "publishers", "genres", "stores", "tags"];
+        relations = ["developers", "publishers", "genres", "tags"];
       } else if (Array.isArray(options.loadRelations))
         relations = options.loadRelations;
     }
@@ -43,7 +43,7 @@ export class GameMetadataService {
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          relations = ["developers", "publishers", "genres", "stores", "tags"];
+          relations = ["developers", "publishers", "genres", "tags"];
         } else if (Array.isArray(options.loadRelations))
           relations = options.loadRelations;
       }

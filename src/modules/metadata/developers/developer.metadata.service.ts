@@ -4,20 +4,20 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
-import { StoreMetadata } from "../entities/store-metadata.entity";
+import { DeveloperMetadata } from "./developer.metadata.entity";
 
 @Injectable()
-export class StoreMetadataService {
-  private readonly logger = new Logger(StoreMetadataService.name);
+export class DeveloperMetadataService {
+  private readonly logger = new Logger(DeveloperMetadataService.name);
   constructor(
-    @InjectRepository(StoreMetadata)
-    private storeRepository: Repository<StoreMetadata>,
+    @InjectRepository(DeveloperMetadata)
+    private developerRepository: Repository<DeveloperMetadata>,
   ) {}
 
   async find(
     metadata_provider: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
-  ): Promise<StoreMetadata[]> {
+  ): Promise<DeveloperMetadata[]> {
     let relations = [];
 
     if (options.loadRelations) {
@@ -27,21 +27,23 @@ export class StoreMetadataService {
         relations = options.loadRelations;
     }
 
-    const stores = await this.storeRepository.find({
+    const developers = await this.developerRepository.find({
       where: { metadata_provider },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
 
-    return DeletedEntitiesFilter.filterDeleted(stores) as StoreMetadata[];
+    return DeletedEntitiesFilter.filterDeleted(
+      developers,
+    ) as DeveloperMetadata[];
   }
 
-  async save(store: StoreMetadata): Promise<StoreMetadata> {
-    return this.storeRepository.save(store);
+  async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
+    return this.developerRepository.save(developer);
   }
 
-  async delete(id: number): Promise<StoreMetadata> {
-    return await this.storeRepository.softRemove({ id });
+  async delete(id: number): Promise<DeveloperMetadata> {
+    return await this.developerRepository.softRemove({ id });
   }
 }

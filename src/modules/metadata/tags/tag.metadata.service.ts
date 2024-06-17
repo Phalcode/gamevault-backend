@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
-import { TagMetadata } from "../entities/tag-metadata.entity";
+import { TagMetadata } from "./tag.metadata.entity";
 
 @Injectable()
 export class TagMetadataService {
@@ -38,8 +38,8 @@ export class TagMetadataService {
     return DeletedEntitiesFilter.filterDeleted(tags) as TagMetadata[];
   }
 
-  async save(store: TagMetadata): Promise<TagMetadata> {
-    return this.tagRepository.save(store);
+  async save(tag: TagMetadata): Promise<TagMetadata> {
+    return this.tagRepository.save(tag);
   }
 
   async delete(id: number): Promise<TagMetadata> {

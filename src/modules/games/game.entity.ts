@@ -9,7 +9,7 @@ import {
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { GameMetadata } from "../metadata/entities/game-metadata.entity";
+import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { GameType } from "./models/game-type.enum";

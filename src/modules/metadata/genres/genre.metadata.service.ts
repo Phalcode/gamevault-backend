@@ -4,20 +4,20 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
-import { DeveloperMetadata } from "../entities/developer-metadata.entity";
+import { GenreMetadata } from "./genre.metadata.entity";
 
 @Injectable()
-export class DeveloperMetadataService {
-  private readonly logger = new Logger(DeveloperMetadataService.name);
+export class GenreMetadataService {
+  private readonly logger = new Logger(GenreMetadata.name);
   constructor(
-    @InjectRepository(DeveloperMetadata)
-    private developerRepository: Repository<DeveloperMetadata>,
+    @InjectRepository(GenreMetadata)
+    private genreRepository: Repository<GenreMetadata>,
   ) {}
 
   async find(
     metadata_provider: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
-  ): Promise<DeveloperMetadata[]> {
+  ): Promise<GenreMetadata[]> {
     let relations = [];
 
     if (options.loadRelations) {
@@ -27,23 +27,21 @@ export class DeveloperMetadataService {
         relations = options.loadRelations;
     }
 
-    const developers = await this.developerRepository.find({
+    const genres = await this.genreRepository.find({
       where: { metadata_provider },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
 
-    return DeletedEntitiesFilter.filterDeleted(
-      developers,
-    ) as DeveloperMetadata[];
+    return DeletedEntitiesFilter.filterDeleted(genres) as GenreMetadata[];
   }
 
-  async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
-    return this.developerRepository.save(developer);
+  async save(genre: GenreMetadata): Promise<GenreMetadata> {
+    return this.genreRepository.save(genre);
   }
 
-  async delete(id: number): Promise<DeveloperMetadata> {
-    return await this.developerRepository.softRemove({ id });
+  async delete(id: number): Promise<GenreMetadata> {
+    return await this.genreRepository.softRemove({ id });
   }
 }
