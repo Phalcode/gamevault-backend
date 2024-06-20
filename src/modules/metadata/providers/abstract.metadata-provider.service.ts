@@ -14,8 +14,8 @@ import {
   Matches,
   Min,
 } from "class-validator";
-
 import { compareTwoStrings } from "string-similarity";
+
 import { GamevaultGame } from "../../games/game.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
@@ -132,10 +132,7 @@ export abstract class MetadataProvider implements OnModuleInit {
       }
     }
 
-    gameResults.sort(
-      (a, b) =>
-        b.provider_probability - a.provider_probability,
-    );
+    gameResults.sort((a, b) => b.provider_probability - a.provider_probability);
 
     return gameResults[0];
   }

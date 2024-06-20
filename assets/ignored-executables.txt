@@ -4,6 +4,7 @@ bssndrpt
 crashpad_handler
 crashreportclient
 crashreportserver
+dotNetFx40_Full_setup
 dxdiag
 dxsetup
 dxwebsetup
@@ -75,8 +76,6 @@ unitycrashhandler
 unitycrashhandler32
 unitycrashhandler64
 unrealcefsubprocess
-vc_redist.x644
-vc_redist.x864
 vcredist_x64
 vcredist_x642
 vcredist_x643
@@ -84,5 +83,7 @@ vcredist_x86
 vcredist_x862
 vcredist_x863
 vcredist_x86_2008
+vc_redist.x644
+vc_redist.x864
 verify
 xnafx40_redist

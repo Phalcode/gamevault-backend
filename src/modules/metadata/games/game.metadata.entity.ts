@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNotEmpty, Matches } from "class-validator";
 import {
   Column,
   Entity,
@@ -10,7 +11,6 @@ import {
   OneToOne,
 } from "typeorm";
 
-import { IsNotEmpty, Matches } from "class-validator";
 import { DatabaseEntity } from "../../database/database.entity";
 import { GamevaultGame } from "../../games/game.entity";
 import { Media } from "../../media/media.entity";
