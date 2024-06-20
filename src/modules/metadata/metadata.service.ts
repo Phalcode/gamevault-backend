@@ -9,13 +9,15 @@ import {
 
 import { validateOrReject } from "class-validator";
 import { GamevaultGame } from "../games/game.entity";
-import { GameMetadata } from "./games/game.metadata.entity";
+import { GamesService } from "../games/games.service";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
 
 @Injectable()
 export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
   providers: MetadataProvider[] = [];
+
+  constructor(private gamesService: GamesService) {}
 
   registerProvider(provider: MetadataProvider) {
     const existingProvider = this.providers.find(
@@ -55,26 +57,90 @@ export class MetadataService {
     return provider;
   }
 
-  getMultiMetadata(games: GamevaultGame[]) {
+  async check(games: GamevaultGame[]) {
     for (const game of games) {
-      this.getMetadata(game);
+      for (const provider of this.providers) {
+        const existingProviderMetadata = game.metadata.find(
+          (m) => m.provider_slug === provider.slug,
+        );
+        if (existingProviderMetadata) {
+          if (!provider.ttlDays) {
+            this.logger.debug({
+              message:
+                "Not updating existing metadata, as this provider has a time-to-live value of 0.",
+              provider: {
+                slug: provider.slug,
+                priority: provider.priority,
+                ttl: provider.ttlDays,
+              },
+              game: {
+                id: game.id,
+                path: game.path,
+              },
+            });
+            continue;
+          }
+          //CHeck if existingProviderMetadata is up to date (older than ttl (days) of the provider)
+          if (
+            existingProviderMetadata.updated_at <
+            new Date(Date.now() - provider.ttlDays * 24 * 60 * 60 * 1000)
+          ) {
+            this.logger.debug({
+              message: "Metadata is outdated.",
+              provider: {
+                slug: provider.slug,
+                priority: provider.priority,
+                ttl: provider.ttlDays,
+              },
+              game: {
+                id: game.id,
+                path: game.path,
+              },
+              metadata: {
+                id: existingProviderMetadata.id,
+                updated_at: existingProviderMetadata.updated_at,
+                provider: existingProviderMetadata.provider_slug,
+                provider_id: existingProviderMetadata.provider_data_id,
+                provider_checksum: existingProviderMetadata.provider_checksum,
+              },
+            });
+            await this.updateMetadata(game.id);
+          }
+          this.logger.debug({
+            message: "Metadata is up to date.",
+            provider: {
+              slug: provider.slug,
+              priority: provider.priority,
+              ttl: provider.ttlDays,
+            },
+            game: {
+              id: game.id,
+              path: game.path,
+            },
+          });
+        }
+      }
+      throw new NotImplementedException("Method not implemented.");
     }
   }
 
-  getMetadata(game: GamevaultGame) {
-    // TODO: get metadata from providers, sort and fill gaps by priority, and save a gamevault entry
-    for (const provider of this.providers) {
-      const metadata = provider.search(game);
-    }
-    throw new NotImplementedException("Method not implemented.");
-  }
-
-  findMetadata(game: GamevaultGame, providerSlug: string) {
+  async searchMetadata(game: GamevaultGame, providerSlug: string) {
     return this.getProviderBySlugOrFail(providerSlug).search(game);
   }
 
-  refreshMetadata(game: GamevaultGame, providerSlug?: string) {
-    // TODO: for each gamemetadata, refresh it using the provider
+  async updateMetadata(gameId: number) {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
+    for (let metadata of game.metadata) {
+      metadata = await this.getProviderBySlugOrFail(
+        metadata.provider_slug,
+      ).update(metadata);
+      // TODO: merge metadata
+    }
+  }
+
+  mergeMetadata(gameId: number) {
+    const game = this.gamesService.findOneByGameIdOrFail(gameId);
+    // sort and fill gaps by priority, and save a gamevault entry
     throw new NotImplementedException("Method not implemented.");
   }
 
@@ -89,14 +155,6 @@ export class MetadataService {
     newProviderId: string,
   ) {
     // TODO: Remove relation of current metadata and create a new one
-    throw new NotImplementedException("Method not implemented.");
-  }
-
-  private getBestMatchingGameMetadata(
-    game: GamevaultGame,
-    metadata: GameMetadata[],
-  ) {
-    // TODO: get the best matching metadata
     throw new NotImplementedException("Method not implemented.");
   }
 }

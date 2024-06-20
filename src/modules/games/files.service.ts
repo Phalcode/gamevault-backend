@@ -78,7 +78,7 @@ export class FilesService implements OnApplicationBootstrap {
       gamesInFileSystem,
       gamesInDatabase,
     );
-    this.metadataService.getMultiMetadata(gamesInDatabase);
+    this.metadataService.check(gamesInDatabase);
     //games = await this.rawgService.checkCache(games);
     return gamesInDatabase;
   }

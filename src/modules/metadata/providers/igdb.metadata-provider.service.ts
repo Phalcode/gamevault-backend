@@ -38,7 +38,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .pipe(
         fields("*"),
         and(
-          where("id", "=", game.metadata_provider_id),
+          where("id", "=", game.provider_data_id),
           where("checksum", "!=", game.provider_checksum),
         ),
       )

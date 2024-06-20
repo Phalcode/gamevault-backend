@@ -14,7 +14,7 @@ export class GameMetadataService {
   ) {}
 
   async find(
-    metadata_provider: string = "gamevault",
+    provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<GameMetadata[]> {
     let relations = [];
@@ -26,7 +26,7 @@ export class GameMetadataService {
         relations = options.loadRelations;
     }
     const games = await this.gameMetadataRepository.find({
-      where: { metadata_provider },
+      where: { provider_slug: provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",

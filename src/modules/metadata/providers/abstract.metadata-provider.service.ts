@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from "@nestjs/common";
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsBoolean,
@@ -7,8 +12,10 @@ import {
   IsNotIn,
   IsPositive,
   Matches,
+  Min,
 } from "class-validator";
 
+import { compareTwoStrings } from "string-similarity";
 import { GamevaultGame } from "../../games/game.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
@@ -63,20 +70,75 @@ export abstract class MetadataProvider implements OnModuleInit {
   @IsPositive()
   @IsNotEmpty()
   @ApiProperty({
+    type: Number,
     description:
-      "priority of usage for this provider. Lower priority providers are tried first, while higher priority providers fill in gaps. Must be a number.",
+      "priority of usage for this provider. Lower priority providers are tried first, while higher priority providers fill in gaps.",
   })
   public priority: number;
 
   @IsBoolean()
   @ApiProperty({
+    type: Boolean,
     description: "whether this provider is enabled or not.",
+    default: true,
   })
-  public enabled = false;
+  public enabled = true;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty()
+  @ApiProperty({
+    minimum: 0,
+    type: Number,
+    description:
+      "the number of days (0 for never) to cache game metadata before updating it.",
+    default: 30,
+  })
+  public ttlDays = 30;
 
   public abstract search(game: GamevaultGame): Promise<GameMetadata[]>;
 
   public abstract update(game: GameMetadata): Promise<GameMetadata>;
+
+  public async getBestMatch(game: GamevaultGame): Promise<GameMetadata> {
+    const gameResults = await this.search(game);
+
+    if (gameResults.length === 0) {
+      throw new NotFoundException("No matching games found.");
+    }
+
+    for (const gameResult of gameResults) {
+      const cleanedGameTitle = game.title
+        ?.toLowerCase()
+        .replace(/[^\w\s]/g, "");
+      const cleanedGameResultTitle = gameResult.title
+        ?.toLowerCase()
+        .replace(/[^\w\s]/g, "");
+
+      gameResult.provider_probability = compareTwoStrings(
+        cleanedGameTitle,
+        cleanedGameResultTitle,
+      );
+
+      if (game.release_date && gameResult.release_date) {
+        const gameReleaseYear = new Date(
+          gameResult.release_date,
+        ).getUTCFullYear();
+        const gameResultReleaseYear = new Date(
+          gameResult.release_date,
+        ).getUTCFullYear();
+        gameResult.provider_probability -=
+          Math.abs(gameResultReleaseYear - gameReleaseYear) / 10;
+      }
+    }
+
+    gameResults.sort(
+      (a, b) =>
+        b.provider_probability - a.provider_probability,
+    );
+
+    return gameResults[0];
+  }
 
   public async register() {
     if (!this.enabled) {

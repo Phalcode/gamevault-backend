@@ -5,7 +5,7 @@ import { DatabaseEntity } from "../../database/database.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
-@Index("UQ_PUBLISHER_METADATA", ["metadata_provider", "metadata_provider_id"], {
+@Index("UQ_PUBLISHER_METADATA", ["provider", "provider_data_id"], {
   unique: true,
 })
 export class PublisherMetadata extends DatabaseEntity {
@@ -14,7 +14,7 @@ export class PublisherMetadata extends DatabaseEntity {
   @ApiProperty({
     description: "provider slug of the metadata",
   })
-  metadata_provider: string;
+  provider_slug: string;
 
   @Column()
   @Index()
@@ -22,7 +22,7 @@ export class PublisherMetadata extends DatabaseEntity {
     description: "id of the developer from the provider",
     example: "1190",
   })
-  metadata_provider_id?: string;
+  provider_data_id?: string;
 
   @Index()
   @Column({ unique: true })

@@ -89,8 +89,7 @@ export class GamevaultGame extends DatabaseEntity {
   })
   type: GameType;
 
-  @JoinTable()
-  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games)
+  @OneToMany(() => GameMetadata, (metadata) => metadata.gamevault_game)
   @ApiPropertyOptional({
     description: "metadata associated to the game",
     type: () => GameMetadata,

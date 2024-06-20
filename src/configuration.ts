@@ -178,6 +178,7 @@ const configuration = {
       PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 50),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
+      TTL_IN_DAYS: parseNumber(process.env.METADATA_IGDB_TTL_IN_DAYS, 30),
     } as const,
   } as const,
 } as const;

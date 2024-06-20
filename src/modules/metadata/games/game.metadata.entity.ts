@@ -10,6 +10,7 @@ import {
   OneToOne,
 } from "typeorm";
 
+import { IsNotEmpty, Matches } from "class-validator";
 import { DatabaseEntity } from "../../database/database.entity";
 import { GamevaultGame } from "../../games/game.entity";
 import { Media } from "../../media/media.entity";
@@ -19,34 +20,48 @@ import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../tags/tag.metadata.entity";
 
 @Entity()
-@Index("UQ_GAME_METADATA", ["metadata_provider", "metadata_provider_id"], {
+@Index("UQ_GAME_METADATA", ["provider", "provider_data_id"], {
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity {
-  @ManyToMany(() => GamevaultGame, (game) => game.metadata)
+  @ManyToOne(() => GamevaultGame, (game) => game.metadata)
   @ApiPropertyOptional({
-    description: "games the metadata belongs to",
+    description: "game the metadata belongs to",
     type: () => GamevaultGame,
     isArray: true,
   })
-  gamevault_games?: GamevaultGame[];
+  gamevault_game?: GamevaultGame;
 
   @Column()
   @Index()
+  @IsNotEmpty()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message:
+      "Invalid provider_slug: Only lowercase letters, numbers, and single hyphens inbetween them are allowed.",
+  })
   @ApiProperty({
     description: "provider slug of the metadata",
   })
-  metadata_provider: string;
+  provider_slug: string;
 
-  @Column()
+  @Column({ nullable: true })
   @Index()
   @ApiPropertyOptional({
     description: "id of the game from the provider",
     example: "Grand Theft Auto V",
   })
-  metadata_provider_id?: string;
+  provider_data_id?: string;
 
-  @Column()
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Probability of the metadata being the correct one.",
+    example: 0.5,
+    minimum: 0,
+    maximum: 1,
+  })
+  provider_probability?: number;
+
+  @Column({ nullable: true })
   @ApiPropertyOptional({
     description: "checksum of the provider data",
     example: "3608a6d1a05aba23ea390e5f3b48203dbb7241f7",
@@ -60,7 +75,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   age_rating?: number;
 
-  @Column()
+  @Column({ nullable: true })
   @Index()
   @ApiProperty({
     description: "title of the game",
@@ -152,7 +167,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   rating_metacritic?: number;
 
-  @Column()
+  @Column({ default: false })
   @ApiProperty({
     description: "indicates if the game is in early access",
     example: true,

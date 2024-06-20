@@ -15,7 +15,7 @@ export class GenreMetadataService {
   ) {}
 
   async find(
-    metadata_provider: string = "gamevault",
+    provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<GenreMetadata[]> {
     let relations = [];
@@ -28,7 +28,7 @@ export class GenreMetadataService {
     }
 
     const genres = await this.genreRepository.find({
-      where: { metadata_provider },
+      where: { provider_slug: provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
