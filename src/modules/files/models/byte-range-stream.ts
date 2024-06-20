@@ -18,16 +18,16 @@ export default class ByteRangeStream extends Transform {
   ) {
     const chunkSize = BigInt(chunk.length);
     if (
-      this.bytesRead + chunkSize >= this.startByte &&
-      this.bytesRead < this.endByte
+      this.bytesRead + chunkSize > this.startByte &&
+      this.bytesRead <= this.endByte
     ) {
       const start = Number(
         this.startByte > this.bytesRead ? this.startByte - this.bytesRead : 0n,
       );
       const end = Number(
-        this.endByte > this.bytesRead + chunkSize
+        this.endByte >= this.bytesRead + chunkSize - 1n
           ? chunkSize
-          : this.endByte - this.bytesRead,
+          : this.endByte - this.bytesRead + 1n,
       );
       this.push(chunk.subarray(start, end));
     }

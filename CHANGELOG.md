@@ -1,5 +1,18 @@
 # GameVault Backend Server Changelog
 
+## 12.1.3
+
+Recommended Gamevault App Version: `v1.11.0.0`
+
+### Changes
+
+- Fixed a bug where Range header was not inclusive, like it should be according to its specification #298
+
+### Thanks
+
+- @Toylerr
+- mjishnu
+
 ## 12.1.2
 
 Recommended Gamevault App Version: `v1.10.1.0`
