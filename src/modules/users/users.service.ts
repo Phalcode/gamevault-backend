@@ -25,7 +25,7 @@ import { UpdateUserDto } from "./models/update-user.dto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(UsersService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @InjectRepository(GamevaultUser)

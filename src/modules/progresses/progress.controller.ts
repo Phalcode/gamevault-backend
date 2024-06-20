@@ -32,7 +32,7 @@ import { ProgressService } from "./progress.service";
 @ApiTags("progress")
 @ApiBasicAuth()
 export class ProgressController {
-  private readonly logger = new Logger(ProgressController.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(private progressService: ProgressService) {}
 

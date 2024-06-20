@@ -8,7 +8,7 @@ import { TagMetadata } from "./tag.metadata.entity";
 
 @Injectable()
 export class TagMetadataService {
-  private readonly logger = new Logger(TagMetadataService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @InjectRepository(TagMetadata)

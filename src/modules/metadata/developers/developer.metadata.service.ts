@@ -8,7 +8,7 @@ import { DeveloperMetadata } from "./developer.metadata.entity";
 
 @Injectable()
 export class DeveloperMetadataService {
-  private readonly logger = new Logger(DeveloperMetadataService.name);
+  private readonly logger = new Logger(this.constructor.name);
   constructor(
     @InjectRepository(DeveloperMetadata)
     private developerRepository: Repository<DeveloperMetadata>,

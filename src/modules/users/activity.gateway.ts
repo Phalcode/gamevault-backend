@@ -34,7 +34,7 @@ const ConditionalWebSocketGateway = configuration.SERVER
 export class ActivityGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  private readonly logger = new Logger(ActivityGateway.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   private activities: Map<number, Activity> = new Map<number, Activity>();
 

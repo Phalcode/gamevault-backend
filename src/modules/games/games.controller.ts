@@ -42,7 +42,7 @@ import { UpdateGameDto } from "./models/update-game.dto";
 @ApiTags("game")
 @Controller("games")
 export class GamesController {
-  private readonly logger = new Logger(GamesController.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     private gamesService: GamesService,

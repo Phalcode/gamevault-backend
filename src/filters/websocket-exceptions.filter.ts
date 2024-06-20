@@ -3,7 +3,7 @@ import { BaseWsExceptionFilter, WsException } from "@nestjs/websockets";
 
 @Catch(HttpException)
 export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
-  private readonly logger = new Logger(WebsocketExceptionsFilter.name);
+  private readonly logger = new Logger(this.constructor.name);
   catch(error: HttpException, host: ArgumentsHost) {
     this.logger.error({
       message: `Unhandled ${error.name} occurred in websocket: ${error.message}`,

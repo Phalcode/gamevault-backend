@@ -2,7 +2,6 @@ import { HttpService } from "@nestjs/axios";
 import {
   forwardRef,
   Inject,
-  Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
@@ -21,9 +20,8 @@ import { Result as RawgResult, SearchResult } from "./models/games.interface";
 import { RawgPlatform } from "./models/platforms";
 import { RawgStore } from "./models/stores";
 
-@Injectable()
 export class RawgService {
-  private readonly logger = new Logger(RawgService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @Inject(forwardRef(() => GamesService))

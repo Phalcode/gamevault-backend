@@ -18,7 +18,7 @@ import { UpdateGameDto } from "./models/update-game.dto";
 
 @Injectable()
 export class GamesService {
-  private readonly logger = new Logger(GamesService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @InjectRepository(GamevaultGame)

@@ -18,7 +18,7 @@ import { Progress } from "./progress.entity";
 
 @Injectable()
 export class ProgressService {
-  private readonly logger = new Logger(ProgressService.name);
+  private readonly logger = new Logger(this.constructor.name);
   public ignoreList: string[] = [];
 
   constructor(

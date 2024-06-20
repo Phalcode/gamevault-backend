@@ -10,7 +10,7 @@ import { SocketSecretService } from "../users/socket-secret.service";
 
 @Injectable()
 export class SocketSecretGuard implements CanActivate {
-  private readonly logger = new Logger(SocketSecretGuard.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(private socketSecretService: SocketSecretService) {}
 

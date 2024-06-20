@@ -8,6 +8,7 @@ import { GameMetadataService } from "./games/game.metadata.service";
 import { GenreMetadata } from "./genres/genre.metadata.entity";
 import { GenreMetadataService } from "./genres/genre.metadata.service";
 import { MetadataService } from "./metadata.service";
+import { IgdbMetadataProviderService } from "./providers/igdb.metadata-provider.service";
 import { PublisherMetadata } from "./publishers/publisher.metadata.entity";
 import { PublisherMetadataService } from "./publishers/publisher.metadata.service";
 import { TagMetadata } from "./tags/tag.metadata.entity";
@@ -30,6 +31,7 @@ import { TagMetadataService } from "./tags/tag.metadata.service";
     GenreMetadataService,
     PublisherMetadataService,
     TagMetadataService,
+    IgdbMetadataProviderService,
   ],
   exports: [
     MetadataService,

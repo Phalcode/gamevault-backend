@@ -8,7 +8,7 @@ import { GenreMetadata } from "./genre.metadata.entity";
 
 @Injectable()
 export class GenreMetadataService {
-  private readonly logger = new Logger(GenreMetadata.name);
+  private readonly logger = new Logger(this.constructor.name);
   constructor(
     @InjectRepository(GenreMetadata)
     private genreRepository: Repository<GenreMetadata>,

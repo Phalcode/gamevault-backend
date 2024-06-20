@@ -8,7 +8,7 @@ import { PublisherMetadata } from "./publisher.metadata.entity";
 
 @Injectable()
 export class PublisherMetadataService {
-  private readonly logger = new Logger(PublisherMetadataService.name);
+  private readonly logger = new Logger(this.constructor.name);
   constructor(
     @InjectRepository(PublisherMetadata)
     private publisherRepository: Repository<PublisherMetadata>,

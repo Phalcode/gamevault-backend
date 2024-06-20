@@ -3,6 +3,14 @@
     "mime": {
       "versions": "4",
       "reason": "ESM"
+    },
+    "better-sqlite3": {
+      "versions": ">9.0.0",
+      "reason": "TypeORM Compatibility"
+    },
+    "eslint": {
+      "versions": ">8",
+      "reason": "New Config, No Plugin Compability"
     }
   }
 }

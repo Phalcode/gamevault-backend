@@ -22,6 +22,7 @@ import unidecode from "unidecode";
 
 import configuration from "../../configuration";
 import globals from "../../globals";
+import { MetadataService } from "../metadata/metadata.service";
 import { GamevaultGame } from "./game.entity";
 import mock from "./games.mock";
 import { GamesService } from "./games.service";
@@ -33,9 +34,12 @@ import { RangeHeader } from "./models/range-header.model";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
-  private logger = new Logger(FilesService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private gamesService: GamesService) {}
+  constructor(
+    private gamesService: GamesService,
+    private metadataService: MetadataService,
+  ) {}
 
   onApplicationBootstrap() {
     this.index("Initial indexing on application start").catch((error) => {
@@ -74,7 +78,7 @@ export class FilesService implements OnApplicationBootstrap {
       gamesInFileSystem,
       gamesInDatabase,
     );
-    // Todo: Find metadata
+    this.metadataService.getMultiMetadata(gamesInDatabase);
     //games = await this.rawgService.checkCache(games);
     return gamesInDatabase;
   }

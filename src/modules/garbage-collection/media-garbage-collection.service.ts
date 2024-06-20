@@ -14,7 +14,7 @@ import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Injectable()
 export class MediaGarbageCollectionService {
-  private readonly logger = new Logger(MediaGarbageCollectionService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @InjectRepository(Media)

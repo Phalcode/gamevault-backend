@@ -23,7 +23,7 @@ import { Media } from "./media.entity";
 
 @Injectable()
 export class MediaService {
-  private readonly logger = new Logger(MediaService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     private readonly httpService: HttpService,

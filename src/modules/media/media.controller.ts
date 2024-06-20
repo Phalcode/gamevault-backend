@@ -37,7 +37,7 @@ import { MediaService } from "./media.service";
 @Controller("media")
 @ApiBasicAuth()
 export class MediaController {
-  private readonly logger = new Logger(MediaService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(private mediaService: MediaService) {}
 

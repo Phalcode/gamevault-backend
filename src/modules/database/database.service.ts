@@ -20,7 +20,7 @@ import configuration from "../../configuration";
 
 @Injectable()
 export class DatabaseService {
-  private readonly logger = new Logger(DatabaseService.name);
+  private readonly logger = new Logger(this.constructor.name);
   private execPromise = promisify(exec);
 
   constructor(private dataSource: DataSource) {}

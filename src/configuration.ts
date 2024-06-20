@@ -158,7 +158,7 @@ const configuration = {
     ),
     GC_INTERVAL_IN_MINUTES: parseNumber(
       process.env.MEDIA_GC_INTERVAL_IN_MINUTES,
-      24,
+      60,
     ),
   } as const,
   TESTING: {
@@ -170,6 +170,15 @@ const configuration = {
     GOOGLE_API_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_GOOGLE_API_DISABLED,
     ),
+  } as const,
+  METADATA: {
+    IGDB: {
+      ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
+      SLUG: process.env.METADATA_IGDB_SLUG || "igdb",
+      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 50),
+      CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
+      CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
+    } as const,
   } as const,
 } as const;
 
