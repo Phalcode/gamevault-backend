@@ -1,5 +1,19 @@
 # GameVault Backend Server Changelog
 
+## 12.2.0
+
+Recommended Gamevault App Version: `v1.11.0.0`
+
+### Changes
+
+- Fixed a bug where the indexer would break on password protected archives. [#297](https://github.com/Phalcode/gamevault-backend/issues/297)
+- Added Ability to set a default password for game type detection. (`GAMES_DEFAULT_ARCHIVE_PASSWORD`)
+
+### Thanks
+
+- @casudo
+- @Tere
+
 ## 12.1.3
 
 Recommended Gamevault App Version: `v1.11.0.0`
