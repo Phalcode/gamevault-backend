@@ -431,13 +431,14 @@ export class FilesService implements OnApplicationBootstrap {
       const listStream = list(path, {
         recursive: true,
         $cherryPick: matchers,
+        password: configuration.GAMES.DEFAULT_ARCHIVE_PASSWORD, // ANY Password is needed so it doesn't hang up
       });
 
       listStream.on("data", (data) => executablesList.push(data.file));
 
       listStream.on("error", (error) => {
         this.logger.error({
-          message: `Error extracting executables list. Archive could be corrupted.`,
+          message: `Error extracting executables list. The archive may be encrypted or corrupted.`,
           game: { id: undefined, file_path: path },
           error,
         });
@@ -676,17 +677,17 @@ export class FilesService implements OnApplicationBootstrap {
   ): RangeHeader {
     let rangeStart = 0;
     let rangeEnd = fileSize - 1;
-  
+
     if (rangeHeader?.includes("-")) {
       const [start, end] = rangeHeader.replace("bytes=", "").split("-");
-  
+
       if (start) {
         const parsedStart = Number(start);
         if (!isNaN(parsedStart) && parsedStart < fileSize) {
           rangeStart = parsedStart;
         }
       }
-  
+
       if (end) {
         const parsedEnd = Number(end);
         if (!isNaN(parsedEnd) && parsedEnd < fileSize) {
@@ -694,7 +695,7 @@ export class FilesService implements OnApplicationBootstrap {
         }
       }
     }
-  
+
     const rangeSize = rangeEnd - rangeStart + 1;
     return {
       start: rangeStart,
