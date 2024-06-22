@@ -432,14 +432,15 @@ export class FilesService implements OnApplicationBootstrap {
       const listStream = list(path, {
         recursive: true,
         $cherryPick: matchers,
+        password: configuration.GAMES.DEFAULT_ARCHIVE_PASSWORD, // ANY Password is needed so it doesn't hang up
       });
 
       listStream.on("data", (data) => executablesList.push(data.file));
 
       listStream.on("error", (error) => {
         this.logger.error({
-          message: `Error extracting executables list. Archive could be corrupted.`,
-          game: { id: undefined, path: path },
+          message: `Error extracting executables list. The archive may be encrypted or corrupted.`,
+          game: { id: undefined, file_path: path },
           error,
         });
         reject(error);

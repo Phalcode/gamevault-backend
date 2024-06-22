@@ -147,6 +147,7 @@ const configuration = {
       process.env.SEARCH_RECURSIVE,
       true,
     ),
+    DEFAULT_ARCHIVE_PASSWORD: process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
   } as const,
   MEDIA: {
     MAX_SIZE_IN_KB:
