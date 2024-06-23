@@ -39,11 +39,20 @@ export class PublisherMetadataService {
     ) as PublisherMetadata[];
   }
 
-  async save(publisher: PublisherMetadata): Promise<PublisherMetadata> {
-    return this.publisherRepository.save(publisher);
-  }
+  async upsert(publisher: PublisherMetadata): Promise<PublisherMetadata> {
+    const existingPublisher = await this.publisherRepository.findOne({
+      where: {
+        provider_slug: publisher.provider_slug,
+        provider_data_id: publisher.provider_data_id,
+      },
+    });
 
-  async delete(id: number): Promise<PublisherMetadata> {
-    return await this.publisherRepository.softRemove({ id });
+    if (existingPublisher) {
+      return this.publisherRepository.save({
+        ...existingPublisher,
+        ...publisher,
+      });
+    }
+    return this.publisherRepository.save(publisher);
   }
 }

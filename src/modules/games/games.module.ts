@@ -5,9 +5,9 @@ import { MediaModule } from "../media/media.module";
 import { MetadataModule } from "../metadata/metadata.module";
 import { ProgressModule } from "../progresses/progress.module";
 import { FilesService } from "./files.service";
-import { GamevaultGame } from "./game.entity";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
+import { GamevaultGame } from "./gamevault-game.entity";
 
 @Module({
   imports: [

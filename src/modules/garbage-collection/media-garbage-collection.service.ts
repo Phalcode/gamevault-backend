@@ -7,7 +7,7 @@ import { join } from "path";
 import { Repository } from "typeorm";
 
 import configuration from "../../configuration";
-import { GamevaultGame } from "../games/game.entity";
+import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
 import { MediaService } from "../media/media.service";
 import { GamevaultUser } from "../users/gamevault-user.entity";

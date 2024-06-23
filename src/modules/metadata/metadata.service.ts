@@ -8,11 +8,10 @@ import {
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { GamevaultGame } from "../games/game.entity";
 import { GamesService } from "../games/games.service";
+import { GamevaultGame } from "../games/gamevault-game.entity";
 import { GameMetadata } from "./games/game.metadata.entity";
+import { GameMetadataService } from "./games/game.metadata.service";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
 
 @Injectable()
@@ -20,11 +19,7 @@ export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
   providers: MetadataProvider[] = [];
 
-  constructor(
-    private gamesService: GamesService,
-    @InjectRepository(GameMetadata)
-    private gameMetadataRepository: Repository<GameMetadata>,
-  ) {}
+  constructor(private gamesService: GamesService, private gameMetadataService: GameMetadataService) {}
 
   /**
    * Registers a metadata provider.
@@ -157,7 +152,7 @@ export class MetadataService {
             ).getBestMatch(game);
 
             // Save the metadata to the database.
-            this.gameMetadataRepository.save(metadata);
+            await this.gameMetadataService.upsert(metadata);
 
             // Add the metadata to the game's metadata array.
             game.metadata.push(metadata);
@@ -178,7 +173,6 @@ export class MetadataService {
       await this.mergeMetadata(game.id);
     }
   }
-
   /**
    * Searches for metadata of a game using a specific provider.
    *
@@ -186,7 +180,10 @@ export class MetadataService {
    * @param {string} providerSlug - The slug of the provider to use for the search.
    * @return {Promise<GameMetadata[]>} A promise that resolves to an array of game metadata.
    */
-  async searchMetadata(game: GamevaultGame, providerSlug: string): Promise<GameMetadata[]> {
+  async searchMetadata(
+    game: GamevaultGame,
+    providerSlug: string,
+  ): Promise<GameMetadata[]> {
     return this.getProviderBySlugOrFail(providerSlug).search(game);
   }
 

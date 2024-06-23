@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { GamevaultGame } from "../games/game.entity";
+import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
 import { MediaModule } from "../media/media.module";
 import { GamevaultUser } from "../users/gamevault-user.entity";

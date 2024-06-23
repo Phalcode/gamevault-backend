@@ -12,7 +12,7 @@ import {
 } from "typeorm";
 
 import { DatabaseEntity } from "../../database/database.entity";
-import { GamevaultGame } from "../../games/game.entity";
+import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { Media } from "../../media/media.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
@@ -24,7 +24,7 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity {
-  @ManyToOne(() => GamevaultGame, (game) => game.metadata)
+  @ManyToMany(() => GamevaultGame, (game) => game.metadata)
   @ApiPropertyOptional({
     description: "game the metadata belongs to",
     type: () => GamevaultGame,
@@ -46,11 +46,11 @@ export class GameMetadata extends DatabaseEntity {
 
   @Column({ nullable: true })
   @Index()
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "id of the game from the provider",
     example: "Grand Theft Auto V",
   })
-  provider_data_id?: string;
+  provider_data_id: string;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({

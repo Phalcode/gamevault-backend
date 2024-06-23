@@ -12,7 +12,7 @@ import { Repository } from "typeorm";
 import { DeletedEntitiesFilter } from "../../filters/deleted-entities.filter";
 import { FindOptions } from "../../globals";
 import { MediaService } from "../media/media.service";
-import { GamevaultGame } from "./game.entity";
+import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
 

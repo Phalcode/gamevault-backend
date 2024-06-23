@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { and, fields, igdb, twitchAccessToken, where } from "ts-igdb-client";
 
 import configuration from "../../../configuration";
-import { GamevaultGame } from "../../games/game.entity";
+import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
 import { MetadataProvider } from "./abstract.metadata-provider.service";
 

@@ -39,11 +39,20 @@ export class DeveloperMetadataService {
     ) as DeveloperMetadata[];
   }
 
-  async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
-    return this.developerRepository.save(developer);
-  }
+  async upsert(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
+    const existingDeveloper = await this.developerRepository.findOne({
+      where: {
+        provider_slug: developer.provider_slug,
+        provider_data_id: developer.provider_data_id,
+      },
+    });
 
-  async delete(id: number): Promise<DeveloperMetadata> {
-    return await this.developerRepository.softRemove({ id });
+    if (existingDeveloper) {
+      return this.developerRepository.save({
+        ...existingDeveloper,
+        ...developer,
+      });
+    }
+    return this.developerRepository.save(developer);
   }
 }

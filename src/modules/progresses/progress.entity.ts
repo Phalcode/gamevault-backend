@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultGame } from "../games/game.entity";
+import { GamevaultGame } from "../games/gamevault-game.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { State } from "./models/state.enum";
 

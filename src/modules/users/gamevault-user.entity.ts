@@ -11,7 +11,7 @@ import {
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultGame } from "../games/game.entity";
+import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
 import { Progress } from "../progresses/progress.entity";
 import { Role } from "./models/role.enum";

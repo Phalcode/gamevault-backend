@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
 import { DatabaseEntity } from "../../database/database.entity";
-import { GamevaultGame } from "../../games/game.entity";
+import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
@@ -19,11 +19,11 @@ export class GenreMetadata extends DatabaseEntity {
 
   @Column()
   @Index()
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "id of the developer from the provider",
     example: "1190",
   })
-  provider_data_id?: string;
+  provider_data_id: string;
 
   @Index()
   @Column({ unique: true })

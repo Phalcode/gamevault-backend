@@ -18,11 +18,11 @@ export class DeveloperMetadata extends DatabaseEntity {
 
   @Column()
   @Index()
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "id of the developer from the provider",
     example: "1190",
   })
-  provider_data_id?: string;
+  provider_data_id: string;
 
   @Index()
   @Column({ unique: true })

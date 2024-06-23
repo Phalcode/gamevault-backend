@@ -38,11 +38,20 @@ export class TagMetadataService {
     return DeletedEntitiesFilter.filterDeleted(tags) as TagMetadata[];
   }
 
-  async save(tag: TagMetadata): Promise<TagMetadata> {
-    return this.tagRepository.save(tag);
-  }
+  async upsert(tag: TagMetadata): Promise<TagMetadata> {
+    const existingDeveloper = await this.tagRepository.findOne({
+      where: {
+        provider_slug: tag.provider_slug,
+        provider_data_id: tag.provider_data_id,
+      },
+    });
 
-  async delete(id: number): Promise<TagMetadata> {
-    return await this.tagRepository.softRemove({ id });
+    if (existingDeveloper) {
+      return this.tagRepository.save({
+        ...existingDeveloper,
+        ...tag,
+      });
+    }
+    return this.tagRepository.save(tag);
   }
 }

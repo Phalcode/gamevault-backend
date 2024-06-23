@@ -21,10 +21,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -34,8 +34,8 @@ import { ApiOkResponsePaginated } from "../../globals";
 import { IdDto } from "../database/models/id.dto";
 import { Role } from "../users/models/role.enum";
 import { FilesService } from "./files.service";
-import { GamevaultGame } from "./game.entity";
 import { GamesService } from "./games.service";
+import { GamevaultGame } from "./gamevault-game.entity";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBasicAuth()

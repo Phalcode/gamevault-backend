@@ -16,7 +16,7 @@ import {
 } from "class-validator";
 import { compareTwoStrings } from "string-similarity";
 
-import { GamevaultGame } from "../../games/game.entity";
+import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
 import { GameMetadata } from "../games/game.metadata.entity";
@@ -27,6 +27,7 @@ import { MetadataService } from "../metadata.service";
 import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
 import { TagMetadata } from "../tags/tag.metadata.entity";
 import { TagMetadataService } from "../tags/tag.metadata.service";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 
 @Injectable()
 export abstract class MetadataProvider implements OnModuleInit {
@@ -178,7 +179,7 @@ export abstract class MetadataProvider implements OnModuleInit {
     return this.gameMetadataService.find(this.slug);
   }
 
-  public async findPublishers(): Promise<GameMetadata[]> {
+  public async findPublishers(): Promise<PublisherMetadata[]> {
     return this.publisherMetadataService.find(this.slug);
   }
 

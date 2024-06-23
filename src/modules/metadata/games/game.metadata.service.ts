@@ -63,11 +63,21 @@ export class GameMetadataService {
     }
   }
 
-  async save(game: GameMetadata): Promise<GameMetadata> {
-    return this.gameMetadataRepository.save(game);
-  }
+  async upsert(game: GameMetadata): Promise<GameMetadata> {
+    const existingGame = await this.gameMetadataRepository.findOne({
+      where: {
+        provider_slug: game.provider_slug,
+        provider_data_id: game.provider_data_id,
+      },
+      relations: ["developers", "publishers", "genres", "tags"],
+    });
 
-  async delete(id: number): Promise<GameMetadata> {
-    return await this.gameMetadataRepository.softRemove({ id });
+    if (existingGame) {
+      return this.gameMetadataRepository.save({
+        ...existingGame,
+        ...game,
+      });
+    }
+    return this.gameMetadataRepository.save(game);
   }
 }

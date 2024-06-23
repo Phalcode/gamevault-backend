@@ -37,11 +37,20 @@ export class GenreMetadataService {
     return DeletedEntitiesFilter.filterDeleted(genres) as GenreMetadata[];
   }
 
-  async save(genre: GenreMetadata): Promise<GenreMetadata> {
-    return this.genreRepository.save(genre);
-  }
+  async upsert(genre: GenreMetadata): Promise<GenreMetadata> {
+    const existingGenre = await this.genreRepository.findOne({
+      where: {
+        provider_slug: genre.provider_slug,
+        provider_data_id: genre.provider_data_id,
+      },
+    });
 
-  async delete(id: number): Promise<GenreMetadata> {
-    return await this.genreRepository.softRemove({ id });
+    if (existingGenre) {
+      return this.genreRepository.save({
+        ...existingGenre,
+        ...genre,
+      });
+    }
+    return this.genreRepository.save(genre);
   }
 }
