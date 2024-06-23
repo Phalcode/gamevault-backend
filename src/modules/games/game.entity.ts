@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  Column,
-  Entity,
-  Index,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-} from "typeorm";
+import { Column, Entity, Index, ManyToMany, OneToMany } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -112,4 +105,11 @@ export class GamevaultGame extends DatabaseEntity {
     isArray: true,
   })
   bookmarked_users?: GamevaultUser[];
+
+  public getLoggableData() {
+    return {
+      id: this.id,
+      path: this.path,
+    };
+  }
 }

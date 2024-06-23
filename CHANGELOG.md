@@ -14,6 +14,7 @@ Recommended Gamevault App Version: `v1.11.0.0`
 - TODO: Introduced a new Metadata Framework that universally supports any metadata provider.
 - TODO: Migrated old Games to new Metadata System.
 - TODO: Implemented IGDB as default metadata provider.
+
 ## 12.2.0
 
 Recommended Gamevault App Version: `v1.11.0.0`

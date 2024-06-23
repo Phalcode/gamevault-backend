@@ -96,18 +96,41 @@ export abstract class MetadataProvider implements OnModuleInit {
   })
   public ttlDays = 30;
 
+  /**
+   * Searches for a game using the provider.
+   */
   public abstract search(game: GamevaultGame): Promise<GameMetadata[]>;
 
-  public abstract update(game: GameMetadata): Promise<GameMetadata>;
+  /**
+   * Returns a game metadata object using the id.
+   * @param provider_data_id - The provider data id of the game.
+   * @returns A promise that resolves to the game metadata object.
+   * @throws NotFoundException if the game is not found.
+   */
+  public abstract getByProviderDataId(
+    provider_data_id: string,
+  ): Promise<GameMetadata>;
 
+  /**
+   * Searches for the best match for a given game using all available
+   * metadata providers.
+   *
+   * @param game - The game to find a match for.
+   * @returns A promise that resolves to the best match GameMetadata.
+   * @throws NotFoundException if no matching games are found.
+   */
   public async getBestMatch(game: GamevaultGame): Promise<GameMetadata> {
+    // Search for the game using all available metadata providers.
     const gameResults = await this.search(game);
 
+    // If no matching games are found, throw an exception.
     if (gameResults.length === 0) {
       throw new NotFoundException("No matching games found.");
     }
 
+    // Calculate the probability of a game result being a match for the input game.
     for (const gameResult of gameResults) {
+      // Remove non-alphanumeric characters and convert both titles to lowercase.
       const cleanedGameTitle = game.title
         ?.toLowerCase()
         .replace(/[^\w\s]/g, "");
@@ -115,11 +138,13 @@ export abstract class MetadataProvider implements OnModuleInit {
         ?.toLowerCase()
         .replace(/[^\w\s]/g, "");
 
+      // Calculate the similarity between the two titles and assign it to the game result.
       gameResult.provider_probability = compareTwoStrings(
         cleanedGameTitle,
         cleanedGameResultTitle,
       );
 
+      // If both games have a release date, subtract the absolute difference in years divided by 10 from the match probability.
       if (game.release_date && gameResult.release_date) {
         const gameReleaseYear = new Date(
           gameResult.release_date,
@@ -132,9 +157,11 @@ export abstract class MetadataProvider implements OnModuleInit {
       }
     }
 
+    // Sort the game results by the match probability in descending order.
     gameResults.sort((a, b) => b.provider_probability - a.provider_probability);
 
-    return gameResults[0];
+    // Return the game result with the highest match probability.
+    return gameResults.pop();
   }
 
   public async register() {
@@ -165,5 +192,14 @@ export abstract class MetadataProvider implements OnModuleInit {
 
   public async findGenres(): Promise<GenreMetadata[]> {
     return this.genreMetadataService.find(this.slug);
+  }
+
+  public getLoggableData() {
+    return {
+      slug: this.slug,
+      priority: this.priority,
+      enabled: this.enabled,
+      ttlDays: this.ttlDays,
+    };
   }
 }

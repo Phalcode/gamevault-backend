@@ -27,24 +27,18 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       games: games.data,
     });
 
-    //TODO: Map Metadata
-    return [];
+    return games.data.map((game) => this.mapGame(game));
   }
-  public async update(game: GameMetadata): Promise<GameMetadata> {
+  public async getByProviderDataId(
+    provider_data_id: string,
+  ): Promise<GameMetadata> {
     const update = await (
       await this.getClient()
     )
       .request("games")
-      .pipe(
-        fields("*"),
-        and(
-          where("id", "=", game.provider_data_id),
-          where("checksum", "!=", game.provider_checksum),
-        ),
-      )
+      .pipe(fields("*"), and(where("id", "=", provider_data_id)))
       .execute();
-    //TODO: Map Metadata
-    return game;
+    return this.mapGame(update.data[0]);
   }
 
   private async getClient() {
@@ -55,5 +49,10 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     });
 
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
+  }
+
+  private mapGame(game: any): GameMetadata {
+    // TODO: The data is pretty incomplete and we need to dereference the objects.
+    return new GameMetadata();
   }
 }

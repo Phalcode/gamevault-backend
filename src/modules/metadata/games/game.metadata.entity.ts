@@ -209,4 +209,14 @@ export class GameMetadata extends DatabaseEntity {
     isArray: true,
   })
   genres?: GenreMetadata[];
+
+  public getLoggableData() {
+    return {
+      id: this.id,
+      provider_slug: this.provider_slug,
+      provider_data_id: this.provider_data_id,
+      provider_checksum: this.provider_checksum,
+      updated_at: this.updated_at,
+    };
+  }
 }
