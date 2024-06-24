@@ -4,6 +4,10 @@ import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
+import { DeveloperMetadataService } from "../developers/developer.metadata.service";
+import { GenreMetadataService } from "../genres/genre.metadata.service";
+import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
+import { TagMetadataService } from "../tags/tag.metadata.service";
 import { GameMetadata } from "./game.metadata.entity";
 
 @Injectable()
@@ -11,6 +15,10 @@ export class GameMetadataService {
   constructor(
     @InjectRepository(GameMetadata)
     private gameMetadataRepository: Repository<GameMetadata>,
+    private developerMetadataService: DeveloperMetadataService,
+    private publisherMetadataService: PublisherMetadataService,
+    private tagMetadataService: TagMetadataService,
+    private genreMetadataService: GenreMetadataService,
   ) {}
 
   async find(
@@ -64,7 +72,7 @@ export class GameMetadataService {
   }
 
   async upsert(game: GameMetadata): Promise<GameMetadata> {
-    const existingGame = await this.gameMetadataRepository.findOne({
+    const existingGameMetadata = await this.gameMetadataRepository.findOne({
       where: {
         provider_slug: game.provider_slug,
         provider_data_id: game.provider_data_id,
@@ -72,12 +80,38 @@ export class GameMetadataService {
       relations: ["developers", "publishers", "genres", "tags"],
     });
 
-    if (existingGame) {
-      return this.gameMetadataRepository.save({
-        ...existingGame,
-        ...game,
-      });
-    }
-    return this.gameMetadataRepository.save(game);
+    const upsertedGame = {
+      ...existingGameMetadata,
+      ...game,
+    } as GameMetadata;
+
+    const finalGameMetadata = await this.upsertRelatedEntities(upsertedGame);
+
+    return this.gameMetadataRepository.save(finalGameMetadata);
+  }
+
+  private async upsertRelatedEntities(game: GameMetadata) {
+    game.developers = await Promise.all(
+      game.developers.map(async (developer) => ({
+        ...(await this.developerMetadataService.upsert(developer)),
+      })),
+    );
+    game.publishers = await Promise.all(
+      game.publishers.map(async (publisher) => ({
+        ...(await this.publisherMetadataService.upsert(publisher)),
+      })),
+    );
+    game.tags = await Promise.all(
+      game.tags.map(async (tag) => ({
+        ...(await this.tagMetadataService.upsert(tag)),
+      })),
+    );
+    game.genres = await Promise.all(
+      game.genres.map(async (genre) => ({
+        ...(await this.genreMetadataService.upsert(genre)),
+      })),
+    );
+
+    return game;
   }
 }
