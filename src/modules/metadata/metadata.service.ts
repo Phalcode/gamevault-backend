@@ -19,7 +19,10 @@ export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
   providers: MetadataProvider[] = [];
 
-  constructor(private gamesService: GamesService, private gameMetadataService: GameMetadataService) {}
+  constructor(
+    private gamesService: GamesService,
+    private gameMetadataService: GameMetadataService,
+  ) {}
 
   /**
    * Registers a metadata provider.
@@ -73,6 +76,8 @@ export class MetadataService {
    * @throws {NotFoundException} If no provider is found.
    */
   getProviderBySlugOrFail(slug: string): MetadataProvider {
+    //Todo: UserProvider & GameVaultProvider
+
     // Find the provider with the given slug.
     const provider = this.providers.find((provider) => provider.slug === slug);
 
@@ -135,7 +140,7 @@ export class MetadataService {
             });
 
             // Update the metadata.
-            await this.updateMetadata(game.id);
+            await this.update(game.id);
           } else {
             // Log that the metadata is up to date.
             this.logger.debug({
@@ -170,7 +175,7 @@ export class MetadataService {
       await this.gamesService.save(game);
 
       // Merge metadata
-      await this.mergeMetadata(game.id);
+      await this.merge(game.id);
     }
   }
   /**
@@ -180,7 +185,7 @@ export class MetadataService {
    * @param {string} providerSlug - The slug of the provider to use for the search.
    * @return {Promise<GameMetadata[]>} A promise that resolves to an array of game metadata.
    */
-  async searchMetadata(
+  async search(
     game: GamevaultGame,
     providerSlug: string,
   ): Promise<GameMetadata[]> {
@@ -194,7 +199,7 @@ export class MetadataService {
    * @param {number} gameId - The ID of the game to update the metadata for.
    * @return {Promise<void>} A promise that resolves when the metadata is updated.
    */
-  async updateMetadata(gameId: number): Promise<void> {
+  async update(gameId: number): Promise<void> {
     // Find the game by ID.
     const game = await this.gamesService.findOneByGameIdOrFail(gameId);
 
@@ -210,9 +215,11 @@ export class MetadataService {
         }
 
         // Get the latest metadata from the provider.
-        const updatedMetadata = await provider.getByProviderDataId(
+        const freshMetadata = await provider.getByProviderDataId(
           metadata.provider_data_id,
         );
+        const updatedMetadata =
+          await this.gameMetadataService.upsert(freshMetadata);
 
         // Update the metadata object with the latest information.
         Object.assign(metadata, updatedMetadata);
@@ -231,26 +238,35 @@ export class MetadataService {
     await this.gamesService.save(game);
 
     // Merge the metadata after updating it.
-    await this.mergeMetadata(gameId);
+    await this.merge(gameId);
   }
 
-  async mergeMetadata(gameId: number) {
-    const game = this.gamesService.findOneByGameIdOrFail(gameId);
-    // sort and fill gaps by priority, and save a gamevault entry
-    throw new NotImplementedException("Method not implemented.");
+  async merge(gameId: number) {
+    // TODO: Clear effective metadata
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
+    // Get existing Metadata and sort them by provider-slug in provider priority in ascending order
+    game.metadata.sort((a, b) => {
+      const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
+      const bProvider = this.getProviderBySlugOrFail(b.provider_slug);
+      return aProvider.priority - bProvider.priority;
+    });
+
+    // TODO: Create New Effective Metadata by applying the priorotized metadata one by one
+
+    // TODO: Apply the users changes
+    // TODO: save and return the new effective metadata
+
+    for (const metadata of game.metadata) {
+      await this.gameMetadataService.upsert(metadata);
+    }
   }
 
-  async unmapMetadata(gameId: number, providerSlug?: string) {
+  async unmap(gameId: number, providerSlug?: string) {
     // TODO: clear effective metadata and remove each metadata from the game except user
-
     throw new NotImplementedException("Method not implemented.");
   }
 
-  async remapMetadata(
-    gameId: number,
-    providerSlug: string,
-    newProviderId: string,
-  ) {
+  async remap(gameId: number, providerSlug: string, newProviderId: string) {
     // TODO: Remove relation of current metadata and create a new one
     throw new NotImplementedException("Method not implemented.");
   }

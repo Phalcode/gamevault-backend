@@ -71,47 +71,65 @@ export class GameMetadataService {
     }
   }
 
-  async upsert(game: GameMetadata): Promise<GameMetadata> {
+  /**
+   * Upserts a GameMetadata entity.
+   *
+   * If a GameMetadata with the same provider_slug and provider_data_id
+   * exists, it updates its properties with the ones from the provided
+   * metadata. Otherwise, it creates a new GameMetadata entity.
+   *
+   * @param metadata - The GameMetadata to upsert.
+   * @returns The upserted GameMetadata entity.
+   */
+  async upsert(metadata: GameMetadata): Promise<GameMetadata> {
+    // Find an existing GameMetadata with the same provider_slug and provider_data_id
     const existingGameMetadata = await this.gameMetadataRepository.findOne({
       where: {
-        provider_slug: game.provider_slug,
-        provider_data_id: game.provider_data_id,
+        provider_slug: metadata.provider_slug,
+        provider_data_id: metadata.provider_data_id,
       },
-      relations: ["developers", "publishers", "genres", "tags"],
+      relations: ["developers", "publishers", "genres", "tags"], // Load related entities
     });
 
-    const upsertedGame = {
+    // Update the existing GameMetadata with the provided metadata
+    const combinedGameMetadata = {
       ...existingGameMetadata,
-      ...game,
+      ...metadata,
     } as GameMetadata;
 
-    const finalGameMetadata = await this.upsertRelatedEntities(upsertedGame);
-
-    return this.gameMetadataRepository.save(finalGameMetadata);
-  }
-
-  private async upsertRelatedEntities(game: GameMetadata) {
-    game.developers = await Promise.all(
-      game.developers.map(async (developer) => ({
+    // Upsert developers
+    combinedGameMetadata.developers = await Promise.all(
+      combinedGameMetadata.developers.map(async (developer) => ({
+        // Upsert developer and spread the upserted developer
         ...(await this.developerMetadataService.upsert(developer)),
       })),
     );
-    game.publishers = await Promise.all(
-      game.publishers.map(async (publisher) => ({
+
+    // Upsert publishers
+    combinedGameMetadata.publishers = await Promise.all(
+      combinedGameMetadata.publishers.map(async (publisher) => ({
+        // Upsert publisher and spread the upserted publisher
         ...(await this.publisherMetadataService.upsert(publisher)),
       })),
     );
-    game.tags = await Promise.all(
-      game.tags.map(async (tag) => ({
+
+    // Upsert tags
+    combinedGameMetadata.tags = await Promise.all(
+      combinedGameMetadata.tags.map(async (tag) => ({
+        // Upsert tag and spread the upserted tag
         ...(await this.tagMetadataService.upsert(tag)),
       })),
     );
-    game.genres = await Promise.all(
-      game.genres.map(async (genre) => ({
+
+    // Upsert genres
+    combinedGameMetadata.genres = await Promise.all(
+      combinedGameMetadata.genres.map(async (genre) => ({
+        // Upsert genre and spread the upserted genre
         ...(await this.genreMetadataService.upsert(genre)),
       })),
     );
 
-    return game;
+    // Save (upsert) the GameMetadata entity
+    return this.gameMetadataRepository.save(combinedGameMetadata);
   }
 }
