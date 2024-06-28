@@ -14,8 +14,9 @@ import {
   Matches,
   Min,
 } from "class-validator";
-import { compareTwoStrings } from "string-similarity";
+import { stringSimilarity } from "string-similarity-js";
 
+import globals from "../../../globals";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
@@ -24,10 +25,10 @@ import { GameMetadataService } from "../games/game.metadata.service";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
 import { GenreMetadataService } from "../genres/genre.metadata.service";
 import { MetadataService } from "../metadata.service";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
 import { TagMetadata } from "../tags/tag.metadata.entity";
 import { TagMetadataService } from "../tags/tag.metadata.service";
-import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 
 @Injectable()
 export abstract class MetadataProvider implements OnModuleInit {
@@ -50,7 +51,7 @@ export abstract class MetadataProvider implements OnModuleInit {
     message:
       "Invalid slug: Only lowercase letters, numbers, and single hyphens inbetween them are allowed.",
   })
-  @IsNotIn(["gamevault", "user"], {
+  @IsNotIn(globals.RESERVED_PROVIDER_SLUGS, {
     message:
       "Invalid slug: The terms 'gamevault' and 'user' are reserved slugs.",
   })
@@ -104,6 +105,8 @@ export abstract class MetadataProvider implements OnModuleInit {
 
   /**
    * Returns a game metadata object using the id.
+   *
+   * **CAUTION: Data needs to be upserted before using it.**
    * @param provider_data_id - The provider data id of the game.
    * @returns A promise that resolves to the game metadata object.
    * @throws NotFoundException if the game is not found.
@@ -139,8 +142,17 @@ export abstract class MetadataProvider implements OnModuleInit {
         ?.toLowerCase()
         .replace(/[^\w\s]/g, "");
 
+      if (!cleanedGameTitle || !cleanedGameResultTitle) {
+        this.logger.warn({
+          message: "Could not clean game title.",
+          game: game.getLoggableData(),
+          gameResult: gameResult.getLoggableData(),
+        });
+        continue;
+      }
+
       // Calculate the similarity between the two titles and assign it to the game result.
-      gameResult.provider_probability = compareTwoStrings(
+      gameResult.provider_probability = stringSimilarity(
         cleanedGameTitle,
         cleanedGameResultTitle,
       );

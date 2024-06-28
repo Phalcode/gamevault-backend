@@ -23,12 +23,12 @@ export class Media extends DatabaseEntity {
   })
   path?: string;
 
-  @Column({ nullable: true })
+  @Column()
   @ApiPropertyOptional({
     example: "image/jpeg",
     description: "the media type of the media on the filesystem",
   })
-  type?: string;
+  type: string;
 
   @ManyToOne(() => GamevaultUser, (user) => user.uploaded_media, {
     nullable: true,

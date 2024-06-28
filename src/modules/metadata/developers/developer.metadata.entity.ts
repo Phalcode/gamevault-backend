@@ -1,18 +1,36 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotIn, Matches } from "class-validator";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
+import globals from "../../../globals";
 import { DatabaseEntity } from "../../database/database.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
-@Index("UQ_DEVELOPER_METADATA", ["provider", "provider_data_id"], {
+@Index("UQ_DEVELOPER_METADATA", ["provider_slug", "provider_data_id"], {
   unique: true,
 })
 export class DeveloperMetadata extends DatabaseEntity {
   @Column()
   @Index()
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message:
+      "Invalid slug: Only lowercase letters, numbers, and single hyphens inbetween them are allowed.",
+  })
+  @IsNotIn(globals.RESERVED_PROVIDER_SLUGS, {
+    message:
+      "Invalid slug: The terms 'gamevault' and 'user' are reserved slugs.",
+  })
   @ApiProperty({
-    description: "provider slug of the metadata",
+    description:
+      "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
+    examples: [
+      "my-custom-metadata-provider",
+      "igdb",
+      "steam",
+      "epic-games",
+      "rawg-2-steam",
+    ],
   })
   provider_slug: string;
 

@@ -16,6 +16,7 @@ export class RemoveRawg1717965679000 implements MigrationInterface {
       "background_id",
     );
     queryRunner.renameColumn("bookmark", "game_id", "gamevault_game_id");
+    //TODO: Delete all images without a media type or try to find the media type using the file extension
     //TODO: Create a new GamevaultGame for each entry in the "game" table
     //TODO: Create a new rawg-legacy provider
     //TODO: Create a new RAWG GameMetadata for each entry in the "game" table

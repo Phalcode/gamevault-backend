@@ -7,11 +7,13 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { validate } from "class-validator";
 import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../filters/deleted-entities.filter";
 import { FindOptions } from "../../globals";
 import { MediaService } from "../media/media.service";
+import { MetadataService } from "../metadata/metadata.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
@@ -25,6 +27,8 @@ export class GamesService {
     private gamesRepository: Repository<GamevaultGame>,
     @Inject(forwardRef(() => MediaService))
     private mediaService: MediaService,
+    @Inject(forwardRef(() => MetadataService))
+    private metadataService: MetadataService,
   ) {}
 
   public async findOneByGameIdOrFail(
@@ -37,15 +41,12 @@ export class GamesService {
       if (options.loadRelations) {
         if (options.loadRelations === true) {
           relations = [
-            "developers",
-            "publishers",
-            "genres",
-            "tags",
             "progresses",
             "progresses.user",
-            "box_image",
-            "background_image",
             "bookmarked_users",
+            "metadata",
+            "user_metadata",
+            "provider_metadata",
           ];
         } else if (Array.isArray(options.loadRelations))
           relations = options.loadRelations;
@@ -163,25 +164,9 @@ export class GamesService {
     });
   }
 
-  /** Unmaps Metadata of a game then saves it. */
-  public async unmap(id: number): Promise<GamevaultGame> {
-    const game = await this.findOneByGameIdOrFail(id);
-    //TODO: Unmap Metadata
-    this.logger.log({ message: "Unmapped Game", game });
-    return await this.gamesRepository.save(game);
-  }
-
-  /**
-   * Remaps the Rawg ID of a game then recaches the game.
-   */
-  public async remap(id: number): Promise<GamevaultGame> {
-    const game = await this.unmap(id);
-    //TODO: Remap Metadata
-    return await this.gamesRepository.save(game);
-  }
-
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
+    validate(game);
     return this.gamesRepository.save(game);
   }
 
@@ -209,13 +194,19 @@ export class GamesService {
       loadRelations: true,
     });
 
-    // Remaps the Game
-    if (dto.rawg_id != null) {
-      //TODO: Remap a game
-      //game = await this.remap(game.id, dto.rawg_id);
+    for (const request of dto.mapping_requests) {
+      if (request.target_provider_data_id) {
+        await this.metadataService.remap(
+          id,
+          request.provider_slug,
+          request.target_provider_data_id,
+        );
+      } else {
+        await this.metadataService.unmap(id, request.provider_slug);
+      }
     }
 
-    return this.gamesRepository.save(game);
+    return this.save(game);
   }
 
   /** Restore a game that has been soft deleted. */

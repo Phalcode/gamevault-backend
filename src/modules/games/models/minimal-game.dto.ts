@@ -10,10 +10,25 @@ export class MinimalGameDto {
   id?: number;
 
   @ApiPropertyOptional({
+    description: "provider slug of the metadata",
+    example: "igdb",
+    pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+  })
+  provider_slug?: string;
+
+  @ApiPropertyOptional({
     description: "unique rawg-api-identifier of the game",
     example: 1212,
   })
-  rawg_id?: number;
+  provider_data_id?: string;
+
+  @ApiPropertyOptional({
+    description: "Probability of the metadata being the correct one.",
+    example: 0.5,
+    minimum: 0,
+    maximum: 1,
+  })
+  provider_probability?: number;
 
   @ApiPropertyOptional({
     description: "title of the game",

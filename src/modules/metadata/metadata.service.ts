@@ -1,10 +1,11 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  NotImplementedException,
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
@@ -20,6 +21,7 @@ export class MetadataService {
   providers: MetadataProvider[] = [];
 
   constructor(
+    @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
     private gameMetadataService: GameMetadataService,
   ) {}
@@ -76,7 +78,9 @@ export class MetadataService {
    * @throws {NotFoundException} If no provider is found.
    */
   getProviderBySlugOrFail(slug: string): MetadataProvider {
-    //Todo: UserProvider & GameVaultProvider
+    if (!slug) {
+      throw new NotFoundException(`No slug provided.`);
+    }
 
     // Find the provider with the given slug.
     const provider = this.providers.find((provider) => provider.slug === slug);
@@ -103,72 +107,73 @@ export class MetadataService {
     for (const game of games) {
       // Loop through each registered provider.
       for (const provider of this.providers) {
-        // Find existing metadata for the provider.
-        const existingProviderMetadata = game.metadata.find(
-          (m) => m.provider_slug === provider.slug,
-        );
+        try {
+          // Find existing metadata for the provider.
+          const existingProviderMetadata = game.provider_metadata?.find(
+            (m) => m.provider_slug === provider.slug,
+          );
 
-        // If existing metadata exists.
-        if (existingProviderMetadata) {
-          // If the provider has a time-to-live (TTL) value of 0, log that the metadata is not updated and continue to the next provider.
-          if (!provider.ttlDays) {
-            this.logger.debug({
-              message:
-                "Not updating existing metadata, as this provider has a time-to-live value of 0.",
-              provider: provider.getLoggableData(),
-              game: game.getLoggableData(),
-            });
-            continue;
-          }
+          // If existing metadata exists.
+          if (existingProviderMetadata) {
+            // If the provider has a time-to-live (TTL) value of 0, log that the metadata is not updated and continue to the next provider.
+            if (!provider.ttlDays) {
+              this.logger.debug({
+                message:
+                  "Not updating existing metadata, as this provider has a time-to-live value of 0.",
+                provider: provider.getLoggableData(),
+                game: game.getLoggableData(),
+              });
+              continue;
+            }
 
-          // Calculate the TTL in milliseconds.
-          const ttlMilliseconds = provider.ttlDays * 24 * 60 * 60 * 1000;
+            // Calculate the TTL in milliseconds.
+            const ttlMilliseconds = provider.ttlDays * 24 * 60 * 60 * 1000;
 
-          // Check if the existing metadata is outdated.
-          const outdated =
-            existingProviderMetadata.updated_at <
-            new Date(Date.now() - ttlMilliseconds);
+            // Check if the existing metadata is outdated.
+            const outdated =
+              existingProviderMetadata.updated_at <
+              new Date(Date.now() - ttlMilliseconds);
 
-          // If the existing metadata is outdated.
-          if (outdated) {
-            // Log that the metadata is outdated.
-            this.logger.debug({
-              message: "Metadata is outdated.",
-              provider: provider.getLoggableData(),
-              game: game.getLoggableData(),
-              metadata: existingProviderMetadata.getLoggableData(),
-            });
+            // If the existing metadata is outdated.
+            if (outdated) {
+              // Log that the metadata is outdated.
+              this.logger.debug({
+                message: "Metadata is outdated.",
+                provider: provider.getLoggableData(),
+                game: game.getLoggableData(),
+                metadata: existingProviderMetadata.getLoggableData(),
+              });
 
-            // Update the metadata.
-            await this.update(game.id);
+              // Update the metadata.
+              await this.update(game.id);
+            } else {
+              // Log that the metadata is up to date.
+              this.logger.debug({
+                message: "Metadata is up to date.",
+                provider: provider.getLoggableData(),
+                game: game.getLoggableData(),
+              });
+            }
           } else {
-            // Log that the metadata is up to date.
-            this.logger.debug({
-              message: "Metadata is up to date.",
-              provider: provider.getLoggableData(),
-              game: game.getLoggableData(),
-            });
-          }
-        } else {
-          try {
             // If the metadata does not exist, get the best match for the game from the provider.
-            const metadata = await this.getProviderBySlugOrFail(
+            const freshMetadata = await this.getProviderBySlugOrFail(
               provider.slug,
             ).getBestMatch(game);
 
             // Save the metadata to the database.
-            await this.gameMetadataService.upsert(metadata);
+            const upsertedMetadata =
+              await this.gameMetadataService.upsert(freshMetadata);
 
             // Add the metadata to the game's metadata array.
-            game.metadata.push(metadata);
-          } catch (error) {
-            this.logger.warn({
-              message: "Failed to get best matching metadata from provider.",
-              provider: provider.getLoggableData(),
-              game: game.getLoggableData(),
-              error,
-            });
+            game.provider_metadata.push(upsertedMetadata);
           }
+        } catch (error) {
+          this.logger.error({
+            message: "Failed to check metadata for game.",
+            provider: provider.getLoggableData(),
+            game: game.getLoggableData(),
+            error,
+          });
         }
       }
       // Save the game to the database.
@@ -201,10 +206,13 @@ export class MetadataService {
    */
   async update(gameId: number): Promise<void> {
     // Find the game by ID.
-    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
 
     // Iterate over each metadata entry in the game's metadata array.
-    for (const metadata of game.metadata) {
+    for (const metadata of game.provider_metadata) {
       try {
         // Get the provider object for the metadata.
         const provider = this.getProviderBySlugOrFail(metadata.provider_slug);
@@ -242,32 +250,109 @@ export class MetadataService {
   }
 
   async merge(gameId: number) {
-    // TODO: Clear effective metadata
-    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+
+    // Clear effective metadata
+    game.metadata = null;
+
     // Get existing Metadata and sort them by provider-slug in provider priority in ascending order
-    game.metadata.sort((a, b) => {
+    game.provider_metadata.sort((a, b) => {
       const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
       const bProvider = this.getProviderBySlugOrFail(b.provider_slug);
       return aProvider.priority - bProvider.priority;
     });
 
-    // TODO: Create New Effective Metadata by applying the priorotized metadata one by one
+    let mergedMetadata = new GameMetadata();
 
-    // TODO: Apply the users changes
-    // TODO: save and return the new effective metadata
-
-    for (const metadata of game.metadata) {
-      await this.gameMetadataService.upsert(metadata);
+    // Create New Effective Metadata by applying the priorotized metadata one by one
+    for (const metadata of game.provider_metadata) {
+      mergedMetadata = { ...mergedMetadata, ...metadata } as GameMetadata;
     }
+
+    // Apply the users changes on top
+    if (game.user_metadata) {
+      mergedMetadata = {
+        ...mergedMetadata,
+        ...game.user_metadata,
+      } as GameMetadata;
+    }
+
+    // Save the new effective metadata
+    game.metadata = mergedMetadata;
+    await this.gamesService.save(game);
   }
 
+  /**
+   * Removes metadata from the game. Does not remove user provided metadata.
+   *
+   * @param gameId - The ID of the game.
+   * @param providerSlug - (Optional) The slug of the provider. If provided, only the metadata of the specified provider will be removed.
+   * @returns A promise that resolves when the metadata is unmapped.
+   */
   async unmap(gameId: number, providerSlug?: string) {
-    // TODO: clear effective metadata and remove each metadata from the game except user
-    throw new NotImplementedException("Method not implemented.");
+    // Find the game by gameId.
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+
+    // Clear the effective metadata.
+    game.metadata = null;
+
+    // If a providerSlug is provided, remove the metadata of the specified provider.
+    // Otherwise, remove all metadata.
+    if (providerSlug) {
+      game.provider_metadata = game.provider_metadata.filter(
+        (metadata) => metadata.provider_slug !== providerSlug,
+      );
+    } else {
+      game.provider_metadata = [];
+    }
+
+    // Merge the metadata after unmapping it.
+    return this.merge(gameId);
   }
 
-  async remap(gameId: number, providerSlug: string, newProviderId: string) {
-    // TODO: Remove relation of current metadata and create a new one
-    throw new NotImplementedException("Method not implemented.");
+  /**
+   * Remaps the metadata of a game to another game on the same provider.
+   *
+   * @param gameId - The ID of the game.
+   * @param providerSlug - The slug of the provider to use for the remapping.
+   * @param targetProviderDataId - The target ID of the metadata in the provider.
+   */
+  async remap(
+    gameId: number,
+    providerSlug: string,
+    targetProviderDataId: string,
+  ) {
+    // Find the game by gameId.
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+
+    // Remove the metadata of the specified provider.
+    game.provider_metadata = game.provider_metadata.filter(
+      (metadata) => metadata.provider_slug !== providerSlug,
+    );
+
+    // Get the fresh metadata from the target provider.
+    const freshMetadata =
+      await this.getProviderBySlugOrFail(providerSlug).getByProviderDataId(
+        targetProviderDataId,
+      );
+
+    // Upsert the fresh metadata into the database.
+    const updatedMetadata =
+      await this.gameMetadataService.upsert(freshMetadata);
+
+    // Push the updated metadata into the game's provider_metadata array.
+    game.provider_metadata.push(updatedMetadata);
+
+    // Save the game with the updated provider_metadata.
+    await this.gamesService.save(game);
   }
 }

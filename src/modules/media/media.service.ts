@@ -86,10 +86,11 @@ export class MediaService {
         uploader: uploaderUsername,
       });
       const mediaBuffer = Buffer.from(response.data);
-      const fileType = this.checkFileType(mediaBuffer);
+      const validatedMediaBuffer = await this.validate(mediaBuffer);
 
+      media.type = validatedMediaBuffer.mimeType;
       media.path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${
-        fileType.extension
+        validatedMediaBuffer.extension
       }`;
 
       await this.saveToFileSystem(media.path, mediaBuffer);
@@ -121,16 +122,6 @@ export class MediaService {
           }),
         ),
     );
-  }
-
-  private checkFileType(mediaBuffer: Buffer) {
-    const fileType = fileTypeChecker.detectFile(mediaBuffer);
-    if (!configuration.MEDIA.SUPPORTED_FORMATS.includes(fileType.mimeType)) {
-      throw new BadRequestException(
-        `Content Type "${fileType.mimeType}" is not supported. Please select a different file or convert it to a supported format.`,
-      );
-    }
-    return fileType;
   }
 
   private async saveToFileSystem(

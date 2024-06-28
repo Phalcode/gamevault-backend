@@ -21,10 +21,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 

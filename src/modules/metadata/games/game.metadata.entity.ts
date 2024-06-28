@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, Matches } from "class-validator";
+import { IsNotIn, Matches } from "class-validator";
 import {
   Column,
   Entity,
@@ -11,6 +11,8 @@ import {
   OneToOne,
 } from "typeorm";
 
+import globals from "../../../globals";
+import { MediaValidator } from "../../../validators/media.validator";
 import { DatabaseEntity } from "../../database/database.entity";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { Media } from "../../media/media.entity";
@@ -18,39 +20,64 @@ import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
 import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../tags/tag.metadata.entity";
+import { GameMetadataType } from "./game-metadata-type.enum";
 
 @Entity()
-@Index("UQ_GAME_METADATA", ["provider", "provider_data_id"], {
+@Index("UQ_GAME_METADATA", ["provider_slug", "provider_data_id"], {
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity {
-  @ManyToMany(() => GamevaultGame, (game) => game.metadata)
+  @Column({
+    type: "simple-enum",
+    enum: GameMetadataType,
+  })
+  @ApiProperty({
+    description: "type of the metadata",
+    type: "enum",
+    enum: GameMetadataType,
+    example: GameMetadataType.PROVIDER,
+  })
+  type: GameMetadataType;
+
+  @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
   @ApiPropertyOptional({
-    description: "game the metadata belongs to",
+    description: "games the metadata belongs to",
     type: () => GamevaultGame,
     isArray: true,
   })
-  gamevault_game?: GamevaultGame;
+  gamevault_games?: GamevaultGame[];
 
-  @Column()
+  //#region Provider Metadata Properties
+  @Column({ nullable: true })
   @Index()
-  @IsNotEmpty()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
     message:
-      "Invalid provider_slug: Only lowercase letters, numbers, and single hyphens inbetween them are allowed.",
+      "Invalid slug: Only lowercase letters, numbers, and single hyphens inbetween them are allowed.",
+  })
+  @IsNotIn(globals.RESERVED_PROVIDER_SLUGS, {
+    message:
+      "Invalid slug: The terms 'gamevault' and 'user' are reserved slugs.",
   })
   @ApiProperty({
-    description: "provider slug of the metadata",
+    description:
+      "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
+    examples: [
+      "my-custom-metadata-provider",
+      "igdb",
+      "steam",
+      "epic-games",
+      "rawg-2-steam",
+    ],
   })
-  provider_slug: string;
+  provider_slug?: string;
 
   @Column({ nullable: true })
   @Index()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "id of the game from the provider",
     example: "Grand Theft Auto V",
   })
-  provider_data_id: string;
+  provider_data_id?: string;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -67,6 +94,8 @@ export class GameMetadata extends DatabaseEntity {
     example: "3608a6d1a05aba23ea390e5f3b48203dbb7241f7",
   })
   provider_checksum?: string;
+
+  //#endregion
 
   @Column({ nullable: true, type: "integer" })
   @ApiPropertyOptional({
@@ -106,6 +135,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   average_playtime?: number;
 
+  @MediaValidator("image")
   @OneToOne(() => Media, {
     nullable: true,
     eager: true,
@@ -119,6 +149,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   cover?: Media;
 
+  @MediaValidator("image")
   @OneToOne(() => Media, {
     nullable: true,
     eager: true,
@@ -175,7 +206,10 @@ export class GameMetadata extends DatabaseEntity {
   early_access?: boolean;
 
   @JoinTable()
-  @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games)
+  @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
+    eager: true,
+    cascade: ["insert", "update"],
+  })
   @ApiPropertyOptional({
     description: "publishers of the game",
     type: () => PublisherMetadata,
@@ -184,7 +218,10 @@ export class GameMetadata extends DatabaseEntity {
   publishers?: PublisherMetadata[];
 
   @JoinTable()
-  @ManyToMany(() => DeveloperMetadata, (developer) => developer.games)
+  @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
+    eager: true,
+    cascade: ["insert", "update"],
+  })
   @ApiPropertyOptional({
     description: "developers of the game",
     type: () => DeveloperMetadata,
@@ -193,7 +230,10 @@ export class GameMetadata extends DatabaseEntity {
   developers?: DeveloperMetadata[];
 
   @JoinTable()
-  @ManyToMany(() => TagMetadata, (tag) => tag.games)
+  @ManyToMany(() => TagMetadata, (tag) => tag.games, {
+    eager: true,
+    cascade: ["insert", "update"],
+  })
   @ApiPropertyOptional({
     description: "tags of the game",
     type: () => TagMetadata,
@@ -202,7 +242,10 @@ export class GameMetadata extends DatabaseEntity {
   tags?: TagMetadata[];
 
   @JoinTable()
-  @ManyToMany(() => GenreMetadata, (genre) => genre.games)
+  @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
+    eager: true,
+    cascade: ["insert", "update"],
+  })
   @ApiPropertyOptional({
     description: "genres of the game",
     type: () => GenreMetadata,

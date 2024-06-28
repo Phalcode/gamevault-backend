@@ -98,38 +98,49 @@ export class GameMetadataService {
     } as GameMetadata;
 
     // Upsert developers
-    combinedGameMetadata.developers = await Promise.all(
-      combinedGameMetadata.developers.map(async (developer) => ({
-        // Upsert developer and spread the upserted developer
-        ...(await this.developerMetadataService.upsert(developer)),
-      })),
-    );
+    if (combinedGameMetadata.developers) {
+      combinedGameMetadata.developers = await Promise.all(
+        combinedGameMetadata.developers.map(async (developer) => ({
+          // Upsert developer and spread the upserted developer
+          ...(await this.developerMetadataService.upsert(developer)),
+        })),
+      );
+    }
 
     // Upsert publishers
-    combinedGameMetadata.publishers = await Promise.all(
-      combinedGameMetadata.publishers.map(async (publisher) => ({
-        // Upsert publisher and spread the upserted publisher
-        ...(await this.publisherMetadataService.upsert(publisher)),
-      })),
-    );
+    if (combinedGameMetadata.publishers) {
+      combinedGameMetadata.publishers = await Promise.all(
+        combinedGameMetadata.publishers.map(async (publisher) => ({
+          // Upsert publisher and spread the upserted publisher
+          ...(await this.publisherMetadataService.upsert(publisher)),
+        })),
+      );
+    }
 
     // Upsert tags
-    combinedGameMetadata.tags = await Promise.all(
-      combinedGameMetadata.tags.map(async (tag) => ({
-        // Upsert tag and spread the upserted tag
-        ...(await this.tagMetadataService.upsert(tag)),
-      })),
-    );
-
+    if (combinedGameMetadata.tags) {
+      combinedGameMetadata.tags = await Promise.all(
+        combinedGameMetadata.tags.map(async (tag) => ({
+          // Upsert tag and spread the upserted tag
+          ...(await this.tagMetadataService.upsert(tag)),
+        })),
+      );
+    }
+    
     // Upsert genres
-    combinedGameMetadata.genres = await Promise.all(
-      combinedGameMetadata.genres.map(async (genre) => ({
-        // Upsert genre and spread the upserted genre
-        ...(await this.genreMetadataService.upsert(genre)),
-      })),
-    );
+    if (combinedGameMetadata.genres) {
+      combinedGameMetadata.genres = await Promise.all(
+        combinedGameMetadata.genres.map(async (genre) => ({
+          // Upsert genre and spread the upserted genre
+          ...(await this.genreMetadataService.upsert(genre)),
+        })),
+      );
+    }
 
     // Save (upsert) the GameMetadata entity
-    return this.gameMetadataRepository.save(combinedGameMetadata);
+    const upsertedGameMetadata =
+      await this.gameMetadataRepository.save(combinedGameMetadata);
+
+    return upsertedGameMetadata;
   }
 }

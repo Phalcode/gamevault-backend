@@ -10,6 +10,7 @@ import {
   OneToOne,
 } from "typeorm";
 
+import { MediaValidator } from "../../validators/media.validator";
 import { DatabaseEntity } from "../database/database.entity";
 import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
@@ -38,7 +39,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   socket_secret: string;
 
-  //TODO: Validate the uploaded media is an image
+  @MediaValidator("image")
   @OneToOne(() => Media, {
     nullable: true,
     eager: true,
@@ -52,7 +53,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   avatar?: Media;
 
-  //TODO: Validate the uploaded media is an image
+  @MediaValidator("image")
   @OneToOne(() => Media, {
     nullable: true,
     eager: true,

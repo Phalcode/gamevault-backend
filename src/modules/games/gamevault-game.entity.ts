@@ -1,11 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
+  AfterLoad,
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -90,13 +93,38 @@ export class GamevaultGame extends DatabaseEntity {
   type: GameType;
 
   @JoinTable()
-  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_game)
+  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games, {
+    cascade: ["insert", "update"],
+  })
   @ApiPropertyOptional({
-    description: "metadata associated to the game",
+    description: "metadata of various providers associated to the game",
     type: () => GameMetadata,
     isArray: true,
   })
-  metadata?: GameMetadata[];
+  provider_metadata: GameMetadata[];
+
+  @OneToOne(() => GameMetadata, {
+    nullable: true,
+    cascade: ["insert", "update"],
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    description: "user-defined metadata of the game",
+    type: () => GameMetadata,
+  })
+  user_metadata?: GameMetadata;
+
+  @OneToOne(() => GameMetadata, {
+    nullable: true,
+    cascade: true,
+    orphanedRowAction: "delete",
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    description: "effective and merged metadata of the game",
+    type: () => GameMetadata,
+  })
+  metadata?: GameMetadata;
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
@@ -119,5 +147,12 @@ export class GamevaultGame extends DatabaseEntity {
       id: this.id,
       path: this.path,
     };
+  }
+
+  @AfterLoad()
+  async nullChecks() {
+    if (!this.provider_metadata) {
+      this.provider_metadata = [];
+    }
   }
 }

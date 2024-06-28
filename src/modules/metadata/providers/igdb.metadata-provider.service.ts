@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
+import { Builder } from "builder-pattern";
 import { and, fields, igdb, twitchAccessToken, where } from "ts-igdb-client";
 
 import configuration from "../../../configuration";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
+import { GameMetadataType } from "../games/game-metadata-type.enum";
 import { GameMetadata } from "../games/game.metadata.entity";
 import { MetadataProvider } from "./abstract.metadata-provider.service";
 
@@ -53,6 +55,11 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
   private mapGame(game: any): GameMetadata {
     // TODO: The data is pretty incomplete and we need to dereference the objects.
-    return new GameMetadata();
+    return Builder<GameMetadata>()
+      .title(game.name)
+      .provider_slug("igdb")
+      .provider_data_id(game.id)
+      .type(GameMetadataType.PROVIDER)
+      .build();
   }
 }

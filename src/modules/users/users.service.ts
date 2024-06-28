@@ -11,6 +11,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
+import { validate } from "class-validator";
 import { randomBytes } from "crypto";
 import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 
@@ -295,6 +296,8 @@ export class UsersService implements OnApplicationBootstrap {
       logUpdate("role", user.role.toString(), dto.role.toString());
       user.role = dto.role;
     }
+
+    await validate(user);
 
     return this.userRepository.save(user);
   }

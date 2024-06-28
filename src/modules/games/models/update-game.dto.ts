@@ -1,17 +1,9 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive } from "class-validator";
+import { IsNumber, IsOptional, ValidateNested } from "class-validator";
+
+import { MapGameDto } from "./map-game.dto";
 
 export class UpdateGameDto {
-  @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  @IsNotEmpty()
-  @ApiPropertyOptional({
-    example: 1000,
-    description: "unique rawg-api-identifier of the game",
-  })
-  rawg_id?: number;
-
   @IsOptional()
   @IsNumber()
   @ApiPropertyOptional({
@@ -27,4 +19,7 @@ export class UpdateGameDto {
     description: "id of the image",
   })
   background_image_id?: number;
+
+  @ValidateNested({ each: true })
+  mapping_requests: MapGameDto[];
 }

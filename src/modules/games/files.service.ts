@@ -199,7 +199,7 @@ export class FilesService implements OnApplicationBootstrap {
       type: updatesToApply.type,
     };
 
-    await this.gamesService.save(updatedGame);
+    await this.gamesService.save(updatedGame as GamevaultGame);
     this.logger.log({
       message: `Updated new Game Information.`,
       game: {

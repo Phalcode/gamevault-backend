@@ -100,6 +100,7 @@ export default {
     "video/mpeg", // MPEG
     "video/3gpp", // 3GP
   ],
+  RESERVED_PROVIDER_SLUGS: ["gamevault", "user"],
 };
 
 export interface FindOptions {
