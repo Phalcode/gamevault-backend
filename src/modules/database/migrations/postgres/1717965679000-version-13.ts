@@ -1,7 +1,8 @@
+import { existsSync } from "fs";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class RemoveRawg1717965679000 implements MigrationInterface {
-  name = "RemoveRawg1717965679000";
+export class Version13 implements MigrationInterface {
+  name = "Version13";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     queryRunner.renameTable("image", "media");
@@ -16,6 +17,11 @@ export class RemoveRawg1717965679000 implements MigrationInterface {
       "background_id",
     );
     queryRunner.renameColumn("bookmark", "game_id", "gamevault_game_id");
+    if (existsSync("/images")) {
+      throw new Error(
+        "Your media volume mount point is still pointing to /images. This is deprecated in v13.0.0. From now on, mount your media to /media instead.",
+      );
+    }
     //TODO: Delete all images without a media type or try to find the media type using the file extension
     //TODO: Create a new GamevaultGame for each entry in the "game" table
     //TODO: Create a new rawg-legacy provider

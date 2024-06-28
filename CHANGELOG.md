@@ -2,18 +2,20 @@
 
 ## 13.0.0
 
-Recommended Gamevault App Version: `v1.11.0.0`
+Recommended Gamevault App Version: `v1.11.1.0`
 
 ### Breaking Changes & Migration
 
-- Added support for more media than just images. -> **From now on you need to mount your /images volume as /media**
-- Completely overhauled and fully implemented a plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported.**
-- Converted Images Module to Media Module. Users can now upload all kinds of media. (audio, video, images).
-- Removed RAWG Integration aswell as all configuration for it.
-- Removed Google Images Boxart Scraper.
-- TODO: Introduced a new Metadata Framework that universally supports any metadata provider.
-- TODO: Migrated old Games to new Metadata System.
-- TODO: Implemented IGDB as default metadata provider.
+(Migration Instructions are marked **fat**)
+
+- Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
+- Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove all old plugins.**
+- Removed RAWG Integration aswell as all configuration for it. -> **Remove all RAWG related configuration.**
+- Removed Google Images Boxart Scraper, but it may return as an optional plugin in the future.
+- Introduced a new Metadata Framework that universally supports any metadata provider plugin.
+- Implemented a built-in IGDB Metadata Provider plugin as the new default metadata provider. -> **Learn how to set it up [here](#TODO:)**
+- Migrated old Games to new Metadata System.
+- Optimized Game Indexer. It now only reads games that have changed instead of reading all files all the time.
 
 ## 12.2.0
 

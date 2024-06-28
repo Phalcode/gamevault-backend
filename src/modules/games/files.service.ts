@@ -9,9 +9,8 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
-import { debounce } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
 import path, { basename, extname, join } from "path";
@@ -20,6 +19,7 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
+import { debounce } from "lodash";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { MetadataService } from "../metadata/metadata.service";
@@ -36,59 +36,76 @@ import { RangeHeader } from "./models/range-header.model";
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    private gamesService: GamesService,
-    private metadataService: MetadataService,
-  ) {}
-
-  onApplicationBootstrap() {
-    this.index("Initial indexing on application start").catch((error) => {
-      this.logger.error({ message: "Error in initial file indexing", error });
-    });
-
-    if (configuration.TESTING.MOCK_FILES) {
-      return;
-    }
-
-    watch(configuration.VOLUMES.FILES, {
-      depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
-    })
-      .on(
-        "all",
-        debounce(() => {
-          this.index(
-            `Filewatcher detected changes in '${configuration.VOLUMES.FILES}'`,
-          );
-        }, 5000),
-      )
-      .on("error", (error) => {
-        this.logger.error({ message: "Error in Filewatcher", error });
-      });
-  }
-
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES || 60} * * * *`, {
-    disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
-  })
-  public async index(reason: string): Promise<GamevaultGame[]> {
-    this.logger.log({ message: "Indexing games.", reason });
-    const gamesInFileSystem = await this.readFiles();
-    await this.ingest(gamesInFileSystem);
+  private postIngest = debounce(async () => {
+    const gamesInFileSystem = await this.readAllFiles();
     let gamesInDatabase = await this.gamesService.find();
     gamesInDatabase = await this.checkIntegrity(
       gamesInFileSystem,
       gamesInDatabase,
     );
     this.metadataService.check(gamesInDatabase);
-    //games = await this.rawgService.checkCache(games);
-    return gamesInDatabase;
+  }, 3000);
+
+  constructor(
+    private gamesService: GamesService,
+    private metadataService: MetadataService,
+  ) {}
+
+  onApplicationBootstrap() {
+    this.index("Initial indexing on application start");
+    if (configuration.TESTING.MOCK_FILES) {
+      return;
+    }
+    watch(configuration.VOLUMES.FILES, {
+      depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
+      ignoreInitial: true,
+    })
+      .on("add", (path: string, stats: Stats) =>
+        this.index("FileWatcher detected new file.", [
+          { path, size: BigInt(stats.size) },
+        ]),
+      )
+      .on("change", (path: string, stats: Stats) =>
+        this.index("FileWatcher detected new file.", [
+          { path, size: BigInt(stats.size) },
+        ]),
+      )
+      .on("unlink", (path: string, stats: Stats) =>
+        this.index("FileWatcher detected new file.", [
+          { path, size: BigInt(stats.size) },
+        ]),
+      )
+      .on("error", (error) => {
+        this.logger.error({ message: "Error in FileWatcher.", error });
+      });
   }
 
-  private async ingest(gamesInFileSystem: File[]): Promise<void> {
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES || 60} * * * *`, {
+    disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES === 0,
+  })
+  public async index(reason: string, files?: File[]): Promise<GamevaultGame[]> {
+    this.logger.log({ message: "Indexing game(s).", reason, files });
+    const unvalidatedFilesToIngest = files ?? (await this.readAllFiles());
+
+    const validatedFilesToIngest = unvalidatedFilesToIngest.filter((file) =>
+      this.isValidFilePath(file.path),
+    );
+
+    if (validatedFilesToIngest.length === 0) {
+      this.logger.debug({ message: "No valid files to ingest." });
+      return;
+    }
+
+    await this.ingest(validatedFilesToIngest);
+    this.postIngest();
+  }
+
+  private async ingest(files: File[]): Promise<void> {
     this.logger.log({
-      message: "Started ingesting games.",
-      gamesCount: gamesInFileSystem.length,
+      message: "Ingesting games.",
+      count: files.length,
     });
-    for (const file of gamesInFileSystem) {
+    for (const file of files) {
       const gameToIndex = new GamevaultGame();
       try {
         gameToIndex.size = file.size;
@@ -179,7 +196,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
     this.logger.log({
       message: "Finished ingesting games.",
-      gamesCount: gamesInFileSystem.length,
+      count: files.length,
     });
   }
 
@@ -209,7 +226,7 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
-  private isValidFilename(filename: string) {
+  private isValidFilePath(filename: string) {
     const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
@@ -510,8 +527,8 @@ export class FilesService implements OnApplicationBootstrap {
       return gamesInDatabase;
     }
     this.logger.log({
-      message: "Started Integrity Check.",
-      gamesCount: gamesInDatabase.length,
+      message: "Started Game Integrity Check.",
+      count: gamesInDatabase.length,
     });
     const updatedGames: GamevaultGame[] = [];
     for (const gameInDatabase of gamesInDatabase) {
@@ -545,8 +562,8 @@ export class FilesService implements OnApplicationBootstrap {
       }
     }
     this.logger.log({
-      message: "Finished Integrity Check.",
-      gamesCount: gamesInDatabase.length,
+      message: "Finished Game Integrity Check.",
+      count: gamesInDatabase.length,
     });
     return updatedGames;
   }
@@ -555,7 +572,7 @@ export class FilesService implements OnApplicationBootstrap {
    * This method retrieves an array of objects representing game files in the
    * file system.
    */
-  private async readFiles(): Promise<File[]> {
+  private async readAllFiles(): Promise<File[]> {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
@@ -568,7 +585,7 @@ export class FilesService implements OnApplicationBootstrap {
           withFileTypes: true,
         })
       )
-        .filter((file) => file.isFile() && this.isValidFilename(file.name))
+        .filter((file) => file.isFile() && this.isValidFilePath(file.name))
         .map(
           (file) =>
             ({

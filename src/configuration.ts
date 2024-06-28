@@ -169,9 +169,6 @@ const configuration = {
     ),
     MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
-    GOOGLE_API_DISABLED: parseBooleanEnvVariable(
-      process.env.TESTING_GOOGLE_API_DISABLED,
-    ),
   } as const,
   METADATA: {
     IGDB: {
