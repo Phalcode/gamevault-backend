@@ -1,18 +1,51 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Builder } from "builder-pattern";
-import { and, fields, igdb, twitchAccessToken, where } from "ts-igdb-client";
+import { writeFileSync } from "fs";
+import {
+  and,
+  fields,
+  igdb,
+  search,
+  twitchAccessToken,
+  where,
+  whereIn,
+} from "ts-igdb-client";
 
-import configuration from "../../../configuration";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { GameMetadata } from "../games/game.metadata.entity";
-import { GameMetadataType } from "../games/game-metadata-type.enum";
-import { MetadataProvider } from "./abstract.metadata-provider.service";
+import configuration from "../../../../configuration";
+import { GamevaultGame } from "../../../games/gamevault-game.entity";
+import { GameMetadataType } from "../../games/game-metadata-type.enum";
+import { GameMetadata } from "../../games/game.metadata.entity";
+import { MetadataProvider } from "../abstract.metadata-provider.service";
+import { IGDBGameCategories } from "./models/game-categories.enum";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
   enabled = configuration.METADATA.IGDB.ENABLED;
   slug = configuration.METADATA.IGDB.SLUG;
   priority = configuration.METADATA.IGDB.PRIORITY;
+  fieldsToInclude = [
+    "*",
+    "cover.*",
+    "external_games.*",
+    "genres.*",
+    "involved_companies.*",
+    "keywords.*",
+    "screenshots.*",
+    "videos.*",
+    "themes.*",
+    "websites.*",
+  ];
+  categoriesToInclude = [
+    IGDBGameCategories.MainGame,
+    IGDBGameCategories.StandaloneExpansion,
+    IGDBGameCategories.Episode,
+    IGDBGameCategories.Season,
+    IGDBGameCategories.Remake,
+    IGDBGameCategories.Remaster,
+    IGDBGameCategories.ExpandedGame,
+    IGDBGameCategories.Port,
+    IGDBGameCategories.Fork,
+  ];
 
   override async onModuleInit(): Promise<void> {
     if (
@@ -34,7 +67,12 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       await this.getClient()
     )
       .request("games")
-      .pipe(fields("*"), where("name", "=", game.title))
+      .pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fields(this.fieldsToInclude as any),
+        search(game.title),
+        whereIn("category", this.categoriesToInclude),
+      )
       .execute();
 
     this.logger.log({
@@ -58,7 +96,11 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         await this.getClient()
       )
         .request("games")
-        .pipe(fields("*"), and(where("id", "=", provider_data_id)))
+        .pipe(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          fields(this.fieldsToInclude as any),
+          and(where("id", "=", provider_data_id)),
+        )
         .execute();
       return this.mapGame(update.data[0]);
     } catch (error) {
@@ -70,7 +112,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private async getClient() {
-    // TODO: Do we really need to authenticate each request?
     const token = await twitchAccessToken({
       client_id: configuration.METADATA.IGDB.CLIENT_ID,
       client_secret: configuration.METADATA.IGDB.CLIENT_SECRET,
@@ -80,7 +121,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private mapGame(game: unknown): GameMetadata {
-    // TODO: The data is pretty incomplete and we need to dereference the objects.
+    //write json to file
+    writeFileSync("igdb.json", JSON.stringify(game, null, 2));
     return Builder<GameMetadata>()
       .title(game["name"])
       .provider_slug("igdb")

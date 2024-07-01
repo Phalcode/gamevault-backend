@@ -5,6 +5,11 @@ export class Version13 implements MigrationInterface {
   name = "Version13";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    if (existsSync("/images")) {
+      throw new Error(
+        "Your media volume mount point is still pointing to /images. This is deprecated in v13.0.0. From now on, mount your media to /media instead.",
+      );
+    }
     queryRunner.renameTable("image", "media");
     queryRunner.renameColumn(
       "gamevault_user",
@@ -17,11 +22,6 @@ export class Version13 implements MigrationInterface {
       "background_id",
     );
     queryRunner.renameColumn("bookmark", "game_id", "gamevault_game_id");
-    if (existsSync("/images")) {
-      throw new Error(
-        "Your media volume mount point is still pointing to /images. This is deprecated in v13.0.0. From now on, mount your media to /media instead.",
-      );
-    }
     //TODO: Delete all images without a media type or try to find the media type using the file extension
     //TODO: Create a new GamevaultGame for each entry in the "game" table
     //TODO: Create a new rawg-legacy provider
