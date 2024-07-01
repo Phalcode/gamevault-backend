@@ -4,8 +4,8 @@ import { and, fields, igdb, twitchAccessToken, where } from "ts-igdb-client";
 
 import configuration from "../../../configuration";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { GameMetadataType } from "../games/game-metadata-type.enum";
 import { GameMetadata } from "../games/game.metadata.entity";
+import { GameMetadataType } from "../games/game-metadata-type.enum";
 import { MetadataProvider } from "./abstract.metadata-provider.service";
 
 @Injectable()
@@ -14,7 +14,22 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   slug = configuration.METADATA.IGDB.SLUG;
   priority = configuration.METADATA.IGDB.PRIORITY;
 
-  public async search(game: GamevaultGame): Promise<GameMetadata[]> {
+  override async onModuleInit(): Promise<void> {
+    if (
+      !configuration.METADATA.IGDB.CLIENT_ID ||
+      !configuration.METADATA.IGDB.CLIENT_SECRET
+    ) {
+      this.enabled = false;
+      this.logger.warn({
+        message:
+          "IGDB Metadata Provider is disabled because METADATA_IGDB_CLIENT_ID or METADATA_IGDB_CLIENT_SECRET is not set.",
+      });
+      return;
+    }
+    super.onModuleInit();
+  }
+
+  public override async search(game: GamevaultGame): Promise<GameMetadata[]> {
     const games = await (
       await this.getClient()
     )
@@ -31,7 +46,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
     return games.data.map((game) => this.mapGame(game));
   }
-  public async getByProviderDataId(
+  public override async getByProviderDataId(
     provider_data_id: string,
   ): Promise<GameMetadata> {
     const update = await (
@@ -53,12 +68,12 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
 
-  private mapGame(game: any): GameMetadata {
+  private mapGame(game: unknown): GameMetadata {
     // TODO: The data is pretty incomplete and we need to dereference the objects.
     return Builder<GameMetadata>()
-      .title(game.name)
+      .title(game["name"])
       .provider_slug("igdb")
-      .provider_data_id(game.id)
+      .provider_data_id(game["id"])
       .type(GameMetadataType.PROVIDER)
       .build();
   }

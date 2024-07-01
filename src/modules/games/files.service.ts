@@ -9,8 +9,9 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { Stats, createReadStream, existsSync, statSync } from "fs";
+import { createReadStream, existsSync, Stats, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
+import { debounce } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
 import path, { basename, extname, join } from "path";
@@ -19,7 +20,6 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
-import { debounce } from "lodash";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { MetadataService } from "../metadata/metadata.service";

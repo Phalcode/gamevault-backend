@@ -126,7 +126,7 @@ export class GameMetadataService {
         })),
       );
     }
-    
+
     // Upsert genres
     if (combinedGameMetadata.genres) {
       combinedGameMetadata.genres = await Promise.all(
