@@ -341,9 +341,9 @@ export class MetadataService {
 
     // Get the fresh metadata from the target provider.
     const freshMetadata =
-      await this.getProviderBySlugOrFail(providerSlug).getByProviderDataIdOrFail(
-        targetProviderDataId,
-      );
+      await this.getProviderBySlugOrFail(
+        providerSlug,
+      ).getByProviderDataIdOrFail(targetProviderDataId);
 
     // Upsert the fresh metadata into the database.
     const updatedMetadata =
