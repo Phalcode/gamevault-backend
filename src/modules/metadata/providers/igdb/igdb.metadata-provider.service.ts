@@ -13,8 +13,8 @@ import {
 
 import configuration from "../../../../configuration";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
-import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { GameMetadata } from "../../games/game.metadata.entity";
+import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import { IGDBGameCategories } from "./models/game-categories.enum";
 
