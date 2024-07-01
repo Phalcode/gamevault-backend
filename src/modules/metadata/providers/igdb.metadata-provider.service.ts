@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Builder } from "builder-pattern";
 import { and, fields, igdb, twitchAccessToken, where } from "ts-igdb-client";
 
 import configuration from "../../../configuration";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { GameMetadata } from "../games/game.metadata.entity";
 import { GameMetadataType } from "../games/game-metadata-type.enum";
+import { GameMetadata } from "../games/game.metadata.entity";
 import { MetadataProvider } from "./abstract.metadata-provider.service";
 
 @Injectable()
@@ -38,24 +38,35 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .execute();
 
     this.logger.log({
-      message: "Found Games on IGDB",
+      message: `Found ${games.data.length} games on IGDB`,
       search: game.title,
       count: games.data.length,
       games: games.data,
     });
 
+    if (games.data.length === 0) {
+      return [];
+    }
+
     return games.data.map((game) => this.mapGame(game));
   }
-  public override async getByProviderDataId(
+  public override async getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata> {
-    const update = await (
-      await this.getClient()
-    )
-      .request("games")
-      .pipe(fields("*"), and(where("id", "=", provider_data_id)))
-      .execute();
-    return this.mapGame(update.data[0]);
+    try {
+      const update = await (
+        await this.getClient()
+      )
+        .request("games")
+        .pipe(fields("*"), and(where("id", "=", provider_data_id)))
+        .execute();
+      return this.mapGame(update.data[0]);
+    } catch (error) {
+      throw new NotFoundException({
+        message: "Game not found on IGDB",
+        provider_data_id,
+      });
+    }
   }
 
   private async getClient() {

@@ -223,7 +223,7 @@ export class MetadataService {
         }
 
         // Get the latest metadata from the provider.
-        const freshMetadata = await provider.getByProviderDataId(
+        const freshMetadata = await provider.getByProviderDataIdOrFail(
           metadata.provider_data_id,
         );
         const updatedMetadata =
@@ -341,7 +341,7 @@ export class MetadataService {
 
     // Get the fresh metadata from the target provider.
     const freshMetadata =
-      await this.getProviderBySlugOrFail(providerSlug).getByProviderDataId(
+      await this.getProviderBySlugOrFail(providerSlug).getByProviderDataIdOrFail(
         targetProviderDataId,
       );
 

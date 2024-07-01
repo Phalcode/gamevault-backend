@@ -111,7 +111,7 @@ export abstract class MetadataProvider implements OnModuleInit {
    * @returns A promise that resolves to the game metadata object.
    * @throws NotFoundException if the game is not found.
    */
-  public abstract getByProviderDataId(
+  public abstract getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata>;
 
