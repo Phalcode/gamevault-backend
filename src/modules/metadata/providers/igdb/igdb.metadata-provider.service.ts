@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Builder } from "builder-pattern";
-import { writeFileSync } from "fs";
 import {
   and,
   fields,
@@ -13,10 +12,15 @@ import {
 
 import configuration from "../../../../configuration";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
-import { GameMetadata } from "../../games/game.metadata.entity";
+import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadataType } from "../../games/game-metadata-type.enum";
+import { GameMetadata } from "../../games/game.metadata.entity";
+import { GenreMetadata } from "../../genres/genre.metadata.entity";
+import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IGDBGameCategories } from "./models/game-categories.enum";
+import { IgdbGameCategory } from "./models/igdb-game-category.enum";
+import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -29,22 +33,24 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     "external_games.*",
     "genres.*",
     "involved_companies.*",
+    "involved_companies.company.*",
     "keywords.*",
     "screenshots.*",
+    "artworks.*",
     "videos.*",
     "themes.*",
     "websites.*",
   ];
   categoriesToInclude = [
-    IGDBGameCategories.MainGame,
-    IGDBGameCategories.StandaloneExpansion,
-    IGDBGameCategories.Episode,
-    IGDBGameCategories.Season,
-    IGDBGameCategories.Remake,
-    IGDBGameCategories.Remaster,
-    IGDBGameCategories.ExpandedGame,
-    IGDBGameCategories.Port,
-    IGDBGameCategories.Fork,
+    IgdbGameCategory.main_game,
+    IgdbGameCategory.standalone_expansion,
+    IgdbGameCategory.episode,
+    IgdbGameCategory.season,
+    IgdbGameCategory.remake,
+    IgdbGameCategory.remaster,
+    IgdbGameCategory.expanded_game,
+    IgdbGameCategory.port,
+    IgdbGameCategory.fork,
   ];
 
   override async onModuleInit(): Promise<void> {
@@ -82,11 +88,11 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       games: games.data,
     });
 
-    if (games.data.length === 0) {
-      return [];
+    const metadata = [];
+    for (const game of games.data) {
+      metadata.push(await this.mapGame(game as IgdbGame));
     }
-
-    return games.data.map((game) => this.mapGame(game));
+    return metadata;
   }
   public override async getByProviderDataIdOrFail(
     provider_data_id: string,
@@ -102,7 +108,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           and(where("id", "=", provider_data_id)),
         )
         .execute();
-      return this.mapGame(update.data[0]);
+      return this.mapGame(update.data[0] as IgdbGame);
     } catch (error) {
       throw new NotFoundException({
         message: "Game not found on IGDB",
@@ -120,14 +126,95 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
 
-  private mapGame(game: unknown): GameMetadata {
-    //write json to file
-    writeFileSync("igdb.json", JSON.stringify(game, null, 2));
+  private async mapGame(game: IgdbGame): Promise<GameMetadata> {
     return Builder<GameMetadata>()
-      .title(game["name"])
-      .provider_slug("igdb")
-      .provider_data_id(game["id"])
       .type(GameMetadataType.PROVIDER)
+      .provider_slug("igdb")
+      .provider_data_id(game.id.toString())
+      .provider_checksum(game.checksum)
+      .title(game.name)
+      .release_date(new Date(game.first_release_date))
+      .description(`${game.summary} \n\n\n ${game.storyline}`)
+      .rating_provider(game.total_rating)
+      .url_website(game.websites[0]?.url)
+      .early_access(
+        [
+          IgdbGameStatus.alpha,
+          IgdbGameStatus.beta,
+          IgdbGameStatus.early_access,
+        ].includes(game.status),
+      )
+      .developers(
+        game.involved_companies
+          .filter((involved_company) => involved_company.developer)
+          .map((involved_company) => {
+            return Builder<DeveloperMetadata>()
+              .provider_slug("igdb")
+              .provider_data_id(involved_company.company.id.toString())
+              .name(involved_company.company.name)
+              .build();
+          }),
+      )
+      .publishers(
+        game.involved_companies
+          .filter((involved_company) => involved_company.publisher)
+          .map((involved_company) => {
+            return Builder<DeveloperMetadata>()
+              .provider_slug("igdb")
+              .provider_data_id(involved_company.company.id.toString())
+              .name(involved_company.company.name)
+              .build();
+          }),
+      )
+      .genres(
+        game.genres.map((genre) => {
+          return Builder<GenreMetadata>()
+            .provider_slug("igdb")
+            .provider_data_id(genre.id.toString())
+            .name(genre.name)
+            .build();
+        }),
+      )
+      .tags([
+        ...game.keywords.map((keyword) => {
+          return Builder<TagMetadata>()
+            .provider_slug("igdb")
+            .provider_data_id(keyword.id.toString())
+            .name(keyword.name)
+            .build();
+        }),
+        ...game.themes.map((theme) => {
+          return Builder<TagMetadata>()
+            .provider_slug("igdb")
+            .provider_data_id(theme.id.toString())
+            .name(theme.name)
+            .build();
+        }),
+      ])
+      .screenshots(
+        await Promise.all([
+          ...game.screenshots.map(async (screenshot) => {
+            return await this.mediaService.downloadByUrl(
+              screenshot.url.replace("t_thumb", "t_1080p_2x"),
+            );
+          }),
+          ...game.artworks.map(async (artwork) => {
+            return await this.mediaService.downloadByUrl(
+              artwork.url.replace("t_thumb", "t_1080p_2x"),
+            );
+          }),
+        ]),
+      )
+      .cover(
+        await this.mediaService.downloadByUrl(
+          game.cover.url.replace("t_thumb", "t_1080p_2x"),
+        ),
+      )
+      .background(
+        await this.mediaService.downloadByUrl(
+          game.artworks[0].url.replace("t_thumb", "t_1080p_2x"),
+        ),
+      )
       .build();
   }
 }

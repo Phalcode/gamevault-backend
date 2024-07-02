@@ -2,6 +2,7 @@ import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { GamesModule } from "../games/games.module";
+import { MediaModule } from "../media/media.module";
 import { DeveloperMetadata } from "./developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "./developers/developer.metadata.service";
 import { GameMetadata } from "./games/game.metadata.entity";
@@ -25,6 +26,7 @@ import { TagMetadataService } from "./tags/tag.metadata.service";
       TagMetadata,
     ]),
     forwardRef(() => GamesModule),
+    MediaModule,
   ],
   providers: [
     MetadataService,

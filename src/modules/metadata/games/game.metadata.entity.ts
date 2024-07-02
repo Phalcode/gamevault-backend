@@ -191,13 +191,6 @@ export class GameMetadata extends DatabaseEntity {
   })
   rating_provider?: number;
 
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "metacritic rating of the game",
-    example: 90,
-  })
-  rating_metacritic?: number;
-
   @Column({ default: false })
   @ApiProperty({
     description: "indicates if the game is in early access",

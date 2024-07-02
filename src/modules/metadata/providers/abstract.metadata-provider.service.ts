@@ -18,6 +18,7 @@ import { stringSimilarity } from "string-similarity-js";
 
 import globals from "../../../globals";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
+import { MediaService } from "../../media/media.service";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
 import { GameMetadata } from "../games/game.metadata.entity";
@@ -40,6 +41,7 @@ export abstract class MetadataProvider implements OnModuleInit {
     private publisherMetadataService: PublisherMetadataService,
     private tagMetadataService: TagMetadataService,
     private genreMetadataService: GenreMetadataService,
+    protected mediaService: MediaService,
   ) {}
 
   async onModuleInit() {
