@@ -47,12 +47,9 @@ export class PublisherMetadataService {
       },
     });
 
-    if (existingPublisher) {
-      return this.publisherRepository.save({
-        ...existingPublisher,
-        ...publisher,
-      });
-    }
-    return this.publisherRepository.save(publisher);
+    return this.publisherRepository.save({
+      ...existingPublisher,
+      ...publisher,
+    });
   }
 }

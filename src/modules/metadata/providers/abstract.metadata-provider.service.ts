@@ -23,6 +23,7 @@ import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
 import { GameMetadata } from "../games/game.metadata.entity";
 import { GameMetadataService } from "../games/game.metadata.service";
+import { MinimalGameMetadataDto } from "../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
 import { GenreMetadataService } from "../genres/genre.metadata.service";
 import { MetadataService } from "../metadata.service";
@@ -101,9 +102,11 @@ export abstract class MetadataProvider implements OnModuleInit {
   public ttlDays = 30;
 
   /**
-   * Searches for a game using the provider.
+   * Searches for a game using the provider. Only returns the minimal info of a game.
    */
-  public abstract search(game: GamevaultGame): Promise<GameMetadata[]>;
+  public abstract search(
+    game: GamevaultGame,
+  ): Promise<MinimalGameMetadataDto[]>;
 
   /**
    * Returns a game metadata object using the id.
@@ -122,10 +125,12 @@ export abstract class MetadataProvider implements OnModuleInit {
    * metadata providers.
    *
    * @param game - The game to find a match for.
-   * @returns A promise that resolves to the best match GameMetadata.
+   * @returns A promise that resolves to the best match
    * @throws NotFoundException if no matching games are found.
    */
-  public async getBestMatch(game: GamevaultGame): Promise<GameMetadata> {
+  public async getBestMatch(
+    game: GamevaultGame,
+  ): Promise<MinimalGameMetadataDto> {
     // Search for the game using all available metadata providers.
     const gameResults = await this.search(game);
 
@@ -148,7 +153,7 @@ export abstract class MetadataProvider implements OnModuleInit {
         this.logger.warn({
           message: "Could not clean game title.",
           game: game.getLoggableData(),
-          gameResult: gameResult.getLoggableData(),
+          gameResult,
         });
         continue;
       }

@@ -85,6 +85,7 @@ export class MediaGarbageCollectionService {
    *
    * @param usedMediaPaths - Set that will store the used media paths.
    */
+  //TODO: ADD GARBAGE COLLECTION FOR SCREENSHOTS AND VIDEOS
   private async collectUsedMediaPathsDynamically(
     usedMediaPaths: Set<string>,
   ): Promise<void> {
@@ -92,11 +93,11 @@ export class MediaGarbageCollectionService {
     const entityMediaProperties = [
       {
         repository: this.gameRepository,
-        properties: ["background_media", "box_media"],
+        properties: ["background", "cover"],
       },
       {
         repository: this.userRepository,
-        properties: ["background_media", "profile_picture"],
+        properties: ["background", "avatar"],
       },
       // Add more repositories and media properties as needed
     ];
@@ -176,7 +177,7 @@ export class MediaGarbageCollectionService {
       })
     )
       .filter((file) => file.isFile() && isUUID(file.name.substring(0, 35), 4))
-      .map((file) => join(file.path, file.name));
+      .map((file) => join(file.parentPath, file.name));
 
     let removedCount = 0;
 

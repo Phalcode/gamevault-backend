@@ -47,12 +47,9 @@ export class DeveloperMetadataService {
       },
     });
 
-    if (existingDeveloper) {
-      return this.developerRepository.save({
-        ...existingDeveloper,
-        ...developer,
-      });
-    }
-    return this.developerRepository.save(developer);
+    return this.developerRepository.save({
+      ...existingDeveloper,
+      ...developer,
+    });
   }
 }

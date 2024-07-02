@@ -8,18 +8,18 @@ import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
-//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
 import { readdir } from "fs/promises";
 import helmet from "helmet";
 import morgan from "morgan";
+import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { GameVaultPluginModule } from "./globals";
-import { default as logger, default as winston, stream } from "./logging";
+import { default as logger, stream, default as winston } from "./logging";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
@@ -34,7 +34,7 @@ async function loadPlugins() {
   ).filter((file) => file.isFile() && file.name.includes(".plugin.module."));
   const plugins = await Promise.all(
     pluginModuleFiles.map(
-      (file) => import(resolve(join(file.path, file.name))),
+      (file) => import(resolve(join(file.parentPath, file.name))),
     ),
   );
 
@@ -151,7 +151,6 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
-    /* Skip until it works on docker
     await AsyncApiModule.setup(
       "api/docs/async",
       app,
@@ -181,7 +180,6 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
-   */
   }
 
   // Provide fancy pants landing page

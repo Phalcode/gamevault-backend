@@ -214,4 +214,16 @@ export class GamesService {
     await this.gamesRepository.recover({ id });
     return this.findOneByGameIdOrFail(id);
   }
+
+  public async clearEffectiveMetadata(gameId: number) {
+    const game = await this.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: true,
+      loadRelations: true,
+    });
+    await this.gamesRepository
+      .createQueryBuilder()
+      .relation(GamevaultGame, "metadata")
+      .of(game)
+      .set(null);
+  }
 }

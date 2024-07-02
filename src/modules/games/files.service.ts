@@ -9,7 +9,7 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -589,8 +589,8 @@ export class FilesService implements OnApplicationBootstrap {
         .map(
           (file) =>
             ({
-              path: join(file.path, file.name),
-              size: BigInt(statSync(join(file.path, file.name)).size),
+              path: join(file.parentPath, file.name),
+              size: BigInt(statSync(join(file.parentPath, file.name)).size),
             }) as File,
         );
     } catch (error) {

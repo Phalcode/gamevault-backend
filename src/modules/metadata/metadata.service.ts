@@ -11,8 +11,10 @@ import { validateOrReject } from "class-validator";
 
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
+import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
+import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
 
 @Injectable()
@@ -155,10 +157,18 @@ export class MetadataService {
               });
             }
           } else {
+            // AutoMetadataMatcher
             // If the metadata does not exist, get the best match for the game from the provider.
-            const freshMetadata = await this.getProviderBySlugOrFail(
+
+            // Search for the best match.
+            const bestMatchingGame = await this.getProviderBySlugOrFail(
               provider.slug,
             ).getBestMatch(game);
+
+            // Get the metadata from the provider.
+            const freshMetadata = await provider.getByProviderDataIdOrFail(
+              bestMatchingGame.provider_data_id,
+            );
 
             // Save the metadata to the database.
             const upsertedMetadata =
@@ -193,7 +203,7 @@ export class MetadataService {
   async search(
     game: GamevaultGame,
     providerSlug: string,
-  ): Promise<GameMetadata[]> {
+  ): Promise<MinimalGameMetadataDto[]> {
     return this.getProviderBySlugOrFail(providerSlug).search(game);
   }
 
@@ -256,7 +266,7 @@ export class MetadataService {
     });
 
     // Clear effective metadata
-    game.metadata = null;
+    await this.gamesService.clearEffectiveMetadata(game.id);
 
     // Get existing Metadata and sort them by provider-slug in provider priority in ascending order
     game.provider_metadata.sort((a, b) => {
@@ -277,11 +287,16 @@ export class MetadataService {
       mergedMetadata = {
         ...mergedMetadata,
         ...game.user_metadata,
+        ...{ type: GameMetadataType.EFFECTIVE },
       } as GameMetadata;
     }
 
     // Save the new effective metadata
     game.metadata = mergedMetadata;
+    this.logger.debug({
+      message: "Merged metadata",
+      game,
+    });
     await this.gamesService.save(game);
   }
 

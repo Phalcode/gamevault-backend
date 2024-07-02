@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Builder } from "builder-pattern";
 import {
-  and,
   fields,
   igdb,
   search,
@@ -13,14 +12,15 @@ import {
 import configuration from "../../../../configuration";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
-import { GameMetadata } from "../../games/game.metadata.entity";
 import { GameMetadataType } from "../../games/game-metadata-type.enum";
+import { GameMetadata } from "../../games/game.metadata.entity";
+import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -68,32 +68,37 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     super.onModuleInit();
   }
 
-  public override async search(game: GamevaultGame): Promise<GameMetadata[]> {
+  public override async search(
+    game: GamevaultGame,
+  ): Promise<MinimalGameMetadataDto[]> {
     const games = await (
       await this.getClient()
     )
       .request("games")
       .pipe(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fields(this.fieldsToInclude as any),
+        fields(["id", "name", "first_release_date", "cover.*"]),
         search(game.title),
         whereIn("category", this.categoriesToInclude),
       )
       .execute();
 
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${games.data.length} games on IGDB`,
       search: game.title,
       count: games.data.length,
       games: games.data,
     });
 
-    const metadata = [];
+    const minimalGameMetadata = [];
     for (const game of games.data) {
-      metadata.push(await this.mapGame(game as IgdbGame));
+      minimalGameMetadata.push(
+        await this.mapMinimalGameMetadata(game as IgdbGame),
+      );
     }
-    return metadata;
+    return minimalGameMetadata;
   }
+
   public override async getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata> {
@@ -103,12 +108,11 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       )
         .request("games")
         .pipe(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           fields(this.fieldsToInclude as any),
-          and(where("id", "=", provider_data_id)),
+          where("id", "=", Number(provider_data_id)),
         )
         .execute();
-      return this.mapGame(update.data[0] as IgdbGame);
+      return this.mapGameMetadata(update.data[0] as IgdbGame);
     } catch (error) {
       throw new NotFoundException({
         message: "Game not found on IGDB",
@@ -126,17 +130,17 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
 
-  private async mapGame(game: IgdbGame): Promise<GameMetadata> {
+  private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
     return Builder<GameMetadata>()
       .type(GameMetadataType.PROVIDER)
       .provider_slug("igdb")
-      .provider_data_id(game.id.toString())
+      .provider_data_id(game.id?.toString())
       .provider_checksum(game.checksum)
       .title(game.name)
       .release_date(new Date(game.first_release_date))
       .description(`${game.summary} \n\n\n ${game.storyline}`)
       .rating_provider(game.total_rating)
-      .url_website(game.websites[0]?.url)
+      .url_website(game.websites?.[0]?.url)
       .early_access(
         [
           IgdbGameStatus.alpha,
@@ -145,7 +149,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         ].includes(game.status),
       )
       .developers(
-        game.involved_companies
+        (game.involved_companies || [])
           .filter((involved_company) => involved_company.developer)
           .map((involved_company) => {
             return Builder<DeveloperMetadata>()
@@ -156,7 +160,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           }),
       )
       .publishers(
-        game.involved_companies
+        (game.involved_companies || [])
           .filter((involved_company) => involved_company.publisher)
           .map((involved_company) => {
             return Builder<DeveloperMetadata>()
@@ -167,7 +171,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           }),
       )
       .genres(
-        game.genres.map((genre) => {
+        (game.genres || []).map((genre) => {
           return Builder<GenreMetadata>()
             .provider_slug("igdb")
             .provider_data_id(genre.id.toString())
@@ -176,14 +180,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         }),
       )
       .tags([
-        ...game.keywords.map((keyword) => {
+        ...(game.keywords || []).map((keyword) => {
           return Builder<TagMetadata>()
             .provider_slug("igdb")
             .provider_data_id(keyword.id.toString())
             .name(keyword.name)
             .build();
         }),
-        ...game.themes.map((theme) => {
+        ...(game.themes || []).map((theme) => {
           return Builder<TagMetadata>()
             .provider_slug("igdb")
             .provider_data_id(theme.id.toString())
@@ -193,12 +197,12 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       ])
       .screenshots(
         await Promise.all([
-          ...game.screenshots.map(async (screenshot) => {
+          ...(game.screenshots || []).map(async (screenshot) => {
             return await this.mediaService.downloadByUrl(
               screenshot.url.replace("t_thumb", "t_1080p_2x"),
             );
           }),
-          ...game.artworks.map(async (artwork) => {
+          ...(game.artworks || []).map(async (artwork) => {
             return await this.mediaService.downloadByUrl(
               artwork.url.replace("t_thumb", "t_1080p_2x"),
             );
@@ -206,15 +210,31 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         ]),
       )
       .cover(
-        await this.mediaService.downloadByUrl(
-          game.cover.url.replace("t_thumb", "t_1080p_2x"),
-        ),
+        game.cover
+          ? await this.mediaService.downloadByUrl(
+              game.cover?.url.replace("t_thumb", "t_cover_big_2x"),
+            )
+          : undefined,
       )
       .background(
-        await this.mediaService.downloadByUrl(
-          game.artworks[0].url.replace("t_thumb", "t_1080p_2x"),
-        ),
+        game.artworks?.[0]
+          ? await this.mediaService.downloadByUrl(
+              game.artworks?.[0]?.url.replace("t_thumb", "t_1080p_2x"),
+            )
+          : undefined,
       )
+      .build();
+  }
+
+  private async mapMinimalGameMetadata(
+    game: IgdbGame,
+  ): Promise<MinimalGameMetadataDto> {
+    return Builder<MinimalGameMetadataDto>()
+      .provider_slug("igdb")
+      .provider_data_id(game.id?.toString())
+      .title(game.name)
+      .release_date(new Date(game.first_release_date))
+      .cover_url(game.cover?.url.replace("t_thumb", "t_cover_big_2x"))
       .build();
   }
 }

@@ -46,12 +46,9 @@ export class TagMetadataService {
       },
     });
 
-    if (existingDeveloper) {
-      return this.tagRepository.save({
-        ...existingDeveloper,
-        ...tag,
-      });
-    }
-    return this.tagRepository.save(tag);
+    return this.tagRepository.save({
+      ...existingDeveloper,
+      ...tag,
+    });
   }
 }

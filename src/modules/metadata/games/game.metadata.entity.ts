@@ -81,7 +81,8 @@ export class GameMetadata extends DatabaseEntity {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
-    description: "Probability of the metadata being the correct one.",
+    description:
+      "gamevault's calculated probability of the metadata being the correct one.",
     example: 0.5,
     minimum: 0,
     maximum: 1,
@@ -201,7 +202,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,
-    cascade: ["insert", "update"],
   })
   @ApiPropertyOptional({
     description: "publishers of the game",
@@ -213,7 +213,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
     eager: true,
-    cascade: ["insert", "update"],
   })
   @ApiPropertyOptional({
     description: "developers of the game",
@@ -225,7 +224,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => TagMetadata, (tag) => tag.games, {
     eager: true,
-    cascade: ["insert", "update"],
   })
   @ApiPropertyOptional({
     description: "tags of the game",
@@ -237,7 +235,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
     eager: true,
-    cascade: ["insert", "update"],
   })
   @ApiPropertyOptional({
     description: "genres of the game",

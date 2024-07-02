@@ -45,12 +45,10 @@ export class GenreMetadataService {
       },
     });
 
-    if (existingGenre) {
-      return this.genreRepository.save({
-        ...existingGenre,
-        ...genre,
-      });
-    }
-    return this.genreRepository.save(genre);
+    
+    return this.genreRepository.save({
+      ...existingGenre,
+      ...genre,
+    });
   }
 }
