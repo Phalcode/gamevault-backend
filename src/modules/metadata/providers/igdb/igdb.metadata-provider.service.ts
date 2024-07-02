@@ -13,14 +13,14 @@ import {
 import configuration from "../../../../configuration";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
-import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { GameMetadata } from "../../games/game.metadata.entity";
+import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
+import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
