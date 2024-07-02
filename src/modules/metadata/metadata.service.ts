@@ -11,9 +11,9 @@ import { validateOrReject } from "class-validator";
 
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
-import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
+import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
 

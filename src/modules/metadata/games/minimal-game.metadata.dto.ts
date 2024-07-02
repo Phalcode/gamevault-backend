@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-
 import { IsNotIn, Matches } from "class-validator";
+
 import globals from "../../../globals";
 
 export class MinimalGameMetadataDto {

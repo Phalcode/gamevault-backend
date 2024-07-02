@@ -12,15 +12,15 @@ import {
 import configuration from "../../../../configuration";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
-import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { GameMetadata } from "../../games/game.metadata.entity";
+import { GameMetadataType } from "../../games/game-metadata-type.enum";
 import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
+import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -76,7 +76,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     )
       .request("games")
       .pipe(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fields(["id", "name", "first_release_date", "cover.*"]),
         search(game.title),
         whereIn("category", this.categoriesToInclude),
@@ -108,6 +107,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       )
         .request("games")
         .pipe(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           fields(this.fieldsToInclude as any),
           where("id", "=", Number(provider_data_id)),
         )
