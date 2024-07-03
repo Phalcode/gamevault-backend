@@ -11,9 +11,9 @@ import { validateOrReject } from "class-validator";
 
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
+import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
-import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
 
@@ -147,6 +147,7 @@ export class MetadataService {
               });
 
               // Update the metadata.
+              // TODO: Make the update provider specific a.k.a. just use a map?!?
               await this.update(game.id);
             } else {
               // Log that the metadata is up to date.
@@ -154,6 +155,7 @@ export class MetadataService {
                 message: "Metadata is up to date.",
                 provider: provider.getLoggableData(),
                 game: game.getLoggableData(),
+                metadata: existingProviderMetadata.getLoggableData(),
               });
             }
           } else {
@@ -165,17 +167,11 @@ export class MetadataService {
               provider.slug,
             ).getBestMatch(game);
 
-            // Get the metadata from the provider.
-            const freshMetadata = await provider.getByProviderDataIdOrFail(
+            await this.map(
+              game.id,
+              provider.slug,
               bestMatchingGame.provider_data_id,
             );
-
-            // Save the metadata to the database.
-            const upsertedMetadata =
-              await this.gameMetadataService.upsert(freshMetadata);
-
-            // Add the metadata to the game's metadata array.
-            game.provider_metadata.push(upsertedMetadata);
           }
         } catch (error) {
           this.logger.error({
@@ -186,10 +182,8 @@ export class MetadataService {
           });
         }
       }
-      // Save the game to the database.
+      // Save the game to the database and merge all data
       await this.gamesService.save(game);
-
-      // Merge metadata
       await this.merge(game.id);
     }
   }
@@ -231,16 +225,7 @@ export class MetadataService {
         if (!metadata.provider_data_id) {
           throw new NotFoundException("Missing provider_data_id.");
         }
-
-        // Get the latest metadata from the provider.
-        const freshMetadata = await provider.getByProviderDataIdOrFail(
-          metadata.provider_data_id,
-        );
-        const updatedMetadata =
-          await this.gameMetadataService.upsert(freshMetadata);
-
-        // Update the metadata object with the latest information.
-        Object.assign(metadata, updatedMetadata);
+        await this.map(game.id, provider.slug, metadata.provider_data_id);
       } catch (error) {
         // Log a warning if the metadata update failed.
         this.logger.warn({
@@ -287,7 +272,7 @@ export class MetadataService {
       mergedMetadata = {
         ...mergedMetadata,
         ...game.user_metadata,
-        ...{ type: GameMetadataType.EFFECTIVE },
+        ...{ type: GameMetadataType.MERGED },
       } as GameMetadata;
     }
 
@@ -319,26 +304,24 @@ export class MetadataService {
 
     // If a providerSlug is provided, remove the metadata of the specified provider.
     // Otherwise, remove all metadata.
-    if (providerSlug) {
-      game.provider_metadata = game.provider_metadata.filter(
-        (metadata) => metadata.provider_slug !== providerSlug,
-      );
-    } else {
-      game.provider_metadata = [];
-    }
+    game.provider_metadata = providerSlug
+      ? game.provider_metadata.filter(
+          (metadata) => metadata.provider_slug !== providerSlug,
+        )
+      : [];
 
     // Merge the metadata after unmapping it.
     return this.merge(gameId);
   }
 
   /**
-   * Remaps the metadata of a game to another game on the same provider.
+   * Maps the metadata of a game provider to a game, .
    *
    * @param gameId - The ID of the game.
    * @param providerSlug - The slug of the provider to use for the remapping.
    * @param targetProviderDataId - The target ID of the metadata in the provider.
    */
-  async remap(
+  async map(
     gameId: number,
     providerSlug: string,
     targetProviderDataId: string,
@@ -369,5 +352,7 @@ export class MetadataService {
 
     // Save the game with the updated provider_metadata.
     await this.gamesService.save(game);
+
+    return this.merge(game.id);
   }
 }

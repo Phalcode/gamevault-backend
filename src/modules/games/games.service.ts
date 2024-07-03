@@ -1,10 +1,10 @@
 import {
-  forwardRef,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
+    forwardRef,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { validate } from "class-validator";
@@ -196,7 +196,7 @@ export class GamesService {
 
     for (const request of dto.mapping_requests) {
       if (request.target_provider_data_id) {
-        await this.metadataService.remap(
+        await this.metadataService.map(
           id,
           request.provider_slug,
           request.target_provider_data_id,

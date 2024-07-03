@@ -1,5 +1,5 @@
 export enum GameMetadataType {
-  "EFFECTIVE" = "EFFECTIVE", // merged metadata
+  "MERGED" = "MERGED", // merged metadata
   "USER" = "USER",
   "PROVIDER" = "PROVIDER",
 }
