@@ -11,7 +11,6 @@ import { validateOrReject } from "class-validator";
 
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
-import { GameMetadataType } from "./games/game-metadata-type.enum";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
@@ -215,24 +214,31 @@ export class MetadataService {
       mergedMetadata = {
         ...mergedMetadata,
         ...game.user_metadata,
-        ...{
-          type: GameMetadataType.MERGED,
-          id: game.metadata.id,
-          created_at: game.metadata.created_at,
-          updated_at: game.metadata.updated_at,
-          entity_version: game.metadata.entity_version,
-        },
       } as GameMetadata;
     }
 
-    // Save the new effective metadata
+    // Apply the merged metadata to the game
+    mergedMetadata = {
+      ...mergedMetadata,
+      ...{
+        provider_slug: "gamevault",
+        provider_data_id: game.id.toString(),
+        provider_checksum: null,
+        provider_probability: null,
+        id: game.metadata?.id,
+        created_at: undefined,
+        updated_at: undefined,
+        entity_version: undefined,
+      },
+    } as GameMetadata;
+
     game.metadata = mergedMetadata;
     this.logger.debug({
       message: "Merged metadata",
       game,
     });
 
-    return await this.gamesService.save(game);
+    return this.gamesService.save(game);
   }
 
   /**

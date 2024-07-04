@@ -8,7 +8,6 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  OneToOne,
 } from "typeorm";
 
 import globals from "../../../globals";
@@ -20,25 +19,12 @@ import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
 import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../tags/tag.metadata.entity";
-import { GameMetadataType } from "./game-metadata-type.enum";
 
 @Entity()
 @Index("UQ_GAME_METADATA", ["provider_slug", "provider_data_id"], {
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity {
-  @Column({
-    type: "simple-enum",
-    enum: GameMetadataType,
-  })
-  @ApiProperty({
-    description: "type of the metadata",
-    type: "enum",
-    enum: GameMetadataType,
-    example: GameMetadataType.PROVIDER,
-  })
-  type: GameMetadataType;
-
   @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
   @ApiPropertyOptional({
     description: "games the metadata belongs to",
@@ -137,11 +123,9 @@ export class GameMetadata extends DatabaseEntity {
   average_playtime?: number;
 
   @MediaValidator("image")
-  @OneToOne(() => Media, {
+  @ManyToOne(() => Media, {
     nullable: true,
     eager: true,
-    onDelete: "CASCADE",
-    orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
   @ApiPropertyOptional({
@@ -151,11 +135,9 @@ export class GameMetadata extends DatabaseEntity {
   cover?: Media;
 
   @MediaValidator("image")
-  @OneToOne(() => Media, {
+  @ManyToOne(() => Media, {
     nullable: true,
     eager: true,
-    onDelete: "CASCADE",
-    orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
   @ApiPropertyOptional({
@@ -167,8 +149,6 @@ export class GameMetadata extends DatabaseEntity {
   @ManyToOne(() => Media, {
     nullable: true,
     eager: true,
-    onDelete: "CASCADE",
-    orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
   @ApiPropertyOptional({
