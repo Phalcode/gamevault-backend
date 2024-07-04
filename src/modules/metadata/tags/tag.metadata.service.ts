@@ -29,7 +29,7 @@ export class TagMetadataService {
     }
 
     const tags = await this.tagRepository.find({
-      where: { provider_slug: provider_slug },
+      where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",

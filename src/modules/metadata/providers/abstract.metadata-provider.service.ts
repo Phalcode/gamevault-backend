@@ -181,7 +181,7 @@ export abstract class MetadataProvider implements OnModuleInit {
     gameResults.sort((a, b) => b.provider_probability - a.provider_probability);
 
     // Return the game result with the highest match probability.
-    return gameResults.pop();
+    return gameResults.shift();
   }
 
   public async register() {

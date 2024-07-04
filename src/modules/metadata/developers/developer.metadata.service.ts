@@ -28,7 +28,7 @@ export class DeveloperMetadataService {
     }
 
     const developers = await this.developerRepository.find({
-      where: { provider_slug: provider_slug },
+      where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",

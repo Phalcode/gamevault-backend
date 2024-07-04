@@ -34,7 +34,7 @@ export class GameMetadataService {
         relations = options.loadRelations;
     }
     const games = await this.gameMetadataRepository.find({
-      where: { provider_slug: provider_slug },
+      where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
@@ -77,70 +77,70 @@ export class GameMetadataService {
    * If a GameMetadata with the same provider_slug and provider_data_id
    * exists, it updates its properties with the ones from the provided
    * metadata. Otherwise, it creates a new GameMetadata entity.
-   *
-   * @param metadata - The GameMetadata to upsert.
-   * @returns The upserted GameMetadata entity.
    */
-  async upsert(metadata: GameMetadata): Promise<GameMetadata> {
+  async upsert(freshMetadata: GameMetadata): Promise<GameMetadata> {
     // Find an existing GameMetadata with the same provider_slug and provider_data_id
     const existingGameMetadata = await this.gameMetadataRepository.findOne({
       where: {
-        provider_slug: metadata.provider_slug,
-        provider_data_id: metadata.provider_data_id,
+        provider_slug: freshMetadata.provider_slug,
+        provider_data_id: freshMetadata.provider_data_id,
       },
-      relations: ["developers", "publishers", "genres", "tags"], // Load related entities
     });
 
     // Update the existing GameMetadata with the provided metadata
     const combinedGameMetadata = {
       ...existingGameMetadata,
-      ...metadata,
+      ...freshMetadata,
     } as GameMetadata;
 
     // Upsert developers
     if (combinedGameMetadata.developers) {
-      combinedGameMetadata.developers = await Promise.all(
-        combinedGameMetadata.developers.map(async (developer) => ({
-          // Upsert developer and spread the upserted developer
-          ...(await this.developerMetadataService.upsert(developer)),
-        })),
-      );
+      for (const developer of combinedGameMetadata.developers) {
+        const upsertedDeveloper =
+          await this.developerMetadataService.upsert(developer);
+        combinedGameMetadata.developers = combinedGameMetadata.developers?.map(
+          (developer) =>
+            developer.id === upsertedDeveloper.id
+              ? upsertedDeveloper
+              : developer,
+        );
+      }
     }
 
     // Upsert publishers
     if (combinedGameMetadata.publishers) {
-      combinedGameMetadata.publishers = await Promise.all(
-        combinedGameMetadata.publishers.map(async (publisher) => ({
-          // Upsert publisher and spread the upserted publisher
-          ...(await this.publisherMetadataService.upsert(publisher)),
-        })),
-      );
+      for (const publisher of combinedGameMetadata.publishers) {
+        const upsertedPublisher =
+          await this.publisherMetadataService.upsert(publisher);
+        combinedGameMetadata.publishers = combinedGameMetadata.publishers?.map(
+          (publisher) =>
+            publisher.id === upsertedPublisher.id
+              ? upsertedPublisher
+              : publisher,
+        );
+      }
     }
 
     // Upsert tags
     if (combinedGameMetadata.tags) {
-      combinedGameMetadata.tags = await Promise.all(
-        combinedGameMetadata.tags.map(async (tag) => ({
-          // Upsert tag and spread the upserted tag
-          ...(await this.tagMetadataService.upsert(tag)),
-        })),
-      );
+      for (const tag of combinedGameMetadata.tags) {
+        const upsertedTag = await this.tagMetadataService.upsert(tag);
+        combinedGameMetadata.tags = combinedGameMetadata.tags?.map((tag) =>
+          tag.id === upsertedTag.id ? upsertedTag : tag,
+        );
+      }
     }
 
     // Upsert genres
     if (combinedGameMetadata.genres) {
-      combinedGameMetadata.genres = await Promise.all(
-        combinedGameMetadata.genres.map(async (genre) => ({
-          // Upsert genre and spread the upserted genre
-          ...(await this.genreMetadataService.upsert(genre)),
-        })),
-      );
+      for (const genre of combinedGameMetadata.genres) {
+        const upsertedGenre = await this.genreMetadataService.upsert(genre);
+        combinedGameMetadata.genres = combinedGameMetadata.genres?.map(
+          (game) => (game.id === upsertedGenre.id ? upsertedGenre : game),
+        );
+      }
     }
 
-    // Save (upsert) the GameMetadata entity
-    const upsertedGameMetadata =
-      await this.gameMetadataRepository.save(combinedGameMetadata);
-
-    return upsertedGameMetadata;
+    return await this.gameMetadataRepository.save(combinedGameMetadata);
   }
 }

@@ -28,7 +28,7 @@ export class PublisherMetadataService {
     }
 
     const publishers = await this.publisherRepository.find({
-      where: { provider_slug: provider_slug },
+      where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",

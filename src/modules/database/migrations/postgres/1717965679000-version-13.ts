@@ -22,6 +22,7 @@ export class Version13 implements MigrationInterface {
       "background_id",
     );
     queryRunner.renameColumn("bookmark", "game_id", "gamevault_game_id");
+    queryRunner.dropTable("query-result-cache");
     //TODO: Delete all images without a media type or try to find the media type using the file extension
     //TODO: Create a new GamevaultGame for each entry in the "game" table
     //TODO: Create a new rawg-legacy provider

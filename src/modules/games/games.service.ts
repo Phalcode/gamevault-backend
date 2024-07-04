@@ -1,10 +1,10 @@
 import {
-    forwardRef,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-    Logger,
-    NotFoundException,
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { validate } from "class-validator";
@@ -147,7 +147,9 @@ export class GamesService {
 
   /** Retrieves all games from the database. */
   public async find(): Promise<GamevaultGame[]> {
-    return this.gamesRepository.find();
+    return this.gamesRepository.find({
+      relations: ["metadata", "user_metadata", "provider_metadata"],
+    });
   }
 
   public async findRandom(): Promise<GamevaultGame> {
@@ -213,17 +215,5 @@ export class GamesService {
   public async restore(id: number): Promise<GamevaultGame> {
     await this.gamesRepository.recover({ id });
     return this.findOneByGameIdOrFail(id);
-  }
-
-  public async clearEffectiveMetadata(gameId: number) {
-    const game = await this.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: true,
-      loadRelations: true,
-    });
-    await this.gamesRepository
-      .createQueryBuilder()
-      .relation(GamevaultGame, "metadata")
-      .of(game)
-      .set(null);
   }
 }
