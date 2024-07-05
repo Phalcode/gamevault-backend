@@ -105,7 +105,8 @@ export class GamevaultGame extends DatabaseEntity {
 
   @OneToOne(() => GameMetadata, {
     nullable: true,
-    cascade: ["insert", "update"],
+    cascade: true,
+    orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
   @ApiPropertyOptional({
@@ -117,7 +118,7 @@ export class GamevaultGame extends DatabaseEntity {
   @OneToOne(() => GameMetadata, {
     nullable: true,
     cascade: true,
-    orphanedRowAction: "delete",
+    orphanedRowAction: "soft-delete",
   })
   @JoinColumn()
   @ApiPropertyOptional({

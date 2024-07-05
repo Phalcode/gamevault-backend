@@ -78,7 +78,7 @@ export class GameMetadataService {
    * exists, it updates its properties with the ones from the provided
    * metadata. Otherwise, it creates a new GameMetadata entity.
    */
-  async upsert(freshMetadata: GameMetadata): Promise<GameMetadata> {
+  async save(freshMetadata: GameMetadata): Promise<GameMetadata> {
     // Find an existing GameMetadata with the same provider_slug and provider_data_id
     const existingGameMetadata = await this.gameMetadataRepository.findOne({
       where: {

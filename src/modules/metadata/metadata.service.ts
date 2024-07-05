@@ -122,13 +122,13 @@ export class MetadataService {
       );
 
       if (existingProviderMetadata) {
-        await this.checkExistingMetadata(
+        await this.updateExistingMetadata(
           game,
           provider,
           existingProviderMetadata,
         );
       } else {
-        await this.checkMissingMetadata(game, provider);
+        await this.findMissingMetadata(game, provider);
       }
     } catch (error) {
       this.logger.error({
@@ -143,7 +143,7 @@ export class MetadataService {
   /**
    * Checks the metadata of a single provider and updates it if necessary.
    */
-  private async checkExistingMetadata(
+  private async updateExistingMetadata(
     game: GamevaultGame,
     provider: MetadataProvider,
     existingProviderMetadata: GameMetadata,
@@ -175,7 +175,7 @@ export class MetadataService {
   /**
    * Checks the metadata of a single provider and updates it if necessary.
    */
-  private async checkMissingMetadata(
+  private async findMissingMetadata(
     game: GamevaultGame,
     provider: MetadataProvider,
   ): Promise<void> {
@@ -194,7 +194,10 @@ export class MetadataService {
   }
 
   async merge(game: GamevaultGame): Promise<GamevaultGame> {
-    //TODO: FIX ERRORS MERGING DATA
+    if (!game.metadata && !game.user_metadata && !game.provider_metadata) {
+      return game;
+    }
+
     // Get existing Metadata and sort them by provider-slug in provider priority in ascending order
     game.provider_metadata.sort((a, b) => {
       const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
@@ -202,24 +205,24 @@ export class MetadataService {
       return aProvider.priority - bProvider.priority;
     });
 
-    let mergedMetadata = new GameMetadata();
+    let metadata = game.metadata;
 
     // Create New Effective Metadata by applying the priorotized metadata one by one
-    for (const metadata of game.provider_metadata) {
-      mergedMetadata = { ...mergedMetadata, ...metadata } as GameMetadata;
+    for (const provider_metadata of game.provider_metadata) {
+      metadata = { ...metadata, ...provider_metadata } as GameMetadata;
     }
 
     // Apply the users changes on top
     if (game.user_metadata) {
-      mergedMetadata = {
-        ...mergedMetadata,
+      metadata = {
+        ...metadata,
         ...game.user_metadata,
       } as GameMetadata;
     }
 
     // Apply the merged metadata to the game
-    mergedMetadata = {
-      ...mergedMetadata,
+    metadata = {
+      ...metadata,
       ...{
         provider_slug: "gamevault",
         provider_data_id: game.id.toString(),
@@ -232,7 +235,7 @@ export class MetadataService {
       },
     } as GameMetadata;
 
-    game.metadata = mergedMetadata;
+    game.metadata = metadata;
     this.logger.debug({
       message: "Merged metadata",
       game,
@@ -275,7 +278,7 @@ export class MetadataService {
   ) {
     // Find the game by gameId.
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: true,
+      loadDeletedEntities: false,
       loadRelations: true,
     });
 
@@ -291,8 +294,7 @@ export class MetadataService {
       ).getByProviderDataIdOrFail(targetProviderDataId);
 
     // Upsert the fresh metadata into the database.
-    const updatedMetadata =
-      await this.gameMetadataService.upsert(freshMetadata);
+    const updatedMetadata = await this.gameMetadataService.save(freshMetadata);
 
     // Push the updated metadata into the game's provider_metadata array.
     game.provider_metadata.push(updatedMetadata);
