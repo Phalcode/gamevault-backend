@@ -5,7 +5,6 @@ import {
   Entity,
   Index,
   JoinColumn,
-  JoinTable,
   ManyToMany,
   OneToMany,
   OneToOne,
@@ -91,29 +90,6 @@ export class GamevaultGame extends DatabaseEntity {
     example: GameType.WINDOWS_PORTABLE,
   })
   type: GameType;
-
-  @JoinTable()
-  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games, {
-    cascade: ["insert", "update"],
-  })
-  @ApiPropertyOptional({
-    description: "metadata of various providers associated to the game",
-    type: () => GameMetadata,
-    isArray: true,
-  })
-  provider_metadata: GameMetadata[];
-
-  @OneToOne(() => GameMetadata, {
-    nullable: true,
-    cascade: true,
-    orphanedRowAction: "soft-delete",
-  })
-  @JoinColumn()
-  @ApiPropertyOptional({
-    description: "user-defined metadata of the game",
-    type: () => GameMetadata,
-  })
-  user_metadata?: GameMetadata;
 
   @OneToOne(() => GameMetadata, {
     nullable: true,

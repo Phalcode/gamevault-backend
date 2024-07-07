@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Builder } from "builder-pattern";
 import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
@@ -39,17 +40,18 @@ export class DeveloperMetadataService {
     ) as DeveloperMetadata[];
   }
 
-  async upsert(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
-    const existingDeveloper = await this.developerRepository.findOne({
-      where: {
-        provider_slug: developer.provider_slug,
-        provider_data_id: developer.provider_data_id,
-      },
+  async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {
+    const existingDeveloper = await this.developerRepository.findOneBy({
+      provider_slug: developer.provider_slug,
+      provider_data_id: developer.provider_data_id,
     });
-
     return this.developerRepository.save({
       ...existingDeveloper,
-      ...developer,
+      ...{
+        provider_data_id: developer.provider_data_id,
+        provider_slug: developer.provider_slug,
+        name: developer.name,
+      },
     });
   }
 }

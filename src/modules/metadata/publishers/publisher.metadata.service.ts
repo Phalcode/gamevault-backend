@@ -39,17 +39,18 @@ export class PublisherMetadataService {
     ) as PublisherMetadata[];
   }
 
-  async upsert(publisher: PublisherMetadata): Promise<PublisherMetadata> {
-    const existingPublisher = await this.publisherRepository.findOne({
-      where: {
-        provider_slug: publisher.provider_slug,
-        provider_data_id: publisher.provider_data_id,
-      },
+  async save(publisher: PublisherMetadata): Promise<PublisherMetadata> {
+    const existingPublisher = await this.publisherRepository.findOneBy({
+      provider_slug: publisher.provider_slug,
+      provider_data_id: publisher.provider_data_id,
     });
-
     return this.publisherRepository.save({
       ...existingPublisher,
-      ...publisher,
+      ...{
+        provider_data_id: publisher.provider_data_id,
+        provider_slug: publisher.provider_slug,
+        name: publisher.name,
+      },
     });
   }
 }

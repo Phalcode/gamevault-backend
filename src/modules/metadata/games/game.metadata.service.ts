@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Builder } from "builder-pattern";
 import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
+import logger from "../../../logging";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
 import { GenreMetadataService } from "../genres/genre.metadata.service";
 import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
@@ -78,69 +80,64 @@ export class GameMetadataService {
    * exists, it updates its properties with the ones from the provided
    * metadata. Otherwise, it creates a new GameMetadata entity.
    */
-  async save(freshMetadata: GameMetadata): Promise<GameMetadata> {
-    // Find an existing GameMetadata with the same provider_slug and provider_data_id
-    const existingGameMetadata = await this.gameMetadataRepository.findOne({
-      where: {
-        provider_slug: freshMetadata.provider_slug,
-        provider_data_id: freshMetadata.provider_data_id,
-      },
+  async save(game: GameMetadata): Promise<GameMetadata> {
+    const existingGame = await this.gameMetadataRepository.findOneBy({
+      provider_slug: game.provider_slug,
+      provider_data_id: game.provider_data_id,
     });
 
-    // Update the existing GameMetadata with the provided metadata
-    const combinedGameMetadata = {
-      ...existingGameMetadata,
-      ...freshMetadata,
-    } as GameMetadata;
+    const combinedGameMetadata = Builder<GameMetadata>()
+      .id(existingGame?.id)
+      .provider_slug(game.provider_slug)
+      .provider_data_id(game.provider_data_id)
+      .provider_probability(game.provider_probability)
+      .provider_checksum(game.provider_checksum)
+      .age_rating(game.age_rating)
+      .title(game.title)
+      .release_date(game.release_date)
+      .average_playtime(game.average_playtime)
+      .cover(game.cover)
+      .background(game.background)
+      .screenshots(game.screenshots)
+      .url_website(game.url_website)
+      .rating_provider(game.rating_provider)
+      .early_access(game.early_access);
 
-    // Upsert developers
-    if (combinedGameMetadata.developers) {
-      for (const developer of combinedGameMetadata.developers) {
-        const upsertedDeveloper =
-          await this.developerMetadataService.upsert(developer);
-        combinedGameMetadata.developers = combinedGameMetadata.developers?.map(
-          (developer) =>
-            developer.id === upsertedDeveloper.id
-              ? upsertedDeveloper
-              : developer,
-        );
-      }
+    const upsertedDevelopers = [];
+    for (const developer of game.developers) {
+      upsertedDevelopers.push(
+        await this.developerMetadataService.save(developer),
+      );
     }
+    combinedGameMetadata.developers(upsertedDevelopers);
 
-    // Upsert publishers
-    if (combinedGameMetadata.publishers) {
-      for (const publisher of combinedGameMetadata.publishers) {
-        const upsertedPublisher =
-          await this.publisherMetadataService.upsert(publisher);
-        combinedGameMetadata.publishers = combinedGameMetadata.publishers?.map(
-          (publisher) =>
-            publisher.id === upsertedPublisher.id
-              ? upsertedPublisher
-              : publisher,
-        );
-      }
+    const upsertedPublishers = [];
+    for (const publisher of game.publishers) {
+      upsertedPublishers.push(
+        await this.publisherMetadataService.save(publisher),
+      );
     }
+    combinedGameMetadata.publishers(upsertedPublishers);
 
-    // Upsert tags
-    if (combinedGameMetadata.tags) {
-      for (const tag of combinedGameMetadata.tags) {
-        const upsertedTag = await this.tagMetadataService.upsert(tag);
-        combinedGameMetadata.tags = combinedGameMetadata.tags?.map((tag) =>
-          tag.id === upsertedTag.id ? upsertedTag : tag,
-        );
-      }
+    const upsertedTags = [];
+    for (const tag of game.tags) {
+      upsertedTags.push(await this.tagMetadataService.save(tag));
     }
+    combinedGameMetadata.tags(upsertedTags);
 
-    // Upsert genres
-    if (combinedGameMetadata.genres) {
-      for (const genre of combinedGameMetadata.genres) {
-        const upsertedGenre = await this.genreMetadataService.upsert(genre);
-        combinedGameMetadata.genres = combinedGameMetadata.genres?.map(
-          (game) => (game.id === upsertedGenre.id ? upsertedGenre : game),
-        );
-      }
+    const upsertedGenres = [];
+    for (const genre of game.genres) {
+      upsertedGenres.push(await this.genreMetadataService.save(genre));
     }
+    combinedGameMetadata.genres(upsertedGenres);
 
-    return await this.gameMetadataRepository.save(combinedGameMetadata);
+    const upsertedGame = combinedGameMetadata.build();
+
+    logger.log({
+      message: `Upserted GameMetadata`,
+      game: upsertedGame,
+    });
+
+    return await this.gameMetadataRepository.save(upsertedGame);
   }
 }

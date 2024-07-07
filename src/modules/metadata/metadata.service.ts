@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
+import globals from "../../globals";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
 import { GameMetadata } from "./games/game.metadata.entity";
@@ -193,17 +194,22 @@ export class MetadataService {
     return this.getProviderBySlugOrFail(providerSlug).search(game);
   }
 
-  async merge(game: GamevaultGame): Promise<GamevaultGame> {
-    if (!game.metadata && !game.user_metadata && !game.provider_metadata) {
-      return game;
-    }
-
-    // Get existing Metadata and sort them by provider-slug in provider priority in ascending order
-    game.provider_metadata.sort((a, b) => {
-      const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
-      const bProvider = this.getProviderBySlugOrFail(b.provider_slug);
-      return aProvider.priority - bProvider.priority;
-    });
+  async merge(gameId: number): Promise<GamevaultGame> {
+    // TODO: Fix metadata merge
+    const provider_metadata = (await this.gameMetadataService.find())
+      .filter(
+        (metadata) =>
+          !globals.RESERVED_PROVIDER_SLUGS.includes(metadata.provider_slug),
+      )
+      .sort((a, b) => {
+        const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
+        const bProvider = this.getProviderBySlugOrFail(b.provider_slug);
+        return aProvider.priority - bProvider.priority;
+      });
+    const user_metadata = (await this.gameMetadataService.find("user")).shift();
+    const merged_metadata = (
+      await this.gameMetadataService.find("gamevault")
+    ).shift();
 
     let metadata = game.metadata;
 

@@ -45,8 +45,6 @@ export class GamesService {
             "progresses.user",
             "bookmarked_users",
             "metadata",
-            "user_metadata",
-            "provider_metadata",
           ];
         } else if (Array.isArray(options.loadRelations))
           relations = options.loadRelations;
@@ -148,7 +146,7 @@ export class GamesService {
   /** Retrieves all games from the database. */
   public async find(): Promise<GamevaultGame[]> {
     return this.gamesRepository.find({
-      relations: ["metadata", "user_metadata", "provider_metadata"],
+      relations: ["metadata"],
     });
   }
 
