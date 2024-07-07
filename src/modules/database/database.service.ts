@@ -1,10 +1,10 @@
 import {
-    Injectable,
-    InternalServerErrorException,
-    Logger,
-    NotAcceptableException,
-    StreamableFile,
-    UnauthorizedException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotAcceptableException,
+  StreamableFile,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { exec } from "child_process";
 import { createReadStream, existsSync, statSync } from "fs";

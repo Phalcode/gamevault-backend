@@ -1,19 +1,19 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Logger,
-    Param,
-    Put,
-    Request,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  Param,
+  Put,
+  Request,
 } from "@nestjs/common";
 import {
-    ApiBasicAuth,
-    ApiBody,
-    ApiOkResponse,
-    ApiOperation,
-    ApiTags,
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from "@nestjs/swagger";
 
 import configuration from "../../configuration";

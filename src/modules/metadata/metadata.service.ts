@@ -195,7 +195,7 @@ export class MetadataService {
 
   async merge(gameId: number): Promise<GamevaultGame> {
     const relatedMetadata = await this.gameMetadataService.findByGameId(gameId);
-    
+
     if (!relatedMetadata.length) {
       this.logger.warn({
         message: "No metadata found to merge.",
@@ -206,7 +206,7 @@ export class MetadataService {
         loadRelations: false,
       });
     }
-    
+
     const providerMetadata = relatedMetadata
       .filter(
         (metadata) =>
@@ -221,7 +221,6 @@ export class MetadataService {
     const userMetadata = relatedMetadata.find(
       (metadata) => metadata.provider_slug === "user",
     );
-
 
     const existingMergedMetadata = relatedMetadata.find(
       (metadata) => metadata.provider_slug === "gamevault",
