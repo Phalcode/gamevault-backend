@@ -292,27 +292,11 @@ export class MetadataService {
     providerSlug: string,
     targetProviderDataId: string,
   ) {
-    // Find the game by gameId.
-    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
-
-    // Remove the metadata of the specified provider.
-    game.metadata = game.metadata.filter(
-      (metadata) => metadata.provider_slug !== providerSlug,
-    );
-
-    // Get the fresh metadata from the target provider.
+    const game = await this.unmap(gameId, providerSlug);
     const provider = this.getProviderBySlugOrFail(providerSlug);
     const freshMetadata =
       await provider.getByProviderDataIdOrFail(targetProviderDataId);
-
-    // Upsert the fresh metadata into the database.
-    const updatedMetadata = await this.gameMetadataService.save(freshMetadata);
-
-    // Push the updated metadata into the game's provider_metadata array.
-    game.metadata.push(updatedMetadata);
+    game.metadata.push(await this.gameMetadataService.save(freshMetadata));
     await this.gamesService.save(game);
     await this.merge(game.id);
     return this.gamesService.findOneByGameIdOrFail(gameId, {

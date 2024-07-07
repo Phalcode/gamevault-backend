@@ -136,6 +136,15 @@ export class GameMetadataService {
     if (game.developers?.length) {
       const upsertedDevelopers = [];
       for (const developer of game.developers) {
+        if (
+          upsertedDevelopers.some(
+            (d) =>
+              d.provider_data_id === developer.provider_data_id &&
+              d.provider_slug === developer.provider_slug,
+          )
+        ) {
+          continue;
+        }
         upsertedDevelopers.push(
           await this.developerMetadataService.save(developer),
         );
@@ -146,6 +155,16 @@ export class GameMetadataService {
     if (game.publishers?.length) {
       const upsertedPublishers = [];
       for (const publisher of game.publishers) {
+        if (
+          upsertedPublishers.some(
+            (p) =>
+              p.provider_data_id === publisher.provider_data_id &&
+              p.provider_slug === publisher.provider_slug,
+          )
+        ) {
+          continue;
+        }
+
         upsertedPublishers.push(
           await this.publisherMetadataService.save(publisher),
         );
@@ -156,6 +175,15 @@ export class GameMetadataService {
     if (game.tags?.length) {
       const upsertedTags = [];
       for (const tag of game.tags) {
+        if (
+          upsertedTags.some(
+            (t) =>
+              t.provider_data_id === tag.provider_data_id &&
+              t.provider_slug === tag.provider_slug,
+          )
+        ) {
+          continue;
+        }
         upsertedTags.push(await this.tagMetadataService.save(tag));
       }
       combinedGameMetadata.tags(upsertedTags);
@@ -164,6 +192,15 @@ export class GameMetadataService {
     if (game.genres?.length) {
       const upsertedGenres = [];
       for (const genre of game.genres) {
+        if (
+          upsertedGenres.some(
+            (g) =>
+              g.provider_data_id === genre.provider_data_id &&
+              g.provider_slug === genre.provider_slug,
+          )
+        ) {
+          continue;
+        }
         upsertedGenres.push(await this.genreMetadataService.save(genre));
       }
       combinedGameMetadata.genres(upsertedGenres);
@@ -172,7 +209,7 @@ export class GameMetadataService {
     const upsertedGame = combinedGameMetadata.build();
 
     logger.log({
-      message: `Upserted GameMetadata`,
+      message: `Saving GameMetadata`,
       game: upsertedGame,
     });
 
