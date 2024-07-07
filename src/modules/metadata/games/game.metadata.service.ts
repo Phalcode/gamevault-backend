@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Builder } from "builder-pattern";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
@@ -42,6 +42,36 @@ export class GameMetadataService {
       relationLoadStrategy: "query",
     });
     return DeletedEntitiesFilter.filterDeleted(games) as GameMetadata[];
+  }
+
+  async findByGameId(
+    gameId: number,
+    options: FindOptions = { loadDeletedEntities: false, loadRelations: true },
+  ): Promise<GameMetadata[]> {
+    let relations = [];
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        relations = [
+          "gamevault_games",
+          "developers",
+          "publishers",
+          "genres",
+          "tags",
+        ];
+      } else if (Array.isArray(options.loadRelations)) {
+        relations = options.loadRelations;
+      }
+    }
+
+    return await this.gameMetadataRepository.find({
+      where: {
+        gamevault_games: {
+          id: In([gameId]),
+        },
+      },
+      relations,
+      withDeleted: options.loadDeletedEntities,
+    });
   }
 
   async findOneByGameMetadataIdOrFail(
@@ -103,33 +133,41 @@ export class GameMetadataService {
       .rating_provider(game.rating_provider)
       .early_access(game.early_access);
 
-    const upsertedDevelopers = [];
-    for (const developer of game.developers) {
-      upsertedDevelopers.push(
-        await this.developerMetadataService.save(developer),
-      );
+    if (game.developers?.length) {
+      const upsertedDevelopers = [];
+      for (const developer of game.developers) {
+        upsertedDevelopers.push(
+          await this.developerMetadataService.save(developer),
+        );
+      }
+      combinedGameMetadata.developers(upsertedDevelopers);
     }
-    combinedGameMetadata.developers(upsertedDevelopers);
 
-    const upsertedPublishers = [];
-    for (const publisher of game.publishers) {
-      upsertedPublishers.push(
-        await this.publisherMetadataService.save(publisher),
-      );
+    if (game.publishers?.length) {
+      const upsertedPublishers = [];
+      for (const publisher of game.publishers) {
+        upsertedPublishers.push(
+          await this.publisherMetadataService.save(publisher),
+        );
+      }
+      combinedGameMetadata.publishers(upsertedPublishers);
     }
-    combinedGameMetadata.publishers(upsertedPublishers);
 
-    const upsertedTags = [];
-    for (const tag of game.tags) {
-      upsertedTags.push(await this.tagMetadataService.save(tag));
+    if (game.tags?.length) {
+      const upsertedTags = [];
+      for (const tag of game.tags) {
+        upsertedTags.push(await this.tagMetadataService.save(tag));
+      }
+      combinedGameMetadata.tags(upsertedTags);
     }
-    combinedGameMetadata.tags(upsertedTags);
 
-    const upsertedGenres = [];
-    for (const genre of game.genres) {
-      upsertedGenres.push(await this.genreMetadataService.save(genre));
+    if (game.genres?.length) {
+      const upsertedGenres = [];
+      for (const genre of game.genres) {
+        upsertedGenres.push(await this.genreMetadataService.save(genre));
+      }
+      combinedGameMetadata.genres(upsertedGenres);
     }
-    combinedGameMetadata.genres(upsertedGenres);
 
     const upsertedGame = combinedGameMetadata.build();
 

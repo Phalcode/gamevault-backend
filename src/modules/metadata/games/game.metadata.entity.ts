@@ -25,7 +25,7 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity {
-  @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
+  @ManyToMany(() => GamevaultGame, (game) => game.metadata)
   @ApiPropertyOptional({
     description: "games the metadata belongs to",
     type: () => GamevaultGame,

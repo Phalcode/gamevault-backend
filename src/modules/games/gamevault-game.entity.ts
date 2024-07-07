@@ -4,10 +4,9 @@ import {
   Column,
   Entity,
   Index,
-  JoinColumn,
+  JoinTable,
   ManyToMany,
   OneToMany,
-  OneToOne,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -91,17 +90,16 @@ export class GamevaultGame extends DatabaseEntity {
   })
   type: GameType;
 
-  @OneToOne(() => GameMetadata, {
-    nullable: true,
-    cascade: true,
-    orphanedRowAction: "soft-delete",
+  @JoinTable()
+  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games, {
+    eager: true,
   })
-  @JoinColumn()
   @ApiPropertyOptional({
-    description: "effective and merged metadata of the game",
+    description: "metadata of various providers associated to the game",
     type: () => GameMetadata,
+    isArray: true,
   })
-  metadata?: GameMetadata;
+  metadata: GameMetadata[];
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
@@ -128,8 +126,8 @@ export class GamevaultGame extends DatabaseEntity {
 
   @AfterLoad()
   async nullChecks() {
-    if (!this.provider_metadata) {
-      this.provider_metadata = [];
+    if (!this.metadata) {
+      this.metadata = [];
     }
   }
 }

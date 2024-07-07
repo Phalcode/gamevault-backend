@@ -1,6 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Builder } from "builder-pattern";
 import { Repository } from "typeorm";
 
 import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
