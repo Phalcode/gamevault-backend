@@ -47,7 +47,7 @@ export class ProgressService {
   }
 
   public async find() {
-    return await this.progressRepository.find({
+    return this.progressRepository.find({
       where: {
         deleted_at: IsNull(),
       },
@@ -95,7 +95,7 @@ export class ProgressService {
   }
 
   public async findOneByUserId(userId: number) {
-    return await this.progressRepository.find({
+    return this.progressRepository.find({
       order: { minutes_played: "DESC" },
       where: {
         user: { id: userId },
@@ -107,7 +107,7 @@ export class ProgressService {
   }
 
   public async findOneByGameId(gameId: number): Promise<Progress[]> {
-    return await this.progressRepository.find({
+    return this.progressRepository.find({
       where: {
         game: { id: gameId },
         deleted_at: IsNull(),

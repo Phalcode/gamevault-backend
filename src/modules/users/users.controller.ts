@@ -1,20 +1,20 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  MethodNotAllowedException,
-  Param,
-  Post,
-  Put,
-  Request,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    MethodNotAllowedException,
+    Param,
+    Post,
+    Put,
+    Request,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
+    ApiBasicAuth,
+    ApiBody,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
 } from "@nestjs/swagger";
 
 import configuration from "../../configuration";
@@ -50,7 +50,7 @@ export class UsersController {
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<GamevaultUser[]> {
     const includeHidden = req.gamevaultuser.role >= Role.ADMIN;
-    return await this.usersService.find(includeHidden);
+    return this.usersService.find(includeHidden);
   }
 
   /** Retrieve user information based on the provided request object. */
@@ -90,7 +90,7 @@ export class UsersController {
     const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.update(user.id, dto, false);
+    return this.usersService.update(user.id, dto, false);
   }
 
   /** Deletes your own user. */
@@ -106,7 +106,7 @@ export class UsersController {
     const user = await this.usersService.findOneByUsernameOrFail(
       request.gamevaultuser.username,
     );
-    return await this.usersService.delete(user.id);
+    return this.usersService.delete(user.id);
   }
 
   @Post("me/bookmark/:id")
@@ -152,7 +152,7 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
   async getUserByUserId(@Param() params: IdDto): Promise<GamevaultUser> {
-    return await this.usersService.findOneByUserIdOrFail(Number(params.id));
+    return this.usersService.findOneByUserIdOrFail(Number(params.id));
   }
 
   /** Updates details of any user. */
@@ -168,7 +168,7 @@ export class UsersController {
     @Param() params: IdDto,
     @Body() dto: UpdateUserDto,
   ): Promise<GamevaultUser> {
-    return await this.usersService.update(Number(params.id), dto, true);
+    return this.usersService.update(Number(params.id), dto, true);
   }
 
   /** Deletes any user with the specified ID. */
@@ -180,7 +180,7 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser })
   @MinimumRole(Role.ADMIN)
   async deleteUserByUserId(@Param() params: IdDto): Promise<GamevaultUser> {
-    return await this.usersService.delete(Number(params.id));
+    return this.usersService.delete(Number(params.id));
   }
 
   /** Recover a deleted user. */
@@ -194,7 +194,7 @@ export class UsersController {
   async postUserRecoverByUserId(
     @Param() params: IdDto,
   ): Promise<GamevaultUser> {
-    return await this.usersService.recover(Number(params.id));
+    return this.usersService.recover(Number(params.id));
   }
 
   /** Register a new user. */
@@ -220,6 +220,6 @@ export class UsersController {
         "Registration is disabled on this server.",
       );
     }
-    return await this.usersService.register(dto);
+    return this.usersService.register(dto);
   }
 }

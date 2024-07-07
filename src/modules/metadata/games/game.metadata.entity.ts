@@ -66,7 +66,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   provider_data_id?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "float", nullable: true })
   @ApiPropertyOptional({
     description:
       "gamevault's calculated probability of the metadata being the correct one.",
@@ -85,7 +85,7 @@ export class GameMetadata extends DatabaseEntity {
 
   //#endregion
 
-  @Column({ nullable: true, type: "integer" })
+  @Column({ type: "int", nullable: true })
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
@@ -116,7 +116,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   description?: string;
 
-  @Column({ nullable: true, type: "integer" })
+  @Column({ type: "int", nullable: true })
   @ApiPropertyOptional({
     description: "average playtime of other people in the game in minutes",
     example: 180,
@@ -166,7 +166,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   url_website?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "float", nullable: true })
   @ApiPropertyOptional({
     description: "rating of the provider",
     example: 90,

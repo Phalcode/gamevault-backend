@@ -12,7 +12,7 @@ export class SocketSecretService {
   ) {}
 
   async findUserBySocketSecretOrFail(socketSecret: string) {
-    return await this.userRepository.findOneByOrFail({
+    return this.userRepository.findOneByOrFail({
       socket_secret: socketSecret,
     });
   }

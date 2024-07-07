@@ -107,7 +107,7 @@ export class MediaService {
   }
 
   private async fetchFromUrl(sourceUrl: string): Promise<AxiosResponse> {
-    return await firstValueFrom(
+    return firstValueFrom(
       this.httpService
         .get(sourceUrl, {
           responseType: "arraybuffer",

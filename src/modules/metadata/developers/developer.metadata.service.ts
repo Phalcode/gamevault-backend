@@ -1,8 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
 import { DeveloperMetadata } from "./developer.metadata.entity";
 
@@ -14,7 +12,7 @@ export class DeveloperMetadataService {
     private developerRepository: Repository<DeveloperMetadata>,
   ) {}
 
-  async find(
+  async findByProviderSlug(
     provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<DeveloperMetadata[]> {
@@ -27,16 +25,12 @@ export class DeveloperMetadataService {
         relations = options.loadRelations;
     }
 
-    const developers = await this.developerRepository.find({
+    return this.developerRepository.find({
       where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
-
-    return DeletedEntitiesFilter.filterDeleted(
-      developers,
-    ) as DeveloperMetadata[];
   }
 
   async save(developer: DeveloperMetadata): Promise<DeveloperMetadata> {

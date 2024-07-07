@@ -1,8 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-
-import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
 import { PublisherMetadata } from "./publisher.metadata.entity";
 
@@ -14,7 +12,7 @@ export class PublisherMetadataService {
     private publisherRepository: Repository<PublisherMetadata>,
   ) {}
 
-  async find(
+  async findByProviderSlug(
     provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<PublisherMetadata[]> {
@@ -27,16 +25,12 @@ export class PublisherMetadataService {
         relations = options.loadRelations;
     }
 
-    const publishers = await this.publisherRepository.find({
+    return this.publisherRepository.find({
       where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
-
-    return DeletedEntitiesFilter.filterDeleted(
-      publishers,
-    ) as PublisherMetadata[];
   }
 
   async save(publisher: PublisherMetadata): Promise<PublisherMetadata> {

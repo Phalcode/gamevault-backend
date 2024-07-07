@@ -151,7 +151,7 @@ export class UsersService implements OnApplicationBootstrap {
         : { activated: true, username: Not(ILike("gvbot_%")) },
     };
 
-    return await this.userRepository.find(query);
+    return this.userRepository.find(query);
   }
 
   /** Register a new user */

@@ -107,7 +107,6 @@ export class MetadataService {
     for (const provider of this.providers) {
       await this.checkProvider(game, provider);
     }
-    await this.merge(game.id);
   }
 
   /**
@@ -194,9 +193,20 @@ export class MetadataService {
     return this.getProviderBySlugOrFail(providerSlug).search(game);
   }
 
-  async merge(gameId: number) {
+  async merge(gameId: number): Promise<GamevaultGame> {
     const relatedMetadata = await this.gameMetadataService.findByGameId(gameId);
-
+    
+    if (!relatedMetadata.length) {
+      this.logger.warn({
+        message: "No metadata found to merge.",
+        game: gameId,
+      });
+      return this.gamesService.findOneByGameIdOrFail(gameId, {
+        loadDeletedEntities: false,
+        loadRelations: false,
+      });
+    }
+    
     const providerMetadata = relatedMetadata
       .filter(
         (metadata) =>
@@ -211,6 +221,7 @@ export class MetadataService {
     const userMetadata = relatedMetadata.find(
       (metadata) => metadata.provider_slug === "user",
     );
+
 
     const existingMergedMetadata = relatedMetadata.find(
       (metadata) => metadata.provider_slug === "gamevault",
@@ -252,12 +263,11 @@ export class MetadataService {
       },
     } as GameMetadata;
 
-    this.logger.debug({
-      message: "Merged metadata",
-      new_merged_metadata: mergedMetadata,
+    await this.gameMetadataService.save(mergedMetadata);
+    return this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: true,
     });
-
-    this.gameMetadataService.save(mergedMetadata);
   }
 
   /**
@@ -277,11 +287,7 @@ export class MetadataService {
     );
 
     await this.gamesService.save(game);
-    await this.merge(game.id);
-    return await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
+    return this.merge(game.id);
   }
 
   /**
@@ -292,16 +298,12 @@ export class MetadataService {
     providerSlug: string,
     targetProviderDataId: string,
   ) {
-    const game = await this.unmap(gameId, providerSlug);
     const provider = this.getProviderBySlugOrFail(providerSlug);
-    const freshMetadata =
+    const metadata =
       await provider.getByProviderDataIdOrFail(targetProviderDataId);
-    game.metadata.push(await this.gameMetadataService.save(freshMetadata));
+    const game = await this.unmap(gameId, providerSlug);
+    game.metadata.push(await this.gameMetadataService.save(metadata));
     await this.gamesService.save(game);
-    await this.merge(game.id);
-    return this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
+    return this.merge(game.id);
   }
 }

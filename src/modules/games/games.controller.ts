@@ -21,10 +21,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -59,7 +59,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putFilesReindex() {
-    return await this.filesService.index("Reindex API was called");
+    return this.filesService.index("Reindex API was called");
   }
 
   /** Get paginated games list based on the given query parameters. */
@@ -133,7 +133,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameRandom(): Promise<GamevaultGame> {
-    return await this.gamesService.findRandom();
+    return this.gamesService.findRandom();
   }
 
   /** Retrieves details for a game with the specified ID. */
@@ -145,7 +145,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameByGameId(@Param() params: IdDto): Promise<GamevaultGame> {
-    return await this.gamesService.findOneByGameIdOrFail(Number(params.id), {
+    return this.gamesService.findOneByGameIdOrFail(Number(params.id), {
       loadRelations: true,
       loadDeletedEntities: true,
     });
@@ -192,7 +192,7 @@ export class GamesController {
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
-    return await this.filesService.download(
+    return this.filesService.download(
       Number(params.id),
       Number(speedlimit),
       range,
@@ -210,6 +210,6 @@ export class GamesController {
     @Param() params: IdDto,
     @Body() dto: UpdateGameDto,
   ): Promise<GamevaultGame> {
-    return await this.gamesService.update(Number(params.id), dto);
+    return this.gamesService.update(Number(params.id), dto);
   }
 }

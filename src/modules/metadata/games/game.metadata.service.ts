@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Builder } from "builder-pattern";
 import { In, Repository } from "typeorm";
 
-import { DeletedEntitiesFilter } from "../../../filters/deleted-entities.filter";
 import { FindOptions } from "../../../globals";
 import logger from "../../../logging";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
@@ -23,7 +22,7 @@ export class GameMetadataService {
     private genreMetadataService: GenreMetadataService,
   ) {}
 
-  async find(
+  async findByProviderSlug(
     provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<GameMetadata[]> {
@@ -35,13 +34,12 @@ export class GameMetadataService {
       } else if (Array.isArray(options.loadRelations))
         relations = options.loadRelations;
     }
-    const games = await this.gameMetadataRepository.find({
+    return this.gameMetadataRepository.find({
       where: { provider_slug },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
     });
-    return DeletedEntitiesFilter.filterDeleted(games) as GameMetadata[];
   }
 
   async findByGameId(
@@ -63,7 +61,7 @@ export class GameMetadataService {
       }
     }
 
-    return await this.gameMetadataRepository.find({
+    return this.gameMetadataRepository.find({
       where: {
         gamevault_games: {
           id: In([gameId]),
@@ -88,13 +86,12 @@ export class GameMetadataService {
           relations = options.loadRelations;
       }
 
-      const game = await this.gameMetadataRepository.findOneOrFail({
+      return await this.gameMetadataRepository.findOneOrFail({
         where: { id },
         relations,
         withDeleted: options.loadDeletedEntities,
         relationLoadStrategy: "query",
       });
-      return DeletedEntitiesFilter.filterDeleted(game) as GameMetadata;
     } catch (error) {
       throw new NotFoundException(
         `GameMetadata with id ${id} was not found on the server.`,
@@ -125,6 +122,7 @@ export class GameMetadataService {
       .age_rating(game.age_rating)
       .title(game.title)
       .release_date(game.release_date)
+      .description(game.description)
       .average_playtime(game.average_playtime)
       .cover(game.cover)
       .background(game.background)
@@ -133,8 +131,8 @@ export class GameMetadataService {
       .rating_provider(game.rating_provider)
       .early_access(game.early_access);
 
+    const upsertedDevelopers = [];
     if (game.developers?.length) {
-      const upsertedDevelopers = [];
       for (const developer of game.developers) {
         if (
           upsertedDevelopers.some(
@@ -149,11 +147,11 @@ export class GameMetadataService {
           await this.developerMetadataService.save(developer),
         );
       }
-      combinedGameMetadata.developers(upsertedDevelopers);
     }
+    combinedGameMetadata.developers(upsertedDevelopers);
 
+    const upsertedPublishers = [];
     if (game.publishers?.length) {
-      const upsertedPublishers = [];
       for (const publisher of game.publishers) {
         if (
           upsertedPublishers.some(
@@ -169,11 +167,11 @@ export class GameMetadataService {
           await this.publisherMetadataService.save(publisher),
         );
       }
-      combinedGameMetadata.publishers(upsertedPublishers);
     }
+    combinedGameMetadata.publishers(upsertedPublishers);
 
+    const upsertedTags = [];
     if (game.tags?.length) {
-      const upsertedTags = [];
       for (const tag of game.tags) {
         if (
           upsertedTags.some(
@@ -186,11 +184,11 @@ export class GameMetadataService {
         }
         upsertedTags.push(await this.tagMetadataService.save(tag));
       }
-      combinedGameMetadata.tags(upsertedTags);
     }
+    combinedGameMetadata.tags(upsertedTags);
 
+    const upsertedGenres = [];
     if (game.genres?.length) {
-      const upsertedGenres = [];
       for (const genre of game.genres) {
         if (
           upsertedGenres.some(
@@ -203,16 +201,16 @@ export class GameMetadataService {
         }
         upsertedGenres.push(await this.genreMetadataService.save(genre));
       }
-      combinedGameMetadata.genres(upsertedGenres);
     }
+    combinedGameMetadata.genres(upsertedGenres);
 
     const upsertedGame = combinedGameMetadata.build();
 
-    logger.log({
+    logger.debug({
       message: `Saving GameMetadata`,
       game: upsertedGame,
     });
 
-    return await this.gameMetadataRepository.save(upsertedGame);
+    return this.gameMetadataRepository.save(upsertedGame);
   }
 }

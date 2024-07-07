@@ -10,7 +10,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { validate } from "class-validator";
 import { Repository } from "typeorm";
 
-import { DeletedEntitiesFilter } from "../../filters/deleted-entities.filter";
 import { FindOptions } from "../../globals";
 import { MediaService } from "../media/media.service";
 import { MetadataService } from "../metadata/metadata.service";
@@ -50,13 +49,12 @@ export class GamesService {
           relations = options.loadRelations;
       }
 
-      const game = await this.gamesRepository.findOneOrFail({
+      return await this.gamesRepository.findOneOrFail({
         where: { id },
         relations,
         withDeleted: options.loadDeletedEntities,
         relationLoadStrategy: "query",
       });
-      return DeletedEntitiesFilter.filterDeleted(game) as GamevaultGame;
     } catch (error) {
       throw new NotFoundException(
         `Game with id ${id} was not found on the server.`,

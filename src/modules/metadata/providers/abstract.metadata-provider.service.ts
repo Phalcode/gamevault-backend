@@ -195,23 +195,23 @@ export abstract class MetadataProvider implements OnModuleInit {
   }
 
   public async findGames(): Promise<GameMetadata[]> {
-    return this.gameMetadataService.find(this.slug);
+    return this.gameMetadataService.findByProviderSlug(this.slug);
   }
 
   public async findPublishers(): Promise<PublisherMetadata[]> {
-    return this.publisherMetadataService.find(this.slug);
+    return this.publisherMetadataService.findByProviderSlug(this.slug);
   }
 
   public async findDevelopers(): Promise<DeveloperMetadata[]> {
-    return this.developerMetadataService.find(this.slug);
+    return this.developerMetadataService.findByProviderSlug(this.slug);
   }
 
   public async findTags(): Promise<TagMetadata[]> {
-    return this.tagMetadataService.find(this.slug);
+    return this.tagMetadataService.findByProviderSlug(this.slug);
   }
 
   public async findGenres(): Promise<GenreMetadata[]> {
-    return this.genreMetadataService.find(this.slug);
+    return this.genreMetadataService.findByProviderSlug(this.slug);
   }
 
   public getLoggableData() {

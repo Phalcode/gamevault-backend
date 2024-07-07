@@ -24,7 +24,7 @@ export class Progress extends DatabaseEntity {
   })
   game?: GamevaultGame;
 
-  @Column({ default: 0 })
+  @Column({ type: "int", default: 0 })
   @ApiProperty({
     description: "playtime in minutes",
     example: 25,

@@ -1,19 +1,19 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Logger,
-  Param,
-  Put,
-  Request,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Logger,
+    Param,
+    Put,
+    Request,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
+    ApiBasicAuth,
+    ApiBody,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
 } from "@nestjs/swagger";
 
 import configuration from "../../configuration";
@@ -57,7 +57,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgresses(): Promise<Progress[]> {
-    return await this.progressService.find();
+    return this.progressService.find();
   }
 
   /** Retrieves a specific progress by its ID. */
@@ -69,7 +69,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressByProgressId(@Param() params: IdDto): Promise<Progress> {
-    return await this.progressService.findOneByProgressId(Number(params.id));
+    return this.progressService.findOneByProgressId(Number(params.id));
   }
 
   /** Deletes a progress by its ID. */
@@ -87,7 +87,7 @@ export class ProgressController {
     @Param() params: IdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.delete(
+    return this.progressService.delete(
       Number(params.id),
       req.gamevaultuser.username,
     );
@@ -102,7 +102,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByUserId(@Param() params: IdDto) {
-    return await this.progressService.findOneByUserId(Number(params.id));
+    return this.progressService.findOneByUserId(Number(params.id));
   }
 
   /** Returns an array of progresses for a game with the given ID. */
@@ -114,7 +114,7 @@ export class ProgressController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressesByGameId(@Param() params: IdDto): Promise<Progress[]> {
-    return await this.progressService.findOneByGameId(Number(params.id));
+    return this.progressService.findOneByGameId(Number(params.id));
   }
 
   /** Get the progress of a specific game for a user. */
@@ -128,7 +128,7 @@ export class ProgressController {
   async getProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
   ): Promise<Progress> {
-    return await this.progressService.findOneByUserIdAndGameIdOrReturnEmptyProgress(
+    return this.progressService.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       Number(params.userId),
       Number(params.gameId),
     );
@@ -148,7 +148,7 @@ export class ProgressController {
     @Body() progress: UpdateProgressDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.set(
+    return this.progressService.set(
       Number(params.userId),
       Number(params.gameId),
       progress,
@@ -171,7 +171,7 @@ export class ProgressController {
     @Param() params: UserIdGameIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.increment(
+    return this.progressService.increment(
       Number(params.userId),
       Number(params.gameId),
       req.gamevaultuser.username,
@@ -193,7 +193,7 @@ export class ProgressController {
     @Param() params: IncrementProgressByMinutesDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return await this.progressService.increment(
+    return this.progressService.increment(
       Number(params.userId),
       Number(params.gameId),
       req.gamevaultuser.username,

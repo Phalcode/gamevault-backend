@@ -1,10 +1,10 @@
 import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotAcceptableException,
-  StreamableFile,
-  UnauthorizedException,
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    NotAcceptableException,
+    StreamableFile,
+    UnauthorizedException,
 } from "@nestjs/common";
 import { exec } from "child_process";
 import { createReadStream, existsSync, statSync } from "fs";
@@ -83,17 +83,17 @@ export class DatabaseService {
 
   async connect() {
     this.logger.log("Connecting Database...");
-    return await this.dataSource.initialize();
+    return this.dataSource.initialize();
   }
 
   async disconnect() {
     this.logger.log("Disconnecting Database...");
-    return await this.dataSource.destroy();
+    return this.dataSource.destroy();
   }
 
   async migrate() {
     this.logger.log("Migrating Database...");
-    return await this.dataSource.runMigrations();
+    return this.dataSource.runMigrations();
   }
 
   async backupPostgresql(backupFilePath: string): Promise<StreamableFile> {

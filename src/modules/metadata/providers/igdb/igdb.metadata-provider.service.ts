@@ -17,9 +17,9 @@ import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -135,7 +135,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .provider_data_id(game.id?.toString())
       .provider_checksum(game.checksum)
       .title(game.name)
-      .release_date(new Date(game.first_release_date))
+      .release_date(new Date(game.first_release_date * 1000))
       .description(`${game.summary} \n\n\n ${game.storyline}`)
       .rating_provider(game.total_rating)
       .url_website(game.websites?.[0]?.url)
@@ -196,12 +196,12 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .screenshots(
         await Promise.all([
           ...(game.screenshots || []).map(async (screenshot) => {
-            return await this.mediaService.downloadByUrl(
+            return this.mediaService.downloadByUrl(
               screenshot.url.replace("t_thumb", "t_1080p_2x"),
             );
           }),
           ...(game.artworks || []).map(async (artwork) => {
-            return await this.mediaService.downloadByUrl(
+            return this.mediaService.downloadByUrl(
               artwork.url.replace("t_thumb", "t_1080p_2x"),
             );
           }),
@@ -231,7 +231,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .provider_slug("igdb")
       .provider_data_id(game.id?.toString())
       .title(game.name)
-      .release_date(new Date(game.first_release_date))
+      .release_date(new Date(game.first_release_date * 1000))
       .cover_url(game.cover?.url.replace("t_thumb", "t_cover_big_2x"))
       .build();
   }
