@@ -96,23 +96,16 @@ export class MetadataService {
    */
   async check(games: GamevaultGame[]): Promise<void> {
     for (const game of games) {
-      await this.checkGame(game);
-    }
-  }
-
-  /**
-   * Checks the metadata of a single game and updates it if necessary.
-   */
-  private async checkGame(game: GamevaultGame): Promise<void> {
-    for (const provider of this.providers) {
-      await this.checkProvider(game, provider);
+      for (const provider of this.providers) {
+        await this.checkGameByProvider(game, provider);
+      }
     }
   }
 
   /**
    * Checks the metadata of a single provider and updates it if necessary.
    */
-  private async checkProvider(
+  private async checkGameByProvider(
     game: GamevaultGame,
     provider: MetadataProvider,
   ): Promise<void> {
@@ -164,6 +157,11 @@ export class MetadataService {
       new Date(Date.now() - ttlMilliseconds);
 
     if (outdated) {
+      this.logger.log({
+        message: "Updating outdated metadata.",
+        provider: provider.getLoggableData(),
+        game: game.getLoggableData(),
+      });
       await this.map(
         game.id,
         provider.slug,
@@ -179,6 +177,11 @@ export class MetadataService {
     game: GamevaultGame,
     provider: MetadataProvider,
   ): Promise<void> {
+    this.logger.log({
+      message: "Searching for missing metadata.",
+      provider: provider.getLoggableData(),
+      game: game.getLoggableData(),
+    });
     const bestMatchingGame = await provider.getBestMatch(game);
     await this.map(game.id, provider.slug, bestMatchingGame.provider_data_id);
   }

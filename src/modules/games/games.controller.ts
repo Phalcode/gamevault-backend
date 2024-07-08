@@ -21,10 +21,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -59,7 +59,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putFilesReindex() {
-    return this.filesService.index("Reindex API was called");
+    return this.filesService.index();
   }
 
   /** Get paginated games list based on the given query parameters. */
@@ -74,7 +74,8 @@ export class GamesController {
   async findGames(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = ["box_image", "background_image", "bookmarked_users"];
+    //TODO: make this more slim and use detail request to get all
+    const relations = ["cover", "background", "bookmarked_users"];
     if (query.filter) {
       if (query.filter["genres.name"]) {
         relations.push("genres");
