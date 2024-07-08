@@ -17,9 +17,11 @@ import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IgdbGame } from "./models/igdb-game.interface";
+import { IgdbArtwork } from "./models/igdb-artwork.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
+import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -194,18 +196,15 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         }),
       ])
       .screenshots(
-        await Promise.all([
-          ...(game.screenshots || []).map(async (screenshot) => {
-            return this.mediaService.downloadByUrl(
-              screenshot.url.replace("t_thumb", "t_1080p_2x"),
-            );
-          }),
-          ...(game.artworks || []).map(async (artwork) => {
-            return this.mediaService.downloadByUrl(
-              artwork.url.replace("t_thumb", "t_1080p_2x"),
-            );
-          }),
-        ]),
+        await Promise.all(
+          [...(game.screenshots || []), ...(game.artworks || [])].map(
+            async (image: IgdbScreenshot | IgdbArtwork) => {
+              return this.mediaService.downloadByUrl(
+                image.url.replace("t_thumb", "t_1080p_2x"),
+              );
+            },
+          ),
+        ),
       )
       .cover(
         game.cover

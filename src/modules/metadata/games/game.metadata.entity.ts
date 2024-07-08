@@ -7,7 +7,7 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
-  ManyToOne,
+  ManyToOne
 } from "typeorm";
 
 import globals from "../../../globals";
@@ -147,11 +147,10 @@ export class GameMetadata extends DatabaseEntity {
   })
   background?: Media;
 
-  @ManyToOne(() => Media, {
-    nullable: true,
+  @ManyToMany(() => Media, {
     eager: true,
   })
-  @JoinColumn()
+  @JoinTable()
   @ApiPropertyOptional({
     description: "screenshots of the game",
     type: () => Media,
