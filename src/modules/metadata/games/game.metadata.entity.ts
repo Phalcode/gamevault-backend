@@ -7,7 +7,7 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
-  ManyToOne
+  ManyToOne,
 } from "typeorm";
 
 import globals from "../../../globals";
