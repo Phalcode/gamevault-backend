@@ -12,14 +12,14 @@ import cookieparser from "cookie-parser";
 import { readdir } from "fs/promises";
 import helmet from "helmet";
 import morgan from "morgan";
-import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
+//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { GameVaultPluginModule } from "./globals";
-import { default as logger, default as winston, stream } from "./logging";
+import { default as logger, stream, default as winston } from "./logging";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
@@ -151,35 +151,36 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
-    await AsyncApiModule.setup(
-      "api/docs/async",
-      app,
-      AsyncApiModule.createDocument(
-        app,
-        new AsyncApiDocumentBuilder()
-          .setTitle("GameVault Backend Server")
-          .setDescription(
-            "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
-          )
-          .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
-          .setExternalDoc("Documentation", "https://gamevau.lt")
-          .setDefaultContentType("application/json")
-          .setVersion(configuration.SERVER.VERSION)
-          .addServer("Local GameVault Server", {
-            url: "localhost:8080",
-            protocol: "ws",
-          })
-          .addServer("Demo GameVault Server", {
-            url: "demo.gamevau.lt",
-            protocol: "wss",
-          })
-          .setLicense(
-            "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
-            "https://github.com/Phalcode/gamevault-backend/LICENSE",
-          )
-          .build(),
-      ),
-    );
+    // TODO: Leads to EACCES: permission denied, mkdir '/root/.npm/_cacache/tmp' running in docker for some reason
+    //await AsyncApiModule.setup(
+    //  "api/docs/async",
+    //  app,
+    //  AsyncApiModule.createDocument(
+    //    app,
+    //    new AsyncApiDocumentBuilder()
+    //      .setTitle("GameVault Backend Server")
+    //      .setDescription(
+    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+    //      )
+    //      .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
+    //      .setExternalDoc("Documentation", "https://gamevau.lt")
+    //      .setDefaultContentType("application/json")
+    //      .setVersion(configuration.SERVER.VERSION)
+    //      .addServer("Local GameVault Server", {
+    //        url: "localhost:8080",
+    //        protocol: "ws",
+    //      })
+    //      .addServer("Demo GameVault Server", {
+    //        url: "demo.gamevau.lt",
+    //        protocol: "wss",
+    //      })
+    //      .setLicense(
+    //        "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+    //        "https://github.com/Phalcode/gamevault-backend/LICENSE",
+    //      )
+    //      .build(),
+    //  ),
+    //);
   }
 
   // Provide fancy pants landing page
