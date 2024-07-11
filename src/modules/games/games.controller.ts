@@ -21,10 +21,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -74,15 +74,14 @@ export class GamesController {
   async findGames(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = ["cover", "background", "bookmarked_users"];
+    const relations = ["bookmarked_users", "metadata", "metadata.cover"];
 
-    if (
-      query.filter["metadata.genres.name"] ||
-      query.filter["metadata.tags.name"] ||
-      query.sortBy["metadata.average_playtime"] ||
-      query.sortBy["metadata.rating"]
-    ) {
-      relations.push("metadata");
+    if (query.filter["metadata.genres.name"]) {
+      relations.push("metadata.genres");
+    }
+
+    if (query.filter["metadata.tags.name"]) {
+      relations.push("metadata.tags");
     }
 
     return paginate(query, this.gamesRepository, {
@@ -100,10 +99,19 @@ export class GamesController {
         "early_access",
         "type",
         "bookmarked_users.id",
+        "metadata.title",
+        "metadata.early_access",
+        "metadata.release_date",
         "metadata.average_playtime",
         "metadata.rating",
       ],
-      searchableColumns: ["title"],
+      loadEagerRelations: false,
+      searchableColumns: [
+        "id",
+        "title",
+        "metadata.title",
+        "metadata.description",
+      ],
       filterableColumns: {
         id: true,
         title: true,

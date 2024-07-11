@@ -138,7 +138,7 @@ export class MetadataService {
           await this.map(
             game.id,
             provider.slug,
-            existingProviderMetadata.provider_data_id
+            existingProviderMetadata.provider_data_id,
           );
         } else {
           await this.findMetadata(game, provider);
@@ -168,11 +168,7 @@ export class MetadataService {
       game: game.getLoggableData(),
     });
     const bestMatchingGame = await provider.getBestMatch(game);
-    await this.map(
-      game.id,
-      provider.slug,
-      bestMatchingGame.provider_data_id
-    );
+    await this.map(game.id, provider.slug, bestMatchingGame.provider_data_id);
   }
 
   /**
