@@ -19,12 +19,11 @@ import {
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
-  NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -87,7 +86,7 @@ export class GamesController {
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
-      maxLimit: NO_PAGINATION,
+      maxLimit: -1,
       nullSort: "last",
       relations,
       sortableColumns: [

@@ -2,12 +2,11 @@ import { Controller, Get } from "@nestjs/common";
 import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
-  NO_PAGINATION,
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -47,7 +46,7 @@ export class TagsController {
     const paginatedResults = await paginate(query, this.tagRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
-      maxLimit: NO_PAGINATION,
+      maxLimit: -1,
       nullSort: "last",
       relations: ["games"],
       loadEagerRelations: false,
