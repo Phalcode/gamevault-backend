@@ -1,15 +1,14 @@
 import {
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
-  StreamableFile,
+  StreamableFile
 } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -586,10 +585,10 @@ export class FilesService implements OnApplicationBootstrap {
             }) as File,
         );
     } catch (error) {
-      throw new InternalServerErrorException(
-        "Error reading /files directory!",
-        { cause: error },
-      );
+      this.logger.error({
+        message: `Error reading files.`,
+        error,
+      });
     }
   }
 
