@@ -11,7 +11,6 @@ import { validate } from "class-validator";
 import { Repository } from "typeorm";
 
 import { FindOptions } from "../../globals";
-import { MediaService } from "../media/media.service";
 import { MetadataService } from "../metadata/metadata.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
@@ -24,15 +23,13 @@ export class GamesService {
   constructor(
     @InjectRepository(GamevaultGame)
     private gamesRepository: Repository<GamevaultGame>,
-    @Inject(forwardRef(() => MediaService))
-    private mediaService: MediaService,
     @Inject(forwardRef(() => MetadataService))
     private metadataService: MetadataService,
   ) {}
 
   public async findOneByGameIdOrFail(
     id: number,
-    options: FindOptions = { loadDeletedEntities: true, loadRelations: false },
+    options: FindOptions,
   ): Promise<GamevaultGame> {
     try {
       let relations = [];
@@ -44,6 +41,8 @@ export class GamesService {
             "progresses.user",
             "bookmarked_users",
             "metadata",
+            "provider_metadata",
+            "user_metadata",
           ];
         } else if (Array.isArray(options.loadRelations))
           relations = options.loadRelations;
@@ -144,7 +143,7 @@ export class GamesService {
   /** Retrieves all games from the database. */
   public async find(): Promise<GamevaultGame[]> {
     return this.gamesRepository.find({
-      relations: ["metadata"],
+      relations: ["metadata", "provider_metadata", "user_metadata"],
     });
   }
 
@@ -152,12 +151,13 @@ export class GamesService {
     const game = await this.gamesRepository
       .createQueryBuilder("game")
       .select("game.id")
+      .where("game.deleted_at IS NULL")
       .orderBy("RANDOM()")
       .limit(1)
       .getOne();
 
     return this.findOneByGameIdOrFail(game.id, {
-      loadDeletedEntities: true,
+      loadDeletedEntities: false,
       loadRelations: true,
     });
   }
@@ -192,6 +192,10 @@ export class GamesService {
       loadRelations: true,
     });
 
+    //TODO: implment user updates
+
+    // SAVE TO DB HERE BEFORE REMAPPING
+
     for (const request of dto.mapping_requests) {
       if (request.target_provider_data_id) {
         await this.metadataService.map(
@@ -204,12 +208,15 @@ export class GamesService {
       }
     }
 
-    return this.save(game);
+    return this.metadataService.merge(game.id);
   }
 
   /** Restore a game that has been soft deleted. */
   public async restore(id: number): Promise<GamevaultGame> {
     await this.gamesRepository.recover({ id });
-    return this.findOneByGameIdOrFail(id);
+    return this.findOneByGameIdOrFail(id, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
   }
 }

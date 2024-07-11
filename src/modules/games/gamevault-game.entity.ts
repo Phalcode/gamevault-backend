@@ -4,9 +4,11 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   OneToMany,
+  OneToOne,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -91,15 +93,40 @@ export class GamevaultGame extends DatabaseEntity {
   type: GameType;
 
   @JoinTable()
-  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games, {
-    eager: true,
-  })
+  @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games)
   @ApiPropertyOptional({
     description: "metadata of various providers associated to the game",
     type: () => GameMetadata,
     isArray: true,
   })
-  metadata: GameMetadata[];
+  provider_metadata: GameMetadata[];
+
+  @OneToOne(() => GameMetadata, {
+    nullable: true,
+    cascade: true,
+    onDelete: "SET NULL",
+    orphanedRowAction: "delete",
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    description: "user-defined metadata of the game",
+    type: () => GameMetadata,
+  })
+  user_metadata?: GameMetadata;
+
+  @OneToOne(() => GameMetadata, {
+    eager: true,
+    nullable: true,
+    cascade: true,
+    onDelete: "SET NULL",
+    orphanedRowAction: "delete",
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    description: "effective and merged metadata of the game",
+    type: () => GameMetadata,
+  })
+  metadata?: GameMetadata;
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
@@ -126,8 +153,8 @@ export class GamevaultGame extends DatabaseEntity {
 
   @AfterLoad()
   async nullChecks() {
-    if (!this.metadata) {
-      this.metadata = [];
+    if (!this.provider_metadata) {
+      this.provider_metadata = [];
     }
   }
 }

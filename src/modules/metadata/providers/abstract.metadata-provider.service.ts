@@ -12,7 +12,6 @@ import {
   IsNotIn,
   IsPositive,
   Matches,
-  Min,
 } from "class-validator";
 import { stringSimilarity } from "string-similarity-js";
 
@@ -88,18 +87,6 @@ export abstract class MetadataProvider implements OnModuleInit {
     default: true,
   })
   public enabled = true;
-
-  @IsInt()
-  @Min(1)
-  @IsNotEmpty()
-  @ApiProperty({
-    minimum: 0,
-    type: Number,
-    description:
-      "the number of days (0 for never) to cache game metadata before updating it.",
-    default: 30,
-  })
-  public ttlDays = 30;
 
   /**
    * Searches for a game using the provider. Only returns the minimal info of a game.
@@ -219,7 +206,6 @@ export abstract class MetadataProvider implements OnModuleInit {
       slug: this.slug,
       priority: this.priority,
       enabled: this.enabled,
-      ttlDays: this.ttlDays,
     };
   }
 }

@@ -100,6 +100,12 @@ export class GameMetadataService {
     }
   }
 
+  async deleteByGameMetadataIdOrFail(id: number) {
+    return this.gameMetadataRepository.remove(
+      await this.findOneByGameMetadataIdOrFail(id),
+    );
+  }
+
   /**
    * Upserts a GameMetadata entity.
    *
@@ -128,7 +134,7 @@ export class GameMetadataService {
       .background(game.background)
       .screenshots(game.screenshots)
       .url_website(game.url_website)
-      .rating_provider(game.rating_provider)
+      .rating(game.rating)
       .early_access(game.early_access);
 
     const upsertedDevelopers = [];

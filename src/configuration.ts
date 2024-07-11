@@ -171,13 +171,13 @@ const configuration = {
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
   } as const,
   METADATA: {
+    TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
     IGDB: {
       ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
       SLUG: process.env.METADATA_IGDB_SLUG || "igdb",
       PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 50),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
-      TTL_IN_DAYS: parseNumber(process.env.METADATA_IGDB_TTL_IN_DAYS, 30),
     } as const,
   } as const,
 } as const;

@@ -139,7 +139,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .title(game.name)
       .release_date(new Date(game.first_release_date * 1000))
       .description(`${game.summary} \n\n\n ${game.storyline}`)
-      .rating_provider(game.total_rating)
+      .rating(game.total_rating)
       .url_website(game.websites?.[0]?.url)
       .early_access(
         [

@@ -26,7 +26,7 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
 })
 export class GameMetadata extends DatabaseEntity {
   @JoinTable()
-  @ManyToMany(() => GamevaultGame, (game) => game.metadata)
+  @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
   @ApiPropertyOptional({
     description: "games the metadata belongs to",
     type: () => GamevaultGame,
@@ -170,7 +170,7 @@ export class GameMetadata extends DatabaseEntity {
     description: "rating of the provider",
     example: 90,
   })
-  rating_provider?: number;
+  rating?: number;
 
   @Column({ default: false })
   @ApiProperty({

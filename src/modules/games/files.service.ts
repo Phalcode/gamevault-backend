@@ -613,7 +613,10 @@ export class FilesService implements OnApplicationBootstrap {
     speedlimitHeader *= 1024;
 
     // Find the game by ID.
-    const game = await this.gamesService.findOneByGameIdOrFail(gameId);
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
     let fileDownloadPath = game.path;
 
     // If mocking files for testing, return a StreamableFile with random bytes.

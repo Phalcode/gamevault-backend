@@ -74,15 +74,15 @@ export class GamesController {
   async findGames(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    //TODO: make this more slim and use detail request to get all
     const relations = ["cover", "background", "bookmarked_users"];
-    if (query.filter) {
-      if (query.filter["genres.name"]) {
-        relations.push("genres");
-      }
-      if (query.filter["tags.name"]) {
-        relations.push("tags");
-      }
+
+    if (
+      query.filter["metadata.genres.name"] ||
+      query.filter["metadata.tags.name"] ||
+      query.sortBy["metadata.average_playtime"] ||
+      query.sortBy["metadata.rating"]
+    ) {
+      relations.push("metadata");
     }
 
     return paginate(query, this.gamesRepository, {
@@ -97,16 +97,13 @@ export class GamesController {
         "release_date",
         "created_at",
         "size",
-        //"metacritic_rating",
-        //"average_playtime",
         "early_access",
         "type",
         "bookmarked_users.id",
+        "metadata.average_playtime",
+        "metadata.rating",
       ],
-      searchableColumns: [
-        "title",
-        //"description"
-      ],
+      searchableColumns: ["title"],
       filterableColumns: {
         id: true,
         title: true,
