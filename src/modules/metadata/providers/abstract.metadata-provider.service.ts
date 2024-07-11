@@ -167,6 +167,17 @@ export abstract class MetadataProvider implements OnModuleInit {
     // Sort the game results by the match probability in descending order.
     gameResults.sort((a, b) => b.provider_probability - a.provider_probability);
 
+    this.logger.debug({
+      message: "Found matching games.",
+      game: game.getLoggableData(),
+      gameResults: gameResults.map((gameResult) => ({
+        provider_probability: gameResult.provider_probability,
+        title: gameResult.title,
+        release_date: gameResult.release_date,
+        provider_data_id: gameResult.provider_data_id,
+      })),
+    });
+
     // Return the game result with the highest match probability.
     return gameResults.shift();
   }

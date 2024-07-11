@@ -21,21 +21,21 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   NO_PAGINATION,
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
-import { IdDto } from "../database/models/id.dto";
 import { Role } from "../users/models/role.enum";
 import { FilesService } from "./files.service";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
+import { GameIdDto } from "./models/game-id.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBasicAuth()
@@ -143,22 +143,22 @@ export class GamesController {
   }
 
   /** Retrieves details for a game with the specified ID. */
-  @Get(":id")
+  @Get(":game_id")
   @ApiOperation({
     summary: "get details on a game",
     operationId: "getGameByGameId",
   })
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameByGameId(@Param() params: IdDto): Promise<GamevaultGame> {
-    return this.gamesService.findOneByGameIdOrFail(Number(params.id), {
+  async getGameByGameId(@Param() params: GameIdDto): Promise<GamevaultGame> {
+    return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
       loadRelations: true,
       loadDeletedEntities: true,
     });
   }
 
   /** Download a game by its ID. */
-  @Get(":id/download")
+  @Get(":game_id/download")
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
@@ -194,18 +194,18 @@ export class GamesController {
   @ApiOkResponse({ type: () => StreamableFile })
   @Header("Accept-Ranges", "bytes")
   async getGameDownload(
-    @Param() params: IdDto,
+    @Param() params: GameIdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
     return this.filesService.download(
-      Number(params.id),
+      Number(params.game_id),
       Number(speedlimit),
       range,
     );
   }
 
-  @Put(":id")
+  @Put(":game_id")
   @ApiOperation({
     summary: "updates the details of a game",
     operationId: "putGameUpdate",
@@ -213,9 +213,9 @@ export class GamesController {
   @ApiBody({ type: () => UpdateGameDto })
   @MinimumRole(Role.EDITOR)
   async putGameUpdate(
-    @Param() params: IdDto,
+    @Param() params: GameIdDto,
     @Body() dto: UpdateGameDto,
   ): Promise<GamevaultGame> {
-    return this.gamesService.update(Number(params.id), dto);
+    return this.gamesService.update(Number(params.game_id), dto);
   }
 }

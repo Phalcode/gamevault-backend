@@ -9,6 +9,7 @@ import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { GenreMetadata } from "./genres/genre.metadata.entity";
 import { GenreMetadataService } from "./genres/genre.metadata.service";
+import { MetadataController } from "./metadata.controller";
 import { MetadataService } from "./metadata.service";
 import { IgdbMetadataProviderService } from "./providers/igdb/igdb.metadata-provider.service";
 import { PublisherMetadata } from "./publishers/publisher.metadata.entity";
@@ -45,5 +46,6 @@ import { TagMetadataService } from "./tags/tag.metadata.service";
     PublisherMetadataService,
     TagMetadataService,
   ],
+  controllers: [MetadataController],
 })
 export class MetadataModule {}

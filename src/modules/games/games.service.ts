@@ -11,6 +11,8 @@ import { validate } from "class-validator";
 import { Repository } from "typeorm";
 
 import { FindOptions } from "../../globals";
+import { GameMetadata } from "../metadata/games/game.metadata.entity";
+import { GameMetadataService } from "../metadata/games/game.metadata.service";
 import { MetadataService } from "../metadata/metadata.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
@@ -25,6 +27,8 @@ export class GamesService {
     private gamesRepository: Repository<GamevaultGame>,
     @Inject(forwardRef(() => MetadataService))
     private metadataService: MetadataService,
+    @Inject(forwardRef(() => GameMetadataService))
+    private gameMetadataService: GameMetadataService,
   ) {}
 
   public async findOneByGameIdOrFail(
@@ -173,18 +177,6 @@ export class GamesService {
     return this.gamesRepository.softRemove({ id });
   }
 
-  /**
-   * Updates a game with the provided ID using the information in the DTO. If
-   * the DTO contains a rawg_id, the game will be remapped. Otherwise, the game
-   * will be found by the provided ID. If the DTO contains a box_image_id, the
-   * game's box_image will be updated. If the DTO contains a
-   * background_image_id, the game's background_image will be updated. Finally,
-   * the updated game will be saved and returned.
-   *
-   * @param id - The ID of the game to update.
-   * @param dto - The DTO containing the updated game information.
-   * @returns The updated game.
-   */
   public async update(id: number, dto: UpdateGameDto) {
     // Finds the game by ID
     const game = await this.findOneByGameIdOrFail(id, {
@@ -192,11 +184,31 @@ export class GamesService {
       loadRelations: true,
     });
 
-    //TODO: implment user updates
-
-    // SAVE TO DB HERE BEFORE REMAPPING
+    if (dto.user_metadata) {
+      game.user_metadata = await this.gameMetadataService.save({
+        ...dto.user_metadata,
+        id: game.user_metadata?.id,
+        provider_slug: game.user_metadata?.provider_slug || "user",
+        provider_data_id: game.user_metadata?.provider_data_id || game.id,
+        created_at: game.user_metadata?.created_at || undefined,
+        updated_at: game.user_metadata?.updated_at || undefined,
+        entity_version: game.user_metadata?.entity_version || undefined,
+        gamevault_games: game.metadata.gamevault_games || undefined,
+      } as GameMetadata);
+      const updatedGame = await this.save(game);
+      this.logger.log({
+        message: "Game User Metadata updated",
+        game: game.getLoggableData(),
+        details: updatedGame,
+      });
+    }
 
     for (const request of dto.mapping_requests) {
+      this.logger.log({
+        message: "Handling Mapping Request",
+        game: game.getLoggableData(),
+        details: request,
+      });
       if (request.target_provider_data_id) {
         await this.metadataService.map(
           id,

@@ -7,9 +7,9 @@ import { join } from "path";
 import { Repository } from "typeorm";
 
 import configuration from "../../configuration";
-import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
 import { MediaService } from "../media/media.service";
+import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Injectable()
@@ -19,8 +19,8 @@ export class MediaGarbageCollectionService {
   constructor(
     @InjectRepository(Media)
     private mediaRepository: Repository<Media>,
-    @InjectRepository(GamevaultGame)
-    private gameRepository: Repository<GamevaultGame>,
+    @InjectRepository(GameMetadata)
+    private gameMetadataRepository: Repository<GameMetadata>,
     @InjectRepository(GamevaultUser)
     private userRepository: Repository<GamevaultUser>,
     private mediaService: MediaService,
@@ -92,12 +92,12 @@ export class MediaGarbageCollectionService {
     // Define an array of objects, each containing a repository and the properties to check for media
     const entityMediaProperties = [
       {
-        repository: this.gameRepository,
-        properties: ["background", "cover"],
-      },
-      {
         repository: this.userRepository,
         properties: ["background", "avatar"],
+      },
+      {
+        repository: this.gameMetadataRepository,
+        properties: ["cover", "background", "screenshots", "videos"],
       },
       // Add more repositories and media properties as needed
     ];

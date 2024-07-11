@@ -100,7 +100,7 @@ export class MetadataService {
         await this.updateMetadata(game);
       } catch (error) {
         this.logger.warn({
-          message: "Failed checking metadata for game.",
+          message: "Error checking metadata for game.",
           game: game.getLoggableData(),
           error,
         });
@@ -163,7 +163,7 @@ export class MetadataService {
     provider: MetadataProvider,
   ): Promise<void> {
     this.logger.log({
-      message: "Searching for missing metadata.",
+      message: "Searching for metadata.",
       provider: provider.getLoggableData(),
       game: game.getLoggableData(),
     });
@@ -178,7 +178,14 @@ export class MetadataService {
     game: GamevaultGame,
     providerSlug: string,
   ): Promise<MinimalGameMetadataDto[]> {
-    return this.getProviderBySlugOrFail(providerSlug).search(game);
+    const results = this.getProviderBySlugOrFail(providerSlug).search(game);
+    this.logger.debug({
+      message: "Searched for metadata.",
+      provider: providerSlug,
+      game: game.getLoggableData(),
+      results,
+    });
+    return results;
   }
 
   async merge(gameId: number): Promise<GamevaultGame> {
@@ -236,7 +243,13 @@ export class MetadataService {
 
     // Save the merged metadata
     game.metadata = mergedMetadata;
-    return this.gamesService.save(game);
+    const mergedGame = await this.gamesService.save(game);
+    this.logger.debug({
+      message: "Merged metadata.",
+      game: mergedGame.getLoggableData(),
+      details: mergedGame,
+    });
+    return mergedGame;
   }
 
   /**
@@ -254,6 +267,11 @@ export class MetadataService {
     game.provider_metadata = game.provider_metadata.filter(
       (metadata) => metadata.provider_slug !== providerSlug,
     );
+    this.logger.log({
+      message: "Unmapped metadata provider from a game.",
+      game: game.getLoggableData(),
+      providerSlug,
+    });
 
     if (game.metadata) {
       // Clear the merged metadata.
@@ -261,6 +279,11 @@ export class MetadataService {
         game.metadata.id,
       );
       game.metadata = null;
+      this.logger.debug({
+        message: "Deleted merged metadata for a game.",
+        game: game.getLoggableData(),
+        providerSlug,
+      });
     }
 
     // Clear the user metadata if necessary.
@@ -269,6 +292,11 @@ export class MetadataService {
         game.user_metadata.id,
       );
       game.user_metadata = null;
+      this.logger.log({
+        message: "Deleted user metadata from a game.",
+        game: game.getLoggableData(),
+        providerSlug,
+      });
     }
 
     return this.gamesService.save(game);
@@ -278,16 +306,17 @@ export class MetadataService {
    * Maps the metadata of a game provider to a game, overwriting the existing one if necessary.
    * Metadata usually needs to be merged after to be effective.
    */
-  async map(
-    gameId: number,
-    providerSlug: string,
-    targetProviderDataId: string,
-  ) {
+  async map(gameId: number, providerSlug: string, providerGameId: string) {
     const provider = this.getProviderBySlugOrFail(providerSlug);
-    const metadata =
-      await provider.getByProviderDataIdOrFail(targetProviderDataId);
+    const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
     const game = await this.unmap(gameId, providerSlug);
     game.provider_metadata.push(await this.gameMetadataService.save(metadata));
-    return this.gamesService.save(game);
+    const mappedGame = await this.gamesService.save(game);
+    this.logger.log({
+      message: "Mapped metadata provider to a game.",
+      game: mappedGame.getLoggableData(),
+      providerSlug,
+    });
+    return mappedGame;
   }
 }
