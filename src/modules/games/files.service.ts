@@ -580,8 +580,8 @@ export class FilesService implements OnApplicationBootstrap {
         .map(
           (file) =>
             ({
-              path: join(file.parentPath, file.name),
-              size: BigInt(statSync(join(file.parentPath, file.name)).size),
+              path: join(file.path, file.name),
+              size: BigInt(statSync(join(file.path, file.name)).size),
             }) as File,
         );
     } catch (error) {

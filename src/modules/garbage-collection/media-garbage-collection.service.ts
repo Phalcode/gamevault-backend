@@ -177,7 +177,7 @@ export class MediaGarbageCollectionService {
       })
     )
       .filter((file) => file.isFile() && isUUID(file.name.substring(0, 35), 4))
-      .map((file) => join(file.parentPath, file.name));
+      .map((file) => join(file.path, file.name));
 
     let removedCount = 0;
 
