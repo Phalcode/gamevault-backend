@@ -3,7 +3,7 @@ import {
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
-  StreamableFile
+  StreamableFile,
 } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
@@ -589,6 +589,7 @@ export class FilesService implements OnApplicationBootstrap {
         message: `Error reading files.`,
         error,
       });
+      return [];
     }
   }
 
