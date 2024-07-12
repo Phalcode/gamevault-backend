@@ -25,13 +25,7 @@ export class GenreMetadata extends DatabaseEntity {
   @ApiProperty({
     description:
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
-    examples: [
-      "my-custom-metadata-provider",
-      "igdb",
-      "steam",
-      "epic-games",
-      "rawg-2-steam",
-    ],
+    example: "igdb"
   })
   provider_slug: string;
   @Column()

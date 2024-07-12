@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
 import {
   ApiBasicAuth,
   ApiBody,
@@ -22,7 +22,7 @@ import { ProviderSlugDto } from "./providers/models/provider-slug.dto";
 export class MetadataController {
   constructor(private metadataService: MetadataService) {}
 
-  @Get(":provider_slug/search")
+  @Post(":provider_slug/search")
   @ApiOperation({
     summary: "Search for games using a metadata provider.",
     operationId: "getSearchResultsByProvider",
