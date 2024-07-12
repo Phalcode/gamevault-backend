@@ -4,7 +4,6 @@ import { Column, Entity, Index, ManyToMany } from "typeorm";
 
 import globals from "../../../globals";
 import { DatabaseEntity } from "../../database/database.entity";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
 
 @Entity()
@@ -25,7 +24,7 @@ export class GenreMetadata extends DatabaseEntity {
   @ApiProperty({
     description:
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
-    example: "igdb"
+    example: "igdb",
   })
   provider_slug: string;
   @Column()
@@ -47,8 +46,8 @@ export class GenreMetadata extends DatabaseEntity {
   @ManyToMany(() => GameMetadata, (game) => game.genres)
   @ApiProperty({
     description: "games of the genre",
-    type: () => GamevaultGame,
+    type: () => GameMetadata,
     isArray: true,
   })
-  games: GamevaultGame[];
+  games: GameMetadata[];
 }
