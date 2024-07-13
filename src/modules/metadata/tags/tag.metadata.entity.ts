@@ -37,7 +37,7 @@ export class TagMetadata extends DatabaseEntity {
   provider_data_id: string;
 
   @Index()
-  @Column({ unique: true })
+  @Column()
   @ApiProperty({
     example: "battle-royale",
     description: "name of the tag",

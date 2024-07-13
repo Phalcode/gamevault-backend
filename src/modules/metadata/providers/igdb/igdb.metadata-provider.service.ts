@@ -18,9 +18,9 @@ import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import { IgdbArtwork } from "./models/igdb-artwork.interface";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 
 @Injectable()
@@ -135,10 +135,13 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return Builder<GameMetadata>()
       .provider_slug("igdb")
       .provider_data_id(game.id?.toString())
-      .provider_checksum(game.checksum)
       .title(game.name)
       .release_date(new Date(game.first_release_date * 1000))
-      .description(`${game.summary} \n\n\n ${game.storyline}`)
+      .description(
+        game.summary && game.storyline
+          ? `${game.summary}\n\n\n${game.storyline}`
+          : game.summary || game.storyline || null,
+      )
       .rating(game.total_rating)
       .url_website(game.websites?.[0]?.url)
       .early_access(

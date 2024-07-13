@@ -133,6 +133,15 @@ const configuration = {
     REQUIRE_LAST_NAME: parseBooleanEnvVariable(
       process.env.USERS_REQUIRE_LAST_NAME,
     ),
+    REQUIRE_BIRTH_DATE:
+      parseBooleanEnvVariable(process.env.PARENTAL_ENABLED) ||
+      parseBooleanEnvVariable(process.env.USERS_REQUIRE_BIRTH_DATE),
+  } as const,
+  PARENTAL: {
+    AGE_RESTRICTION_ENABLED: parseBooleanEnvVariable(
+      process.env.PARENTAL_AGE_RESTRICTION_ENABLED,
+    ),
+    AGE_OF_MAJORITY: parseNumber(process.env.USERS_AGE_OF_MAJORITY, 18),
   } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES: parseNumber(

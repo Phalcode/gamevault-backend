@@ -12,7 +12,6 @@ import { Repository } from "typeorm";
 
 import { MinimumRole } from "../../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
-import { all_filters } from "../../../filters/all-filters.filter";
 import { ApiOkResponsePaginated } from "../../../globals";
 import { Role } from "../../users/models/role.enum";
 import { TagMetadata } from "./tag.metadata.entity";
@@ -49,14 +48,17 @@ export class TagsController {
       maxLimit: -1,
       nullSort: "last",
       relations: ["games"],
+      where: {
+        provider_slug: "gamevault",
+      },
       loadEagerRelations: false,
-      sortableColumns: ["id", "name"],
+      sortableColumns: ["id", "name", "created_at"],
       searchableColumns: ["name", "games.title"],
       filterableColumns: {
-        id: all_filters,
-        name: all_filters,
-        "games.title": all_filters,
-        "games.(genres.name)": all_filters,
+        id: true,
+        created_at: true,
+        name: true,
+        "games.title": true,
       },
       withDeleted: false,
     });

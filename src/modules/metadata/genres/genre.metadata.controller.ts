@@ -1,7 +1,6 @@
 import { Controller, Get } from "@nestjs/common";
 import {
   ApiBasicAuth,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
@@ -11,6 +10,9 @@ import { Repository } from "typeorm";
 import { MinimumRole } from "../../../decorators/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
 import { GenreMetadata } from "./genre.metadata.entity";
+import { ApiOkResponsePaginated } from "../../../globals";
+import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
+import { Paginate, PaginateQuery, Paginated, PaginationType, paginate } from "nestjs-paginate";
 
 @Controller("genres")
 @ApiTags("genres")
@@ -22,24 +24,46 @@ export class GenresController {
   ) {}
 
   /**
-   * Get a list of genres sorted by the amount of games that are associated with
-   * each genre.
+   * Get a paginated list of genres, sorted by the number of games that are in the genre
    */
   @Get()
   @ApiOperation({
     summary: "get a list of genres",
     description:
-      "the list is sorted by the amount of games that are associated with each genre.",
+      "by default the list is sorted by the amount of games that are in the genre",
     operationId: "getGenres",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: () => GenreMetadata, isArray: true })
-  async getGenres(): Promise<GenreMetadata[]> {
-    const genres = await this.genreRepository.find({
+  @ApiOkResponsePaginated(GenreMetadata)
+  @PaginateQueryOptions()
+  async getGenres(
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<GenreMetadata>> {
+    const paginatedResults = await paginate(query, this.genreRepository, {
+      paginationType: PaginationType.TAKE_AND_SKIP,
+      defaultLimit: 100,
+      maxLimit: -1,
+      nullSort: "last",
       relations: ["games"],
+      where: {
+        provider_slug: "gamevault",
+      },
       loadEagerRelations: false,
+      sortableColumns: ["id", "name", "created_at"],
+      searchableColumns: ["name", "games.title"],
+      filterableColumns: {
+        id: true,
+        created_at: true,
+        name: true,
+        "games.title": true,
+      },
+      withDeleted: false,
     });
-    genres.sort((a, b) => b.games?.length - a.games?.length);
-    return genres;
+
+    if (!query.sortBy || query.sortBy.length === 0) {
+      paginatedResults.data.sort((a, b) => b.games.length - a.games.length);
+    }
+
+    return paginatedResults;
   }
 }

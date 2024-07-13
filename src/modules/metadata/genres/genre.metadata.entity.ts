@@ -36,7 +36,7 @@ export class GenreMetadata extends DatabaseEntity {
   provider_data_id: string;
 
   @Index()
-  @Column({ unique: true })
+  @Column()
   @ApiProperty({
     example: "Platformer",
     description: "name of the genre",

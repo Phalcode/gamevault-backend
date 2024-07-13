@@ -4,6 +4,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { MediaModule } from "../media/media.module";
 import { MetadataModule } from "../metadata/metadata.module";
 import { ProgressModule } from "../progresses/progress.module";
+import { UsersModule } from "../users/users.module";
 import { FilesService } from "./files.service";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
@@ -15,6 +16,7 @@ import { GamevaultGame } from "./gamevault-game.entity";
     MediaModule,
     MetadataModule,
     ProgressModule,
+    UsersModule,
   ],
   controllers: [GamesController],
   providers: [GamesService, FilesService],

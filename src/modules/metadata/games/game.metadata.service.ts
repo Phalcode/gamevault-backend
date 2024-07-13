@@ -124,7 +124,6 @@ export class GameMetadataService {
       .provider_slug(game.provider_slug)
       .provider_data_id(game.provider_data_id)
       .provider_probability(game.provider_probability)
-      .provider_checksum(game.provider_checksum)
       .age_rating(game.age_rating)
       .title(game.title)
       .release_date(game.release_date)
@@ -142,9 +141,9 @@ export class GameMetadataService {
       for (const developer of game.developers) {
         if (
           upsertedDevelopers.some(
-            (d) =>
-              d.provider_data_id === developer.provider_data_id &&
-              d.provider_slug === developer.provider_slug,
+            (upsertedDeveloper) =>
+              upsertedDeveloper.provider_data_id === developer.provider_data_id &&
+              upsertedDeveloper.provider_slug === developer.provider_slug,
           )
         ) {
           continue;
@@ -161,9 +160,9 @@ export class GameMetadataService {
       for (const publisher of game.publishers) {
         if (
           upsertedPublishers.some(
-            (p) =>
-              p.provider_data_id === publisher.provider_data_id &&
-              p.provider_slug === publisher.provider_slug,
+            (upsertedPublisher) =>
+              upsertedPublisher.provider_data_id === publisher.provider_data_id &&
+              upsertedPublisher.provider_slug === publisher.provider_slug,
           )
         ) {
           continue;
@@ -181,9 +180,9 @@ export class GameMetadataService {
       for (const tag of game.tags) {
         if (
           upsertedTags.some(
-            (t) =>
-              t.provider_data_id === tag.provider_data_id &&
-              t.provider_slug === tag.provider_slug,
+            (upsertedTag) =>
+              upsertedTag.provider_data_id === tag.provider_data_id &&
+              upsertedTag.provider_slug === tag.provider_slug,
           )
         ) {
           continue;
@@ -198,9 +197,9 @@ export class GameMetadataService {
       for (const genre of game.genres) {
         if (
           upsertedGenres.some(
-            (g) =>
-              g.provider_data_id === genre.provider_data_id &&
-              g.provider_slug === genre.provider_slug,
+            (upsertedGenre) =>
+              upsertedGenre.provider_data_id === genre.provider_data_id &&
+              upsertedGenre.provider_slug === genre.provider_slug,
           )
         ) {
           continue;

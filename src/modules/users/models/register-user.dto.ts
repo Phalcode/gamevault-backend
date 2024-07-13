@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsAlpha,
+  IsDate,
   IsEmail,
   IsNotEmpty,
   Length,
@@ -59,4 +60,13 @@ export class RegisterUserDto {
     required: configuration.USERS.REQUIRE_LAST_NAME,
   })
   last_name?: string;
+
+  @ValidateIf(() => configuration.PARENTAL.AGE_RESTRICTION_ENABLED)
+  @IsDate()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: "date of birth of the user",
+    required: configuration.PARENTAL.AGE_RESTRICTION_ENABLED,
+  })
+  birth_date?: Date;
 }

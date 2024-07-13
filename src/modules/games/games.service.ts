@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { validate } from "class-validator";
-import { Repository } from "typeorm";
+import { FindManyOptions, FindOneOptions, LessThanOrEqual, Repository } from "typeorm";
 
 import { FindOptions } from "../../globals";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -36,11 +36,14 @@ export class GamesService {
     options: FindOptions,
   ): Promise<GamevaultGame> {
     try {
-      let relations = [];
+      const findParameters: FindOneOptions<GamevaultGame> = {
+        where: { id },
+        relationLoadStrategy: "query",
+      };
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          relations = [
+          findParameters.relations = [
             "progresses",
             "progresses.user",
             "bookmarked_users",
@@ -49,21 +52,164 @@ export class GamesService {
             "user_metadata",
           ];
         } else if (Array.isArray(options.loadRelations))
-          relations = options.loadRelations;
+          findParameters.relations = options.loadRelations;
       }
 
-      return await this.gamesRepository.findOneOrFail({
-        where: { id },
-        relations,
-        withDeleted: options.loadDeletedEntities,
-        relationLoadStrategy: "query",
-      });
+      if (options.loadDeletedEntities) {
+        findParameters.withDeleted = true;
+      }
+
+      if (options.filterByAge) {
+        if (!options.loadRelations) {
+          findParameters.relations = ["metadata"];
+        }
+        findParameters.where = {
+          id,
+          metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+        };
+      }
+
+      return await this.gamesRepository.findOneOrFail(findParameters);
     } catch (error) {
       throw new NotFoundException(
         `Game with id ${id} was not found on the server.`,
         { cause: error },
       );
     }
+  }
+
+  /** Retrieves all games from the database. */
+  public async find(options: FindOptions): Promise<GamevaultGame[]> {
+    const findParameters: FindManyOptions<GamevaultGame> = {
+      relationLoadStrategy: "query",
+    };
+
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        findParameters.relations = [
+          "progresses",
+          "progresses.user",
+          "bookmarked_users",
+          "metadata",
+          "provider_metadata",
+          "user_metadata",
+        ];
+      } else if (Array.isArray(options.loadRelations))
+        findParameters.relations = options.loadRelations;
+    }
+
+    if (options.loadDeletedEntities) {
+      findParameters.withDeleted = true;
+    }
+
+    if (options.filterByAge) {
+      if (!options.loadRelations) {
+        findParameters.relations = ["metadata"];
+      }
+      findParameters.where = {
+        metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+      };
+    }
+
+    return this.gamesRepository.find(findParameters);
+  }
+
+  public async findRandom(options: FindOptions): Promise<GamevaultGame> {
+    if (options.loadDeletedEntities) {
+      throw new InternalServerErrorException(
+        "Cannot load deleted games in random mode.",
+      );
+    }
+
+    const randomQuery = this.gamesRepository
+      .createQueryBuilder("game")
+      .select("game.id, game.age_rating")
+      .where("game.deleted_at IS NULL");
+
+    if (options.filterByAge) {
+      randomQuery.andWhere("game.age_rating <= :ageRating", {
+        ageRating: options.filterByAge,
+      });
+    }
+
+    randomQuery.orderBy("RANDOM()").limit(1);
+
+    const game = await randomQuery.getOne();
+
+    if (!game) {
+      throw new NotFoundException("Could not find a suitable random game.");
+    }
+
+    return this.findOneByGameIdOrFail(game.id, {
+      loadDeletedEntities: false,
+      loadRelations: options.loadRelations,
+      filterByAge: options.filterByAge,
+    });
+  }
+  /** Save a game to the database. */
+  public async save(game: GamevaultGame): Promise<GamevaultGame> {
+    validate(game);
+    return this.gamesRepository.save(game);
+  }
+
+  /** Soft delete a game from the database. */
+  public delete(id: number): Promise<GamevaultGame> {
+    return this.gamesRepository.softRemove({ id });
+  }
+
+  public async update(id: number, dto: UpdateGameDto) {
+    // Finds the game by ID
+    const game = await this.findOneByGameIdOrFail(id, {
+      loadDeletedEntities: true,
+      loadRelations: true,
+    });
+
+    if (dto.user_metadata) {
+      game.user_metadata = await this.gameMetadataService.save({
+        ...dto.user_metadata,
+        id: game.user_metadata?.id,
+        provider_slug: game.user_metadata?.provider_slug || "user",
+        provider_data_id: game.user_metadata?.provider_data_id || game.id,
+        created_at: game.user_metadata?.created_at || undefined,
+        updated_at: game.user_metadata?.updated_at || undefined,
+        entity_version: game.user_metadata?.entity_version || undefined,
+        gamevault_games: game.metadata.gamevault_games || undefined,
+      } as GameMetadata);
+      const updatedGame = await this.save(game);
+      this.logger.log({
+        message: "Game User Metadata updated",
+        game: game.getLoggableData(),
+        details: updatedGame,
+      });
+    }
+
+    for (const request of dto.mapping_requests) {
+      this.logger.log({
+        message: "Handling Mapping Request",
+        game: game.getLoggableData(),
+        details: request,
+      });
+      if (request.target_provider_data_id) {
+        await this.metadataService.map(
+          id,
+          request.provider_slug,
+          request.target_provider_data_id,
+        );
+      } else {
+        await this.metadataService.unmap(id, request.provider_slug);
+      }
+    }
+
+    return this.metadataService.merge(game.id);
+  }
+
+  /** Restore a game that has been soft deleted. */
+  public async restore(id: number): Promise<GamevaultGame> {
+    await this.gamesRepository.recover({ id });
+    return this.findOneByGameIdOrFail(id, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
   }
 
   /** Checks if a game exists in the database. */
@@ -142,93 +288,5 @@ export class GamesService {
     }
 
     return [GameExistence.EXISTS, foundGame];
-  }
-
-  /** Retrieves all games from the database. */
-  public async find(): Promise<GamevaultGame[]> {
-    return this.gamesRepository.find({
-      relations: ["metadata", "provider_metadata", "user_metadata"],
-    });
-  }
-
-  public async findRandom(): Promise<GamevaultGame> {
-    const game = await this.gamesRepository
-      .createQueryBuilder("game")
-      .select("game.id")
-      .where("game.deleted_at IS NULL")
-      .orderBy("RANDOM()")
-      .limit(1)
-      .getOne();
-
-    return this.findOneByGameIdOrFail(game.id, {
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
-  }
-
-  /** Save a game to the database. */
-  public async save(game: GamevaultGame): Promise<GamevaultGame> {
-    validate(game);
-    return this.gamesRepository.save(game);
-  }
-
-  /** Soft delete a game from the database. */
-  public delete(id: number): Promise<GamevaultGame> {
-    return this.gamesRepository.softRemove({ id });
-  }
-
-  public async update(id: number, dto: UpdateGameDto) {
-    // Finds the game by ID
-    const game = await this.findOneByGameIdOrFail(id, {
-      loadDeletedEntities: true,
-      loadRelations: true,
-    });
-
-    if (dto.user_metadata) {
-      game.user_metadata = await this.gameMetadataService.save({
-        ...dto.user_metadata,
-        id: game.user_metadata?.id,
-        provider_slug: game.user_metadata?.provider_slug || "user",
-        provider_data_id: game.user_metadata?.provider_data_id || game.id,
-        created_at: game.user_metadata?.created_at || undefined,
-        updated_at: game.user_metadata?.updated_at || undefined,
-        entity_version: game.user_metadata?.entity_version || undefined,
-        gamevault_games: game.metadata.gamevault_games || undefined,
-      } as GameMetadata);
-      const updatedGame = await this.save(game);
-      this.logger.log({
-        message: "Game User Metadata updated",
-        game: game.getLoggableData(),
-        details: updatedGame,
-      });
-    }
-
-    for (const request of dto.mapping_requests) {
-      this.logger.log({
-        message: "Handling Mapping Request",
-        game: game.getLoggableData(),
-        details: request,
-      });
-      if (request.target_provider_data_id) {
-        await this.metadataService.map(
-          id,
-          request.provider_slug,
-          request.target_provider_data_id,
-        );
-      } else {
-        await this.metadataService.unmap(id, request.provider_slug);
-      }
-    }
-
-    return this.metadataService.merge(game.id);
-  }
-
-  /** Restore a game that has been soft deleted. */
-  public async restore(id: number): Promise<GamevaultGame> {
-    await this.gamesRepository.recover({ id });
-    return this.findOneByGameIdOrFail(id, {
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
   }
 }

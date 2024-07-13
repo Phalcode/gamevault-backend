@@ -235,6 +235,23 @@ export class UsersService implements OnApplicationBootstrap {
       });
     };
 
+    if (admin && dto.role != null) {
+      logUpdate("role", user.role.toString(), dto.role.toString());
+      user.role = dto.role;
+    }
+
+    if (admin && dto.activated != null) {
+      logUpdate(
+        "activated",
+        user.activated.toString(),
+        dto.activated.toString(),
+      );
+      user.activated = dto.activated;
+      this.logger.log({
+        message: { message: "User has been activated.", user: user.username },
+      });
+    }
+
     if (dto.username != null && dto.username !== user.username) {
       logUpdate("username", user.username, dto.username);
       await this.updateUsername(dto, user);
@@ -253,6 +270,15 @@ export class UsersService implements OnApplicationBootstrap {
     if (dto.last_name != null) {
       logUpdate("last_name", user.last_name, dto.last_name);
       user.last_name = dto.last_name;
+    }
+
+    if (dto.birth_date != null) {
+      logUpdate(
+        "birth_date",
+        user.birth_date?.toISOString(),
+        dto.birth_date.toISOString(),
+      );
+      await this.updateBirthDate(dto, user);
     }
 
     if (dto.password != null) {
@@ -280,23 +306,6 @@ export class UsersService implements OnApplicationBootstrap {
       user.background = image;
     }
 
-    if (admin && dto.activated != null) {
-      logUpdate(
-        "activated",
-        user.activated.toString(),
-        dto.activated.toString(),
-      );
-      user.activated = dto.activated;
-      this.logger.log({
-        message: { message: "User has been activated.", user: user.username },
-      });
-    }
-
-    if (admin && dto.role != null) {
-      logUpdate("role", user.role.toString(), dto.role.toString());
-      user.role = dto.role;
-    }
-
     await validate(user);
 
     return this.userRepository.save(user);
@@ -322,6 +331,23 @@ export class UsersService implements OnApplicationBootstrap {
     user.email = dto.email;
   }
 
+  private async updateBirthDate(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
+      this.calculateAge(user.birth_date) <
+        configuration.PARENTAL.AGE_OF_MAJORITY &&
+      user.role !== Role.ADMIN
+    ) {
+      throw new ForbiddenException(
+        "You are too young to update your birth date. Contact an Administrator to update your birth date.",
+      );
+    }
+    user.birth_date = dto.birth_date;
+  }
+
   /** Soft deletes a user with the specified ID. */
   public async delete(id: number): Promise<GamevaultUser> {
     const user = await this.findOneByUserIdOrFail(id);
@@ -342,6 +368,16 @@ export class UsersService implements OnApplicationBootstrap {
     } catch {
       return false;
     }
+  }
+
+  public async findUserAgeByUsername(
+    username: string,
+  ): Promise<number | undefined> {
+    if (!configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+      return undefined;
+    }
+    const user = await this.findOneByUsernameOrFail(username);
+    return this.calculateAge(user.birth_date);
   }
 
   /** Check if the username matches the user ID or is an administrator */
@@ -441,6 +477,19 @@ export class UsersService implements OnApplicationBootstrap {
     });
 
     return user;
+  }
+
+  public calculateAge(birthDate: Date) {
+    if (!birthDate) {
+      return 0;
+    }
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   /**

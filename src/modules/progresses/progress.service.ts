@@ -8,8 +8,9 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { readFile } from "fs/promises";
 import path from "path";
-import { IsNull, Repository } from "typeorm";
+import { FindOneOptions, IsNull, LessThanOrEqual, Repository } from "typeorm";
 
+import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
 import { State } from "./models/state.enum";
@@ -46,30 +47,39 @@ export class ProgressService {
     }
   }
 
-  public async find() {
-    return this.progressRepository.find({
-      where: {
-        deleted_at: IsNull(),
-      },
-      relations: ["game", "user"],
-      order: { minutes_played: "DESC" },
-      withDeleted: true,
-    });
-  }
-
-  public async findOneByProgressId(progressId: number) {
+  public async findOneByProgressId(id: number, options: FindOptions) {
     try {
-      return await this.progressRepository.findOneOrFail({
-        where: {
-          id: progressId,
-        },
-        relations: ["game", "user"],
-        order: { minutes_played: "DESC" },
-        withDeleted: true,
-      });
+      const findParameters: FindOneOptions<Progress> = {
+        where: { id },
+        relationLoadStrategy: "query",
+      };
+
+      if (options.loadRelations) {
+        if (options.loadRelations === true) {
+          findParameters.relations = ["user", "game"];
+        } else if (Array.isArray(options.loadRelations))
+          findParameters.relations = options.loadRelations;
+      }
+
+      if (options.loadDeletedEntities) {
+        findParameters.withDeleted = true;
+      }
+
+      if (options.filterByAge) {
+        if (!options.loadRelations) {
+          findParameters.relations = ["game"];
+        }
+        findParameters.where = {
+          id,
+          game: {
+            metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+          },
+        };
+      }
+      return await this.progressRepository.findOneOrFail(findParameters);
     } catch (error) {
       throw new NotFoundException(
-        `Progress with id ${progressId} was not found on the server.`,
+        `Progress with id ${id} was not found on the server.`,
         { cause: error },
       );
     }
@@ -79,7 +89,10 @@ export class ProgressService {
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    const progress = await this.findOneByProgressId(progressId);
+    const progress = await this.findOneByProgressId(progressId, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
       progress.user.id,
@@ -94,43 +107,46 @@ export class ProgressService {
     return softRemoveResult;
   }
 
-  public async findOneByUserId(userId: number) {
-    return this.progressRepository.find({
-      order: { minutes_played: "DESC" },
-      where: {
-        user: { id: userId },
-        deleted_at: IsNull(),
-      },
-      relations: ["game"],
-      withDeleted: true,
-    });
-  }
-
-  public async findOneByGameId(gameId: number): Promise<Progress[]> {
-    return this.progressRepository.find({
-      where: {
-        game: { id: gameId },
-        deleted_at: IsNull(),
-      },
-      relations: ["user"],
-      withDeleted: true,
-      order: { minutes_played: "DESC" },
-    });
-  }
-
   public async findOneByUserIdAndGameIdOrReturnEmptyProgress(
     userId: number,
     gameId: number,
+    options: FindOptions,
   ): Promise<Progress> {
     try {
-      return await this.progressRepository.findOneOrFail({
+      const findParameters: FindOneOptions<Progress> = {
         where: {
           user: { id: userId },
           game: { id: gameId },
           deleted_at: IsNull(),
         },
-        withDeleted: true,
-      });
+        relationLoadStrategy: "query",
+      };
+
+      if (options.loadRelations) {
+        if (options.loadRelations === true) {
+          findParameters.relations = ["user", "game"];
+        } else if (Array.isArray(options.loadRelations))
+          findParameters.relations = options.loadRelations;
+      }
+
+      if (options.loadDeletedEntities) {
+        findParameters.withDeleted = true;
+      }
+
+      if (options.filterByAge) {
+        if (!options.loadRelations) {
+          findParameters.relations = ["game"];
+        }
+        findParameters.where = {
+          user: { id: userId },
+          game: {
+            id: gameId,
+            metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+          },
+        };
+      }
+
+      return await this.progressRepository.findOneOrFail(findParameters);
     } catch (error) {
       const newProgress = new Progress();
       newProgress.user = await this.usersService.findOneByUserIdOrFail(userId, {
@@ -161,6 +177,7 @@ export class ProgressService {
     const progress = await this.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       userId,
       gameId,
+      { loadDeletedEntities: true, loadRelations: true },
     );
 
     if (updateProgressDto.state != null) {
@@ -214,6 +231,7 @@ export class ProgressService {
     const progress = await this.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       userId,
       gameId,
+      { loadDeletedEntities: true, loadRelations: true },
     );
     if (
       progress.state !== State.INFINITE &&

@@ -235,14 +235,37 @@ export class MetadataService {
         id: game.metadata?.id || undefined,
         provider_slug: "gamevault",
         provider_data_id: gameId.toString(),
-        provider_checksum: null,
         provider_probability: null,
-        //gamevault_games: [game],
       },
     } as GameMetadata;
 
+    // Set all sub-entity provider slugs to "gamevault" and their "provider_data_id" to null
+    mergedMetadata.genres.forEach((genre) => {
+      genre.id = null;
+      genre.provider_slug = "gamevault";
+      genre.provider_data_id = genre.name;
+    });
+
+    mergedMetadata.tags.forEach((tag) => {
+      tag.id = null;
+      tag.provider_slug = "gamevault";
+      tag.provider_data_id = tag.name;
+    });
+
+    mergedMetadata.developers.forEach((developer) => {
+      developer.id = null;
+      developer.provider_slug = "gamevault";
+      developer.provider_data_id = developer.name;
+    });
+
+    mergedMetadata.publishers.forEach((publisher) => {
+      publisher.id = null;
+      publisher.provider_slug = "gamevault";
+      publisher.provider_data_id = publisher.name;
+    });
+
     // Save the merged metadata
-    game.metadata = mergedMetadata;
+    game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);
     this.logger.debug({
       message: "Merged metadata.",

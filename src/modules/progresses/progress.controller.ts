@@ -16,13 +16,23 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import { InjectRepository } from "@nestjs/typeorm";
+import {
+  Paginate,
+  PaginateQuery,
+  Paginated,
+  PaginationType,
+  paginate,
+} from "nestjs-paginate";
+import { Repository } from "typeorm";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { GameIdDto } from "../games/models/game-id.dto";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+import { ApiOkResponsePaginated } from "../../globals";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
-import { UserIdDto } from "../users/models/user-id.dto";
+import { UsersService } from "../users/users.service";
 import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
 import { ProgressIdDto } from "./models/progress-id.dto";
 import { UpdateProgressDto } from "./models/update-progress.dto";
@@ -36,7 +46,12 @@ import { ProgressService } from "./progress.service";
 export class ProgressController {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private progressService: ProgressService) {}
+  constructor(
+    private progressService: ProgressService,
+    private usersService: UsersService,
+    @InjectRepository(Progress)
+    private readonly progressRepository: Repository<Progress>,
+  ) {}
 
   /** Get an array of files to ignore for progress-tracking. */
   @Get("ignorefile")
@@ -50,16 +65,46 @@ export class ProgressController {
     return this.progressService.ignoreList;
   }
 
-  /** Get all progresses for all users and games. */
-  @Get("")
+  /** Get paginated progress list based on the given query parameters. */
+  @Get()
+  @PaginateQueryOptions()
+  @ApiOkResponsePaginated(Progress)
   @ApiOperation({
-    summary: "get all progresses for all users and games",
+    summary: "get a list of progresses",
     operationId: "getProgresses",
   })
   @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgresses(): Promise<Progress[]> {
-    return this.progressService.find();
+  async findProgresses(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<Progress>> {
+    const relations = ["user", "game"];
+
+    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+      query.filter["game"]["metadata"]["age_rating"] =
+        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
+    }
+
+    return paginate(query, this.progressRepository, {
+      paginationType: PaginationType.TAKE_AND_SKIP,
+      defaultLimit: 100,
+      maxLimit: -1,
+      nullSort: "last",
+      relations,
+      sortableColumns: ["id", "created_at", "updated_at", "minutes_played"],
+      searchableColumns: ["user.username", "game.title"],
+      filterableColumns: {
+        id: true,
+        created_at: true,
+        updated_at: true,
+        minutes_played: true,
+        "user.id": true,
+        "user.username": true,
+        "game.id": true,
+        "game.metadata.age_rating": true,
+      },
+      withDeleted: false,
+    });
   }
 
   /** Retrieves a specific progress by its ID. */
@@ -72,8 +117,18 @@ export class ProgressController {
   @ApiOkResponse({ type: () => Progress, isArray: true })
   async getProgressByProgressId(
     @Param() params: ProgressIdDto,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return this.progressService.findOneByProgressId(Number(params.progress_id));
+    return this.progressService.findOneByProgressId(
+      Number(params.progress_id),
+      {
+        loadDeletedEntities: true,
+        loadRelations: true,
+        filterByAge: await this.usersService.findUserAgeByUsername(
+          request.gamevaultuser.username,
+        ),
+      },
+    );
   }
 
   /** Deletes a progress by its ID. */
@@ -97,30 +152,6 @@ export class ProgressController {
     );
   }
 
-  /** Retrieves all progresses for a user by their ID. */
-  @Get("/user/:user_id")
-  @ApiOperation({
-    summary: "get all progresses for a user",
-    operationId: "getProgressesByUserId",
-  })
-  @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressesByUserId(@Param() params: UserIdDto) {
-    return this.progressService.findOneByUserId(Number(params.user_id));
-  }
-
-  /** Returns an array of progresses for a game with the given ID. */
-  @Get("/game/:game_id")
-  @ApiOperation({
-    summary: "get all progresses for a game",
-    operationId: "getProgressesByGameId",
-  })
-  @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressesByGameId(@Param() params: GameIdDto): Promise<Progress[]> {
-    return this.progressService.findOneByGameId(Number(params.game_id));
-  }
-
   /** Get the progress of a specific game for a user. */
   @Get("/user/:user_id/game/:game_id")
   @ApiOperation({
@@ -131,10 +162,18 @@ export class ProgressController {
   @ApiOkResponse({ type: () => Progress })
   async getProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
+    @Request() request: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       Number(params.user_id),
       Number(params.game_id),
+      {
+        loadDeletedEntities: true,
+        loadRelations: true,
+        filterByAge: await this.usersService.findUserAgeByUsername(
+          request.gamevaultuser.username,
+        ),
+      },
     );
   }
 

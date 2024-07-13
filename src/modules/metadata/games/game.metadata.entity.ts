@@ -70,19 +70,13 @@ export class GameMetadata extends DatabaseEntity {
   })
   provider_probability?: number;
 
-  @Column({ nullable: true })
-  @ApiPropertyOptional({
-    description: "checksum of the provider data",
-    example: "3608a6d1a05aba23ea390e5f3b48203dbb7241f7",
-  })
-  provider_checksum?: string;
-
   //#endregion
 
-  @Column({ type: "int", nullable: true })
+  @Column({ type: "int", default: 0 })
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
+    default: 0,
   })
   age_rating?: number;
 
@@ -176,6 +170,7 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,
+    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "publishers of the game",
@@ -187,6 +182,7 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
     eager: true,
+    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "developers of the game",
@@ -198,6 +194,7 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => TagMetadata, (tag) => tag.games, {
     eager: true,
+    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "tags of the game",
@@ -209,6 +206,7 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
     eager: true,
+    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "genres of the game",
@@ -222,7 +220,6 @@ export class GameMetadata extends DatabaseEntity {
       id: this.id,
       provider_slug: this.provider_slug,
       provider_data_id: this.provider_data_id,
-      provider_checksum: this.provider_checksum,
       updated_at: this.updated_at,
     };
   }

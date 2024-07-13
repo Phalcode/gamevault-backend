@@ -19,7 +19,7 @@ import { Role } from "./models/role.enum";
 
 @Entity()
 export class GamevaultUser extends DatabaseEntity {
-  @Index()
+  @Index({ unique: true })
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
   username: string;
@@ -31,6 +31,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   password: string;
 
+  @Index({ unique: true })
   @Column({ select: false, unique: true, length: 64 })
   @ApiProperty({
     description:
@@ -66,7 +67,7 @@ export class GamevaultUser extends DatabaseEntity {
     description: "the user's profile background image",
   })
   background?: Media;
-
+  
   @Column({ unique: true, nullable: true })
   @ApiProperty({
     example: "john.doe@mail.com",

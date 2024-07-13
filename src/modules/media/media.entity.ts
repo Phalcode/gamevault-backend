@@ -16,9 +16,9 @@ export class Media extends DatabaseEntity {
   source?: string;
 
   @Column({ unique: true, nullable: true })
-  @Index()
+  @Index({ unique: true })
   @ApiPropertyOptional({
-    example: "/media/14",
+    example: "/media/6e6ae60b-7102-4501-ba69-62bd6419b2e0.jpg",
     description: "the path of the media on the filesystem",
   })
   path?: string;

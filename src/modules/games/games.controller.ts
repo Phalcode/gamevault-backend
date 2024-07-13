@@ -7,6 +7,7 @@ import {
   Logger,
   Param,
   Put,
+  Request,
   StreamableFile,
 } from "@nestjs/common";
 import {
@@ -27,10 +28,13 @@ import {
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
+import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
+import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
+import { UsersService } from "../users/users.service";
 import { FilesService } from "./files.service";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
@@ -48,6 +52,7 @@ export class GamesController {
     private filesService: FilesService,
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
+    private usersService: UsersService,
   ) {}
 
   @Put("reindex")
@@ -71,6 +76,7 @@ export class GamesController {
   })
   @MinimumRole(Role.GUEST)
   async findGames(
+    @Request() request: { gamevaultuser: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
     const relations = ["bookmarked_users", "metadata", "metadata.cover"];
@@ -81,6 +87,11 @@ export class GamesController {
 
     if (query.filter?.["metadata"]?.["tags"]?.["name"]) {
       relations.push("metadata.tags");
+    }
+
+    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+      query.filter["metadata"]["age_rating"] =
+        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
     }
 
     return paginate(query, this.gamesRepository, {
@@ -122,8 +133,9 @@ export class GamesController {
         early_access: true,
         type: true,
         "bookmarked_users.id": true,
-        "genres.name": true,
-        "tags.name": true,
+        "metadata.genres.name": true,
+        "metadata.tags.name": true,
+        "metadata.age_rating": true,
       },
       withDeleted: false,
     });
@@ -137,8 +149,16 @@ export class GamesController {
   })
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameRandom(): Promise<GamevaultGame> {
-    return this.gamesService.findRandom();
+  async getGameRandom(
+    @Request() request: { gamevaultuser: GamevaultUser },
+  ): Promise<GamevaultGame> {
+    return this.gamesService.findRandom({
+      loadDeletedEntities: false,
+      loadRelations: true,
+      filterByAge: await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
+    });
   }
 
   /** Retrieves details for a game with the specified ID. */
@@ -149,10 +169,16 @@ export class GamesController {
   })
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameByGameId(@Param() params: GameIdDto): Promise<GamevaultGame> {
+  async getGameByGameId(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Param() params: GameIdDto,
+  ): Promise<GamevaultGame> {
     return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
       loadRelations: true,
       loadDeletedEntities: true,
+      filterByAge: await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
     });
   }
 
@@ -193,6 +219,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => StreamableFile })
   @Header("Accept-Ranges", "bytes")
   async getGameDownload(
+    @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: GameIdDto,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
@@ -201,6 +228,9 @@ export class GamesController {
       Number(params.game_id),
       Number(speedlimit),
       range,
+      await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
     );
   }
 

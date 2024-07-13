@@ -107,17 +107,18 @@ export interface FindOptions {
   /**
    * Indicates whether deleted (sub)entities should be loaded. Subentities may
    * be deleted by app-logic afterwards.
-   *
-   * @default false
    */
   loadDeletedEntities: boolean;
 
   /**
    * Indicates whether related entities should be loaded.
-   *
-   * @default false
    */
   loadRelations: boolean | string[];
+
+  /**
+   * Filter for age restriction purposes.
+   */
+  filterByAge?: number;
 }
 
 export interface GameVaultPluginModule {

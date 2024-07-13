@@ -8,7 +8,7 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -37,7 +37,10 @@ export class FilesService implements OnApplicationBootstrap {
 
   private postIngest = debounce(async () => {
     const gamesInFileSystem = await this.readAllFiles();
-    let gamesInDatabase = await this.gamesService.find();
+    let gamesInDatabase = await this.gamesService.find({
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
     gamesInDatabase = await this.checkIntegrity(
       gamesInFileSystem,
       gamesInDatabase,
@@ -606,6 +609,7 @@ export class FilesService implements OnApplicationBootstrap {
     gameId: number,
     speedlimitHeader?: number,
     rangeHeader?: string,
+    filterByAge?: number,
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
     speedlimitHeader =
@@ -616,6 +620,7 @@ export class FilesService implements OnApplicationBootstrap {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
       loadRelations: false,
+      filterByAge,
     });
     let fileDownloadPath = game.path;
 

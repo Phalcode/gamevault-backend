@@ -37,7 +37,7 @@ export class PublisherMetadata extends DatabaseEntity {
   provider_data_id: string;
 
   @Index()
-  @Column({ unique: true })
+  @Column()
   @ApiProperty({
     example: "Rockstar Games",
     description: "name of the publisher",

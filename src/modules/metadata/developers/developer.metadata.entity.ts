@@ -37,7 +37,7 @@ export class DeveloperMetadata extends DatabaseEntity {
   provider_data_id: string;
 
   @Index()
-  @Column({ unique: true })
+  @Column()
   @ApiProperty({
     example: "Rockstar North",
     description: "name of the developer",
