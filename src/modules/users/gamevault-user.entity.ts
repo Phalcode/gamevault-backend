@@ -67,7 +67,7 @@ export class GamevaultUser extends DatabaseEntity {
     description: "the user's profile background image",
   })
   background?: Media;
-  
+
   @Column({ unique: true, nullable: true })
   @ApiProperty({
     example: "john.doe@mail.com",

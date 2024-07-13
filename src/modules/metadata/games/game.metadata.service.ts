@@ -142,7 +142,8 @@ export class GameMetadataService {
         if (
           upsertedDevelopers.some(
             (upsertedDeveloper) =>
-              upsertedDeveloper.provider_data_id === developer.provider_data_id &&
+              upsertedDeveloper.provider_data_id ===
+                developer.provider_data_id &&
               upsertedDeveloper.provider_slug === developer.provider_slug,
           )
         ) {
@@ -161,7 +162,8 @@ export class GameMetadataService {
         if (
           upsertedPublishers.some(
             (upsertedPublisher) =>
-              upsertedPublisher.provider_data_id === publisher.provider_data_id &&
+              upsertedPublisher.provider_data_id ===
+                publisher.provider_data_id &&
               upsertedPublisher.provider_slug === publisher.provider_slug,
           )
         ) {

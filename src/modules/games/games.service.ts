@@ -8,7 +8,12 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { validate } from "class-validator";
-import { FindManyOptions, FindOneOptions, LessThanOrEqual, Repository } from "typeorm";
+import {
+  FindManyOptions,
+  FindOneOptions,
+  LessThanOrEqual,
+  Repository,
+} from "typeorm";
 
 import { FindOptions } from "../../globals";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";

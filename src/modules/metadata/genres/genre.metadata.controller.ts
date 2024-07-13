@@ -1,18 +1,20 @@
 import { Controller, Get } from "@nestjs/common";
-import {
-  ApiBasicAuth,
-  ApiOperation,
-  ApiTags,
-} from "@nestjs/swagger";
+import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
+import {
+  Paginate,
+  paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
+} from "nestjs-paginate";
 import { Repository } from "typeorm";
 
 import { MinimumRole } from "../../../decorators/minimum-role.decorator";
+import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
+import { ApiOkResponsePaginated } from "../../../globals";
 import { Role } from "../../users/models/role.enum";
 import { GenreMetadata } from "./genre.metadata.entity";
-import { ApiOkResponsePaginated } from "../../../globals";
-import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
-import { Paginate, PaginateQuery, Paginated, PaginationType, paginate } from "nestjs-paginate";
 
 @Controller("genres")
 @ApiTags("genres")
