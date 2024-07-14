@@ -81,11 +81,11 @@ export class GamesController {
   ): Promise<Paginated<GamevaultGame>> {
     const relations = ["bookmarked_users", "metadata", "metadata.cover"];
 
-    if (query.filter?.["metadata"]?.["genres"]?.["name"]) {
+    if (query.filter?.["metadata.genres.name"]) {
       relations.push("metadata.genres");
     }
 
-    if (query.filter?.["metadata"]?.["tags"]?.["name"]) {
+    if (query.filter?.["metadata.tags.name"]) {
       relations.push("metadata.tags");
     }
 
