@@ -104,6 +104,7 @@ export class UsersService implements OnApplicationBootstrap {
         },
         relations,
         withDeleted: true,
+        relationLoadStrategy: "query",
       })
       .catch((error) => {
         throw new NotFoundException(`User with id ${id} was not found.`, {
