@@ -85,7 +85,13 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["progresses", "progresses.game", "bookmarked_games"];
+        relations = [
+          "progresses",
+          "progresses.game",
+          "progresses.game.metadata",
+          "progresses.game.metadata.cover",
+          "bookmarked_games",
+        ];
       } else if (Array.isArray(options.loadRelations))
         relations = options.loadRelations;
     }
