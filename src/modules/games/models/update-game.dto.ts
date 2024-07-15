@@ -19,7 +19,7 @@ export class UpdateGameDto {
   @ApiPropertyOptional({
     description:
       "The mapping requests. If not provided, the game will not be remapped.",
-    type: GameMetadata,
+    type: MapGameDto,
   })
   mapping_requests?: MapGameDto[];
 }
