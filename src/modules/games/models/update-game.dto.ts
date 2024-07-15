@@ -14,6 +14,12 @@ export class UpdateGameDto {
   })
   user_metadata?: GameMetadata;
 
+  @IsOptional()
   @ValidateNested({ each: true })
-  mapping_requests: MapGameDto[];
+  @ApiPropertyOptional({
+    description:
+      "The mapping requests. If not provided, the game will not be remapped.",
+    type: GameMetadata,
+  })
+  mapping_requests?: MapGameDto[];
 }
