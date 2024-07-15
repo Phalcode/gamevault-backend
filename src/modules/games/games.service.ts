@@ -170,6 +170,14 @@ export class GamesService {
     });
 
     if (dto.user_metadata) {
+
+      // Delete all null fields of dto.user_metadata so only delta is saved
+      Object.keys(dto.user_metadata).forEach((key) => {
+        if (dto.user_metadata[key] === null) {
+          delete dto.user_metadata[key];
+        }
+      });
+
       game.user_metadata = await this.gameMetadataService.save({
         ...dto.user_metadata,
         id: game.user_metadata?.id,
