@@ -1,14 +1,13 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import {
   ApiBasicAuth,
-  ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Role } from "../users/models/role.enum";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
 import { MetadataService } from "./metadata.service";
@@ -39,24 +38,24 @@ export class MetadataController {
     );
   }
 
-  @Post("/providers/:provider_slug/search")
+  @Get("/providers/:provider_slug/search")
   @ApiOperation({
     summary: "Search for games using a metadata provider.",
     operationId: "getSearchResultsByProvider",
   })
-  @ApiBody({
-    type: () => GamevaultGame,
+  @ApiQuery({
+    name: "query",
     description:
-      "The game to search for. Theoretically you could search by any GamevaultGame property but most providers likely only support sarches via title and release_date.",
+      "Search Query. Usually it is the title of the game but specific providers may have their own syntax.",
   })
   @MinimumRole(Role.EDITOR)
   @ApiOkResponse({ type: () => MinimalGameMetadataDto, isArray: true })
   async getSearchResultsByProvider(
     @Param() params: ProviderSlugDto,
-    @Body() search: GamevaultGame,
+    @Query("query") query: string,
   ): Promise<MinimalGameMetadataDto[]> {
     return this.metadataService
       .getProviderBySlugOrFail(params.provider_slug)
-      .search(search);
+      .search(query);
   }
 }

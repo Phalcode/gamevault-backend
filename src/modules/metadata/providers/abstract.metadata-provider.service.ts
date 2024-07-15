@@ -85,9 +85,7 @@ export abstract class MetadataProvider implements OnModuleInit {
   /**
    * Searches for a game using the provider. Only returns the minimal info of a game.
    */
-  public abstract search(
-    game: GamevaultGame,
-  ): Promise<MinimalGameMetadataDto[]>;
+  public abstract search(query: string): Promise<MinimalGameMetadataDto[]>;
 
   /**
    * Returns a game metadata object using the id.

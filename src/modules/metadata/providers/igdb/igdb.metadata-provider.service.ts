@@ -10,7 +10,6 @@ import {
 } from "ts-igdb-client";
 
 import configuration from "../../../../configuration";
-import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
 import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
@@ -70,7 +69,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   public override async search(
-    game: GamevaultGame,
+    query: string,
   ): Promise<MinimalGameMetadataDto[]> {
     const games = await (
       await this.getClient()
@@ -78,14 +77,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .request("games")
       .pipe(
         fields(["id", "name", "first_release_date", "cover.*"]),
-        search(game.title),
+        search(query),
         whereIn("category", this.categoriesToInclude),
       )
       .execute();
 
     this.logger.debug({
       message: `Found ${games.data.length} games on IGDB`,
-      search: game.title,
+      query,
       count: games.data.length,
       games: games.data,
     });
