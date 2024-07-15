@@ -21,10 +21,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -79,7 +79,12 @@ export class GamesController {
     @Request() request: { gamevaultuser: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = ["bookmarked_users", "metadata", "metadata.cover", "metadata.background"];
+    const relations = [
+      "bookmarked_users",
+      "metadata",
+      "metadata.cover",
+      "metadata.background",
+    ];
 
     if (query.filter?.["metadata.genres.name"]) {
       relations.push("metadata.genres");
