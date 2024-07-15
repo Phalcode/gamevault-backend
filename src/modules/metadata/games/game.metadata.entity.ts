@@ -72,7 +72,7 @@ export class GameMetadata extends DatabaseEntity {
 
   //#endregion
 
-  @Column({ type: "int", default: 0 })
+  @Column({ type: "int", default: 0, nullable: true })
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
@@ -160,7 +160,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   rating?: number;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: true })
   @ApiProperty({
     description: "indicates if the game is in early access",
     example: true,
