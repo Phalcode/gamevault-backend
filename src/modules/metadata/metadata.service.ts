@@ -245,28 +245,27 @@ export class MetadataService {
         provider_probability: null,
       },
     } as GameMetadata;
-
-    // Set all sub-entity provider slugs to "gamevault" and their "provider_data_id" to null
+    
     mergedMetadata.genres.forEach((genre) => {
-      genre.id = null;
+      genre.id = undefined;
       genre.provider_slug = "gamevault";
       genre.provider_data_id = genre.name;
     });
 
     mergedMetadata.tags.forEach((tag) => {
-      tag.id = null;
+      tag.id = undefined;
       tag.provider_slug = "gamevault";
       tag.provider_data_id = tag.name;
     });
 
     mergedMetadata.developers.forEach((developer) => {
-      developer.id = null;
+      developer.id = undefined;
       developer.provider_slug = "gamevault";
       developer.provider_data_id = developer.name;
     });
 
     mergedMetadata.publishers.forEach((publisher) => {
-      publisher.id = null;
+      publisher.id = undefined;
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = publisher.name;
     });

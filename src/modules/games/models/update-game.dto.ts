@@ -20,6 +20,7 @@ export class UpdateGameDto {
     description:
       "The mapping requests. If not provided, the game will not be remapped.",
     type: MapGameDto,
+    isArray: true,
   })
   mapping_requests?: MapGameDto[];
 }
