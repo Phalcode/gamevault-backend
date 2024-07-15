@@ -222,6 +222,13 @@ export class MetadataService {
 
     // Apply the users changes on top
     if (userMetadata) {
+      // Delete all null fields of dto.user_metadata so only delta is overwritten
+      Object.keys(userMetadata).forEach((key) => {
+        if (userMetadata[key] === null) {
+          delete userMetadata[key];
+        }
+      });
+
       mergedMetadata = {
         ...mergedMetadata,
         ...userMetadata,

@@ -677,6 +677,10 @@ export class FilesService implements OnApplicationBootstrap {
       file = file.pipe(new Throttle({ rate: speedlimitHeader }));
     }
 
+    // Increment the download count.
+    game.download_count++;
+    this.gamesService.save(game);
+
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filenameSanitizer(
         unidecode(path.basename(fileDownloadPath)),

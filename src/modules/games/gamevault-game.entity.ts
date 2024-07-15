@@ -78,6 +78,15 @@ export class GamevaultGame extends DatabaseEntity {
   })
   early_access: boolean = false;
 
+  @Column({ default: 0 })
+  @ApiProperty({
+    description:
+      "Indicates how many times the game has been downloaded on this server.",
+    example: 10,
+    default: 0,
+  })
+  download_count: number = 0;
+
   @Column({
     type: "simple-enum",
     enum: GameType,
