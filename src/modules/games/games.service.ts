@@ -187,6 +187,7 @@ export class GamesService {
         details: updatedGame,
       });
     }
+
     if (dto.mapping_requests) {
       for (const request of dto.mapping_requests) {
         this.logger.log({
