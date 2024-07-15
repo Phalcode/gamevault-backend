@@ -175,14 +175,14 @@ export class MetadataService {
    * Searches for metadata of a game using a specific provider.
    */
   async search(
-    game: GamevaultGame,
+    query: string,
     providerSlug: string,
   ): Promise<MinimalGameMetadataDto[]> {
-    const results = this.getProviderBySlugOrFail(providerSlug).search(game);
+    const results = this.getProviderBySlugOrFail(providerSlug).search(query);
     this.logger.debug({
       message: "Searched for metadata.",
       provider: providerSlug,
-      game: game.getLoggableData(),
+      query,
       results,
     });
     return results;

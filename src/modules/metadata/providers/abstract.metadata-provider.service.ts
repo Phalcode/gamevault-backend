@@ -111,7 +111,7 @@ export abstract class MetadataProvider implements OnModuleInit {
     game: GamevaultGame,
   ): Promise<MinimalGameMetadataDto> {
     // Search for the game using all available metadata providers.
-    const gameResults = await this.search(game);
+    const gameResults = await this.search(game.title);
 
     // If no matching games are found, throw an exception.
     if (gameResults.length === 0) {
