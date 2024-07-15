@@ -78,7 +78,7 @@ export class GameMetadata extends DatabaseEntity {
     example: 18,
     default: 0,
   })
-  age_rating?: number;
+  age_rating?: number = 0;
 
   @Column({ nullable: true })
   @Index()
@@ -160,7 +160,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   rating?: number;
 
-  @Column({ default: false, nullable: true })
+  @Column({ nullable: true })
   @ApiProperty({
     description: "indicates if the game is in early access",
     example: true,

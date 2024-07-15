@@ -187,21 +187,22 @@ export class GamesService {
         details: updatedGame,
       });
     }
-
-    for (const request of dto.mapping_requests) {
-      this.logger.log({
-        message: "Handling Mapping Request",
-        game: game.getLoggableData(),
-        details: request,
-      });
-      if (request.target_provider_data_id) {
-        await this.metadataService.map(
-          id,
-          request.provider_slug,
-          request.target_provider_data_id,
-        );
-      } else {
-        await this.metadataService.unmap(id, request.provider_slug);
+    if (dto.mapping_requests) {
+      for (const request of dto.mapping_requests) {
+        this.logger.log({
+          message: "Handling Mapping Request",
+          game: game.getLoggableData(),
+          details: request,
+        });
+        if (request.target_provider_data_id) {
+          await this.metadataService.map(
+            id,
+            request.provider_slug,
+            request.target_provider_data_id,
+          );
+        } else {
+          await this.metadataService.unmap(id, request.provider_slug);
+        }
       }
     }
 
