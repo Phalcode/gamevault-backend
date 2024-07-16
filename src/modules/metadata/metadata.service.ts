@@ -214,6 +214,16 @@ export class MetadataService {
 
     // Create New Effective Metadata by applying the priorotized metadata one by one
     for (const metadata of providerMetadata) {
+      // Delete all null fields of dto.user_metadata so only delta is overwritten
+      Object.keys(metadata).forEach((key) => {
+        if (metadata[key] === null) {
+          delete metadata[key];
+        }
+        if (Array.isArray(metadata[key]) && metadata[key].length === 0) {
+          delete metadata[key];
+        }
+      });
+
       mergedMetadata = {
         ...mergedMetadata,
         ...metadata,
@@ -225,6 +235,12 @@ export class MetadataService {
       // Delete all null fields of dto.user_metadata so only delta is overwritten
       Object.keys(userMetadata).forEach((key) => {
         if (userMetadata[key] === null) {
+          delete userMetadata[key];
+        }
+        if (
+          Array.isArray(userMetadata[key]) &&
+          userMetadata[key].length === 0
+        ) {
           delete userMetadata[key];
         }
       });
@@ -245,7 +261,7 @@ export class MetadataService {
         provider_probability: null,
       },
     } as GameMetadata;
-    
+
     mergedMetadata.genres.forEach((genre) => {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
