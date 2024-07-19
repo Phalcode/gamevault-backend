@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsAlpha,
   IsBoolean,
-  IsDate,
+  IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -66,13 +66,13 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
-  @IsDate()
+  @IsDateString()
   @IsOptional()
   @IsNotEmpty()
   @ApiPropertyOptional({
-    description: "date of birth of the user",
+    description: "date of birth of the user in ISO8601 format",
   })
-  birth_date?: Date;
+  birth_date?: string;
 
   @IsNumber()
   @IsOptional()

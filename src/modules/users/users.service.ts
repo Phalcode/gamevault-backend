@@ -177,6 +177,7 @@ export class UsersService implements OnApplicationBootstrap {
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
     user.email = dto.email || undefined;
+    user.birth_date = dto.birth_date ? new Date(dto.birth_date) : undefined;
     user.activated = isActivated;
     user.role = isAdministrator ? Role.ADMIN : undefined;
 
@@ -280,11 +281,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     if (dto.birth_date != null) {
-      logUpdate(
-        "birth_date",
-        user.birth_date?.toISOString(),
-        dto.birth_date.toISOString(),
-      );
+      logUpdate("birth_date", user.birth_date?.toISOString(), dto.birth_date);
       await this.updateBirthDate(dto, user);
     }
 
@@ -343,6 +340,7 @@ export class UsersService implements OnApplicationBootstrap {
     user: GamevaultUser,
   ): Promise<void> {
     if (
+      user.birth_date &&
       configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
       this.calculateAge(user.birth_date) <
         configuration.PARENTAL.AGE_OF_MAJORITY &&
@@ -352,7 +350,7 @@ export class UsersService implements OnApplicationBootstrap {
         "You are too young to update your birth date. Contact an Administrator to update your birth date.",
       );
     }
-    user.birth_date = dto.birth_date;
+    user.birth_date = new Date(dto.birth_date);
   }
 
   /** Soft deletes a user with the specified ID. */
