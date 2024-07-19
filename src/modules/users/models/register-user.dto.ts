@@ -11,6 +11,7 @@ import {
 } from "class-validator";
 
 import configuration from "../../../configuration";
+import { IsDateStringBeforeNow } from "../../../validators/is-before-now.validator";
 
 export class RegisterUserDto {
   @Matches(/^\w+$/, {
@@ -61,8 +62,9 @@ export class RegisterUserDto {
   })
   last_name?: string;
 
-  @ValidateIf(() => configuration.PARENTAL.AGE_RESTRICTION_ENABLED)
+  @ValidateIf(() => configuration.USERS.REQUIRE_BIRTH_DATE)
   @IsDateString()
+  @IsDateStringBeforeNow()
   @IsNotEmpty()
   @ApiProperty({
     description: "date of birth of the user in ISO8601 format",

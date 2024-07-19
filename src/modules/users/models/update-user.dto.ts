@@ -11,8 +11,11 @@ import {
   Length,
   Matches,
   MinLength,
+  ValidateIf,
 } from "class-validator";
 
+import configuration from "../../../configuration";
+import { IsDateStringBeforeNow } from "../../../validators/is-before-now.validator";
 import { Role } from "./role.enum";
 
 export class UpdateUserDto {
@@ -66,7 +69,9 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
+  @ValidateIf(() => configuration.USERS.REQUIRE_BIRTH_DATE)
   @IsDateString()
+  @IsDateStringBeforeNow()
   @IsOptional()
   @IsNotEmpty()
   @ApiPropertyOptional({
