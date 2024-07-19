@@ -17,9 +17,9 @@ import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import { IgdbArtwork } from "./models/igdb-artwork.interface";
+import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 
 @Injectable()
