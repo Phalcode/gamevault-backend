@@ -10,21 +10,20 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
-import { noop } from "rxjs";
 import { Server, Socket } from "socket.io";
 
 import configuration from "../../configuration";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import { GamevaultUser } from "./gamevault-user.entity";
-import { Activity } from "./models/activity.dto";
 import { ActivityState } from "./models/activity-state.enum";
+import { Activity } from "./models/activity.dto";
 import { UsersService } from "./users.service";
 
 // Conditionally decorate the WebSocket gateway class.
 const ConditionalWebSocketGateway = configuration.SERVER
   .ONLINE_ACTIVITIES_DISABLED
-  ? noop
+  ? () => {}
   : WebSocketGateway({ cors: true });
 
 @UseGuards(SocketSecretGuard)

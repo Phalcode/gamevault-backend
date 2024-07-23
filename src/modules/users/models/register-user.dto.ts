@@ -6,12 +6,12 @@ import {
   IsNotEmpty,
   Length,
   Matches,
-  MinLength,
-  ValidateIf,
+  MinLength
 } from "class-validator";
 
 import configuration from "../../../configuration";
-import { IsDateStringBeforeNow } from "../../../validators/is-before-now.validator";
+import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
+import { IsOptionalIf } from "../../../validators/is-optional-if.validator";
 
 export class RegisterUserDto {
   @Matches(/^\w+$/, {
@@ -32,7 +32,7 @@ export class RegisterUserDto {
   })
   password: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_EMAIL)
+  @IsOptionalIf(configuration.USERS.REQUIRE_EMAIL === false)
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({
@@ -42,7 +42,7 @@ export class RegisterUserDto {
   })
   email?: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_FIRST_NAME)
+  @IsOptionalIf(configuration.USERS.REQUIRE_FIRST_NAME === false)
   @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({
@@ -52,7 +52,7 @@ export class RegisterUserDto {
   })
   first_name?: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_LAST_NAME)
+  @IsOptionalIf(configuration.USERS.REQUIRE_LAST_NAME === false)
   @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({
@@ -62,7 +62,7 @@ export class RegisterUserDto {
   })
   last_name?: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_BIRTH_DATE)
+  @IsOptionalIf(configuration.USERS.REQUIRE_BIRTH_DATE === false)
   @IsDateString()
   @IsDateStringBeforeNow()
   @IsNotEmpty()
