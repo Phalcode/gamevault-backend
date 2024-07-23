@@ -6,7 +6,7 @@ import {
   IsNotEmpty,
   Length,
   Matches,
-  MinLength
+  MinLength,
 } from "class-validator";
 
 import configuration from "../../../configuration";

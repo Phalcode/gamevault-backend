@@ -25,7 +25,8 @@ import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
   enabled = configuration.METADATA.IGDB.ENABLED;
-  slug = configuration.METADATA.IGDB.SLUG;
+  slug = "igdb";
+  name = "IGDB";
   priority = configuration.METADATA.IGDB.PRIORITY;
   fieldsToInclude = [
     "*",

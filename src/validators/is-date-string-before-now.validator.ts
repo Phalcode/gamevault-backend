@@ -1,19 +1,19 @@
 import {
-    registerDecorator,
-    ValidationArguments,
-    ValidationOptions,
-} from 'class-validator';
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+} from "class-validator";
 
 export function IsDateStringBeforeNow(validationOptions?: ValidationOptions) {
   return (object: object, propertyName: string) => {
     registerDecorator({
-      name: 'isDateStringBeforeNow',
+      name: "isDateStringBeforeNow",
       target: object.constructor,
       propertyName,
       options: validationOptions,
       validator: {
         validate(value: string) {
-          if (typeof value !== 'string') {
+          if (typeof value !== "string") {
             return false;
           }
 

@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { ApiProperty } from "@nestjs/swagger";
 import {
+  IsAlphanumeric,
   IsBoolean,
   IsInt,
   IsNotEmpty,
@@ -63,6 +64,14 @@ export abstract class MetadataProvider implements OnModuleInit {
     example: "igdb",
   })
   public slug: string;
+
+  @IsNotEmpty()
+  @IsAlphanumeric()
+  @ApiProperty({
+    description: "display name of the provider.",
+    example: "IGDB",
+  })
+  public name: string;
 
   @IsInt()
   @IsPositive()

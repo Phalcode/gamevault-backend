@@ -16,8 +16,8 @@ import configuration from "../../configuration";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import { GamevaultUser } from "./gamevault-user.entity";
-import { ActivityState } from "./models/activity-state.enum";
 import { Activity } from "./models/activity.dto";
+import { ActivityState } from "./models/activity-state.enum";
 import { UsersService } from "./users.service";
 
 // Conditionally decorate the WebSocket gateway class.

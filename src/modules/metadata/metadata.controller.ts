@@ -32,6 +32,7 @@ export class MetadataController {
       (provider) =>
         ({
           slug: provider.slug,
+          name: provider.name,
           priority: provider.priority,
           enabled: provider.enabled,
         }) as MetadataProviderDto,

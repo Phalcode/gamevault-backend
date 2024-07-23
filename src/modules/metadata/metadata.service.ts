@@ -50,15 +50,15 @@ export class MetadataService {
     }
 
     // Validate the provider using class-validator
-    validateOrReject(provider).catch((errors) => {
-      throw new InternalServerErrorException(errors);
+    validateOrReject(provider).catch((error) => {
+      throw new InternalServerErrorException(error);
     });
 
     // Add the provider to the list of providers
     this.providers.push(provider);
 
-    // Sort the providers by priority in ascending order
-    this.providers.sort((a, b) => a.priority - b.priority);
+    // Sort the providers by priority in descending order
+    this.providers.sort((a, b) => b.priority - a.priority);
 
     // Log the registration of the metadata provider
     this.logger.log({
@@ -202,10 +202,9 @@ export class MetadataService {
       return game;
     }
 
+    // Sort the provider metadata by priority in ascending order
     const providerMetadata = game.provider_metadata.toSorted((a, b) => {
-      const aProvider = this.getProviderBySlugOrFail(a.provider_slug);
-      const bProvider = this.getProviderBySlugOrFail(b.provider_slug);
-      return aProvider.priority - bProvider.priority;
+      return this.getProviderBySlugOrFail(a.provider_slug).priority - this.getProviderBySlugOrFail(b.provider_slug).priority;
     });
 
     const userMetadata = game.user_metadata;
