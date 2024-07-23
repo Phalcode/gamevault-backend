@@ -8,7 +8,7 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -208,9 +208,9 @@ export class FilesService implements OnApplicationBootstrap {
       version: updatesToApply.version,
       early_access: updatesToApply.early_access,
       type: updatesToApply.type,
-    };
+    } as GamevaultGame;
 
-    await this.gamesService.save(updatedGame as GamevaultGame);
+    await this.gamesService.save(updatedGame);
     this.logger.log({
       message: `Updated new Game Information.`,
       game: {
