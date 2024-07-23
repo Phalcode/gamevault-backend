@@ -201,7 +201,7 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<void> {
     const updatedGame = {
       ...gameToUpdate,
-      path: updatesToApply.file_path,
+      file_path: updatesToApply.file_path,
       title: updatesToApply.title,
       release_date: updatesToApply.release_date,
       size: updatesToApply.size,
@@ -215,7 +215,7 @@ export class FilesService implements OnApplicationBootstrap {
       message: `Updated new Game Information.`,
       game: {
         id: updatedGame.id,
-        path: updatedGame.path,
+        file_path: updatedGame.file_path,
       },
     });
   }

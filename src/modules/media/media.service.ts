@@ -1,12 +1,12 @@
 import { HttpService } from "@nestjs/axios";
 import {
-    BadRequestException,
-    forwardRef,
-    Inject,
-    Injectable,
-    InternalServerErrorException,
-    Logger,
-    NotFoundException,
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AxiosError, AxiosResponse } from "axios";

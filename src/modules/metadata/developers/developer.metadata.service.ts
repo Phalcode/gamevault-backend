@@ -38,7 +38,6 @@ export class DeveloperMetadataService {
     const existingDeveloper = await this.developerRepository.findOneBy({
       provider_slug: developer.provider_slug,
       provider_data_id: developer.provider_data_id,
-      
     });
     return this.developerRepository.save({
       ...existingDeveloper,

@@ -108,7 +108,7 @@ export class GamevaultGame extends DatabaseEntity {
     type: () => GameMetadata,
     isArray: true,
   })
-  provider_metadata: GameMetadata[];
+  provider_metadata?: GameMetadata[];
 
   @OneToOne(() => GameMetadata, {
     nullable: true,
