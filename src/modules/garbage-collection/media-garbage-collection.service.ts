@@ -135,7 +135,7 @@ export class MediaGarbageCollectionService {
   ): Promise<number> {
     // Filter out media that are not being used
     const unusedMedia = allMedia.filter(
-      (media) => !usedMediaPaths.has(media.path),
+      (media) => !usedMediaPaths.has(media.file_path),
     );
 
     // Create an array of promises to delete the unused media

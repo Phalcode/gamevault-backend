@@ -69,6 +69,7 @@ export class GameMetadataService {
       },
       relations,
       withDeleted: options.loadDeletedEntities,
+      relationLoadStrategy: "query",
     });
   }
 
@@ -114,9 +115,12 @@ export class GameMetadataService {
    * metadata. Otherwise, it creates a new GameMetadata entity.
    */
   async save(game: GameMetadata): Promise<GameMetadata> {
-    const existingGame = await this.gameMetadataRepository.findOneBy({
-      provider_slug: game.provider_slug,
-      provider_data_id: game.provider_data_id,
+    const existingGame = await this.gameMetadataRepository.findOne({
+      where: {
+        provider_slug: game.provider_slug,
+        provider_data_id: game.provider_data_id,
+      },
+      relationLoadStrategy: "query",
     });
 
     const combinedGameMetadata = Builder<GameMetadata>()

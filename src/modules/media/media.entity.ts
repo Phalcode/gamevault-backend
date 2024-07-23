@@ -13,7 +13,7 @@ export class Media extends DatabaseEntity {
     description: "the original source URL of the media",
     pattern: "url",
   })
-  source?: string;
+  source_url?: string;
 
   @Column({ unique: true, nullable: true })
   @Index({ unique: true })
@@ -21,7 +21,7 @@ export class Media extends DatabaseEntity {
     example: "/media/6e6ae60b-7102-4501-ba69-62bd6419b2e0.jpg",
     description: "the path of the media on the filesystem",
   })
-  path?: string;
+  file_path?: string;
 
   @Column()
   @ApiPropertyOptional({

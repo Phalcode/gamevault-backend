@@ -7,7 +7,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { validate } from "class-validator";
 import {
   FindManyOptions,
   FindOneOptions,
@@ -153,7 +152,6 @@ export class GamesService {
   }
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
-    validate(game);
     return this.gamesRepository.save(game);
   }
 
@@ -223,19 +221,21 @@ export class GamesService {
   public async checkIfExistsInDatabase(
     game: GamevaultGame,
   ): Promise<[GameExistence, GamevaultGame]> {
-    if (!game.path || (!game.title && !game.release_date)) {
+    if (!game.file_path || (!game.title && !game.release_date)) {
       throw new InternalServerErrorException(
         game,
         "Dupe-Checking Data not available in indexed game!",
       );
     }
     const existingGameByPath = await this.gamesRepository.findOne({
-      where: { path: game.path },
+      relationLoadStrategy: "query",
+      where: { file_path: game.file_path },
       withDeleted: true,
     });
 
     const existingGameByTitleAndReleaseDate =
       await this.gamesRepository.findOne({
+        relationLoadStrategy: "query",
         where: {
           title: game.title,
           release_date: game.release_date,
@@ -255,8 +255,8 @@ export class GamesService {
 
     const differences: string[] = [];
 
-    if (foundGame.path != game.path) {
-      differences.push(`path: ${foundGame.path} -> ${game.path}`);
+    if (foundGame.file_path != game.file_path) {
+      differences.push(`path: ${foundGame.file_path} -> ${game.file_path}`);
     }
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
@@ -283,11 +283,11 @@ export class GamesService {
         message: "Game already exists in the database but has been altered.",
         game: {
           id: game.id,
-          path: game.path,
+          file_path: game.file_path,
         },
         existingGame: {
           id: foundGame.id,
-          path: foundGame.path,
+          file_path: foundGame.file_path,
         },
         differences,
       });

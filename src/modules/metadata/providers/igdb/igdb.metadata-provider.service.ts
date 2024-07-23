@@ -135,6 +135,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return Builder<GameMetadata>()
       .provider_slug("igdb")
       .provider_data_id(game.id?.toString())
+      .provider_data_url(game.url)
       .title(game.name)
       .release_date(new Date(game.first_release_date * 1000))
       .description(

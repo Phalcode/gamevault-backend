@@ -11,7 +11,6 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { compareSync, hashSync } from "bcrypt";
-import { validate } from "class-validator";
 import { randomBytes } from "crypto";
 import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 
@@ -153,6 +152,7 @@ export class UsersService implements OnApplicationBootstrap {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
       withDeleted: includeHidden,
+      relationLoadStrategy: "query",
       where: includeHidden
         ? undefined
         : { activated: true, username: Not(ILike("gvbot_%")) },
@@ -310,8 +310,6 @@ export class UsersService implements OnApplicationBootstrap {
       user.background = image;
     }
 
-    await validate(user);
-
     return this.userRepository.save(user);
   }
 
@@ -441,7 +439,7 @@ export class UsersService implements OnApplicationBootstrap {
       user: user.username,
       game: {
         id: game.id,
-        path: game.path,
+        file_path: game.file_path,
       },
     });
     return user;
@@ -477,7 +475,7 @@ export class UsersService implements OnApplicationBootstrap {
       user: user.username,
       game: {
         id: game.id,
-        path: game.path,
+        file_path: game.file_path,
       },
     });
 
@@ -520,7 +518,10 @@ export class UsersService implements OnApplicationBootstrap {
       where.push({ email: ILike(email) });
     }
 
-    const existingUser = await this.userRepository.findOne({ where });
+    const existingUser = await this.userRepository.findOne({
+      where,
+      relationLoadStrategy: "query",
+    });
 
     if (existingUser) {
       const duplicateField =

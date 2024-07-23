@@ -12,8 +12,11 @@ export class SocketSecretService {
   ) {}
 
   async findUserBySocketSecretOrFail(socketSecret: string) {
-    return this.userRepository.findOneByOrFail({
-      socket_secret: socketSecret,
+    return this.userRepository.findOneOrFail({
+      where: {
+        socket_secret: socketSecret,
+      },
+      relationLoadStrategy: "query",
     });
   }
 
@@ -21,6 +24,7 @@ export class SocketSecretService {
     const user = await this.userRepository.findOneOrFail({
       select: ["id", "socket_secret"],
       where: { id: userId },
+      relationLoadStrategy: "query",
     });
 
     return user.socket_secret;

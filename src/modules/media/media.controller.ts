@@ -59,7 +59,7 @@ export class MediaController {
   ): Promise<void> {
     const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
-    fs.createReadStream(media.path).pipe(res);
+    fs.createReadStream(media.file_path).pipe(res);
   }
 
   @Post()

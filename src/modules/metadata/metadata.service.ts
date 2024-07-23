@@ -204,7 +204,10 @@ export class MetadataService {
 
     // Sort the provider metadata by priority in ascending order
     const providerMetadata = game.provider_metadata.toSorted((a, b) => {
-      return this.getProviderBySlugOrFail(a.provider_slug).priority - this.getProviderBySlugOrFail(b.provider_slug).priority;
+      return (
+        this.getProviderBySlugOrFail(a.provider_slug).priority -
+        this.getProviderBySlugOrFail(b.provider_slug).priority
+      );
     });
 
     const userMetadata = game.user_metadata;

@@ -70,6 +70,14 @@ export class GameMetadata extends DatabaseEntity {
   })
   provider_probability?: number;
 
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "url of the game from the provider",
+    example: "https://www.igdb.com/games/grand-theft-auto-v",
+    pattern: "url",
+  })
+  provider_data_url?: string;
+
   //#endregion
 
   @Column({ type: "int", default: 0, nullable: true })

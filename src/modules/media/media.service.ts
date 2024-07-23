@@ -1,12 +1,12 @@
 import { HttpService } from "@nestjs/axios";
 import {
-  BadRequestException,
-  forwardRef,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
+    BadRequestException,
+    forwardRef,
+    Inject,
+    Injectable,
+    InternalServerErrorException,
+    Logger,
+    NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AxiosError, AxiosResponse } from "axios";
@@ -48,7 +48,7 @@ export class MediaService {
   public async findOneByMediaIdOrFail(id: number): Promise<Media> {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
-      if (!existsSync(media.path) || configuration.TESTING.MOCK_FILES) {
+      if (!existsSync(media.file_path) || configuration.TESTING.MOCK_FILES) {
         await this.delete(media);
         throw new NotFoundException("Media not found on filesystem.");
       }
@@ -72,14 +72,14 @@ export class MediaService {
     uploaderUsername?: string,
   ): Promise<Media> {
     const media = new Media();
-    media.source = sourceUrl;
+    media.source_url = sourceUrl;
 
     try {
       if (uploaderUsername) {
         media.uploader =
           await this.usersService.findOneByUsernameOrFail(uploaderUsername);
       }
-      const response = await this.fetchFromUrl(media.source);
+      const response = await this.fetchFromUrl(media.source_url);
       this.logger.debug({
         message: `Downloaded media.`,
         url: sourceUrl,
@@ -89,11 +89,11 @@ export class MediaService {
       const validatedMediaBuffer = await this.validate(mediaBuffer);
 
       media.type = validatedMediaBuffer.mimeType;
-      media.path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${
+      media.file_path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${
         validatedMediaBuffer.extension
       }`;
 
-      await this.saveToFileSystem(media.path, mediaBuffer);
+      await this.saveToFileSystem(media.file_path, mediaBuffer);
       return await this.mediaRepository.save(media);
     } catch (error) {
       if (media.id) {
@@ -152,7 +152,7 @@ export class MediaService {
     }
     try {
       await this.mediaRepository.remove(media);
-      await unlink(media.path);
+      await unlink(media.file_path);
       this.logger.debug({
         message: "Media successfully deleted from filesystem and database.",
         media,
@@ -173,7 +173,7 @@ export class MediaService {
     const media = await this.createFromUpload(file, username);
 
     try {
-      await this.saveToFileSystem(media.path, file.buffer);
+      await this.saveToFileSystem(media.file_path, file.buffer);
       const uploadedMedia = await this.mediaRepository.save(media);
       this.logger.log({
         message: "Media successfully uploaded.",
@@ -228,7 +228,7 @@ export class MediaService {
         await this.usersService.findOneByUsernameOrFail(username);
     }
 
-    media.path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${
+    media.file_path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${
       fileType.extension
     }`;
     return media;

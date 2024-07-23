@@ -103,7 +103,7 @@ export class FilesService implements OnApplicationBootstrap {
       const gameToIndex = new GamevaultGame();
       try {
         gameToIndex.size = file.size;
-        gameToIndex.path = `${file.path}`;
+        gameToIndex.file_path = `${file.path}`;
         gameToIndex.title = this.extractTitle(file.path);
         gameToIndex.release_date = this.extractReleaseYear(file.path);
         gameToIndex.version = this.extractVersion(file.path);
@@ -120,11 +120,11 @@ export class FilesService implements OnApplicationBootstrap {
               message: `Identical file is already indexed in the database. Skipping it.`,
               game: {
                 id: gameToIndex.id,
-                path: gameToIndex.path,
+                path: gameToIndex.file_path,
               },
               existingGame: {
                 id: existingGameTuple[1].id,
-                path: existingGameTuple[1].path,
+                path: existingGameTuple[1].file_path,
               },
             });
             continue;
@@ -135,10 +135,10 @@ export class FilesService implements OnApplicationBootstrap {
               message: `Indexing new file.`,
               game: {
                 id: gameToIndex.id,
-                path: gameToIndex.path,
+                path: gameToIndex.file_path,
               },
             });
-            gameToIndex.type = await this.detectType(gameToIndex.path);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.gamesService.save(gameToIndex);
             continue;
           }
@@ -148,17 +148,17 @@ export class FilesService implements OnApplicationBootstrap {
               message: `A Soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
               game: {
                 id: gameToIndex.id,
-                path: gameToIndex.path,
+                path: gameToIndex.file_path,
               },
               existingGame: {
                 id: existingGameTuple[1].id,
-                path: existingGameTuple[1].path,
+                path: existingGameTuple[1].file_path,
               },
             });
             const restoredGame = await this.gamesService.restore(
               existingGameTuple[1].id,
             );
-            gameToIndex.type = await this.detectType(gameToIndex.path);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.update(restoredGame, gameToIndex);
             continue;
           }
@@ -168,21 +168,21 @@ export class FilesService implements OnApplicationBootstrap {
               message: `An altered duplicate of the file has been found in the database. Updating the information.`,
               game: {
                 id: gameToIndex.id,
-                path: gameToIndex.path,
+                path: gameToIndex.file_path,
               },
               existingGame: {
                 id: existingGameTuple[1].id,
-                path: existingGameTuple[1].path,
+                path: existingGameTuple[1].file_path,
               },
             });
-            gameToIndex.type = await this.detectType(gameToIndex.path);
+            gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.update(existingGameTuple[1], gameToIndex);
             continue;
           }
         }
       } catch (error) {
         this.logger.error({
-          message: `Failed to index file "${gameToIndex.path}". Does this file really belong here and are you sure the format is correct?`,
+          message: `Failed to index file "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?`,
           game: { id: gameToIndex.id, path: file },
           error,
         });
@@ -201,7 +201,7 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<void> {
     const updatedGame = {
       ...gameToUpdate,
-      path: updatesToApply.path,
+      path: updatesToApply.file_path,
       title: updatesToApply.title,
       release_date: updatesToApply.release_date,
       size: updatesToApply.size,
@@ -528,7 +528,7 @@ export class FilesService implements OnApplicationBootstrap {
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const gameInFileSystem = gamesInFileSystem.find(
-          (file) => file.path === gameInDatabase.path,
+          (file) => file.path === gameInDatabase.file_path,
         );
         // If game is not in file system, mark it as deleted
         if (!gameInFileSystem) {
@@ -538,7 +538,7 @@ export class FilesService implements OnApplicationBootstrap {
             reason: "Game file not found in filesystem.",
             game: {
               id: gameInDatabase.id,
-              path: gameInDatabase.path,
+              path: gameInDatabase.file_path,
             },
           });
           continue;
@@ -549,7 +549,7 @@ export class FilesService implements OnApplicationBootstrap {
           message: `Error checking integrity of file.`,
           game: {
             id: gameInDatabase.id,
-            path: gameInDatabase.path,
+            path: gameInDatabase.file_path,
           },
           error,
         });
@@ -622,7 +622,7 @@ export class FilesService implements OnApplicationBootstrap {
       loadRelations: false,
       filterByAge,
     });
-    let fileDownloadPath = game.path;
+    let fileDownloadPath = game.file_path;
 
     // If mocking files for testing, return a StreamableFile with random bytes.
     if (configuration.TESTING.MOCK_FILES) {
@@ -640,12 +640,12 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     // If the file format is not supported, create an archive and use it for download.
-    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.path))) {
+    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
       // If the archive file does not exist, create it.
       if (!existsSync(fileDownloadPath)) {
-        await this.archive(fileDownloadPath, game.path);
+        await this.archive(fileDownloadPath, game.file_path);
       }
     }
 

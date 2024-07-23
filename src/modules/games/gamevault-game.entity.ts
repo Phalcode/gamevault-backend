@@ -26,7 +26,7 @@ export class GamevaultGame extends DatabaseEntity {
       "file path to the game or the game manifest (relative to root)",
     example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
-  path: string;
+  file_path: string;
 
   @Column({
     type: "bigint",
@@ -156,7 +156,7 @@ export class GamevaultGame extends DatabaseEntity {
   public getLoggableData() {
     return {
       id: this.id,
-      path: this.path,
+      file_path: this.file_path,
     };
   }
 
