@@ -85,10 +85,10 @@ export class MediaGarbageCollectionService {
    *
    * @param usedMediaPaths - Set that will store the used media paths.
    */
-  //TODO: ADD GARBAGE COLLECTION FOR SCREENSHOTS AND VIDEOS
   private async collectUsedMediaPathsDynamically(
     usedMediaPaths: Set<string>,
   ): Promise<void> {
+    this.logger.debug("Collecting used media paths dynamically...");
     // Define an array of objects, each containing a repository and the properties to check for media
     const entityMediaProperties = [
       {
@@ -97,29 +97,44 @@ export class MediaGarbageCollectionService {
       },
       {
         repository: this.gameMetadataRepository,
-        properties: ["cover", "background", "screenshots", "videos"],
+        properties: ["cover", "background", "screenshots"],
       },
       // Add more repositories and media properties as needed
     ];
 
     // Iterate over each object in the entityMediaProperties array
     for (const { repository, properties } of entityMediaProperties) {
+      this.logger.debug(
+        `Fetching entities from repository ${repository.metadata.name}...`,
+      );
       // Fetch all entities from the repository
-      const entities = await repository.find({ withDeleted: true });
+      const entities = await repository.find({
+        withDeleted: true,
+        relations: properties,
+      });
 
       // Iterate over each entity
       for (const entity of entities) {
+        this.logger.debug(`Processing entity ${entity.id}...`);
         // Iterate over each property in the properties array
         for (const property of properties) {
           // Get the media from the entity's property
           const media = entity[property];
+          this.logger.debug(
+            `Processing property ${property} of entity ${entity.id}...`,
+          );
           // If the media has a path, add it to the usedMediaPaths set
           if (media?.path) {
+            this.logger.debug(`Adding path ${media.path} to usedMediaPaths...`);
             usedMediaPaths.add(media.path);
           }
         }
       }
     }
+    this.logger.debug({
+      message: "Finished collecting used media paths dynamically.",
+      usedMediaPaths,
+    });
   }
 
   /**
