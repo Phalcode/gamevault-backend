@@ -21,10 +21,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -90,9 +90,11 @@ export class GamesController {
     }
 
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
-      // This does not work because metadata is unset sometimes how do i force set this property?
-      query.filter["metadata.age_rating"] =
-        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
+      const userAge = await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      );
+      query.filter = query.filter || {};
+      query.filter["metadata.age_rating"] = `$lte:${userAge}`;
     }
 
     return paginate(query, this.gamesRepository, {
