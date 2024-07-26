@@ -18,10 +18,6 @@ import {
 import { MediaValidator } from "../../../validators/media.validator";
 import { DatabaseEntity } from "../../database/database.entity";
 import { Media } from "../../media/media.entity";
-import { UserDeveloperMetadataDto } from "./user-developer-metadata.dto";
-import { UserGenreMetadataDto } from "./user-genre-metadata.dto";
-import { UserPublisherMetadataDto } from "./user-publisher-metadata.dto";
-import { UserTagMetadataDto } from "./user-tag-metadata.dto";
 
 export class UserGameMetadataDto extends DatabaseEntity {
   @ApiPropertyOptional({

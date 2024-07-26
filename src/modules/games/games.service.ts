@@ -256,7 +256,7 @@ export class GamesService {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
-            provider_data_id: tag,
+            provider_data_id: tag.toLowerCase(),
             name: tag,
           } as TagMetadata;
         });
@@ -266,7 +266,7 @@ export class GamesService {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
-            provider_data_id: genre,
+            provider_data_id: genre.toLowerCase(),
             name: genre,
           } as GenreMetadata;
         });
@@ -277,7 +277,7 @@ export class GamesService {
           (developer) => {
             return {
               provider_slug: "user",
-              provider_data_id: developer,
+              provider_data_id: developer.toLowerCase(),
               name: developer,
             } as DeveloperMetadata;
           },
@@ -289,7 +289,7 @@ export class GamesService {
           (publisher) => {
             return {
               provider_slug: "user",
-              provider_data_id: publisher,
+              provider_data_id: publisher.toLowerCase(),
               name: publisher,
             } as PublisherMetadata;
           },
