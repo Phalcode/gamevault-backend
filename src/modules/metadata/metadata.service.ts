@@ -237,7 +237,7 @@ export class MetadataService {
     // Apply the users changes on top
     if (userMetadata) {
       // Delete all null fields of dto.user_metadata so only delta is overwritten
-      Object.keys(userMetadata).forEach((key) => {
+      Object.keys(userMetadata)?.forEach((key) => {
         if (userMetadata[key] === null) {
           delete userMetadata[key];
         }
@@ -266,25 +266,25 @@ export class MetadataService {
       },
     } as GameMetadata;
 
-    mergedMetadata.genres.forEach((genre) => {
+    mergedMetadata.genres?.forEach((genre) => {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
       genre.provider_data_id = genre.name;
     });
 
-    mergedMetadata.tags.forEach((tag) => {
+    mergedMetadata.tags?.forEach((tag) => {
       tag.id = undefined;
       tag.provider_slug = "gamevault";
       tag.provider_data_id = tag.name;
     });
 
-    mergedMetadata.developers.forEach((developer) => {
+    mergedMetadata.developers?.forEach((developer) => {
       developer.id = undefined;
       developer.provider_slug = "gamevault";
       developer.provider_data_id = developer.name;
     });
 
-    mergedMetadata.publishers.forEach((publisher) => {
+    mergedMetadata.publishers?.forEach((publisher) => {
       publisher.id = undefined;
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = publisher.name;
