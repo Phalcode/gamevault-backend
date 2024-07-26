@@ -19,7 +19,7 @@ import { MediaValidator } from "../../../validators/media.validator";
 import { DatabaseEntity } from "../../database/database.entity";
 import { Media } from "../../media/media.entity";
 
-export class UserGameMetadataDto extends DatabaseEntity {
+export class UserGameMetadataDto {
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
