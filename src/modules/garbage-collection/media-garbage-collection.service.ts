@@ -53,7 +53,7 @@ export class MediaGarbageCollectionService {
     const allMedia = await this.mediaRepository.find();
 
     // Collect paths of used media dynamically
-    const usedMediaPaths = await this.collectUsedMediaPathsDynamically();
+    const usedMediaPaths = await this.collectUsedMediaPaths();
 
     // Remove unused media from the database
     const dbRemovedCount = await this.removeUnusedMediaFromDB(
@@ -79,15 +79,19 @@ export class MediaGarbageCollectionService {
   }
 
   /**
-   * Collects the used media paths dynamically from various repositories and
-   * properties.
+   * Collects paths of used media dynamically.
    *
-   * @param usedMediaPaths - Set that will store the used media paths.
+   * @returns An array of media paths that are currently being used.
    */
-  private async collectUsedMediaPathsDynamically(): Promise<string[]> {
-    const usedMediaPaths: string[] = [];
-    this.logger.debug("Collecting used media paths dynamically...");
-    // Define an array of objects, each containing a repository and the properties to check for media
+  private async collectUsedMediaPaths(): Promise<string[]> {
+    const mediaPaths: string[] = [];
+    /**
+     * The entities and properties that are checked for media usage.
+     * Each element in the array is an object with a `repository` property and a
+     * `properties` property. The `repository` property is the TypeORM repository
+     * instance for the entity. The `properties` property is an array of strings
+     * representing the properties of the entity that may contain media.
+     */
     const entityMediaProperties = [
       {
         repository: this.userRepository,
@@ -97,61 +101,42 @@ export class MediaGarbageCollectionService {
         repository: this.gameMetadataRepository,
         properties: ["cover", "background", "screenshots"],
       },
-      // Add more repositories and media properties as needed
     ];
-
-    // Iterate over each object in the entityMediaProperties array
+    /**
+     * Loop through the entities and their properties and find the media that is
+     * being used.
+     */
     for (const { repository, properties } of entityMediaProperties) {
-      this.logger.debug(
-        `Fetching entities from repository ${repository.metadata.name}...`,
-      );
-      // Fetch all entities from the repository
       const entities = await repository.find({
         withDeleted: true,
         relations: properties,
         loadEagerRelations: false,
         relationLoadStrategy: "query",
       });
-
-      this.logger.debug(
-        `Found ${entities.length} ${repository.constructor.name} entities.`,
-      );
-
-      // Iterate over each entity
       for (const entity of entities) {
-        this.logger.debug(`Processing entity ${entity.id}...`);
-        // Iterate over each property in the properties array
-        const foundEntityMedia: Media[] = [];
+        const foundMedia: Media[] = [];
+        /**
+         * Loop through each property of the entity and check if it contains
+         * media.
+         */
         for (const property of properties) {
-          this.logger.debug(
-            `Processing property ${property} of entity ${entity.id}...`,
-          );
           if (Array.isArray(entity[property])) {
-            this.logger.debug(`Property ${property} is an array...`);
-            foundEntityMedia.push(...entity[property]);
+            foundMedia.push(...entity[property]);
           } else if (entity[property]) {
-            this.logger.debug(`Property ${property} is not an array...`);
-            foundEntityMedia.push(entity[property]);
+            foundMedia.push(entity[property]);
           }
         }
-        for (const media of foundEntityMedia) {
-          // Get the media from the entity's property
-          this.logger.debug(`Processing media entity ${entity.id}...`);
-          // If the media has a path, add it to the usedMediaPaths set
-          if (media.file_path) {
-            this.logger.debug(
-              `Adding path ${media.file_path} to usedMediaPaths...`,
-            );
-            usedMediaPaths.push(media.file_path);
-          }
-        }
+        /**
+         * Add the media paths to the `mediaPaths` array.
+         */
+        mediaPaths.push(
+          ...foundMedia
+            .filter((media) => media.file_path)
+            .map((media) => media.file_path),
+        );
       }
     }
-    this.logger.debug({
-      message: "Finished collecting used media paths dynamically.",
-      usedMediaPaths,
-    });
-    return usedMediaPaths;
+    return mediaPaths;
   }
 
   /**
