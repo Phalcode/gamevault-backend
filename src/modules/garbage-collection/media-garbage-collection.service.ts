@@ -111,6 +111,8 @@ export class MediaGarbageCollectionService {
       const entities = await repository.find({
         withDeleted: true,
         relations: properties,
+        loadEagerRelations: false,
+        relationLoadStrategy: "query",
       });
 
       // Iterate over each entity
