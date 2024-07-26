@@ -18,10 +18,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -81,11 +81,9 @@ export class ProgressController {
     const relations = ["user", "game"];
 
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
-      const userAge = await this.usersService.findUserAgeByUsername(
-        request.gamevaultuser.username,
-      );
-      query.filter = query.filter || {};
-      query.filter["game.metadata.age_rating"] = `$lte:${userAge}`;
+      query.filter ??= {};
+      query.filter["game.metadata.age_rating"] =
+        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
     }
 
     return paginate(query, this.progressRepository, {

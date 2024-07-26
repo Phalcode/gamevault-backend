@@ -90,11 +90,9 @@ export class GamesController {
     }
 
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
-      const userAge = await this.usersService.findUserAgeByUsername(
-        request.gamevaultuser.username,
-      );
-      query.filter = query.filter || {};
-      query.filter["metadata.age_rating"] = `$lte:${userAge}`;
+      query.filter ??= {};
+      query.filter["metadata.age_rating"] =
+        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
     }
 
     return paginate(query, this.gamesRepository, {
