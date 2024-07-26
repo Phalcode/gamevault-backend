@@ -183,6 +183,27 @@ export class GameMetadata extends DatabaseEntity {
   })
   early_access?: boolean;
 
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined launch parameters for the game.",
+    example: "-fullscreen -dx11",
+  })
+  launch_parameters?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined launch executable for the game.",
+    example: "ShooterGame.exe",
+  })
+  launch_executable?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined installer executable for the game.",
+    example: "setup.exe",
+  })
+  installer_executable?: string;
+
   @JoinTable()
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,

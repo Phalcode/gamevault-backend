@@ -15,9 +15,13 @@ import {
 } from "typeorm";
 
 import { FindOptions } from "../../globals";
+import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GameMetadataService } from "../metadata/games/game.metadata.service";
+import { GenreMetadata } from "../metadata/genres/genre.metadata.entity";
 import { MetadataService } from "../metadata/metadata.service";
+import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity";
+import { TagMetadata } from "../metadata/tags/tag.metadata.entity";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
@@ -233,7 +237,64 @@ export class GamesService {
         updatedUserMetadata.early_access = dto.user_metadata.early_access;
       }
 
-      //TODO: Upsert Genres, Publishers, Developers, Tags
+      if (dto.user_metadata.launch_parameters) {
+        updatedUserMetadata.launch_parameters =
+          dto.user_metadata.launch_parameters;
+      }
+
+      if (dto.user_metadata.launch_executable) {
+        updatedUserMetadata.launch_executable =
+          dto.user_metadata.launch_executable;
+      }
+
+      if (dto.user_metadata.installer_executable) {
+        updatedUserMetadata.installer_executable =
+          dto.user_metadata.installer_executable;
+      }
+
+      if (dto.user_metadata.tags) {
+        updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
+          return {
+            provider_slug: "user",
+            provider_data_id: tag,
+            name: tag,
+          } as TagMetadata;
+        });
+      }
+
+      if (dto.user_metadata.genres) {
+        updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
+          return {
+            provider_slug: "user",
+            provider_data_id: genre,
+            name: genre,
+          } as GenreMetadata;
+        });
+      }
+
+      if (dto.user_metadata.developers) {
+        updatedUserMetadata.developers = dto.user_metadata.developers.map(
+          (developer) => {
+            return {
+              provider_slug: "user",
+              provider_data_id: developer,
+              name: developer,
+            } as DeveloperMetadata;
+          },
+        );
+      }
+
+      if (dto.user_metadata.publishers) {
+        updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
+          (publisher) => {
+            return {
+              provider_slug: "user",
+              provider_data_id: publisher,
+              name: publisher,
+            } as PublisherMetadata;
+          },
+        );
+      }
 
       game.user_metadata =
         await this.gameMetadataService.save(updatedUserMetadata);

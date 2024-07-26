@@ -142,47 +142,66 @@ export class UserGameMetadataDto extends DatabaseEntity {
   @IsNotEmpty()
   early_access?: boolean;
 
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined launch parameters for the game.",
+    example: "-fullscreen -dx11",
+  })
+  launch_parameters?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined launch executable for the game.",
+    example: "ShooterGame.exe",
+  })
+  launch_executable?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined installer executable for the game.",
+    example: "setup.exe",
+  })
+  installer_executable?: string;
+
   @IsArray()
   @IsOptional()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
   @ApiPropertyOptional({
     description: "publishers of the game",
-    type: () => UserPublisherMetadataDto,
     isArray: true,
   })
-  publishers?: UserPublisherMetadataDto[];
+  publishers?: string[];
 
   @IsArray()
   @IsOptional()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
   @ApiPropertyOptional({
     description: "developers of the game",
-    type: () => UserDeveloperMetadataDto,
     isArray: true,
   })
-  developers?: UserDeveloperMetadataDto[];
+  developers?: string[];
 
   @IsArray()
   @IsOptional()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
   @ApiPropertyOptional({
     description: "tags of the game",
-    type: () => UserTagMetadataDto,
     isArray: true,
   })
-  tags?: UserTagMetadataDto[];
+  tags?: string[];
 
   @IsArray()
   @IsOptional()
   @IsNotEmpty()
-  @ValidateNested({ each: true })
   @ApiPropertyOptional({
     description: "genres of the game",
-    type: () => UserGenreMetadataDto,
     isArray: true,
   })
-  genres?: UserGenreMetadataDto[];
+  genres?: string[];
 }
