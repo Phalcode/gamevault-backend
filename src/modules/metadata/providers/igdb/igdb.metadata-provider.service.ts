@@ -204,7 +204,9 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           [...(game.screenshots || []), ...(game.artworks || [])].map(
             async (image: IgdbScreenshot | IgdbArtwork) => {
               return this.mediaService.downloadByUrl(
-                image.url.replace("t_thumb", "t_1080p_2x"),
+                image.url
+                  .replace("//", "https://")
+                  .replace("t_thumb", "t_1080p_2x"),
               );
             },
           ),
@@ -213,14 +215,18 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       .cover(
         game.cover
           ? await this.mediaService.downloadByUrl(
-              game.cover?.url.replace("t_thumb", "t_cover_big_2x"),
+              game.cover?.url
+                .replace("//", "https://")
+                .replace("t_thumb", "t_cover_big_2x"),
             )
           : undefined,
       )
       .background(
         game.artworks?.[0]
           ? await this.mediaService.downloadByUrl(
-              game.artworks?.[0]?.url.replace("t_thumb", "t_1080p_2x"),
+              game.artworks?.[0]?.url
+                .replace("//", "https://")
+                .replace("t_thumb", "t_1080p_2x"),
             )
           : undefined,
       )

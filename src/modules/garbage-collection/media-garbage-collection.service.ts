@@ -53,8 +53,7 @@ export class MediaGarbageCollectionService {
     const allMedia = await this.mediaRepository.find();
 
     // Collect paths of used media dynamically
-    const usedMediaPaths = new Set<string>();
-    await this.collectUsedMediaPathsDynamically(usedMediaPaths);
+    const usedMediaPaths = await this.collectUsedMediaPathsDynamically();
 
     // Remove unused media from the database
     const dbRemovedCount = await this.removeUnusedMediaFromDB(
@@ -85,9 +84,8 @@ export class MediaGarbageCollectionService {
    *
    * @param usedMediaPaths - Set that will store the used media paths.
    */
-  private async collectUsedMediaPathsDynamically(
-    usedMediaPaths: Set<string>,
-  ): Promise<void> {
+  private async collectUsedMediaPathsDynamically(): Promise<string[]> {
+    const usedMediaPaths: string[] = [];
     this.logger.debug("Collecting used media paths dynamically...");
     // Define an array of objects, each containing a repository and the properties to check for media
     const entityMediaProperties = [
@@ -115,20 +113,36 @@ export class MediaGarbageCollectionService {
         relationLoadStrategy: "query",
       });
 
+      this.logger.debug(
+        `Found ${entities.length} ${repository.constructor.name} entities.`,
+      );
+
       // Iterate over each entity
       for (const entity of entities) {
         this.logger.debug(`Processing entity ${entity.id}...`);
         // Iterate over each property in the properties array
+        const foundEntityMedia: Media[] = [];
         for (const property of properties) {
-          // Get the media from the entity's property
-          const media = entity[property];
           this.logger.debug(
             `Processing property ${property} of entity ${entity.id}...`,
           );
+          if (Array.isArray(entity[property])) {
+            this.logger.debug(`Property ${property} is an array...`);
+            foundEntityMedia.push(...entity[property]);
+          } else if (entity[property]) {
+            this.logger.debug(`Property ${property} is not an array...`);
+            foundEntityMedia.push(entity[property]);
+          }
+        }
+        for (const media of foundEntityMedia) {
+          // Get the media from the entity's property
+          this.logger.debug(`Processing media entity ${entity.id}...`);
           // If the media has a path, add it to the usedMediaPaths set
-          if (media?.path) {
-            this.logger.debug(`Adding path ${media.path} to usedMediaPaths...`);
-            usedMediaPaths.add(media.path);
+          if (media.file_path) {
+            this.logger.debug(
+              `Adding path ${media.file_path} to usedMediaPaths...`,
+            );
+            usedMediaPaths.push(media.file_path);
           }
         }
       }
@@ -137,6 +151,7 @@ export class MediaGarbageCollectionService {
       message: "Finished collecting used media paths dynamically.",
       usedMediaPaths,
     });
+    return usedMediaPaths;
   }
 
   /**
@@ -148,11 +163,11 @@ export class MediaGarbageCollectionService {
    */
   private async removeUnusedMediaFromDB(
     allMedia: Media[],
-    usedMediaPaths: Set<string>,
+    usedMediaPaths: string[],
   ): Promise<number> {
     // Filter out media that are not being used
     const unusedMedia = allMedia.filter(
-      (media) => !usedMediaPaths.has(media.file_path),
+      (media) => !usedMediaPaths.includes(media.file_path),
     );
 
     // Create an array of promises to delete the unused media
@@ -173,9 +188,7 @@ export class MediaGarbageCollectionService {
    * @param usedMediaPaths - A Set of paths to used media files.
    * @returns The number of files removed.
    */
-  private async cleanupFileSystem(
-    usedMediaPaths: Set<string>,
-  ): Promise<number> {
+  private async cleanupFileSystem(usedMediaPaths: string[]): Promise<number> {
     // Skip garbage collection if TESTING_MOCK_FILES is true
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
@@ -201,7 +214,7 @@ export class MediaGarbageCollectionService {
     // Create an array of unlink promises for each file
     const unlinkPromises = allMediaFilePaths.map((path) => {
       // If the file path is not in the usedMediaPaths set, delete the file
-      if (!usedMediaPaths.has(path)) {
+      if (!usedMediaPaths.includes(path)) {
         return unlink(path)
           .then(() => {
             this.logger.debug({
