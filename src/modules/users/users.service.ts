@@ -133,7 +133,6 @@ export class UsersService implements OnApplicationBootstrap {
           username: ILike(username),
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
-
         relations,
         withDeleted: true,
       })
@@ -379,7 +378,10 @@ export class UsersService implements OnApplicationBootstrap {
     if (!configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
       return undefined;
     }
-    const user = await this.findOneByUsernameOrFail(username);
+    const user = await this.findOneByUsernameOrFail(username, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
     return this.calculateAge(user.birth_date);
   }
 
