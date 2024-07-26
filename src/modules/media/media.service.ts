@@ -12,7 +12,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { unlink, writeFile } from "fs/promises";
 import { catchError, firstValueFrom } from "rxjs";
 import { Repository } from "typeorm";
@@ -58,6 +58,23 @@ export class MediaService {
         cause: error,
       });
     }
+  }
+
+  async cloneMedia(originalMedia: Media): Promise<Media> {
+    if (!existsSync(originalMedia.file_path)) {
+      throw new BadRequestException("Media not found on filesystem.");
+    }
+
+    const mediaBuffer = readFileSync(originalMedia.file_path);
+    const validatedMediaBuffer = await this.validate(mediaBuffer);
+
+    const newMedia = new Media();
+    newMedia.type = originalMedia.type;
+    newMedia.uploader = originalMedia.uploader;
+    newMedia.source_url = originalMedia.source_url;
+    newMedia.file_path = `${configuration.VOLUMES.MEDIA}/${randomUUID()}.${validatedMediaBuffer.extension}`;
+    await this.saveToFileSystem(newMedia.file_path, mediaBuffer);
+    return await this.mediaRepository.save(newMedia);
   }
 
   /**

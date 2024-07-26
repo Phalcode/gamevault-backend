@@ -168,16 +168,75 @@ export class GamesService {
     });
 
     if (dto.user_metadata) {
-      game.user_metadata = await this.gameMetadataService.save({
-        ...dto.user_metadata,
-        id: game.user_metadata?.id,
-        provider_slug: game.user_metadata?.provider_slug || "user",
-        provider_data_id: game.user_metadata?.provider_data_id || game.id,
-        created_at: game.user_metadata?.created_at || undefined,
-        updated_at: game.user_metadata?.updated_at || undefined,
-        entity_version: game.user_metadata?.entity_version || undefined,
-        gamevault_games: game.metadata.gamevault_games || undefined,
-      } as GameMetadata);
+      const updatedUserMetadata = game.user_metadata || new GameMetadata();
+
+      updatedUserMetadata.id = game.user_metadata.id || undefined;
+      updatedUserMetadata.provider_slug = "user";
+      updatedUserMetadata.provider_data_id = game.id.toString();
+      updatedUserMetadata.created_at =
+        game.user_metadata.created_at || undefined;
+      updatedUserMetadata.updated_at =
+        game.user_metadata.updated_at || undefined;
+      updatedUserMetadata.entity_version =
+        game.user_metadata.entity_version || undefined;
+      updatedUserMetadata.gamevault_games =
+        game.metadata.gamevault_games || undefined;
+
+      if (dto.user_metadata.age_rating) {
+        updatedUserMetadata.age_rating = dto.user_metadata.age_rating;
+      }
+
+      if (dto.user_metadata.title) {
+        updatedUserMetadata.title = dto.user_metadata.title;
+      }
+
+      if (game.user_metadata.release_date) {
+        updatedUserMetadata.release_date = new Date(
+          dto.user_metadata.release_date,
+        );
+      }
+
+      if (dto.user_metadata.description) {
+        updatedUserMetadata.description = dto.user_metadata.description;
+      }
+
+      if (dto.user_metadata.notes) {
+        updatedUserMetadata.notes = dto.user_metadata.notes;
+      }
+
+      if (dto.user_metadata.average_playtime) {
+        updatedUserMetadata.average_playtime =
+          dto.user_metadata.average_playtime;
+      }
+
+      if (dto.user_metadata.cover) {
+        updatedUserMetadata.cover = dto.user_metadata.cover;
+      }
+
+      if (dto.user_metadata.background) {
+        updatedUserMetadata.background = dto.user_metadata.background;
+      }
+
+      if (dto.user_metadata.screenshots) {
+        updatedUserMetadata.screenshots = dto.user_metadata.screenshots;
+      }
+
+      if (dto.user_metadata.url_website) {
+        updatedUserMetadata.url_website = dto.user_metadata.url_website;
+      }
+
+      if (dto.user_metadata.rating) {
+        updatedUserMetadata.rating = dto.user_metadata.rating;
+      }
+
+      if (dto.user_metadata.early_access) {
+        updatedUserMetadata.early_access = dto.user_metadata.early_access;
+      }
+
+      //TODO: Upsert Genres, Publishers, Developers, Tags
+
+      game.user_metadata =
+        await this.gameMetadataService.save(updatedUserMetadata);
       const updatedGame = await this.save(game);
       this.logger.log({
         message: "Game User Metadata updated",

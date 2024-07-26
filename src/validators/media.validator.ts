@@ -17,7 +17,7 @@ class MediaMimeTypeConstraint implements ValidatorConstraintInterface {
     }
 
     if (Array.isArray(types)) {
-      return types.some((type) => value.type.startsWith(type));
+      return types.every((type) => value.type.startsWith(type));
     }
 
     return value.type.startsWith(types);

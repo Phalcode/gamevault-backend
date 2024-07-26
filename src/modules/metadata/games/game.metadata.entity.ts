@@ -106,11 +106,19 @@ export class GameMetadata extends DatabaseEntity {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
-    description: "description of the game",
+    description: "description of the game. markdown supported.",
     example:
-      "An open world action-adventure video game developed by Rockstar North and published by Rockstar Games.",
+      "An open world action-adventure video game developed by **Rockstar North** and published by **Rockstar Games**.",
   })
   description?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description:
+      "public notes from the admin for the game. markdown supported.",
+    example: "# README \n Install other game first!",
+  })
+  notes?: string;
 
   @Column({ type: "int", nullable: true })
   @ApiPropertyOptional({

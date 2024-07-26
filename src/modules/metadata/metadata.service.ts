@@ -12,6 +12,7 @@ import { validateOrReject } from "class-validator";
 import configuration from "../../configuration";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
+import { MediaService } from "../media/media.service";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
@@ -26,6 +27,7 @@ export class MetadataService {
     @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
     private gameMetadataService: GameMetadataService,
+    private mediaService: MediaService,
   ) {}
 
   /**
@@ -287,6 +289,28 @@ export class MetadataService {
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = publisher.name;
     });
+
+    // CLONE MEDIA
+
+    if (mergedMetadata.cover) {
+      mergedMetadata.cover = await this.mediaService.cloneMedia(
+        mergedMetadata.cover,
+      );
+    }
+
+    if (mergedMetadata.background) {
+      mergedMetadata.background = await this.mediaService.cloneMedia(
+        mergedMetadata.background,
+      );
+    }
+
+    if (mergedMetadata.screenshots) {
+      mergedMetadata.screenshots = await Promise.all(
+        mergedMetadata.screenshots.map((screenshot) =>
+          this.mediaService.cloneMedia(screenshot),
+        ),
+      );
+    }
 
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
