@@ -16,7 +16,6 @@ import {
 } from "class-validator";
 
 import { MediaValidator } from "../../../validators/media.validator";
-import { DatabaseEntity } from "../../database/database.entity";
 import { Media } from "../../media/media.entity";
 
 export class UserGameMetadataDto {
