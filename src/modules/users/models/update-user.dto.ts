@@ -69,7 +69,10 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
-  @IsOptionalIf(configuration.USERS.REQUIRE_BIRTH_DATE === false)
+  @IsOptionalIf(
+    !configuration.USERS.REQUIRE_BIRTH_DATE &&
+      !configuration.PARENTAL.AGE_RESTRICTION_ENABLED,
+  )
   @IsNotEmpty()
   @IsDateString()
   @IsDateStringBeforeNow()

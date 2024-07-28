@@ -133,9 +133,9 @@ const configuration = {
     REQUIRE_LAST_NAME: parseBooleanEnvVariable(
       process.env.USERS_REQUIRE_LAST_NAME,
     ),
-    REQUIRE_BIRTH_DATE:
-      parseBooleanEnvVariable(process.env.PARENTAL_ENABLED) ||
-      parseBooleanEnvVariable(process.env.USERS_REQUIRE_BIRTH_DATE),
+    REQUIRE_BIRTH_DATE: parseBooleanEnvVariable(
+      process.env.USERS_REQUIRE_BIRTH_DATE,
+    ),
   } as const,
   PARENTAL: {
     AGE_RESTRICTION_ENABLED: parseBooleanEnvVariable(
