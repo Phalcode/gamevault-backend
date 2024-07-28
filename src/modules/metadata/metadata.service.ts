@@ -3,9 +3,8 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   Logger,
-  NotFoundException,
+  NotFoundException
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
@@ -52,8 +51,8 @@ export class MetadataService {
     }
 
     // Validate the provider using class-validator
-    validateOrReject(provider).catch((error) => {
-      throw new InternalServerErrorException(error);
+    validateOrReject(provider).catch((errors) => {
+      throw new Error(errors);
     });
 
     // Add the provider to the list of providers

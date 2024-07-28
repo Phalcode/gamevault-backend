@@ -8,8 +8,8 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
-import { readdir, stat } from "fs/promises";
+import { Stats, createReadStream, existsSync, readdirSync, statSync } from "fs";
+import { stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
@@ -566,19 +566,17 @@ export class FilesService implements OnApplicationBootstrap {
    * This method retrieves an array of objects representing game files in the
    * file system.
    */
-  private async readAllFiles(): Promise<File[]> {
+  private async readAllFiles(): File[] {
     try {
       if (configuration.TESTING.MOCK_FILES) {
         return mock;
       }
 
-      return (
-        await readdir(configuration.VOLUMES.FILES, {
-          encoding: "utf8",
-          recursive: configuration.GAMES.SEARCH_RECURSIVE,
-          withFileTypes: true,
-        })
-      )
+      return readdirSync(configuration.VOLUMES.FILES, {
+        encoding: "utf8",
+        recursive: configuration.GAMES.SEARCH_RECURSIVE,
+        withFileTypes: true,
+      })
         .filter((file) => file.isFile() && this.isValidFilePath(file.name))
         .map(
           (file) =>
