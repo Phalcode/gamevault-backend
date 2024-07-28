@@ -13,9 +13,7 @@ import {
   MinLength,
 } from "class-validator";
 
-import configuration from "../../../configuration";
 import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
-import { IsOptionalIf } from "../../../validators/is-optional-if.validator";
 import { Role } from "./role.enum";
 
 export class UpdateUserDto {
@@ -69,10 +67,7 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
-  @IsOptionalIf(
-    !configuration.USERS.REQUIRE_BIRTH_DATE &&
-      !configuration.PARENTAL.AGE_RESTRICTION_ENABLED,
-  )
+  @IsOptional()
   @IsNotEmpty()
   @IsDateString()
   @IsDateStringBeforeNow()
