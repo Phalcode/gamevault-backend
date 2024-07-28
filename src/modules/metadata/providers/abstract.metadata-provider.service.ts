@@ -11,8 +11,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNotIn,
-  IsPositive,
-  Matches,
+  Matches
 } from "class-validator";
 import { stringSimilarity } from "string-similarity-js";
 
@@ -74,7 +73,6 @@ export abstract class MetadataProvider implements OnModuleInit {
   public name: string;
 
   @IsInt()
-  @IsPositive()
   @IsNotEmpty()
   @ApiProperty({
     type: Number,

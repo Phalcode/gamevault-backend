@@ -51,4 +51,11 @@ export class MinimalGameMetadataDto {
     example: "example.com/example.jpg",
   })
   cover_url?: string;
+
+  @ApiPropertyOptional({
+    description: "description of the game. markdown supported.",
+    example:
+      "An open world action-adventure video game developed by **Rockstar North** and published by **Rockstar Games**.",
+  })
+  description?: string;
 }

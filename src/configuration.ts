@@ -172,13 +172,6 @@ const configuration = {
       60,
     ),
   } as const,
-  TESTING: {
-    AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
-      process.env.TESTING_AUTHENTICATION_DISABLED,
-    ),
-    MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
-    IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
-  } as const,
   METADATA: {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
     IGDB: {
@@ -187,6 +180,14 @@ const configuration = {
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
     } as const,
+  } as const,
+  TESTING: {
+    AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
+      process.env.TESTING_AUTHENTICATION_DISABLED,
+    ),
+    MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
+    IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
+    MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS), 
   } as const,
 } as const;
 
