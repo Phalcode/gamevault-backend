@@ -174,15 +174,15 @@ export class GamesService {
     if (dto.user_metadata) {
       const updatedUserMetadata = game.user_metadata || new GameMetadata();
 
-      updatedUserMetadata.id = game.user_metadata.id || undefined;
+      updatedUserMetadata.id = updatedUserMetadata.id || undefined;
       updatedUserMetadata.provider_slug = "user";
       updatedUserMetadata.provider_data_id = game.id.toString();
       updatedUserMetadata.created_at =
-        game.user_metadata.created_at || undefined;
+        updatedUserMetadata.created_at || undefined;
       updatedUserMetadata.updated_at =
-        game.user_metadata.updated_at || undefined;
+        updatedUserMetadata.updated_at || undefined;
       updatedUserMetadata.entity_version =
-        game.user_metadata.entity_version || undefined;
+        updatedUserMetadata.entity_version || undefined;
       updatedUserMetadata.gamevault_games =
         game.metadata.gamevault_games || undefined;
 
@@ -194,7 +194,7 @@ export class GamesService {
         updatedUserMetadata.title = dto.user_metadata.title;
       }
 
-      if (game.user_metadata.release_date) {
+      if (dto.user_metadata.release_date) {
         updatedUserMetadata.release_date = new Date(
           dto.user_metadata.release_date,
         );
