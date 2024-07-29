@@ -8,7 +8,7 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { Stats, createReadStream, existsSync, readdirSync, statSync } from "fs";
+import { createReadStream, existsSync, readdirSync, Stats, statSync } from "fs";
 import { stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -59,6 +59,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
+      ignorePermissionErrors: true,
     })
       .on("add", (path: string, stats: Stats) =>
         this.index([{ path, size: BigInt(stats.size) }]),
