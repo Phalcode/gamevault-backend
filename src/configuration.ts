@@ -141,7 +141,7 @@ const configuration = {
     AGE_RESTRICTION_ENABLED: parseBooleanEnvVariable(
       process.env.PARENTAL_AGE_RESTRICTION_ENABLED,
     ),
-    AGE_OF_MAJORITY: parseNumber(process.env.USERS_AGE_OF_MAJORITY, 18),
+    AGE_OF_MAJORITY: parseNumber(process.env.PARENTAL_AGE_OF_MAJORITY, 18),
   } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES: parseNumber(
@@ -162,11 +162,11 @@ const configuration = {
   MEDIA: {
     MAX_SIZE_IN_KB:
       parseNumber(process.env.MEDIA_MAX_SIZE_IN_KB, 1000) * 10_000,
-    GC_DISABLED: parseBooleanEnvVariable(process.env.MEDIA_GC_DISABLED, false),
     SUPPORTED_FORMATS: parseList(
       process.env.MEDIA_SUPPORTED_FORMATS,
       globals.SUPPORTED_MEDIA_FORMATS,
     ),
+    GC_DISABLED: parseBooleanEnvVariable(process.env.MEDIA_GC_DISABLED, false),
     GC_INTERVAL_IN_MINUTES: parseNumber(
       process.env.MEDIA_GC_INTERVAL_IN_MINUTES,
       60,
@@ -176,7 +176,7 @@ const configuration = {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
     IGDB: {
       ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
-      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 50),
+      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 1),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
     } as const,
@@ -187,7 +187,7 @@ const configuration = {
     ),
     MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
-    MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS), 
+    MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
 } as const;
 
