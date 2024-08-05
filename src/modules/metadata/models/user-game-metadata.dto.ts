@@ -12,6 +12,7 @@ import {
   IsUrl,
   Max,
   Min,
+  NotContains,
   ValidateNested,
 } from "class-validator";
 
@@ -163,6 +164,28 @@ export class UserGameMetadataDto {
     example: "setup.exe",
   })
   installer_executable?: string;
+
+  @IsUrl()
+  @NotContains(",")
+  @IsOptional()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    description: "URLs of externally hosted trailer videos of the game",
+    isArray: true,
+  })
+  url_trailers?: string[];
+
+  @IsUrl()
+  @NotContains(",")
+  @IsOptional()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    description: "URLs of externally hosted gameplay videos of the game",
+    isArray: true,
+  })
+  url_gameplays?: string[];
 
   @IsArray()
   @IsOptional()

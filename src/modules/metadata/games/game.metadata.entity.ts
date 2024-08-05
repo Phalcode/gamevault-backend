@@ -151,7 +151,7 @@ export class GameMetadata extends DatabaseEntity {
   })
   background?: Media;
 
-  @ManyToMany(() => Media, {
+  @ManyToOne(() => Media, {
     eager: true,
   })
   @JoinTable()
@@ -161,6 +161,20 @@ export class GameMetadata extends DatabaseEntity {
     isArray: true,
   })
   screenshots?: Media[];
+
+  @Column({ type: "simple-array", nullable: true })
+  @ApiPropertyOptional({
+    description: "URLs of externally hosted trailer videos of the game",
+    isArray: true,
+  })
+  url_trailers?: string[];
+
+  @Column({ type: "simple-array", nullable: true })
+  @ApiPropertyOptional({
+    description: "URLs of externally hosted gameplay videos of the game",
+    isArray: true,
+  })
+  url_gameplays?: string[];
 
   @Column({ nullable: true })
   @ApiPropertyOptional({

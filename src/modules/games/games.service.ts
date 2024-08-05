@@ -252,6 +252,14 @@ export class GamesService {
           dto.user_metadata.installer_executable;
       }
 
+      if (dto.user_metadata.url_trailers) {
+        updatedUserMetadata.url_trailers = dto.user_metadata.url_trailers;
+      }
+
+      if (dto.user_metadata.url_gameplays) {
+        updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
+      }
+
       if (dto.user_metadata.tags) {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {

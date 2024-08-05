@@ -10,7 +10,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNotIn,
-  Matches
+  Matches,
 } from "class-validator";
 import { stringSimilarity } from "string-similarity-js";
 
@@ -181,7 +181,7 @@ export abstract class MetadataProvider implements OnModuleInit {
 
   public async register() {
     if (!this.enabled) {
-      this.logger.warn({
+      this.logger.debug({
         message: `Metadata provider "${this.slug}" is disabled.`,
       });
       return;

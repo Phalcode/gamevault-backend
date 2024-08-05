@@ -17,9 +17,9 @@ import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import { IgdbArtwork } from "./models/igdb-artwork.interface";
+import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 
 @Injectable()
@@ -151,6 +151,24 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           IgdbGameStatus.beta,
           IgdbGameStatus.early_access,
         ].includes(game.status),
+      )
+      .url_trailers(
+        game.videos
+          ?.filter((video) =>
+            ["trailer", "teaser", "intro"].some((word) =>
+              video.name.toLowerCase().includes(word),
+            ),
+          )
+          .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
+      )
+      .url_gameplays(
+        game.videos
+          ?.filter((video) =>
+            ["gameplay"].some((word) =>
+              video.name.toLowerCase().includes(word),
+            ),
+          )
+          .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
       )
       .developers(
         (game.involved_companies || [])

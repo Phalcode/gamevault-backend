@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Builder } from "builder-pattern";
-
 import { randomUUID } from "crypto";
+
 import configuration from "../../../../configuration";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
@@ -18,9 +18,7 @@ export class TestHighPriorityProviderService extends MetadataProvider {
   name = "Test High Priority";
   priority = 9999;
 
-  public override async search(
-    _query: string,
-  ): Promise<MinimalGameMetadataDto[]> {
+  public override async search(): Promise<MinimalGameMetadataDto[]> {
     const minimalGameMetadata = [];
     for (let i = 0; i < 10; i++) {
       minimalGameMetadata.push(this.fakeMinimalGame());
@@ -28,9 +26,7 @@ export class TestHighPriorityProviderService extends MetadataProvider {
     return minimalGameMetadata;
   }
 
-  public override async getByProviderDataIdOrFail(
-    _provider_data_id: string,
-  ): Promise<GameMetadata> {
+  public override async getByProviderDataIdOrFail(): Promise<GameMetadata> {
     return this.fakeGame();
   }
 
