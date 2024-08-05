@@ -136,6 +136,8 @@ export class GameMetadataService {
       .cover(game.cover)
       .background(game.background)
       .screenshots(game.screenshots)
+      .url_trailers(game.url_trailers)
+      .url_gameplays(game.url_gameplays)
       .url_website(game.url_website)
       .rating(game.rating)
       .early_access(game.early_access);
