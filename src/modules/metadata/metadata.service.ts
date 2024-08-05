@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
   Logger,
-  NotFoundException
+  NotFoundException,
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
@@ -52,7 +52,11 @@ export class MetadataService {
 
     // Validate the provider using class-validator
     validateOrReject(provider).catch((errors) => {
-      throw new Error(errors);
+      this.logger.error({
+        message: `Failed to register metadata provider.`,
+        provider: provider.getLoggableData(),
+        errors,
+      });
     });
 
     // Add the provider to the list of providers
