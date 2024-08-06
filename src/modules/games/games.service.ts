@@ -221,12 +221,8 @@ export class GamesService {
         updatedUserMetadata.background = dto.user_metadata.background;
       }
 
-      if (dto.user_metadata.screenshots) {
-        updatedUserMetadata.screenshots = dto.user_metadata.screenshots;
-      }
-
-      if (dto.user_metadata.url_website) {
-        updatedUserMetadata.url_website = dto.user_metadata.url_website;
+      if (dto.user_metadata.url_websites) {
+        updatedUserMetadata.url_websites = dto.user_metadata.url_websites;
       }
 
       if (dto.user_metadata.rating) {
@@ -250,6 +246,10 @@ export class GamesService {
       if (dto.user_metadata.installer_executable) {
         updatedUserMetadata.installer_executable =
           dto.user_metadata.installer_executable;
+      }
+
+      if (dto.user_metadata.url_screenshots) {
+        updatedUserMetadata.url_screenshots = dto.user_metadata.url_screenshots;
       }
 
       if (dto.user_metadata.url_trailers) {

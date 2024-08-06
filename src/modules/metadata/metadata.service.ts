@@ -307,14 +307,6 @@ export class MetadataService {
       );
     }
 
-    if (mergedMetadata.screenshots) {
-      mergedMetadata.screenshots = await Promise.all(
-        mergedMetadata.screenshots.map((screenshot) =>
-          this.mediaService.cloneMedia(screenshot),
-        ),
-      );
-    }
-
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);

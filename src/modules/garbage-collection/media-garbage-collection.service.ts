@@ -99,7 +99,7 @@ export class MediaGarbageCollectionService {
       },
       {
         repository: this.gameMetadataRepository,
-        properties: ["cover", "background", "screenshots"],
+        properties: ["cover", "background"],
       },
     ];
     /**

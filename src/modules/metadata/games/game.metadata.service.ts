@@ -135,10 +135,10 @@ export class GameMetadataService {
       .average_playtime(game.average_playtime)
       .cover(game.cover)
       .background(game.background)
-      .screenshots(game.screenshots)
+      .url_screenshots(game.url_screenshots)
       .url_trailers(game.url_trailers)
       .url_gameplays(game.url_gameplays)
-      .url_website(game.url_website)
+      .url_websites(game.url_websites)
       .rating(game.rating)
       .early_access(game.early_access);
 

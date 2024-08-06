@@ -151,16 +151,12 @@ export class GameMetadata extends DatabaseEntity {
   })
   background?: Media;
 
-  @ManyToOne(() => Media, {
-    eager: true,
-  })
-  @JoinTable()
+  @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
-    description: "screenshots of the game",
-    type: () => Media,
+    description: "URLs of externally hosted screenshots of the game",
     isArray: true,
   })
-  screenshots?: Media[];
+  url_screenshots?: string[];
 
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
@@ -176,12 +172,13 @@ export class GameMetadata extends DatabaseEntity {
   })
   url_gameplays?: string[];
 
-  @Column({ nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
-    description: "website url of the game",
-    example: "https://www.escapefromtarkov.com/",
+    description: "URLs of websites of the game",
+    example: "https://escapefromtarkov.com",
+    isArray: true,
   })
-  url_website?: string;
+  url_websites?: string[];
 
   @Column({ type: "float", nullable: true })
   @ApiPropertyOptional({

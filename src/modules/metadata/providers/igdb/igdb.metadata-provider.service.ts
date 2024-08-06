@@ -16,11 +16,9 @@ import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IgdbArtwork } from "./models/igdb-artwork.interface";
 import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbScreenshot } from "./models/igdb-screenshot.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -144,13 +142,18 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           : game.summary || game.storyline || null,
       )
       .rating(game.total_rating)
-      .url_website(game.websites?.[0]?.url)
+      .url_websites(game.websites.map((website) => website.url))
       .early_access(
         [
           IgdbGameStatus.alpha,
           IgdbGameStatus.beta,
           IgdbGameStatus.early_access,
         ].includes(game.status),
+      )
+      .url_screenshots(
+        [...(game.screenshots || []), ...(game.artworks || [])].map((image) =>
+          image.url.replace("//", "https://").replace("t_thumb", "t_1080p_2x"),
+        ),
       )
       .url_trailers(
         game.videos
@@ -217,19 +220,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
             .build();
         }),
       ])
-      .screenshots(
-        await Promise.all(
-          [...(game.screenshots || []), ...(game.artworks || [])].map(
-            async (image: IgdbScreenshot | IgdbArtwork) => {
-              return this.mediaService.downloadByUrl(
-                image.url
-                  .replace("//", "https://")
-                  .replace("t_thumb", "t_1080p_2x"),
-              );
-            },
-          ),
-        ),
-      )
       .cover(
         game.cover
           ? await this.mediaService.downloadByUrl(

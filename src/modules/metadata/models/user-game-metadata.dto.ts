@@ -98,27 +98,6 @@ export class UserGameMetadataDto {
   background?: Media;
 
   @ApiPropertyOptional({
-    description: "screenshots of the game",
-    type: () => Media,
-    isArray: true,
-  })
-  @Optional()
-  @IsNotEmpty()
-  @IsArray()
-  @MediaValidator("image")
-  @ValidateNested({ each: true })
-  screenshots?: Media[];
-
-  @ApiPropertyOptional({
-    description: "website url of the game",
-    example: "https://www.escapefromtarkov.com/",
-  })
-  @Optional()
-  @IsNotEmpty()
-  @IsUrl()
-  url_website?: string;
-
-  @ApiPropertyOptional({
     description: "rating of the provider",
     example: 90,
   })
@@ -171,6 +150,17 @@ export class UserGameMetadataDto {
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @ApiPropertyOptional({
+    description: "URLs of externally hosted screenshots of the game",
+    isArray: true,
+  })
+  url_screenshots?: string[];
+
+  @IsUrl()
+  @NotContains(",")
+  @IsOptional()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
     description: "URLs of externally hosted trailer videos of the game",
     isArray: true,
   })
@@ -186,6 +176,18 @@ export class UserGameMetadataDto {
     isArray: true,
   })
   url_gameplays?: string[];
+
+  @IsUrl()
+  @NotContains(",")
+  @IsOptional()
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    description: "URLs of websites of the game",
+    example: "https://www.escapefromtarkov.com/",
+    isArray: true,
+  })
+  url_websites?: string[];
 
   @IsArray()
   @IsOptional()
