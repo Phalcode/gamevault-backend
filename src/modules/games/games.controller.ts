@@ -9,6 +9,7 @@ import {
   Put,
   Request,
   StreamableFile,
+  UseInterceptors,
 } from "@nestjs/common";
 import {
   ApiBasicAuth,
@@ -32,6 +33,7 @@ import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
+import { DownloadSizeHeaderInterceptor } from "../../interceptors/download-size-header.interceptor";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
@@ -187,6 +189,7 @@ export class GamesController {
 
   /** Download a game by its ID. */
   @Get(":game_id/download")
+  @UseInterceptors(DownloadSizeHeaderInterceptor)
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
