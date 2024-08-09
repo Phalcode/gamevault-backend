@@ -314,7 +314,7 @@ export class GamesService {
       });
     }
 
-    if (dto.mapping_requests) {
+    if (dto.mapping_requests?.length) {
       for (const request of dto.mapping_requests) {
         this.logger.log({
           message: "Handling Mapping Request",
