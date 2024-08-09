@@ -260,44 +260,44 @@ export class GamesService {
         updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
       }
 
-      if (dto.user_metadata.tags) {
+      if (dto.user_metadata.tags?.length) {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
-            provider_data_id: tag.toLowerCase(),
+            provider_data_id: tag?.toLowerCase(),
             name: tag,
           } as TagMetadata;
         });
       }
 
-      if (dto.user_metadata.genres) {
+      if (dto.user_metadata.genres?.length) {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
-            provider_data_id: genre.toLowerCase(),
+            provider_data_id: genre?.toLowerCase(),
             name: genre,
           } as GenreMetadata;
         });
       }
 
-      if (dto.user_metadata.developers) {
+      if (dto.user_metadata.developers?.length) {
         updatedUserMetadata.developers = dto.user_metadata.developers.map(
           (developer) => {
             return {
               provider_slug: "user",
-              provider_data_id: developer.toLowerCase(),
+              provider_data_id: developer?.toLowerCase(),
               name: developer,
             } as DeveloperMetadata;
           },
         );
       }
 
-      if (dto.user_metadata.publishers) {
+      if (dto.user_metadata.publishers?.length) {
         updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
           (publisher) => {
             return {
               provider_slug: "user",
-              provider_data_id: publisher.toLowerCase(),
+              provider_data_id: publisher?.toLowerCase(),
               name: publisher,
             } as PublisherMetadata;
           },
