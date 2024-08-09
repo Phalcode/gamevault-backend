@@ -16,9 +16,13 @@ import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { IgdbGame } from "./models/igdb-game.interface";
+import {
+  GameVaultIgdbAgeRatingMap,
+  IgdbAgeRating,
+} from "./models/igdb-age-rating.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -28,8 +32,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   priority = configuration.METADATA.IGDB.PRIORITY;
   fieldsToInclude = [
     "*",
+    "age_ratings.*",
     "cover.*",
-    "external_games.*",
     "genres.*",
     "involved_companies.*",
     "involved_companies.company.*",
@@ -131,6 +135,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
   private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
     return Builder<GameMetadata>()
+      .age_rating(this.calculateAverageAgeRating(game.name, game.age_ratings))
       .provider_slug(this.slug)
       .provider_data_id(game.id?.toString())
       .provider_data_url(game.url)
@@ -260,5 +265,46 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           .replace("t_thumb", "t_cover_big_2x"),
       )
       .build();
+  }
+
+  private calculateAverageAgeRating(
+    gameTitle: string,
+    ageRatings: IgdbAgeRating[],
+  ): number {
+    const ages = ageRatings
+      .map((rating) =>
+        GameVaultIgdbAgeRatingMap.find(
+          (entry) => entry.igdbEnumValue === rating.rating,
+        ),
+      )
+      .filter((entry) => entry !== undefined) // Remove undefined entries
+      .map((entry) => {
+        this.logger.debug({
+          message: `Determined age rating.`,
+          gameTitle,
+          ageRating: entry,
+        });
+        return entry.minAge;
+      });
+
+    if (ages.length === 0) {
+      this.logger.debug({
+        message: `No age ratings found`,
+        gameTitle,
+      });
+      return undefined;
+    }
+
+    const averageAge = Math.round(
+      ages.reduce((sum, age) => sum + age, 0) / ages.length,
+    );
+    this.logger.debug({
+      message: `Calculated average age rating`,
+      gameTitle,
+      ages,
+      averageAge,
+    });
+
+    return averageAge;
   }
 }

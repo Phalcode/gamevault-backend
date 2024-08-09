@@ -1,3 +1,4 @@
+import { IgdbAgeRating } from "./igdb-age-rating.interface";
 import { IgdbArtwork } from "./igdb-artwork.interface";
 import { IgdbCover } from "./igdb-cover.interface";
 import { IgdbExternalGame } from "./igdb-external-game.interface";
@@ -13,7 +14,7 @@ import { IgdbWebsite } from "./igdb-website.interface";
 
 export interface IgdbGame {
   id: number;
-  age_ratings: number[];
+  age_ratings: IgdbAgeRating[];
   aggregated_rating: number;
   aggregated_rating_count: number;
   alternative_names: number[];
