@@ -13,7 +13,6 @@ import {
   Max,
   Min,
   NotContains,
-  ValidateNested,
 } from "class-validator";
 
 import { MediaValidator } from "../../../validators/media.validator";
@@ -144,44 +143,44 @@ export class UserGameMetadataDto {
   })
   installer_executable?: string;
 
-  @IsUrl()
-  @NotContains(",")
+  @IsArray()
   @IsOptional()
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @IsUrl(undefined, { each: true })
+  @NotContains(",", { each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted screenshots of the game",
     isArray: true,
   })
   url_screenshots?: string[];
 
-  @IsUrl()
-  @NotContains(",")
+  @IsArray()
   @IsOptional()
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @IsUrl(undefined, { each: true })
+  @NotContains(",", { each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted trailer videos of the game",
     isArray: true,
   })
   url_trailers?: string[];
 
-  @IsUrl()
-  @NotContains(",")
+  @IsArray()
   @IsOptional()
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @IsUrl(undefined, { each: true })
+  @NotContains(",", { each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted gameplay videos of the game",
     isArray: true,
   })
   url_gameplays?: string[];
 
-  @IsUrl()
-  @NotContains(",")
+  @IsArray()
   @IsOptional()
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
+  @IsUrl(undefined, { each: true })
+  @NotContains(",", { each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of websites of the game",
     example: "https://www.escapefromtarkov.com/",
@@ -191,7 +190,8 @@ export class UserGameMetadataDto {
 
   @IsArray()
   @IsOptional()
-  @IsNotEmpty()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "publishers of the game",
     isArray: true,
@@ -200,7 +200,8 @@ export class UserGameMetadataDto {
 
   @IsArray()
   @IsOptional()
-  @IsNotEmpty()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "developers of the game",
     isArray: true,
@@ -209,7 +210,8 @@ export class UserGameMetadataDto {
 
   @IsArray()
   @IsOptional()
-  @IsNotEmpty()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "tags of the game",
     isArray: true,
@@ -217,8 +219,9 @@ export class UserGameMetadataDto {
   tags?: string[];
 
   @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
   @IsOptional()
-  @IsNotEmpty()
   @ApiPropertyOptional({
     description: "genres of the game",
     isArray: true,
