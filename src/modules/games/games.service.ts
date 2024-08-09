@@ -171,6 +171,25 @@ export class GamesService {
       loadRelations: true,
     });
 
+    if (dto.mapping_requests?.length) {
+      for (const request of dto.mapping_requests) {
+        this.logger.log({
+          message: "Handling Mapping Request",
+          game: game.getLoggableData(),
+          details: request,
+        });
+        if (request.target_provider_data_id) {
+          await this.metadataService.map(
+            id,
+            request.provider_slug,
+            request.target_provider_data_id,
+          );
+        } else {
+          await this.metadataService.unmap(id, request.provider_slug);
+        }
+      }
+    }
+
     if (dto.user_metadata) {
       const updatedUserMetadata = game.user_metadata || new GameMetadata();
 
@@ -312,25 +331,6 @@ export class GamesService {
         game: game.getLoggableData(),
         details: updatedGame,
       });
-    }
-
-    if (dto.mapping_requests?.length) {
-      for (const request of dto.mapping_requests) {
-        this.logger.log({
-          message: "Handling Mapping Request",
-          game: game.getLoggableData(),
-          details: request,
-        });
-        if (request.target_provider_data_id) {
-          await this.metadataService.map(
-            id,
-            request.provider_slug,
-            request.target_provider_data_id,
-          );
-        } else {
-          await this.metadataService.unmap(id, request.provider_slug);
-        }
-      }
     }
 
     return this.metadataService.merge(game.id);

@@ -5,6 +5,17 @@ import { UserGameMetadataDto } from "../../metadata/models/user-game-metadata.dt
 import { MapGameDto } from "./map-game.dto";
 
 export class UpdateGameDto {
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    description:
+      "The mapping requests. If not provided, the game will not be remapped or unmapped.",
+    type: MapGameDto,
+    isArray: true,
+  })
+  mapping_requests?: MapGameDto[];
+
   @IsOptional()
   @ValidateNested()
   @ApiPropertyOptional({
@@ -13,15 +24,4 @@ export class UpdateGameDto {
     type: () => UserGameMetadataDto,
   })
   user_metadata?: UserGameMetadataDto;
-
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @ApiPropertyOptional({
-    description:
-      "The mapping requests. If not provided, the game will not be remapped.",
-    type: MapGameDto,
-    isArray: true,
-  })
-  mapping_requests?: MapGameDto[];
 }
