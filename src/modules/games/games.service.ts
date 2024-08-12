@@ -171,7 +171,7 @@ export class GamesService {
       loadRelations: true,
     });
 
-    if (dto.mapping_requests?.length) {
+    if (dto.mapping_requests != null) {
       for (const request of dto.mapping_requests) {
         this.logger.log({
           message: "Handling Mapping Request",
@@ -205,81 +205,81 @@ export class GamesService {
       updatedUserMetadata.gamevault_games =
         game.metadata.gamevault_games || undefined;
 
-      if (dto.user_metadata.age_rating) {
+      if (dto.user_metadata.age_rating != null) {
         updatedUserMetadata.age_rating = dto.user_metadata.age_rating;
       }
 
-      if (dto.user_metadata.title) {
+      if (dto.user_metadata.title != null) {
         updatedUserMetadata.title = dto.user_metadata.title;
       }
 
-      if (dto.user_metadata.release_date) {
+      if (dto.user_metadata.release_date != null) {
         updatedUserMetadata.release_date = new Date(
           dto.user_metadata.release_date,
         );
       }
 
-      if (dto.user_metadata.description) {
+      if (dto.user_metadata.description != null) {
         updatedUserMetadata.description = dto.user_metadata.description;
       }
 
-      if (dto.user_metadata.notes) {
+      if (dto.user_metadata.notes != null) {
         updatedUserMetadata.notes = dto.user_metadata.notes;
       }
 
-      if (dto.user_metadata.average_playtime) {
+      if (dto.user_metadata.average_playtime != null) {
         updatedUserMetadata.average_playtime =
           dto.user_metadata.average_playtime;
       }
 
-      if (dto.user_metadata.cover) {
+      if (dto.user_metadata.cover != null) {
         updatedUserMetadata.cover = dto.user_metadata.cover;
       }
 
-      if (dto.user_metadata.background) {
+      if (dto.user_metadata.background != null) {
         updatedUserMetadata.background = dto.user_metadata.background;
       }
 
-      if (dto.user_metadata.url_websites) {
+      if (dto.user_metadata.url_websites != null) {
         updatedUserMetadata.url_websites = dto.user_metadata.url_websites;
       }
 
-      if (dto.user_metadata.rating) {
+      if (dto.user_metadata.rating != null) {
         updatedUserMetadata.rating = dto.user_metadata.rating;
       }
 
-      if (dto.user_metadata.early_access) {
+      if (dto.user_metadata.early_access != null) {
         updatedUserMetadata.early_access = dto.user_metadata.early_access;
       }
 
-      if (dto.user_metadata.launch_parameters) {
+      if (dto.user_metadata.launch_parameters != null) {
         updatedUserMetadata.launch_parameters =
           dto.user_metadata.launch_parameters;
       }
 
-      if (dto.user_metadata.launch_executable) {
+      if (dto.user_metadata.launch_executable != null) {
         updatedUserMetadata.launch_executable =
           dto.user_metadata.launch_executable;
       }
 
-      if (dto.user_metadata.installer_executable) {
+      if (dto.user_metadata.installer_executable != null) {
         updatedUserMetadata.installer_executable =
           dto.user_metadata.installer_executable;
       }
 
-      if (dto.user_metadata.url_screenshots) {
+      if (dto.user_metadata.url_screenshots != null) {
         updatedUserMetadata.url_screenshots = dto.user_metadata.url_screenshots;
       }
 
-      if (dto.user_metadata.url_trailers) {
+      if (dto.user_metadata.url_trailers != null) {
         updatedUserMetadata.url_trailers = dto.user_metadata.url_trailers;
       }
 
-      if (dto.user_metadata.url_gameplays) {
+      if (dto.user_metadata.url_gameplays != null) {
         updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
       }
 
-      if (dto.user_metadata.tags?.length) {
+      if (dto.user_metadata.tags != null) {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
@@ -289,7 +289,7 @@ export class GamesService {
         });
       }
 
-      if (dto.user_metadata.genres?.length) {
+      if (dto.user_metadata.genres != null) {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
@@ -299,7 +299,7 @@ export class GamesService {
         });
       }
 
-      if (dto.user_metadata.developers?.length) {
+      if (dto.user_metadata.developers != null) {
         updatedUserMetadata.developers = dto.user_metadata.developers.map(
           (developer) => {
             return {
@@ -311,7 +311,7 @@ export class GamesService {
         );
       }
 
-      if (dto.user_metadata.publishers?.length) {
+      if (dto.user_metadata.publishers != null) {
         updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
           (publisher) => {
             return {

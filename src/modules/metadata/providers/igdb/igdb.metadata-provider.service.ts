@@ -277,7 +277,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           (entry) => entry.igdbEnumValue === rating.rating,
         ),
       )
-      .filter((entry) => entry !== undefined) // Remove undefined entries
+      .filter((entry) => entry != null)
       .map((entry) => {
         this.logger.debug({
           message: `Determined age rating.`,

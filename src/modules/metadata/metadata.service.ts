@@ -223,7 +223,7 @@ export class MetadataService {
     for (const metadata of providerMetadata) {
       // Delete all null fields of dto.user_metadata so only delta is overwritten
       Object.keys(metadata).forEach((key) => {
-        if (metadata[key] === null) {
+        if (metadata[key] == null) {
           delete metadata[key];
         }
         if (Array.isArray(metadata[key]) && metadata[key].length === 0) {
@@ -241,7 +241,7 @@ export class MetadataService {
     if (userMetadata) {
       // Delete all null fields of dto.user_metadata so only delta is overwritten
       Object.keys(userMetadata)?.forEach((key) => {
-        if (userMetadata[key] === null) {
+        if (userMetadata[key] == null) {
           delete userMetadata[key];
         }
         if (

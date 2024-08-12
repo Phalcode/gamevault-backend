@@ -123,27 +123,43 @@ export class GameMetadataService {
       relationLoadStrategy: "query",
     });
 
-    const combinedGameMetadata = Builder<GameMetadata>()
-      .id(existingGame?.id)
-      .provider_slug(game.provider_slug)
-      .provider_data_id(game.provider_data_id)
-      .provider_probability(game.provider_probability)
-      .age_rating(game.age_rating)
-      .title(game.title)
-      .release_date(game.release_date)
-      .description(game.description)
-      .average_playtime(game.average_playtime)
-      .cover(game.cover)
-      .background(game.background)
-      .url_screenshots(game.url_screenshots)
-      .url_trailers(game.url_trailers)
-      .url_gameplays(game.url_gameplays)
-      .url_websites(game.url_websites)
-      .rating(game.rating)
-      .early_access(game.early_access);
+    const upsertedGame: Required<GameMetadata> = {
+      id: existingGame?.id,
+      created_at: undefined,
+      updated_at: undefined,
+      deleted_at: undefined,
+      entity_version: undefined,
+      provider_slug: game.provider_slug,
+      provider_data_id: game.provider_data_id,
+      provider_probability: game.provider_probability,
+      provider_data_url: game.provider_data_url,
+      age_rating: game.age_rating,
+      title: game.title,
+      release_date: game.release_date,
+      description: game.description,
+      notes: game.notes,
+      average_playtime: game.average_playtime,
+      cover: game.cover,
+      background: game.background,
+      url_screenshots: game.url_screenshots,
+      url_trailers: game.url_trailers,
+      url_gameplays: game.url_gameplays,
+      url_websites: game.url_websites,
+      rating: game.rating,
+      early_access: game.early_access,
+      launch_parameters: game.launch_parameters,
+      launch_executable: game.launch_executable,
+      installer_executable: game.installer_executable,
+      gamevault_games: undefined,
+      publishers: undefined,
+      developers: undefined,
+      tags: undefined,
+      genres: undefined,
+      getLoggableData: game.getLoggableData,
+    };
 
     const upsertedDevelopers = [];
-    if (game.developers?.length) {
+    if (game.developers != null) {
       for (const developer of game.developers) {
         if (
           upsertedDevelopers.some(
@@ -160,10 +176,10 @@ export class GameMetadataService {
         );
       }
     }
-    combinedGameMetadata.developers(upsertedDevelopers);
+    upsertedGame.developers = upsertedDevelopers;
 
     const upsertedPublishers = [];
-    if (game.publishers?.length) {
+    if (game.publishers != null) {
       for (const publisher of game.publishers) {
         if (
           upsertedPublishers.some(
@@ -181,10 +197,10 @@ export class GameMetadataService {
         );
       }
     }
-    combinedGameMetadata.publishers(upsertedPublishers);
+    upsertedGame.publishers = upsertedPublishers;
 
     const upsertedTags = [];
-    if (game.tags?.length) {
+    if (game.tags != null) {
       for (const tag of game.tags) {
         if (
           upsertedTags.some(
@@ -198,10 +214,10 @@ export class GameMetadataService {
         upsertedTags.push(await this.tagMetadataService.save(tag));
       }
     }
-    combinedGameMetadata.tags(upsertedTags);
+    upsertedGame.tags = upsertedTags;
 
     const upsertedGenres = [];
-    if (game.genres?.length) {
+    if (game.genres != null) {
       for (const genre of game.genres) {
         if (
           upsertedGenres.some(
@@ -215,9 +231,7 @@ export class GameMetadataService {
         upsertedGenres.push(await this.genreMetadataService.save(genre));
       }
     }
-    combinedGameMetadata.genres(upsertedGenres);
-
-    const upsertedGame = combinedGameMetadata.build();
+    upsertedGame.genres = upsertedGenres;
 
     logger.debug({
       message: `Saving GameMetadata`,
