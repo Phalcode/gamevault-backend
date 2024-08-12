@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Builder } from "builder-pattern";
 import { In, Repository } from "typeorm";
 
 import { FindOptions } from "../../../globals";

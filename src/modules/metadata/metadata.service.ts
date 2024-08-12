@@ -221,7 +221,7 @@ export class MetadataService {
 
     // Create New Effective Metadata by applying the priorotized metadata one by one
     for (const metadata of providerMetadata) {
-      // Delete all null fields of dto.user_metadata so only delta is overwritten
+      // Delete all empty fields of provider so only delta is overwritten
       Object.keys(metadata).forEach((key) => {
         if (metadata[key] == null) {
           delete metadata[key];
@@ -242,12 +242,6 @@ export class MetadataService {
       // Delete all null fields of dto.user_metadata so only delta is overwritten
       Object.keys(userMetadata)?.forEach((key) => {
         if (userMetadata[key] == null) {
-          delete userMetadata[key];
-        }
-        if (
-          Array.isArray(userMetadata[key]) &&
-          userMetadata[key].length === 0
-        ) {
           delete userMetadata[key];
         }
       });
