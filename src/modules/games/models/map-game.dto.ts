@@ -26,5 +26,13 @@ export class MapGameDto {
       "id of the target game from the provider. If not provided, the metadata for the specified provider will be unmapped.",
     example: "1234",
   })
-  target_provider_data_id?: string;
+  provider_data_id?: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    description:
+      "opional priority override of the provider for the specified game. If not provided, the default priority of the provider will be used.",
+    example: 1234,
+  })
+  provider_priority?: number;
 }

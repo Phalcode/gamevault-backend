@@ -78,6 +78,13 @@ export class GameMetadata extends DatabaseEntity {
   })
   provider_data_url?: string;
 
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "optional priority override for this metadata",
+    example: 1,
+  })
+  provider_priority?: number;
+
   //#endregion
 
   @Column({ type: "int", nullable: true })

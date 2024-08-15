@@ -178,11 +178,12 @@ export class GamesService {
           game: game.getLoggableData(),
           details: request,
         });
-        if (request.target_provider_data_id) {
+        if (request.provider_data_id) {
           await this.metadataService.map(
             id,
             request.provider_slug,
-            request.target_provider_data_id,
+            request.provider_data_id,
+            request.provider_priority,
           );
         } else {
           await this.metadataService.unmap(id, request.provider_slug);

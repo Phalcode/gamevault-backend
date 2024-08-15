@@ -144,6 +144,7 @@ export class MetadataService {
             game.id,
             provider.slug,
             existingProviderMetadata.provider_data_id,
+            undefined,
           );
         } else {
           await this.findMetadata(game, provider);
@@ -173,7 +174,12 @@ export class MetadataService {
       game: game.getLoggableData(),
     });
     const bestMatchingGame = await provider.getBestMatch(game);
-    await this.map(game.id, provider.slug, bestMatchingGame.provider_data_id);
+    await this.map(
+      game.id,
+      provider.slug,
+      bestMatchingGame.provider_data_id,
+      undefined,
+    );
   }
 
   /**
@@ -210,8 +216,10 @@ export class MetadataService {
     // Sort the provider metadata by priority in ascending order
     const providerMetadata = game.provider_metadata.toSorted((a, b) => {
       return (
-        this.getProviderBySlugOrFail(a.provider_slug).priority -
-        this.getProviderBySlugOrFail(b.provider_slug).priority
+        (a.provider_priority ??
+          this.getProviderBySlugOrFail(a.provider_slug).priority) -
+        (b.provider_priority ??
+          this.getProviderBySlugOrFail(b.provider_slug).priority)
       );
     });
 
@@ -292,7 +300,7 @@ export class MetadataService {
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = publisher.provider_data_id || publisher.name;
     });
-    
+
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);
@@ -358,9 +366,19 @@ export class MetadataService {
    * Maps the metadata of a game provider to a game, overwriting the existing one if necessary.
    * Metadata usually needs to be merged after to be effective.
    */
-  async map(gameId: number, providerSlug: string, providerGameId: string) {
+  async map(
+    gameId: number,
+    providerSlug: string,
+    providerGameId: string,
+    providerPriority: number,
+  ) {
     const provider = this.getProviderBySlugOrFail(providerSlug);
     const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
+
+    if (providerPriority != null) {
+      metadata.provider_priority = providerPriority;
+    }
+
     const game = await this.unmap(gameId, providerSlug);
     game.provider_metadata.push(await this.gameMetadataService.save(metadata));
     const mappedGame = await this.gamesService.save(game);
