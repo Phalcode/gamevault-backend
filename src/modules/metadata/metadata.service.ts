@@ -292,21 +292,7 @@ export class MetadataService {
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = publisher.provider_data_id || publisher.name;
     });
-
-    // CLONE MEDIA
-
-    if (mergedMetadata.cover) {
-      mergedMetadata.cover = await this.mediaService.cloneMedia(
-        mergedMetadata.cover,
-      );
-    }
-
-    if (mergedMetadata.background) {
-      mergedMetadata.background = await this.mediaService.cloneMedia(
-        mergedMetadata.background,
-      );
-    }
-
+    
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);
