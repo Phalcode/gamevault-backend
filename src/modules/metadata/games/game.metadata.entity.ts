@@ -80,13 +80,13 @@ export class GameMetadata extends DatabaseEntity {
 
   //#endregion
 
-  @Column({ type: "int", default: 0, nullable: true })
+  @Column({ type: "int", nullable: true })
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
     default: 0,
   })
-  age_rating?: number = 0;
+  age_rating?: number;
 
   @Column({ nullable: true })
   @Index()

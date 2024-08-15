@@ -150,15 +150,15 @@ export class GameMetadataService {
       launch_executable: game.launch_executable,
       installer_executable: game.installer_executable,
       gamevault_games: undefined,
-      publishers: undefined,
-      developers: undefined,
-      tags: undefined,
-      genres: undefined,
+      publishers: null,
+      developers: null,
+      tags: null,
+      genres: null,
       getLoggableData: game.getLoggableData,
     };
 
-    const upsertedDevelopers = [];
     if (game.developers != null) {
+      const upsertedDevelopers = [];
       for (const developer of game.developers) {
         if (
           upsertedDevelopers.some(
@@ -174,11 +174,11 @@ export class GameMetadataService {
           await this.developerMetadataService.save(developer),
         );
       }
+      upsertedGame.developers = upsertedDevelopers;
     }
-    upsertedGame.developers = upsertedDevelopers;
 
-    const upsertedPublishers = [];
     if (game.publishers != null) {
+      const upsertedPublishers = [];
       for (const publisher of game.publishers) {
         if (
           upsertedPublishers.some(
@@ -195,11 +195,11 @@ export class GameMetadataService {
           await this.publisherMetadataService.save(publisher),
         );
       }
+      upsertedGame.publishers = upsertedPublishers;
     }
-    upsertedGame.publishers = upsertedPublishers;
 
-    const upsertedTags = [];
     if (game.tags != null) {
+      const upsertedTags = [];
       for (const tag of game.tags) {
         if (
           upsertedTags.some(
@@ -212,11 +212,11 @@ export class GameMetadataService {
         }
         upsertedTags.push(await this.tagMetadataService.save(tag));
       }
+      upsertedGame.tags = upsertedTags;
     }
-    upsertedGame.tags = upsertedTags;
 
-    const upsertedGenres = [];
     if (game.genres != null) {
+      const upsertedGenres = [];
       for (const genre of game.genres) {
         if (
           upsertedGenres.some(
@@ -229,8 +229,8 @@ export class GameMetadataService {
         }
         upsertedGenres.push(await this.genreMetadataService.save(genre));
       }
+      upsertedGame.genres = upsertedGenres;
     }
-    upsertedGame.genres = upsertedGenres;
 
     logger.debug({
       message: `Saving GameMetadata`,

@@ -239,9 +239,15 @@ export class MetadataService {
 
     // Apply the users changes on top
     if (userMetadata) {
-      // Delete all null fields of dto.user_metadata so only delta is overwritten
+      // Delete all empty fields of dto.user_metadata so only delta is overwritten
       Object.keys(userMetadata)?.forEach((key) => {
         if (userMetadata[key] == null) {
+          delete userMetadata[key];
+        }
+        if (
+          Array.isArray(userMetadata[key]) &&
+          userMetadata[key].length === 0
+        ) {
           delete userMetadata[key];
         }
       });
@@ -266,25 +272,25 @@ export class MetadataService {
     mergedMetadata.genres?.forEach((genre) => {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
-      genre.provider_data_id = genre.name;
+      genre.provider_data_id = genre.provider_data_id || genre.name;
     });
 
     mergedMetadata.tags?.forEach((tag) => {
       tag.id = undefined;
       tag.provider_slug = "gamevault";
-      tag.provider_data_id = tag.name;
+      tag.provider_data_id = tag.provider_data_id || tag.name;
     });
 
     mergedMetadata.developers?.forEach((developer) => {
       developer.id = undefined;
       developer.provider_slug = "gamevault";
-      developer.provider_data_id = developer.name;
+      developer.provider_data_id = developer.provider_data_id || developer.name;
     });
 
     mergedMetadata.publishers?.forEach((publisher) => {
       publisher.id = undefined;
       publisher.provider_slug = "gamevault";
-      publisher.provider_data_id = publisher.name;
+      publisher.provider_data_id = publisher.provider_data_id || publisher.name;
     });
 
     // CLONE MEDIA

@@ -7,7 +7,6 @@ import { DeveloperMetadata } from "./developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "./developers/developer.metadata.service";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
-import { GenresController } from "./genres/genre.metadata.controller";
 import { GenreMetadata } from "./genres/genre.metadata.entity";
 import { GenreMetadataService } from "./genres/genre.metadata.service";
 import { MetadataController } from "./metadata.controller";
@@ -17,9 +16,12 @@ import { TestHighPriorityProviderService } from "./providers/testing/test-high-p
 import { TestLowPriorityProviderService } from "./providers/testing/test-low-priority.metadata-provider.service";
 import { PublisherMetadata } from "./publishers/publisher.metadata.entity";
 import { PublisherMetadataService } from "./publishers/publisher.metadata.service";
-import { TagsController } from "./tags/tag.metadata.controller";
+import { TagsController } from "./tags/tags.metadata.controller";
 import { TagMetadata } from "./tags/tag.metadata.entity";
 import { TagMetadataService } from "./tags/tag.metadata.service";
+import { GenreController as GenresController } from "./genres/genres.metadata.controller";
+import { PublisherController as PublishersController } from "./publishers/publishers.metadata.controller";
+import { DeveloperController as DevelopersController } from "./developers/developers.metadata.controller";
 
 @Module({
   imports: [
@@ -52,6 +54,12 @@ import { TagMetadataService } from "./tags/tag.metadata.service";
     PublisherMetadataService,
     TagMetadataService,
   ],
-  controllers: [MetadataController, TagsController, GenresController],
+  controllers: [
+    MetadataController,
+    TagsController,
+    GenresController,
+    PublishersController,
+    DevelopersController,
+  ],
 })
 export class MetadataModule {}

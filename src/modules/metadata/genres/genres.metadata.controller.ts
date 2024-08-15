@@ -2,11 +2,11 @@ import { Controller, Get } from "@nestjs/common";
 import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
-  Paginate,
-  paginate,
-  Paginated,
-  PaginateQuery,
-  PaginationType,
+    Paginate,
+    PaginateQuery,
+    Paginated,
+    PaginationType,
+    paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -19,20 +19,21 @@ import { GenreMetadata } from "./genre.metadata.entity";
 @Controller("genres")
 @ApiTags("genres")
 @ApiBasicAuth()
-export class GenresController {
+export class GenreController {
   constructor(
     @InjectRepository(GenreMetadata)
     private readonly genreRepository: Repository<GenreMetadata>,
   ) {}
 
   /**
-   * Get a paginated list of genres, sorted by the number of games that are in the genre
+   * Get a paginated list of genres, sorted by the number of games released by
+   * each genre (by default).
    */
   @Get()
   @ApiOperation({
     summary: "get a list of genres",
     description:
-      "by default the list is sorted by the amount of games that are in the genre",
+      "by default the list is sorted by the amount of games that are in each genre.",
     operationId: "getGenres",
   })
   @MinimumRole(Role.GUEST)
@@ -41,30 +42,37 @@ export class GenresController {
   async getGenres(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GenreMetadata>> {
-    const paginatedResults = await paginate(query, this.genreRepository, {
+    const queryBuilder = this.genreRepository
+      .createQueryBuilder("genre")
+      .leftJoinAndSelect("genre.games", "games")
+      .where("genre.provider_slug = :provider_slug", {
+        provider_slug: "gamevault",
+      })
+      .groupBy("genre.id")
+      .having("COUNT(games.id) > 0");
+
+    // If no specific sort is provided, sort by the number of games in descending order
+    if (query.sortBy?.length === 0) {
+      queryBuilder
+        .addSelect("COUNT(games.id)", "games_count")
+        .orderBy("games_count", "DESC");
+    }
+
+    const paginatedResults = await paginate(query, queryBuilder, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
       maxLimit: -1,
       nullSort: "last",
-      relations: ["games"],
-      where: {
-        provider_slug: "gamevault",
-      },
       loadEagerRelations: false,
-      sortableColumns: ["id", "name", "created_at"],
-      searchableColumns: ["name", "games.title"],
+      sortableColumns: ["id", "name", "created_at", "provider_slug"],
+      searchableColumns: ["name"],
       filterableColumns: {
         id: true,
         created_at: true,
         name: true,
-        "games.title": true,
       },
       withDeleted: false,
     });
-
-    if (!query.sortBy || query.sortBy.length === 0) {
-      paginatedResults.data.sort((a, b) => b.games.length - a.games.length);
-    }
 
     return paginatedResults;
   }

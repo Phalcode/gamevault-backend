@@ -3,10 +3,10 @@ import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -42,30 +42,37 @@ export class TagsController {
   async getTags(
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<TagMetadata>> {
-    const paginatedResults = await paginate(query, this.tagRepository, {
+    const queryBuilder = this.tagRepository
+      .createQueryBuilder("tag")
+      .leftJoinAndSelect("tag.games", "games")
+      .where("tag.provider_slug = :provider_slug", {
+        provider_slug: "gamevault",
+      })
+      .groupBy("tag.id")
+      .having("COUNT(games.id) > 0");
+
+    // If no specific sort is provided, sort by the number of games in descending order
+    if (query.sortBy?.length === 0) {
+      queryBuilder
+        .addSelect("COUNT(games.id)", "games_count")
+        .orderBy("games_count", "DESC");
+    }
+
+    const paginatedResults = await paginate(query, queryBuilder, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
       maxLimit: -1,
       nullSort: "last",
-      relations: ["games"],
-      where: {
-        provider_slug: "gamevault",
-      },
       loadEagerRelations: false,
-      sortableColumns: ["id", "name", "created_at"],
-      searchableColumns: ["name", "games.title"],
+      sortableColumns: ["id", "name", "created_at", "provider_slug"],
+      searchableColumns: ["name"],
       filterableColumns: {
         id: true,
         created_at: true,
         name: true,
-        "games.title": true,
       },
       withDeleted: false,
     });
-
-    if (!query.sortBy || query.sortBy.length === 0) {
-      paginatedResults.data.sort((a, b) => b.games.length - a.games.length);
-    }
 
     return paginatedResults;
   }
