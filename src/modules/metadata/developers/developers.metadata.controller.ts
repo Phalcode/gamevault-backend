@@ -3,10 +3,10 @@ import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -49,6 +49,7 @@ export class DeveloperController {
         provider_slug: "gamevault",
       })
       .groupBy("developer.id")
+      .addGroupBy("games.id")
       .having("COUNT(games.id) > 0");
 
     // If no specific sort is provided, sort by the number of games in descending order
