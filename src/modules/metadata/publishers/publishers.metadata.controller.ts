@@ -3,10 +3,10 @@ import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
