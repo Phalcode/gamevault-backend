@@ -202,7 +202,6 @@ export class MetadataService {
   async merge(gameId: number): Promise<GamevaultGame> {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
-      loadRelations: true,
     });
 
     if (!game.provider_metadata.length && !game.user_metadata) {
@@ -320,7 +319,6 @@ export class MetadataService {
     // Find the game by gameId.
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
-      loadRelations: true,
     });
 
     // Clear the effective metadata.

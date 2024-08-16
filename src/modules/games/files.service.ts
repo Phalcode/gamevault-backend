@@ -19,6 +19,7 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
+import { Response } from "express";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { MetadataService } from "../metadata/metadata.service";
@@ -181,7 +182,6 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<GamevaultGame> {
     const gameToUpdate = await this.gamesService.findOneByGameIdOrFail(id, {
       loadDeletedEntities: false,
-      loadRelations: true,
     });
 
     const updatedGame = {
@@ -588,6 +588,7 @@ export class FilesService implements OnApplicationBootstrap {
    * @throws NotFoundException if the game file could not be found.
    */
   public async download(
+    response: Response,
     gameId: number,
     speedlimitHeader?: number,
     rangeHeader?: string,
@@ -601,7 +602,6 @@ export class FilesService implements OnApplicationBootstrap {
     // Find the game by ID.
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
-      loadRelations: false,
       filterByAge,
     });
     let fileDownloadPath = game.file_path;
@@ -654,6 +654,8 @@ export class FilesService implements OnApplicationBootstrap {
     file = file.pipe(
       new ByteRangeStream(BigInt(range.start), BigInt(range.end)),
     );
+
+    response.setHeader("X-Download-Size", range.size);
 
     if (speedlimitHeader) {
       file = file.pipe(new Throttle({ rate: speedlimitHeader }));

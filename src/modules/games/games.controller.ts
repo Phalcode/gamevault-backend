@@ -8,8 +8,8 @@ import {
   Param,
   Put,
   Request,
+  Res,
   StreamableFile,
-  UseInterceptors,
 } from "@nestjs/common";
 import {
   ApiBasicAuth,
@@ -22,18 +22,18 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
+import { Response } from "express";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
-import { DownloadSizeHeaderInterceptor } from "../../interceptors/download-size-header.interceptor";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
@@ -179,7 +179,6 @@ export class GamesController {
     @Param() params: GameIdDto,
   ): Promise<GamevaultGame> {
     return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
-      loadRelations: true,
       loadDeletedEntities: true,
       filterByAge: await this.usersService.findUserAgeByUsername(
         request.gamevaultuser.username,
@@ -189,7 +188,6 @@ export class GamesController {
 
   /** Download a game by its ID. */
   @Get(":game_id/download")
-  @UseInterceptors(DownloadSizeHeaderInterceptor)
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
@@ -227,10 +225,12 @@ export class GamesController {
   async getGameDownload(
     @Request() request: { gamevaultuser: GamevaultUser },
     @Param() params: GameIdDto,
+    @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
     return this.filesService.download(
+      response,
       Number(params.game_id),
       Number(speedlimit),
       range,

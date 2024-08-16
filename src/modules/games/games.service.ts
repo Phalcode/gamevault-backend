@@ -55,14 +55,8 @@ export class GamesService {
       const findParameters: FindOneOptions<GamevaultGame> = {
         where: { id },
         relationLoadStrategy: "query",
+        relations: this.defaultRelations,
       };
-
-      if (options.loadRelations) {
-        if (options.loadRelations === true) {
-          findParameters.relations = this.defaultRelations;
-        } else if (Array.isArray(options.loadRelations))
-          findParameters.relations = options.loadRelations;
-      }
 
       if (options.loadDeletedEntities) {
         findParameters.withDeleted = true;
@@ -144,7 +138,6 @@ export class GamesService {
 
     return this.findOneByGameIdOrFail(game.id, {
       loadDeletedEntities: false,
-      loadRelations: options.loadRelations,
       filterByAge: options.filterByAge,
     });
   }
@@ -162,7 +155,6 @@ export class GamesService {
     // Finds the game by ID
     const game = await this.findOneByGameIdOrFail(id, {
       loadDeletedEntities: true,
-      loadRelations: true,
     });
 
     if (dto.mapping_requests != null) {
@@ -345,7 +337,6 @@ export class GamesService {
     await this.gamesRepository.recover({ id });
     return this.findOneByGameIdOrFail(id, {
       loadDeletedEntities: false,
-      loadRelations: true,
     });
   }
 

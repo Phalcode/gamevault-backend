@@ -108,12 +108,12 @@ export interface FindOptions {
    * Indicates whether deleted (sub)entities should be loaded. Subentities may
    * be deleted by app-logic afterwards.
    */
-  loadDeletedEntities: boolean;
+  loadDeletedEntities?: boolean;
 
   /**
    * Indicates whether related entities should be loaded.
    */
-  loadRelations: boolean | string[];
+  loadRelations?: boolean | string[];
 
   /**
    * Filter for age restriction purposes.

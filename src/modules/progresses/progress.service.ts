@@ -155,7 +155,6 @@ export class ProgressService {
       });
       newProgress.game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: true,
-        loadRelations: false,
       });
       newProgress.minutes_played = 0;
       newProgress.state = State.UNPLAYED;
