@@ -25,15 +25,6 @@ export class MinimalGameMetadataDto {
   })
   provider_data_id?: string;
 
-  @ApiPropertyOptional({
-    description:
-      "gamevault's calculated probability of the metadata being the correct one.",
-    example: 0.5,
-    minimum: 0,
-    maximum: 1,
-  })
-  provider_probability?: number;
-
   @ApiProperty({
     description: "title of the game",
     example: "Grand Theft Auto V",

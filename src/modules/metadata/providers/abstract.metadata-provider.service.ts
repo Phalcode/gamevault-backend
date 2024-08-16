@@ -123,6 +123,9 @@ export abstract class MetadataProvider implements OnModuleInit {
       throw new NotFoundException("No matching games found.");
     }
 
+    // Map of game index (key) to probability (value).
+    const probabilityMap = new Map<number, number>();
+
     // Calculate the probability of a game result being a match for the input game.
     for (const gameResult of gameResults) {
       // Remove non-alphanumeric characters and convert both titles to lowercase.
@@ -143,9 +146,9 @@ export abstract class MetadataProvider implements OnModuleInit {
       }
 
       // Calculate the similarity between the two titles and assign it to the game result.
-      gameResult.provider_probability = stringSimilarity(
-        cleanedGameTitle,
-        cleanedGameResultTitle,
+      probabilityMap.set(
+        gameResults.indexOf(gameResult),
+        stringSimilarity(cleanedGameTitle, cleanedGameResultTitle),
       );
 
       // If both games have a release date, subtract the absolute difference in years divided by 10 from the match probability.
@@ -156,19 +159,29 @@ export abstract class MetadataProvider implements OnModuleInit {
         const gameResultReleaseYear = new Date(
           gameResult.release_date,
         ).getUTCFullYear();
-        gameResult.provider_probability -=
-          Math.abs(gameResultReleaseYear - gameReleaseYear) / 10;
+
+        probabilityMap.set(
+          gameResults.indexOf(gameResult),
+          probabilityMap.get(gameResults.indexOf(gameResult)) -
+            Math.abs(gameResultReleaseYear - gameReleaseYear) / 10,
+        );
       }
     }
 
     // Sort the game results by the match probability in descending order.
-    gameResults.sort((a, b) => b.provider_probability - a.provider_probability);
+    gameResults.sort(
+      (a, b) =>
+        probabilityMap.get(gameResults.indexOf(b)) -
+        probabilityMap.get(gameResults.indexOf(a)),
+    );
 
     this.logger.debug({
       message: "Found matching games.",
       game: game.getLoggableData(),
       gameResults: gameResults.map((gameResult) => ({
-        provider_probability: gameResult.provider_probability,
+        probability: probabilityMap.get(
+          gameResults.indexOf(gameResult),
+        ),
         title: gameResult.title,
         release_date: gameResult.release_date,
         provider_data_id: gameResult.provider_data_id,

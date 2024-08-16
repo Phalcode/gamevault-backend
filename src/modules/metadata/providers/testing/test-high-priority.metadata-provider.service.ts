@@ -69,7 +69,6 @@ export class TestHighPriorityProviderService extends MetadataProvider {
 
   private fakeMinimalGame(): MinimalGameMetadataDto {
     return Builder<MinimalGameMetadataDto>()
-      .provider_probability(Math.random())
       .provider_slug(this.slug)
       .provider_data_id(randomUUID())
       .release_date(new Date())

@@ -130,7 +130,6 @@ export class GameMetadataService {
       entity_version: undefined,
       provider_slug: game.provider_slug,
       provider_data_id: game.provider_data_id,
-      provider_probability: game.provider_probability,
       provider_data_url: game.provider_data_url,
       provider_priority: game.provider_priority,
       age_rating: game.age_rating,

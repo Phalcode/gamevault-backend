@@ -60,16 +60,6 @@ export class GameMetadata extends DatabaseEntity {
   })
   provider_data_id?: string;
 
-  @Column({ type: "float", nullable: true })
-  @ApiPropertyOptional({
-    description:
-      "gamevault's calculated probability of the metadata being the correct one.",
-    example: 0.5,
-    minimum: 0,
-    maximum: 1,
-  })
-  provider_probability?: number;
-
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description: "url of the game from the provider",

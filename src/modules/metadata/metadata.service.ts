@@ -273,7 +273,7 @@ export class MetadataService {
         id: game.metadata?.id || undefined,
         provider_slug: "gamevault",
         provider_data_id: gameId.toString(),
-        provider_probability: null,
+        provider_priority: null,
       },
     } as GameMetadata;
 
