@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsNotIn, IsOptional, Matches } from "class-validator";
+import {
+  IsInt,
+  IsNotEmpty,
+  IsNotIn,
+  IsOptional,
+  Matches,
+} from "class-validator";
 
 import globals from "../../../globals";
 
@@ -28,11 +34,12 @@ export class MapGameDto {
   })
   provider_data_id?: string;
 
-  @IsOptional()
-  @ApiPropertyOptional({
+  @IsInt()
+  @IsNotEmpty()
+  @ApiProperty({
+    type: Number,
     description:
-      "opional priority override of the provider for the specified game. If not provided, the default priority of the provider will be used.",
-    example: 1234,
+      "used to override the priority of usage for this provider. Lower priority providers are tried first, while higher priority providers fill in gaps.",
   })
   provider_priority?: number;
 }
