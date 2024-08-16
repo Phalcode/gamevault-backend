@@ -29,6 +29,14 @@ import { UpdateGameDto } from "./models/update-game.dto";
 @Injectable()
 export class GamesService {
   private readonly logger = new Logger(this.constructor.name);
+  private readonly defaultRelations = [
+    "progresses",
+    "progresses.user",
+    "bookmarked_users",
+    "metadata",
+    "provider_metadata",
+    "user_metadata",
+  ];
 
   constructor(
     @InjectRepository(GamevaultGame)
@@ -51,14 +59,7 @@ export class GamesService {
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          findParameters.relations = [
-            "progresses",
-            "progresses.user",
-            "bookmarked_users",
-            "metadata",
-            "provider_metadata",
-            "user_metadata",
-          ];
+          findParameters.relations = this.defaultRelations;
         } else if (Array.isArray(options.loadRelations))
           findParameters.relations = options.loadRelations;
       }
@@ -94,14 +95,7 @@ export class GamesService {
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        findParameters.relations = [
-          "progresses",
-          "progresses.user",
-          "bookmarked_users",
-          "metadata",
-          "provider_metadata",
-          "user_metadata",
-        ];
+        findParameters.relations = this.defaultRelations;
       } else if (Array.isArray(options.loadRelations))
         findParameters.relations = options.loadRelations;
     }
@@ -280,7 +274,7 @@ export class GamesService {
         updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
       }
 
-      if (dto.user_metadata.tags != null) {
+      if (dto.user_metadata.tags != null && dto.user_metadata.tags.length > 0) {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
@@ -290,7 +284,10 @@ export class GamesService {
         });
       }
 
-      if (dto.user_metadata.genres != null) {
+      if (
+        dto.user_metadata.genres != null &&
+        dto.user_metadata.tags.length > 0
+      ) {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
@@ -300,7 +297,10 @@ export class GamesService {
         });
       }
 
-      if (dto.user_metadata.developers != null) {
+      if (
+        dto.user_metadata.developers != null &&
+        dto.user_metadata.tags.length > 0
+      ) {
         updatedUserMetadata.developers = dto.user_metadata.developers.map(
           (developer) => {
             return {
@@ -312,7 +312,10 @@ export class GamesService {
         );
       }
 
-      if (dto.user_metadata.publishers != null) {
+      if (
+        dto.user_metadata.publishers != null &&
+        dto.user_metadata.tags.length > 0
+      ) {
         updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
           (publisher) => {
             return {
@@ -390,7 +393,7 @@ export class GamesService {
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if (+foundGame.release_date != +game.release_date) {
+    if (foundGame.release_date != game.release_date) {
       differences.push(
         `release_date: ${foundGame.release_date} -> ${game.release_date}`,
       );

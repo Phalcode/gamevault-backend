@@ -8,7 +8,7 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -119,14 +119,8 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.EXISTS: {
             this.logger.debug({
               message: `Identical file is already indexed in the database. Skipping it.`,
-              game: {
-                id: gameToIndex.id,
-                path: gameToIndex.file_path,
-              },
-              existingGame: {
-                id: existingGameTuple[1].id,
-                path: existingGameTuple[1].file_path,
-              },
+              game: gameToIndex.getLoggableData(),
+              existingGame: existingGameTuple[1].getLoggableData(),
             });
             continue;
           }
@@ -134,10 +128,7 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug({
               message: `Indexing new file.`,
-              game: {
-                id: gameToIndex.id,
-                path: gameToIndex.file_path,
-              },
+              game: gameToIndex.getLoggableData(),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
             await this.gamesService.save(gameToIndex);
@@ -147,37 +138,25 @@ export class FilesService implements OnApplicationBootstrap {
           case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
             this.logger.debug({
               message: `A Soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
-              game: {
-                id: gameToIndex.id,
-                path: gameToIndex.file_path,
-              },
-              existingGame: {
-                id: existingGameTuple[1].id,
-                path: existingGameTuple[1].file_path,
-              },
+              game: gameToIndex.getLoggableData(),
+              existingGame: existingGameTuple[1].getLoggableData(),
             });
             const restoredGame = await this.gamesService.restore(
               existingGameTuple[1].id,
             );
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            await this.update(restoredGame, gameToIndex);
+            await this.updateFileInfo(restoredGame.id, gameToIndex);
             continue;
           }
 
           case GameExistence.EXISTS_BUT_ALTERED: {
             this.logger.debug({
               message: `An altered duplicate of the file has been found in the database. Updating the information.`,
-              game: {
-                id: gameToIndex.id,
-                path: gameToIndex.file_path,
-              },
-              existingGame: {
-                id: existingGameTuple[1].id,
-                path: existingGameTuple[1].file_path,
-              },
+              game: gameToIndex.getLoggableData(),
+              existingGame: existingGameTuple[1].getLoggableData(),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            await this.update(existingGameTuple[1], gameToIndex);
+            await this.updateFileInfo(existingGameTuple[1].id, gameToIndex);
             continue;
           }
         }
@@ -195,11 +174,16 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
-  /** Updates the game information with the provided updates. */
-  private async update(
-    gameToUpdate: GamevaultGame,
+  /** Updates the game information with the information provided by the file. */
+  private async updateFileInfo(
+    id: number,
     updatesToApply: GamevaultGame,
-  ): Promise<void> {
+  ): Promise<GamevaultGame> {
+    const gameToUpdate = await this.gamesService.findOneByGameIdOrFail(id, {
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+
     const updatedGame = {
       ...gameToUpdate,
       file_path: updatesToApply.file_path,
@@ -211,14 +195,11 @@ export class FilesService implements OnApplicationBootstrap {
       type: updatesToApply.type,
     } as GamevaultGame;
 
-    await this.gamesService.save(updatedGame);
     this.logger.log({
       message: `Updated new Game Information.`,
-      game: {
-        id: updatedGame.id,
-        file_path: updatedGame.file_path,
-      },
+      game: updatedGame.getLoggableData(),
     });
+    return await this.gamesService.save(updatedGame);
   }
 
   private isValidFilePath(filename: string) {
