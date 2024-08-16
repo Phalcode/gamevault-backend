@@ -20,16 +20,16 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Response } from "express";
 import {
   Paginate,
-  PaginateQuery,
-  Paginated,
-  PaginationType,
   paginate,
+  Paginated,
+  PaginateQuery,
+  PaginationType,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
-import { Response } from "express";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";

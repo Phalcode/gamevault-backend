@@ -8,7 +8,8 @@ import {
 import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
-import { Stats, createReadStream, existsSync, statSync } from "fs";
+import { Response } from "express";
+import { createReadStream, existsSync, Stats, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -19,7 +20,6 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
-import { Response } from "express";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { MetadataService } from "../metadata/metadata.service";

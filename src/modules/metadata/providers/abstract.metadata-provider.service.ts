@@ -179,9 +179,7 @@ export abstract class MetadataProvider implements OnModuleInit {
       message: "Found matching games.",
       game: game.getLoggableData(),
       gameResults: gameResults.map((gameResult) => ({
-        probability: probabilityMap.get(
-          gameResults.indexOf(gameResult),
-        ),
+        probability: probabilityMap.get(gameResults.indexOf(gameResult)),
         title: gameResult.title,
         release_date: gameResult.release_date,
         provider_data_id: gameResult.provider_data_id,
