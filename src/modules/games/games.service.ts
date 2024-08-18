@@ -7,7 +7,6 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { isEmpty } from "lodash";
 import {
   FindManyOptions,
   FindOneOptions,
@@ -15,6 +14,7 @@ import {
   Repository,
 } from "typeorm";
 
+import { isEmpty } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";

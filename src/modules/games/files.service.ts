@@ -9,7 +9,7 @@ import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import { randomBytes } from "crypto";
 import { Response } from "express";
-import { createReadStream, existsSync, Stats, statSync } from "fs";
+import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
 import { debounce } from "lodash";
 import mime from "mime";
@@ -184,22 +184,19 @@ export class FilesService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
     });
 
-    const updatedGame = {
-      ...gameToUpdate,
-      file_path: updatesToApply.file_path,
-      title: updatesToApply.title,
-      release_date: updatesToApply.release_date,
-      size: updatesToApply.size,
-      version: updatesToApply.version,
-      early_access: updatesToApply.early_access,
-      type: updatesToApply.type,
-    } as GamevaultGame;
+    gameToUpdate.file_path = updatesToApply.file_path;
+    gameToUpdate.title = updatesToApply.title;
+    gameToUpdate.release_date = updatesToApply.release_date;
+    gameToUpdate.size = updatesToApply.size;
+    gameToUpdate.version = updatesToApply.version;
+    gameToUpdate.early_access = updatesToApply.early_access;
+    gameToUpdate.type = updatesToApply.type;
 
     this.logger.log({
-      message: `Updated new Game Information.`,
-      game: updatedGame.getLoggableData(),
+      message: `Updated new Game Information based on file changes.`,
+      game: gameToUpdate.getLoggableData(),
     });
-    return await this.gamesService.save(updatedGame);
+    return await this.gamesService.save(gameToUpdate);
   }
 
   private isValidFilePath(filename: string) {
