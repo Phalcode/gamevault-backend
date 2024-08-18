@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { isEmpty } from "lodash";
 import {
   FindManyOptions,
   FindOneOptions,
@@ -55,6 +56,7 @@ export class GamesService {
       const findParameters: FindOneOptions<GamevaultGame> = {
         where: { id },
         relationLoadStrategy: "query",
+        loadEagerRelations: true,
         relations: this.defaultRelations,
       };
 
@@ -63,9 +65,6 @@ export class GamesService {
       }
 
       if (options.filterByAge) {
-        if (!options.loadRelations) {
-          findParameters.relations = ["metadata"];
-        }
         findParameters.where = {
           id,
           metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
@@ -266,7 +265,7 @@ export class GamesService {
         updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
       }
 
-      if (dto.user_metadata.tags != null && dto.user_metadata.tags.length > 0) {
+      if (!isEmpty(dto.user_metadata.tags)) {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
@@ -276,10 +275,7 @@ export class GamesService {
         });
       }
 
-      if (
-        dto.user_metadata.genres != null &&
-        dto.user_metadata.tags.length > 0
-      ) {
+      if (!isEmpty(dto.user_metadata.genres)) {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
@@ -289,10 +285,7 @@ export class GamesService {
         });
       }
 
-      if (
-        dto.user_metadata.developers != null &&
-        dto.user_metadata.tags.length > 0
-      ) {
+      if (!isEmpty(dto.user_metadata.developers)) {
         updatedUserMetadata.developers = dto.user_metadata.developers.map(
           (developer) => {
             return {
@@ -304,10 +297,7 @@ export class GamesService {
         );
       }
 
-      if (
-        dto.user_metadata.publishers != null &&
-        dto.user_metadata.tags.length > 0
-      ) {
+      if (!isEmpty(dto.user_metadata.publishers)) {
         updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
           (publisher) => {
             return {

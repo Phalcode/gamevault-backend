@@ -4,9 +4,13 @@ import { In, Repository } from "typeorm";
 
 import { FindOptions } from "../../../globals";
 import logger from "../../../logging";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
+import { GenreMetadata } from "../genres/genre.metadata.entity";
 import { GenreMetadataService } from "../genres/genre.metadata.service";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
+import { TagMetadata } from "../tags/tag.metadata.entity";
 import { TagMetadataService } from "../tags/tag.metadata.service";
 import { GameMetadata } from "./game.metadata.entity";
 
@@ -157,8 +161,8 @@ export class GameMetadataService {
       getLoggableData: game.getLoggableData,
     };
 
-    if (game.developers != null) {
-      const upsertedDevelopers = [];
+    if (game.developers != null && game.developers.length > 0) {
+      const upsertedDevelopers: DeveloperMetadata[] = [];
       for (const developer of game.developers) {
         if (
           upsertedDevelopers.some(
@@ -177,8 +181,8 @@ export class GameMetadataService {
       upsertedGame.developers = upsertedDevelopers;
     }
 
-    if (game.publishers != null) {
-      const upsertedPublishers = [];
+    if (game.publishers != null && game.publishers.length > 0) {
+      const upsertedPublishers: PublisherMetadata[] = [];
       for (const publisher of game.publishers) {
         if (
           upsertedPublishers.some(
@@ -198,8 +202,8 @@ export class GameMetadataService {
       upsertedGame.publishers = upsertedPublishers;
     }
 
-    if (game.tags != null) {
-      const upsertedTags = [];
+    if (game.tags != null && game.tags.length > 0) {
+      const upsertedTags: TagMetadata[] = [];
       for (const tag of game.tags) {
         if (
           upsertedTags.some(
@@ -215,8 +219,8 @@ export class GameMetadataService {
       upsertedGame.tags = upsertedTags;
     }
 
-    if (game.genres != null) {
-      const upsertedGenres = [];
+    if (game.genres != null && game.genres.length > 0) {
+      const upsertedGenres: GenreMetadata[] = [];
       for (const genre of game.genres) {
         if (
           upsertedGenres.some(

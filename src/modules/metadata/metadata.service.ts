@@ -222,7 +222,9 @@ export class MetadataService {
       );
     });
 
-    const userMetadata = game.user_metadata;
+    const userMetadata = JSON.parse(
+      JSON.stringify(game.user_metadata),
+    ) as GameMetadata;
 
     let mergedMetadata = new GameMetadata();
 

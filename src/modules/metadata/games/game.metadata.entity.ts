@@ -215,7 +215,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,
-    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "publishers of the game",
@@ -227,7 +226,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
     eager: true,
-    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "developers of the game",
@@ -239,7 +237,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => TagMetadata, (tag) => tag.games, {
     eager: true,
-    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "tags of the game",
@@ -251,7 +248,6 @@ export class GameMetadata extends DatabaseEntity {
   @JoinTable()
   @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
     eager: true,
-    onDelete: "CASCADE",
   })
   @ApiPropertyOptional({
     description: "genres of the game",
