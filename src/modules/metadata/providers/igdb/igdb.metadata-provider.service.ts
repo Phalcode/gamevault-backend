@@ -20,9 +20,9 @@ import {
   GameVaultIgdbAgeRatingMap,
   IgdbAgeRating,
 } from "./models/igdb-age-rating.interface";
-import { IgdbGame } from "./models/igdb-game.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
+import { IgdbGame } from "./models/igdb-game.interface";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {

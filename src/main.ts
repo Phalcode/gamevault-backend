@@ -19,7 +19,7 @@ import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { GameVaultPluginModule } from "./globals";
-import { default as logger, default as winston, stream } from "./logging";
+import { default as logger, stream, default as winston } from "./logging";
 import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";

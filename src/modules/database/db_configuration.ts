@@ -2,9 +2,9 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { readFileSync } from "fs";
 import pg from "pg";
 import { TlsOptions } from "tls";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 import configuration from "../../configuration";
 
