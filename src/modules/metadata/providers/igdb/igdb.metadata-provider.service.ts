@@ -27,10 +27,10 @@ import { IgdbGame } from "./models/igdb-game.interface";
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
   enabled = configuration.METADATA.IGDB.ENABLED;
-  slug = "igdb";
-  name = "IGDB";
-  priority = configuration.METADATA.IGDB.PRIORITY;
-  fieldsToInclude = [
+  readonly slug = "igdb";
+  readonly name = "IGDB";
+  readonly priority = configuration.METADATA.IGDB.PRIORITY;
+  readonly fieldsToInclude = [
     "*",
     "age_ratings.*",
     "cover.*",
@@ -44,7 +44,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     "themes.*",
     "websites.*",
   ];
-  categoriesToInclude = [
+  readonly categoriesToInclude = [
     IgdbGameCategory.main_game,
     IgdbGameCategory.standalone_expansion,
     IgdbGameCategory.episode,

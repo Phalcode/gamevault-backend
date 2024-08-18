@@ -1,0 +1,125 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+} from "typeorm";
+import { Role } from "../../users/models/role.enum";
+import { DatabaseEntity } from "./database.v12-entity";
+import { Game } from "./game.v12-entity";
+import { Image } from "./image.v12-entity";
+import { Progress } from "./progress.v12-entity";
+@Entity()
+export class GamevaultUser extends DatabaseEntity {
+  @Index()
+  @Column({ unique: true })
+  @ApiProperty({ example: "JohnDoe", description: "username of the user" })
+  username: string;
+
+  @Column({ select: false })
+  @ApiProperty({
+    description: "encrypted password of the user",
+    example: "Hunter2",
+  })
+  password: string;
+
+  @Column({ select: false, unique: true, length: 64 })
+  @ApiProperty({
+    description:
+      "the user's socket secret is used for authentication with the server over the websocket protocol.",
+    example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
+  })
+  socket_secret: string;
+
+  @OneToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    type: () => Image,
+    description: "the user's profile picture",
+  })
+  profile_picture?: Image;
+
+  @OneToOne(() => Image, {
+    nullable: true,
+    eager: true,
+    onDelete: "CASCADE",
+    orphanedRowAction: "soft-delete",
+  })
+  @JoinColumn()
+  @ApiPropertyOptional({
+    type: () => Image,
+    description: "the user's profile art (background-picture)",
+  })
+  background_image?: Image;
+
+  @Column({ unique: true, nullable: true })
+  @ApiProperty({
+    example: "john.doe@mail.com",
+    description: "email address of the user",
+  })
+  email: string;
+
+  @Column({ nullable: true })
+  @ApiProperty({ example: "John", description: "first name of the user" })
+  first_name: string;
+
+  @Column({ nullable: true })
+  @ApiProperty({ example: "Doe", description: "last name of the user" })
+  last_name: string;
+
+  @Column({ default: false })
+  @ApiProperty({
+    description: "indicates if the user is activated",
+    example: false,
+  })
+  activated: boolean;
+
+  @OneToMany(() => Progress, (progress) => progress.user)
+  @ApiPropertyOptional({
+    description: "progresses of the user",
+    type: () => Progress,
+    isArray: true,
+  })
+  progresses?: Progress[];
+
+  @Column({
+    type: "simple-enum",
+    enum: Role,
+    default: Role.USER,
+  })
+  @ApiProperty({
+    type: "enum",
+    enum: Role,
+    example: Role.EDITOR,
+    description:
+      "The role determines the set of permissions and access rights for a user in the system.",
+  })
+  role: Role;
+
+  @OneToMany(() => Image, (image) => image.uploader)
+  @ApiPropertyOptional({
+    description: "images uploaded by this user",
+    type: () => Image,
+    isArray: true,
+  })
+  uploaded_images?: Image[];
+
+  @ManyToMany(() => Game, (game) => game.bookmarked_users)
+  @JoinTable({ name: "bookmark" })
+  @ApiProperty({
+    description: "games bookmarked by this user",
+    type: () => Game,
+    isArray: true,
+  })
+  bookmarked_games?: Game[];
+}

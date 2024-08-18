@@ -13,10 +13,10 @@ import { MetadataProvider } from "../abstract.metadata-provider.service";
 
 @Injectable()
 export class TestHighPriorityProviderService extends MetadataProvider {
-  enabled = configuration.TESTING.MOCK_PROVIDERS;
-  slug = "test-high-priority";
-  name = "Test High Priority";
-  priority = 9999;
+  readonly enabled = configuration.TESTING.MOCK_PROVIDERS;
+  readonly slug = "test-high-priority";
+  readonly name = "Test High Priority";
+  readonly priority = 9999;
 
   public override async search(): Promise<MinimalGameMetadataDto[]> {
     const minimalGameMetadata = [];

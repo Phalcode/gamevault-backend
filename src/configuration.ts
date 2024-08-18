@@ -176,10 +176,17 @@ const configuration = {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
     IGDB: {
       ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
-      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 1),
+      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 10),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
     } as const,
+    RAWG_LEGACY: {
+      ENABLED: parseBooleanEnvVariable(
+        process.env.METADATA_RAWG_LEGACY_ENABLED,
+        true,
+      ),
+      PRIORITY: parseNumber(process.env.METADATA_RAWG_LEGACY_PRIORITY, -10),
+    },
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
