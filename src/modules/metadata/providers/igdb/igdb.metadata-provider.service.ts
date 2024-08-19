@@ -287,9 +287,9 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         return entry.minAge;
       });
 
-    if (ages.length === 0) {
+    if (ages?.length === 0) {
       this.logger.debug({
-        message: `No age ratings found`,
+        message: `No age ratings found.`,
         gameTitle,
       });
       return undefined;
@@ -299,7 +299,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       ages.reduce((sum, age) => sum + age, 0) / ages.length,
     );
     this.logger.debug({
-      message: `Calculated average age rating`,
+      message: `Calculated average age rating.`,
       gameTitle,
       ages,
       averageAge,
