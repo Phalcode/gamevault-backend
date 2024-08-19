@@ -9,6 +9,7 @@ import {
   whereIn,
 } from "ts-igdb-client";
 
+import { isEmpty } from "lodash";
 import configuration from "../../../../configuration";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
@@ -271,14 +272,22 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     gameTitle: string,
     ageRatings: IgdbAgeRating[],
   ): number {
+    if (isEmpty(ageRatings)) {
+      this.logger.debug({
+        message: `No age ratings found.`,
+        gameTitle,
+      });
+      return undefined;
+    }
+
     const ages = ageRatings
-      ?.map((rating) =>
+      .map((rating) =>
         GameVaultIgdbAgeRatingMap.find(
           (entry) => entry.igdbEnumValue === rating.rating,
         ),
       )
       .filter((entry) => entry != null)
-      ?.map((entry) => {
+      .map((entry) => {
         this.logger.debug({
           message: `Determined age rating.`,
           gameTitle,
