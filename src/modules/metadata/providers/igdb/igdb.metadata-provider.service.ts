@@ -272,13 +272,13 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     ageRatings: IgdbAgeRating[],
   ): number {
     const ages = ageRatings
-      .map((rating) =>
+      ?.map((rating) =>
         GameVaultIgdbAgeRatingMap.find(
           (entry) => entry.igdbEnumValue === rating.rating,
         ),
       )
       .filter((entry) => entry != null)
-      .map((entry) => {
+      ?.map((entry) => {
         this.logger.debug({
           message: `Determined age rating.`,
           gameTitle,
