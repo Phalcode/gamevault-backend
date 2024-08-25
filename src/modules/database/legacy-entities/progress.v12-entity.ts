@@ -1,27 +1,27 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
 import { State } from "../../progresses/models/state.enum";
-import { DatabaseEntity } from "./database.v12-entity";
-import { Game } from "./game.v12-entity";
-import { GamevaultUser } from "./gamevault-user.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { GameV12 } from "./game.v12-entity";
+import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
 
-@Entity()
-export class Progress extends DatabaseEntity {
+@Entity("v12_progress")
+export class ProgressV12 extends DatabaseEntityV12 {
   @Index()
-  @ManyToOne(() => GamevaultUser, (user) => user.progresses)
+  @ManyToOne(() => GamevaultUserV12, (user) => user.progresses)
   @ApiPropertyOptional({
     description: "user the progress belongs to",
-    type: () => GamevaultUser,
+    type: () => GamevaultUserV12,
   })
-  user?: GamevaultUser;
+  user?: GamevaultUserV12;
 
   @Index()
-  @ManyToOne(() => Game, (game) => game.progresses)
+  @ManyToOne(() => GameV12, (game) => game.progresses)
   @ApiPropertyOptional({
     description: "game the progress belongs to",
-    type: () => Game,
+    type: () => GameV12,
   })
-  game?: Game;
+  game?: GameV12;
 
   @Column({ default: 0 })
   @ApiProperty({

@@ -10,12 +10,12 @@ import {
   OneToOne,
 } from "typeorm";
 import { Role } from "../../users/models/role.enum";
-import { DatabaseEntity } from "./database.v12-entity";
-import { Game } from "./game.v12-entity";
-import { Image } from "./image.v12-entity";
-import { Progress } from "./progress.v12-entity";
-@Entity()
-export class GamevaultUser extends DatabaseEntity {
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { GameV12 } from "./game.v12-entity";
+import { ImageV12 } from "./image.v12-entity";
+import { ProgressV12 } from "./progress.v12-entity";
+@Entity("v12_gamevault_user")
+export class GamevaultUserV12 extends DatabaseEntityV12 {
   @Index()
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
@@ -36,7 +36,7 @@ export class GamevaultUser extends DatabaseEntity {
   })
   socket_secret: string;
 
-  @OneToOne(() => Image, {
+  @OneToOne(() => ImageV12, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -44,12 +44,12 @@ export class GamevaultUser extends DatabaseEntity {
   })
   @JoinColumn()
   @ApiPropertyOptional({
-    type: () => Image,
+    type: () => ImageV12,
     description: "the user's profile picture",
   })
-  profile_picture?: Image;
+  profile_picture?: ImageV12;
 
-  @OneToOne(() => Image, {
+  @OneToOne(() => ImageV12, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -57,10 +57,10 @@ export class GamevaultUser extends DatabaseEntity {
   })
   @JoinColumn()
   @ApiPropertyOptional({
-    type: () => Image,
+    type: () => ImageV12,
     description: "the user's profile art (background-picture)",
   })
-  background_image?: Image;
+  background_image?: ImageV12;
 
   @Column({ unique: true, nullable: true })
   @ApiProperty({
@@ -84,13 +84,13 @@ export class GamevaultUser extends DatabaseEntity {
   })
   activated: boolean;
 
-  @OneToMany(() => Progress, (progress) => progress.user)
+  @OneToMany(() => ProgressV12, (progress) => progress.user)
   @ApiPropertyOptional({
     description: "progresses of the user",
-    type: () => Progress,
+    type: () => ProgressV12,
     isArray: true,
   })
-  progresses?: Progress[];
+  progresses?: ProgressV12[];
 
   @Column({
     type: "simple-enum",
@@ -106,20 +106,20 @@ export class GamevaultUser extends DatabaseEntity {
   })
   role: Role;
 
-  @OneToMany(() => Image, (image) => image.uploader)
+  @OneToMany(() => ImageV12, (image) => image.uploader)
   @ApiPropertyOptional({
     description: "images uploaded by this user",
-    type: () => Image,
+    type: () => ImageV12,
     isArray: true,
   })
-  uploaded_images?: Image[];
+  uploaded_images?: ImageV12[];
 
-  @ManyToMany(() => Game, (game) => game.bookmarked_users)
+  @ManyToMany(() => GameV12, (game) => game.bookmarked_users)
   @JoinTable({ name: "bookmark" })
   @ApiProperty({
     description: "games bookmarked by this user",
-    type: () => Game,
+    type: () => GameV12,
     isArray: true,
   })
-  bookmarked_games?: Game[];
+  bookmarked_games?: GameV12[];
 }

@@ -10,18 +10,18 @@ import {
   OneToOne,
 } from "typeorm";
 import { GameType } from "../../games/models/game-type.enum";
-import { DatabaseEntity } from "./database.v12-entity";
-import { Developer } from "./developer.v12-entity";
-import { GamevaultUser } from "./gamevault-user.v12-entity";
-import { Genre } from "./genre.v12-entity";
-import { Image } from "./image.v12-entity";
-import { Progress } from "./progress.v12-entity";
-import { Publisher } from "./publisher.v12-entity";
-import { Store } from "./store.v12-entity";
-import { Tag } from "./tag.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { DeveloperV12 } from "./developer.v12-entity";
+import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
+import { GenreV12 } from "./genre.v12-entity";
+import { ImageV12 } from "./image.v12-entity";
+import { ProgressV12 } from "./progress.v12-entity";
+import { PublisherV12 } from "./publisher.v12-entity";
+import { StoreV12 } from "./store.v12-entity";
+import { TagV12 } from "./tag.v12-entity";
 
-@Entity()
-export class Game extends DatabaseEntity {
+@Entity("v12_game")
+export class GameV12 extends DatabaseEntityV12 {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description: "unique rawg-api-identifier of the game",
@@ -110,7 +110,7 @@ export class Game extends DatabaseEntity {
   })
   description?: string;
 
-  @OneToOne(() => Image, {
+  @OneToOne(() => ImageV12, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -119,11 +119,11 @@ export class Game extends DatabaseEntity {
   @JoinColumn()
   @ApiPropertyOptional({
     description: "box image of the game",
-    type: () => Image,
+    type: () => ImageV12,
   })
-  box_image?: Image;
+  box_image?: ImageV12;
 
-  @OneToOne(() => Image, {
+  @OneToOne(() => ImageV12, {
     nullable: true,
     eager: true,
     onDelete: "CASCADE",
@@ -132,9 +132,9 @@ export class Game extends DatabaseEntity {
   @JoinColumn()
   @ApiPropertyOptional({
     description: "background image of the game",
-    type: () => Image,
+    type: () => ImageV12,
   })
-  background_image?: Image;
+  background_image?: ImageV12;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -179,64 +179,64 @@ export class Game extends DatabaseEntity {
   })
   type: GameType;
 
-  @OneToMany(() => Progress, (progress) => progress.game)
+  @OneToMany(() => ProgressV12, (progress) => progress.game)
   @ApiPropertyOptional({
     description: "progresses associated to the game",
-    type: () => Progress,
+    type: () => ProgressV12,
     isArray: true,
   })
-  progresses?: Progress[];
+  progresses?: ProgressV12[];
 
   @JoinTable()
-  @ManyToMany(() => Publisher, (publisher) => publisher.games)
+  @ManyToMany(() => PublisherV12, (publisher) => publisher.games)
   @ApiPropertyOptional({
     description: "publishers of the game",
-    type: () => Publisher,
+    type: () => PublisherV12,
     isArray: true,
   })
-  publishers?: Publisher[];
+  publishers?: PublisherV12[];
 
   @JoinTable()
-  @ManyToMany(() => Developer, (developer) => developer.games)
+  @ManyToMany(() => DeveloperV12, (developer) => developer.games)
   @ApiPropertyOptional({
     description: "developers of the game",
-    type: () => Developer,
+    type: () => DeveloperV12,
     isArray: true,
   })
-  developers?: Developer[];
+  developers?: DeveloperV12[];
 
   @JoinTable()
-  @ManyToMany(() => Store, (store) => store.games)
+  @ManyToMany(() => StoreV12, (store) => store.games)
   @ApiPropertyOptional({
     description: "stores of the game",
-    type: () => Store,
+    type: () => StoreV12,
     isArray: true,
   })
-  stores?: Store[];
+  stores?: StoreV12[];
 
   @JoinTable()
-  @ManyToMany(() => Tag, (tag) => tag.games)
+  @ManyToMany(() => TagV12, (tag) => tag.games)
   @ApiPropertyOptional({
     description: "tags of the game",
-    type: () => Tag,
+    type: () => TagV12,
     isArray: true,
   })
-  tags?: Tag[];
+  tags?: TagV12[];
 
   @JoinTable()
-  @ManyToMany(() => Genre, (genre) => genre.games)
+  @ManyToMany(() => GenreV12, (genre) => genre.games)
   @ApiPropertyOptional({
     description: "genres of the game",
-    type: () => Genre,
+    type: () => GenreV12,
     isArray: true,
   })
-  genres?: Genre[];
+  genres?: GenreV12[];
 
-  @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
+  @ManyToMany(() => GamevaultUserV12, (user) => user.bookmarked_games)
   @ApiProperty({
     description: "users that bookmarked this game",
-    type: () => Game,
+    type: () => GameV12,
     isArray: true,
   })
-  bookmarked_users?: GamevaultUser[];
+  bookmarked_users?: GamevaultUserV12[];
 }

@@ -1,14 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
-import { DatabaseEntity } from "./database.v12-entity";
-import { Game } from "./game.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { GameV12 } from "./game.v12-entity";
 
-@Entity()
-export class Developer extends DatabaseEntity {
+@Entity("v12_developer")
+export class DeveloperV12 extends DatabaseEntityV12 {
   @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
     example: 1000,
+
     description: "unique rawg-api-identifier of the developer",
   })
   rawg_id?: number;
@@ -21,11 +22,11 @@ export class Developer extends DatabaseEntity {
   })
   name: string;
 
-  @ManyToMany(() => Game, (game) => game.developers)
+  @ManyToMany(() => GameV12, (game) => game.developers)
   @ApiProperty({
     description: "games developed by the developer",
-    type: () => Game,
+    type: () => GameV12,
     isArray: true,
   })
-  games: Game[];
+  games: GameV12[];
 }

@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
-import { DatabaseEntity } from "./database.v12-entity";
-import { Game } from "./game.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { GameV12 } from "./game.v12-entity";
 
-@Entity()
-export class Tag extends DatabaseEntity {
+@Entity("v12_tag")
+export class TagV12 extends DatabaseEntityV12 {
   @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -22,11 +22,11 @@ export class Tag extends DatabaseEntity {
   })
   name: string;
 
-  @ManyToMany(() => Game, (game) => game.tags)
+  @ManyToMany(() => GameV12, (game) => game.tags)
   @ApiProperty({
     description: "games tagged with the tag",
-    type: () => Game,
+    type: () => GameV12,
     isArray: true,
   })
-  games: Game[];
+  games: GameV12[];
 }

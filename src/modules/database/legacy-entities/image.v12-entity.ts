@@ -1,10 +1,10 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Column, Entity, Index, ManyToOne } from "typeorm";
-import { DatabaseEntity } from "./database.v12-entity";
-import { GamevaultUser } from "./gamevault-user.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity";
+import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
 
-@Entity()
-export class Image extends DatabaseEntity {
+@Entity("v12_image")
+export class ImageV12 extends DatabaseEntityV12 {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     example:
@@ -29,12 +29,12 @@ export class Image extends DatabaseEntity {
   })
   mediaType?: string;
 
-  @ManyToOne(() => GamevaultUser, (user) => user.uploaded_images, {
+  @ManyToOne(() => GamevaultUserV12, (user) => user.uploaded_images, {
     nullable: true,
   })
   @ApiPropertyOptional({
     description: "the uploader of the image",
-    type: () => GamevaultUser,
+    type: () => GamevaultUserV12,
   })
-  uploader?: GamevaultUser;
+  uploader?: GamevaultUserV12;
 }

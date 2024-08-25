@@ -8,7 +8,7 @@ import {
   VersionColumn,
 } from "typeorm";
 
-export abstract class DatabaseEntity {
+export abstract class DatabaseEntityV12 {
   @Index()
   @PrimaryGeneratedColumn()
   @ApiProperty({

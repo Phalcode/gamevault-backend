@@ -1,10 +1,13 @@
+import { Logger, NotImplementedException } from "@nestjs/common";
 import { existsSync } from "fs";
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class V13Part1RenameTables1724019050371 implements MigrationInterface {
+  private readonly logger = new Logger(this.constructor.name);
   name = "V13Part1RenameTables1724019050371";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    this.logger.log("Starting Migration to V13.0.0 - Part 1");
     if (existsSync("/images")) {
       throw new Error(
         "Your media volume mount point is still pointing to /images. This is deprecated in v13.0.0. From now on, mount your media to /media instead.",
@@ -34,9 +37,12 @@ export class V13Part1RenameTables1724019050371 implements MigrationInterface {
     await queryRunner.renameTable("game_stores_store", "v12_game_stores_store"); // This will be abandoned
     await queryRunner.renameTable("game_tags_tag", "v12_game_tags_tag"); // Todo: Migrate to game_metadata_tags_tag_metadata
     await queryRunner.dropTable("query-result-cache", true);
+    this.logger.log("Migration Part 1 Complete");
   }
 
   public async down(): Promise<void> {
-    //TODO: Implement migration back via AI
+    throw new NotImplementedException(
+      "There is no way to undo this migration.",
+    );
   }
 }
