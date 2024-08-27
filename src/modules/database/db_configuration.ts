@@ -10,7 +10,7 @@ import configuration from "../../configuration";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
-  entities: ["dist/**/*.entity.js"],
+  entities: ["dist/**/*.*entity.js"],
   synchronize: configuration.DB.SYNCHRONIZE,
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
