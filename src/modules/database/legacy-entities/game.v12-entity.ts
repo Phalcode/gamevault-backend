@@ -187,7 +187,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   progresses?: ProgressV12[];
 
-  @JoinTable({name: "v12_game_publishers_v12_publisher"})
+  @JoinTable({ name: "v12_game_publishers_v12_publisher" })
   @ManyToMany(() => PublisherV12, (publisher) => publisher.games)
   @ApiPropertyOptional({
     description: "publishers of the game",
@@ -196,7 +196,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   publishers?: PublisherV12[];
 
-  @JoinTable({name: "v12_game_developers_v12_developer"})
+  @JoinTable({ name: "v12_game_developers_v12_developer" })
   @ManyToMany(() => DeveloperV12, (developer) => developer.games)
   @ApiPropertyOptional({
     description: "developers of the game",
@@ -205,7 +205,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   developers?: DeveloperV12[];
 
-  @JoinTable({name: "v12_game_stores_v12_store"})
+  @JoinTable({ name: "v12_game_stores_v12_store" })
   @ManyToMany(() => StoreV12, (store) => store.games)
   @ApiPropertyOptional({
     description: "stores of the game",
@@ -214,7 +214,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   stores?: StoreV12[];
 
-  @JoinTable({name: "v12_game_tags_v12_tag"})
+  @JoinTable({ name: "v12_game_tags_v12_tag" })
   @ManyToMany(() => TagV12, (tag) => tag.games)
   @ApiPropertyOptional({
     description: "tags of the game",
@@ -223,7 +223,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   tags?: TagV12[];
 
-  @JoinTable({name: "v12_game_genres_v12_genre"})
+  @JoinTable({ name: "v12_game_genres_v12_genre" })
   @ManyToMany(() => GenreV12, (genre) => genre.games)
   @ApiPropertyOptional({
     description: "genres of the game",
