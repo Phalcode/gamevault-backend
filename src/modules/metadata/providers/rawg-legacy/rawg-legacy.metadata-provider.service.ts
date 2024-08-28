@@ -17,7 +17,7 @@ export class RawgLegacyMetadataProviderService extends MetadataProvider {
   public override async search(
     query: string,
   ): Promise<MinimalGameMetadataDto[]> {
-    this.logger.warn({
+    this.logger.debug({
       message: this.noopMessage,
       operation: "search",
       query,
@@ -28,7 +28,7 @@ export class RawgLegacyMetadataProviderService extends MetadataProvider {
   public override async getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata> {
-    this.logger.warn({
+    this.logger.debug({
       message: this.noopMessage,
       operation: "getByProviderDataIdOrFail",
       provider_data_id,

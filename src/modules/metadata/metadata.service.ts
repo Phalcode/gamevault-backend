@@ -114,20 +114,6 @@ export class MetadataService {
   }
 
   private async updateMetadata(game: GamevaultGame): Promise<GamevaultGame> {
-    if (
-      game.metadata &&
-      game.metadata?.created_at >
-        new Date(
-          Date.now() - configuration.METADATA.TTL_IN_DAYS * 24 * 60 * 60 * 1000,
-        )
-    ) {
-      this.logger.debug({
-        message: "Metadata is up to date.",
-        game: game.getLoggableData(),
-      });
-      return;
-    }
-
     this.logger.log({
       message: "Updating metadata.",
       game: game.getLoggableData(),
@@ -140,6 +126,22 @@ export class MetadataService {
         );
 
         if (existingProviderMetadata) {
+          if (
+            existingProviderMetadata.updated_at ??
+            existingProviderMetadata.created_at >
+              new Date(
+                Date.now() -
+                  configuration.METADATA.TTL_IN_DAYS * 24 * 60 * 60 * 1000,
+              )
+          ) {
+            this.logger.debug({
+              message: "Metadata is already up to date. Skipping.",
+              game: game.getLoggableData(),
+              provider: provider.getLoggableData(),
+            });
+            continue;
+          }
+
           await this.map(
             game.id,
             provider.slug,
