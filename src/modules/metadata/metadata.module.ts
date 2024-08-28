@@ -14,6 +14,7 @@ import { GenreController as GenresController } from "./genres/genres.metadata.co
 import { MetadataController } from "./metadata.controller";
 import { MetadataService } from "./metadata.service";
 import { IgdbMetadataProviderService } from "./providers/igdb/igdb.metadata-provider.service";
+import { RawgLegacyMetadataProviderService } from "./providers/rawg-legacy/rawg-legacy.metadata-provider.service";
 import { TestHighPriorityProviderService } from "./providers/testing/test-high-priority.metadata-provider.service";
 import { TestLowPriorityProviderService } from "./providers/testing/test-low-priority.metadata-provider.service";
 import { PublisherMetadata } from "./publishers/publisher.metadata.entity";
@@ -42,6 +43,7 @@ import { TagsController } from "./tags/tags.metadata.controller";
     GenreMetadataService,
     PublisherMetadataService,
     TagMetadataService,
+    RawgLegacyMetadataProviderService,
     IgdbMetadataProviderService,
     TestLowPriorityProviderService,
     TestHighPriorityProviderService,
