@@ -210,6 +210,12 @@ export class UsersService implements OnApplicationBootstrap {
           },
         );
       });
+
+    if (configuration.TESTING.AUTHENTICATION_DISABLED) {
+      delete user.password;
+      return user;
+    }
+
     if (!compareSync(password, user.password)) {
       throw new UnauthorizedException("Login Failed: Incorrect Password");
     }

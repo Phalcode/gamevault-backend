@@ -29,10 +29,6 @@ export class AuthenticationGuard extends AuthGuard("basic") {
       return true;
     }
 
-    if (configuration.TESTING.AUTHENTICATION_DISABLED) {
-      return true;
-    }
-
     return super.canActivate(context);
   }
 }
