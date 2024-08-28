@@ -115,7 +115,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
   uploaded_images?: ImageV12[];
 
   @ManyToMany(() => GameV12, (game) => game.bookmarked_users)
-  @JoinTable({ name: "bookmark" })
+  @JoinTable({ name: "v12_bookmark" })
   @ApiProperty({
     description: "games bookmarked by this user",
     type: () => GameV12,

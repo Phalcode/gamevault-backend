@@ -288,50 +288,256 @@ export class V13Part2GenerateNewSchema1724792551000
         )
     `);
 
-    this.logger.log("Creating join table: v12_game_publishers_v12_publisher");
     await queryRunner.query(`
-        CREATE TABLE "v12_game_publishers_v12_publisher" (
-            "v12_game_id" integer NOT NULL,
-            "v12_publisher_id" integer NOT NULL,
-            CONSTRAINT "PK_a788e88dc7c792a6525893c3e11" PRIMARY KEY ("v12_game_id", "v12_publisher_id")
-        )
-    `);
-
-    this.logger.log("Creating join table: v12_game_developers_v12_developer");
+            CREATE INDEX "IDX_f4e0fcac36e050de337b670d8b" ON "media" ("id")
+        `);
     await queryRunner.query(`
-        CREATE TABLE "v12_game_developers_v12_developer" (
-            "v12_game_id" integer NOT NULL,
-            "v12_developer_id" integer NOT NULL,
-            CONSTRAINT "PK_5e4b1137756321f183ce339056e" PRIMARY KEY ("v12_game_id", "v12_developer_id")
-        )
-    `);
-
-    this.logger.log("Creating join table: v12_game_stores_v12_store");
+            CREATE UNIQUE INDEX "IDX_62649abcfe2e99bd6215511e23" ON "media" ("file_path")
+        `);
     await queryRunner.query(`
-        CREATE TABLE "v12_game_stores_v12_store" (
-            "v12_game_id" integer NOT NULL,
-            "v12_store_id" integer NOT NULL,
-            CONSTRAINT "PK_a7905084a2bb3a8b8cc175e0217" PRIMARY KEY ("v12_game_id", "v12_store_id")
-        )
-    `);
-
-    this.logger.log("Creating join table: v12_game_tags_v12_tag");
+            CREATE INDEX "IDX_3797936110f483ab684d700e48" ON "developer_metadata" ("id")
+        `);
     await queryRunner.query(`
-        CREATE TABLE "v12_game_tags_v12_tag" (
-            "v12_game_id" integer NOT NULL,
-            "v12_tag_id" integer NOT NULL,
-            CONSTRAINT "PK_245993c7296f2f5a925370cb555" PRIMARY KEY ("v12_game_id", "v12_tag_id")
-        )
-    `);
-
-    this.logger.log("Creating join table: v12_game_genres_v12_genre");
+            CREATE INDEX "IDX_8d642e3a72cb76d343639c3281" ON "developer_metadata" ("provider_slug")
+        `);
     await queryRunner.query(`
-        CREATE TABLE "v12_game_genres_v12_genre" (
-            "v12_game_id" integer NOT NULL,
-            "v12_genre_id" integer NOT NULL,
-            CONSTRAINT "PK_ddaa96ae611b46547e8a657cbc6" PRIMARY KEY ("v12_game_id", "v12_genre_id")
-        )
-    `);
+            CREATE INDEX "IDX_414ccae60b54eb1580bca0c28f" ON "developer_metadata" ("provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_16b10ff59b57ea2b920ccdec2d" ON "developer_metadata" ("name")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "UQ_DEVELOPER_METADATA" ON "developer_metadata" ("provider_slug", "provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_ab9cd344970e9df47d3d6c8b5b" ON "genre_metadata" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_bcbc44cdfbf2977f55c52651aa" ON "genre_metadata" ("provider_slug")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_7258256a052ef3ff3e882fa471" ON "genre_metadata" ("provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_bf40614141adff790cb659c902" ON "genre_metadata" ("name")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "UQ_GENRE_METADATA" ON "genre_metadata" ("provider_slug", "provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_73e957f8e68ba1111ac3b79adc" ON "publisher_metadata" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_16f6954549be1a71c53654c939" ON "publisher_metadata" ("provider_slug")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_e9ec06cab4b92d64ba257b4eed" ON "publisher_metadata" ("provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_73c3afaa08bae7e58471e83c8e" ON "publisher_metadata" ("name")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "UQ_PUBLISHER_METADATA" ON "publisher_metadata" ("provider_slug", "provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_96d7cccf17f8cb2cfa25388cbd" ON "tag_metadata" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_d914734a79b8145479a748d0a5" ON "tag_metadata" ("provider_slug")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_a1b923a5cf28e468500e7e0b59" ON "tag_metadata" ("provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_a5f8eb5e083ca5fb83cd152777" ON "tag_metadata" ("name")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "UQ_TAG_METADATA" ON "tag_metadata" ("provider_slug", "provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_7af272a017b850a4ce7a6c2886" ON "game_metadata" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_e9a00e38e7969570d9ab66dd27" ON "game_metadata" ("provider_slug")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_4f0b69ca308a906932c84ea0d5" ON "game_metadata" ("provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_21c321551d9c772d56e07b2a1a" ON "game_metadata" ("title")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_47070ef56d911fa9824f3277e2" ON "game_metadata" ("release_date")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "UQ_GAME_METADATA" ON "game_metadata" ("provider_slug", "provider_data_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_79abdfd87a688f9de756a162b6" ON "progress" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_ddcaca3a9db9d77105d51c02c2" ON "progress" ("user_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_feaddf361921db1df3a6fe3965" ON "progress" ("game_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_dc16bc448f2591a832533f25d9" ON "gamevault_game" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "IDX_91d454956bd20f46b646b05b91" ON "gamevault_game" ("file_path")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_73e99cf1379987ed7c5983d74f" ON "gamevault_game" ("release_date")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "IDX_4c835305e86b28e416cfe13dac" ON "gamevault_user" ("username")
+        `);
+    await queryRunner.query(`
+            CREATE UNIQUE INDEX "IDX_e0da4bbf1074bca2d980a81077" ON "gamevault_user" ("socket_secret")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_4edfac51e323a4993aec668eb4" ON "gamevault_user" ("birth_date")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_178abeeb628ebcdb70239c08d4" ON "game_metadata_gamevault_games_gamevault_game" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_c5afe975cb06f9624d5f5aa8ff" ON "game_metadata_gamevault_games_gamevault_game" ("gamevault_game_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_6d9f174cdbce41bb5b934271a9" ON "game_metadata_publishers_publisher_metadata" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_71ffc2cb90c863a5c225efa295" ON "game_metadata_publishers_publisher_metadata" ("publisher_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_2b99b13a4b75f1396c49990e6d" ON "game_metadata_developers_developer_metadata" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_3741d615695a161ffc5a41e748" ON "game_metadata_developers_developer_metadata" ("developer_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_f6c8361e5e167251a06355c168" ON "game_metadata_tags_tag_metadata" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_a4f3fec63ccb14d466924a11ef" ON "game_metadata_tags_tag_metadata" ("tag_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_c7d2d3ca1a28eab7d55e99ff24" ON "game_metadata_genres_genre_metadata" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_0482ce35adf40c9128eaa1ae89" ON "game_metadata_genres_genre_metadata" ("genre_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_8602b8a76c7952d1155118933f" ON "gamevault_game_provider_metadata_game_metadata" ("gamevault_game_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_0b9f583ebc16b0bb8cbfaf00f8" ON "gamevault_game_provider_metadata_game_metadata" ("game_metadata_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_6f00464edf85ddfedbd2580842" ON "bookmark" ("gamevault_user_id")
+        `);
+    await queryRunner.query(`
+            CREATE INDEX "IDX_3c8d93fdd9e34a97f5a5903129" ON "bookmark" ("gamevault_game_id")
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "media"
+            ADD CONSTRAINT "FK_8bd1ad5f79df58cfd7ad9c42fb5" FOREIGN KEY ("uploader_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata"
+            ADD CONSTRAINT "FK_9aefd37a55b610cea5ea583cdf6" FOREIGN KEY ("cover_id") REFERENCES "media"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata"
+            ADD CONSTRAINT "FK_6f44518f2a088b90a8cc804d12f" FOREIGN KEY ("background_id") REFERENCES "media"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "progress"
+            ADD CONSTRAINT "FK_ddcaca3a9db9d77105d51c02c24" FOREIGN KEY ("user_id") REFERENCES "gamevault_user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "progress"
+            ADD CONSTRAINT "FK_feaddf361921db1df3a6fe3965a" FOREIGN KEY ("game_id") REFERENCES "gamevault_game"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_game"
+            ADD CONSTRAINT "FK_edc9b16a9e16d394b2ca3b49b12" FOREIGN KEY ("user_metadata_id") REFERENCES "game_metadata"("id") ON DELETE
+            SET NULL ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_game"
+            ADD CONSTRAINT "FK_aab0797ae3873a5ef2817d09891" FOREIGN KEY ("metadata_id") REFERENCES "game_metadata"("id") ON DELETE
+            SET NULL ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_user"
+            ADD CONSTRAINT "FK_872748cf76003216d011ae0febb" FOREIGN KEY ("avatar_id") REFERENCES "media"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_user"
+            ADD CONSTRAINT "FK_0bd4a25fe304500108695576666" FOREIGN KEY ("background_id") REFERENCES "media"("id") ON DELETE CASCADE ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_gamevault_games_gamevault_game"
+            ADD CONSTRAINT "FK_178abeeb628ebcdb70239c08d46" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_gamevault_games_gamevault_game"
+            ADD CONSTRAINT "FK_c5afe975cb06f9624d5f5aa8ff7" FOREIGN KEY ("gamevault_game_id") REFERENCES "gamevault_game"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_publishers_publisher_metadata"
+            ADD CONSTRAINT "FK_6d9f174cdbce41bb5b934271a9b" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_publishers_publisher_metadata"
+            ADD CONSTRAINT "FK_71ffc2cb90c863a5c225efa2950" FOREIGN KEY ("publisher_metadata_id") REFERENCES "publisher_metadata"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_developers_developer_metadata"
+            ADD CONSTRAINT "FK_2b99b13a4b75f1396c49990e6de" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_developers_developer_metadata"
+            ADD CONSTRAINT "FK_3741d615695a161ffc5a41e748c" FOREIGN KEY ("developer_metadata_id") REFERENCES "developer_metadata"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_tags_tag_metadata"
+            ADD CONSTRAINT "FK_f6c8361e5e167251a06355c168a" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_tags_tag_metadata"
+            ADD CONSTRAINT "FK_a4f3fec63ccb14d466924a11efc" FOREIGN KEY ("tag_metadata_id") REFERENCES "tag_metadata"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_genres_genre_metadata"
+            ADD CONSTRAINT "FK_c7d2d3ca1a28eab7d55e99ff24b" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "game_metadata_genres_genre_metadata"
+            ADD CONSTRAINT "FK_0482ce35adf40c9128eaa1ae894" FOREIGN KEY ("genre_metadata_id") REFERENCES "genre_metadata"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_game_provider_metadata_game_metadata"
+            ADD CONSTRAINT "FK_8602b8a76c7952d1155118933f4" FOREIGN KEY ("gamevault_game_id") REFERENCES "gamevault_game"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "gamevault_game_provider_metadata_game_metadata"
+            ADD CONSTRAINT "FK_0b9f583ebc16b0bb8cbfaf00f8f" FOREIGN KEY ("game_metadata_id") REFERENCES "game_metadata"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "bookmark"
+            ADD CONSTRAINT "FK_6f00464edf85ddfedbd25808428" FOREIGN KEY ("gamevault_user_id") REFERENCES "gamevault_user"("id") ON DELETE CASCADE ON UPDATE CASCADE
+        `);
+    await queryRunner.query(`
+            ALTER TABLE "bookmark"
+            ADD CONSTRAINT "FK_3c8d93fdd9e34a97f5a5903129b" FOREIGN KEY ("gamevault_game_id") REFERENCES "gamevault_game"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+        `);
 
     this.logger.log("Migration to V13.0.0 - Part 2 completed successfully.");
   }

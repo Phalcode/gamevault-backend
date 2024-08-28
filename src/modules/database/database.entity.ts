@@ -10,7 +10,8 @@ import {
 
 export abstract class DatabaseEntity {
   @Index()
-  @PrimaryGeneratedColumn()
+  //TODO: Add conditional decorator for SQLITE
+  @PrimaryGeneratedColumn("identity", { name: 'id', generatedIdentity: 'BY DEFAULT' })
   @ApiProperty({
     example: 1,
     description: "Unique gamevault-identifier of the entity",
