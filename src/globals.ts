@@ -2,8 +2,6 @@ import { applyDecorators, Type } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
 
 import { PaginatedEntity } from "./modules/database/models/paginated-entity.model";
-import { RawgPlatform } from "./modules/providers/rawg/models/platforms";
-import { RawgStore } from "./modules/providers/rawg/models/stores";
 
 export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(
   dataDto: DataDto,
@@ -77,34 +75,71 @@ export default {
     ".z",
   ],
   EXECUTABLE_FORMATS: [".exe", ".sh"],
-  SUPPORTED_IMAGE_FORMATS: [
-    "image/bmp",
-    "image/jpeg",
-    "image/png",
-    "image/tiff",
-    "image/gif",
-    "image/x-icon",
+  SUPPORTED_MEDIA_FORMATS: [
+    "audio/mpeg", // MP3
+    "audio/wav", // WAV
+    "audio/ogg", // OGG
+    "audio/aac", // AAC
+    "audio/flac", // FLAC
+    "audio/x-ms-wma", // WMA
+    "audio/amr", // AMR
+    "audio/mp4", // MP4 Audio
+    "image/bmp", // BMP
+    "image/jpeg", // JPEG
+    "image/png", // PNG
+    "image/tiff", // TIFF
+    "image/gif", // GIF
+    "image/x-icon", // ICO
+    "video/mp4", // MP4
+    "video/x-msvideo", // AVI
+    "video/quicktime", // MOV
+    "video/x-ms-wmv", // WMV
+    "video/x-flv", // FLV
+    "video/x-matroska", // MKV
+    "video/webm", // WEBM
+    "video/mpeg", // MPEG
+    "video/3gpp", // 3GP
   ],
-  DEFAULT_INCLUDED_RAWG_STORES: Object.values(RawgStore).filter(
-    (platform) =>
-      platform !== RawgStore["All Stores"] && platform !== RawgStore["Itch.io"],
-  ),
-  DEFAULT_INCLUDED_RAWG_PLATFORMS: [RawgPlatform["All Platforms"]],
+  RESERVED_PROVIDER_SLUGS: ["gamevault", "user"],
 };
 
 export interface FindOptions {
   /**
    * Indicates whether deleted (sub)entities should be loaded. Subentities may
    * be deleted by app-logic afterwards.
-   *
-   * @default false
    */
-  loadDeletedEntities: boolean;
+  loadDeletedEntities?: boolean;
 
   /**
    * Indicates whether related entities should be loaded.
-   *
-   * @default false
    */
-  loadRelations: boolean | string[];
+  loadRelations?: boolean | string[];
+
+  /**
+   * Filter for age restriction purposes.
+   */
+  filterByAge?: number;
+}
+
+export interface GameVaultPluginModule {
+  metadata: GameVaultPluginModuleMetadataV1;
+}
+
+export interface GameVaultPluginModuleMetadataV1 {
+  // Name of the Plugin.
+  name: string;
+  // Your Name, Email,Username or Company of the author.
+  author: string;
+  // Version of the Plugin, e.g. "1.0.0".
+  version?: string;
+  // Describe what the Plugin does and use how to use it.
+  description?: string;
+  // Website or Github URL of the Plugin.
+  website?: string;
+  // License Name or License URL of the Plugin.
+  license?: string;
+  // Some keywords to describe the Plugin.
+  keywords?: string[];
+  // Dependencies of the Plugin. (Plugins needed to use this Plugin)
+  dependencies?: GameVaultPluginModuleMetadataV1[];
 }

@@ -3,9 +3,9 @@ module.exports = {
   parserOptions: {
     project: "tsconfig.json",
     sourceType: "module",
-    ecmaVersion: "latest"
+    ecmaVersion: "latest",
   },
-  plugins: ["@typescript-eslint/eslint-plugin", "simple-import-sort"],
+  plugins: ["@typescript-eslint/eslint-plugin"],
   extends: [
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
@@ -18,8 +18,4 @@ module.exports = {
     jest: true,
   },
   ignorePatterns: [".eslintrc.js"],
-  rules: {
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error"
-  },
 };

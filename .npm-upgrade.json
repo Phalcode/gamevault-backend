@@ -1,8 +1,16 @@
 {
   "ignore": {
     "mime": {
-      "versions": "4",
+      "versions": ">3",
       "reason": "ESM"
+    },
+    "eslint": {
+      "versions": ">8",
+      "reason": "New Config, No Plugin Compability"
+    },
+    "better-sqlite3": {
+      "versions": ">9",
+      "reason": "TypeORM compatibility"
     }
   }
 }

@@ -7,7 +7,7 @@ import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
-  private readonly logger = new Logger(DefaultStrategy.name);
+  private readonly logger = new Logger(this.constructor.name);
   constructor(private usersService: UsersService) {
     super({
       passReqToCallback: true,

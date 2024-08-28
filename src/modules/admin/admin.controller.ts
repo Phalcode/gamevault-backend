@@ -82,6 +82,6 @@ export class AdminController {
     file: Express.Multer.File,
     @Headers("X-Database-Password") password: string,
   ) {
-    return await this.databaseService.restore(file, password);
+    return this.databaseService.restore(file, password);
   }
 }

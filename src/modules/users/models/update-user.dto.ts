@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsAlpha,
   IsBoolean,
+  IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -12,6 +13,7 @@ import {
   MinLength,
 } from "class-validator";
 
+import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
 import { Role } from "./role.enum";
 
 export class UpdateUserDto {
@@ -65,21 +67,30 @@ export class UpdateUserDto {
   })
   last_name?: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsNotEmpty()
+  @IsDateString()
+  @IsDateStringBeforeNow()
   @ApiPropertyOptional({
-    example: 69_420,
-    description: "id of the profile picture of the user",
+    description: "date of birth of the user in ISO8601 format",
   })
-  profile_picture_id?: number;
+  birth_date?: string;
 
   @IsNumber()
   @IsOptional()
   @ApiPropertyOptional({
     example: 69_420,
-    description: "id of the profile art (background-image) of the User",
+    description: "id of the avatar image of the user",
   })
-  background_image_id?: number;
+  avatar_id?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @ApiPropertyOptional({
+    example: 69_420,
+    description: "id of the background image of the User",
+  })
+  background_id?: number;
 
   @IsBoolean()
   @IsOptional()

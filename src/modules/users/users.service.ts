@@ -17,7 +17,7 @@ import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 import configuration from "../../configuration";
 import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
-import { ImagesService } from "../images/images.service";
+import { MediaService } from "../media/media.service";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { RegisterUserDto } from "./models/register-user.dto";
 import { Role } from "./models/role.enum";
@@ -25,13 +25,13 @@ import { UpdateUserDto } from "./models/update-user.dto";
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(UsersService.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     @InjectRepository(GamevaultUser)
     private userRepository: Repository<GamevaultUser>,
-    @Inject(forwardRef(() => ImagesService))
-    private imagesService: ImagesService,
+    @Inject(forwardRef(() => MediaService))
+    private mediaService: MediaService,
     @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
   ) {}
@@ -46,7 +46,7 @@ export class UsersService implements OnApplicationBootstrap {
         return;
       }
 
-      const user = await this.findByUsernameOrFail(
+      const user = await this.findOneByUsernameOrFail(
         configuration.SERVER.ADMIN_USERNAME,
       );
 
@@ -76,7 +76,7 @@ export class UsersService implements OnApplicationBootstrap {
    * Retrieves a user by their ID or throws an exception if the user is not
    * found.
    */
-  public async findByUserIdOrFail(
+  public async findOneByUserIdOrFail(
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
@@ -84,7 +84,13 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["progresses", "progresses.game", "bookmarked_games"];
+        relations = [
+          "progresses",
+          "progresses.game",
+          "progresses.game.metadata",
+          "progresses.game.metadata.cover",
+          "bookmarked_games",
+        ];
       } else if (Array.isArray(options.loadRelations))
         relations = options.loadRelations;
     }
@@ -97,6 +103,7 @@ export class UsersService implements OnApplicationBootstrap {
         },
         relations,
         withDeleted: true,
+        relationLoadStrategy: "query",
       })
       .catch((error) => {
         throw new NotFoundException(`User with id ${id} was not found.`, {
@@ -107,7 +114,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Get user by username or throw an exception if not found */
-  public async findByUsernameOrFail(
+  public async findOneByUsernameOrFail(
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
@@ -126,7 +133,6 @@ export class UsersService implements OnApplicationBootstrap {
           username: ILike(username),
           deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
         },
-
         relations,
         withDeleted: true,
       })
@@ -141,18 +147,17 @@ export class UsersService implements OnApplicationBootstrap {
     return this.filterDeletedProgresses(user);
   }
 
-  public async getAll(
-    includeHidden: boolean = false,
-  ): Promise<GamevaultUser[]> {
+  public async find(includeHidden: boolean = false): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
       withDeleted: includeHidden,
+      relationLoadStrategy: "query",
       where: includeHidden
         ? undefined
         : { activated: true, username: Not(ILike("gvbot_%")) },
     };
 
-    return await this.userRepository.find(query);
+    return this.userRepository.find(query);
   }
 
   /** Register a new user */
@@ -171,6 +176,7 @@ export class UsersService implements OnApplicationBootstrap {
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
     user.email = dto.email || undefined;
+    user.birth_date = dto.birth_date ? new Date(dto.birth_date) : undefined;
     user.activated = isActivated;
     user.role = isAdministrator ? Role.ADMIN : undefined;
 
@@ -225,7 +231,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     admin = false,
   ): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     const logUpdate = (property: string, from: string, to: string) => {
       this.logger.log({
         message: "Updating user property",
@@ -235,6 +241,23 @@ export class UsersService implements OnApplicationBootstrap {
         to,
       });
     };
+
+    if (admin && dto.role != null) {
+      logUpdate("role", user.role.toString(), dto.role.toString());
+      user.role = dto.role;
+    }
+
+    if (admin && dto.activated != null) {
+      logUpdate(
+        "activated",
+        user.activated.toString(),
+        dto.activated.toString(),
+      );
+      user.activated = dto.activated;
+      this.logger.log({
+        message: { message: "User has been activated.", user: user.username },
+      });
+    }
 
     if (dto.username != null && dto.username !== user.username) {
       logUpdate("username", user.username, dto.username);
@@ -256,50 +279,34 @@ export class UsersService implements OnApplicationBootstrap {
       user.last_name = dto.last_name;
     }
 
+    if (dto.birth_date != null) {
+      logUpdate("birth_date", user.birth_date?.toISOString(), dto.birth_date);
+      await this.updateBirthDate(dto, user);
+    }
+
     if (dto.password != null) {
       logUpdate("password", user.password, "**REDACTED**");
       user.password = hashSync(dto.password, 10);
     }
 
-    if (dto.profile_picture_id != null) {
-      const image = await this.imagesService.findByImageIdOrFail(
-        dto.profile_picture_id,
+    if (dto.avatar_id != null) {
+      const image = await this.mediaService.findOneByMediaIdOrFail(
+        dto.avatar_id,
+      );
+      logUpdate("avatar_id", user.avatar?.id.toString(), image.id.toString());
+      user.avatar = image;
+    }
+
+    if (dto.background_id != null) {
+      const image = await this.mediaService.findOneByMediaIdOrFail(
+        dto.background_id,
       );
       logUpdate(
-        "profile_picture_id",
-        user.profile_picture?.id.toString(),
+        "background_id",
+        user.background?.id.toString(),
         image.id.toString(),
       );
-      user.profile_picture = image;
-    }
-
-    if (dto.background_image_id != null) {
-      const image = await this.imagesService.findByImageIdOrFail(
-        dto.background_image_id,
-      );
-      logUpdate(
-        "background_image_id",
-        user.background_image?.id.toString(),
-        image.id.toString(),
-      );
-      user.background_image = image;
-    }
-
-    if (admin && dto.activated != null) {
-      logUpdate(
-        "activated",
-        user.activated.toString(),
-        dto.activated.toString(),
-      );
-      user.activated = dto.activated;
-      this.logger.log({
-        message: { message: "User has been activated.", user: user.username },
-      });
-    }
-
-    if (admin && dto.role != null) {
-      logUpdate("role", user.role.toString(), dto.role.toString());
-      user.role = dto.role;
+      user.background = image;
     }
 
     return this.userRepository.save(user);
@@ -325,26 +332,57 @@ export class UsersService implements OnApplicationBootstrap {
     user.email = dto.email;
   }
 
+  private async updateBirthDate(
+    dto: UpdateUserDto,
+    user: GamevaultUser,
+  ): Promise<void> {
+    if (
+      user.birth_date &&
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
+      this.calculateAge(user.birth_date) <
+        configuration.PARENTAL.AGE_OF_MAJORITY &&
+      user.role !== Role.ADMIN
+    ) {
+      throw new ForbiddenException(
+        "You are too young to update your birth date. Contact an Administrator to update your birth date.",
+      );
+    }
+    user.birth_date = new Date(dto.birth_date);
+  }
+
   /** Soft deletes a user with the specified ID. */
   public async delete(id: number): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     return this.userRepository.softRemove(user);
   }
 
   /** Recovers a deleted user with the specified ID. */
   public async recover(id: number): Promise<GamevaultUser> {
-    const user = await this.findByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id);
     return this.userRepository.recover(user);
   }
 
   /** Check if the user with the given username has at least the given role */
   public async checkIfUsernameIsAtLeastRole(username: string, role: Role) {
     try {
-      const user = await this.findByUsernameOrFail(username);
+      const user = await this.findOneByUsernameOrFail(username);
       return user.role >= role;
     } catch {
       return false;
     }
+  }
+
+  public async findUserAgeByUsername(
+    username: string,
+  ): Promise<number | undefined> {
+    if (!configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+      return undefined;
+    }
+    const user = await this.findOneByUsernameOrFail(username, {
+      loadDeletedEntities: false,
+      loadRelations: false,
+    });
+    return this.calculateAge(user.birth_date);
   }
 
   /** Check if the username matches the user ID or is an administrator */
@@ -358,7 +396,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.findByUserIdOrFail(userId);
+    const user = await this.findOneByUserIdOrFail(userId);
     if (user.role === Role.ADMIN) {
       return true;
     }
@@ -377,7 +415,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Bookmarks a game with the specified ID to the given user. */
   public async bookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId, {
+    const user = await this.findOneByUserIdOrFail(userId, {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
@@ -385,9 +423,8 @@ export class UsersService implements OnApplicationBootstrap {
       return user;
     }
 
-    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
-      loadRelations: false,
     });
 
     await this.userRepository
@@ -411,7 +448,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   /** Unbookmarks a game with the specified ID from the given user. */
   public async unbookmarkGame(userId: number, gameId: number) {
-    const user = await this.findByUserIdOrFail(userId, {
+    const user = await this.findOneByUserIdOrFail(userId, {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
@@ -419,9 +456,8 @@ export class UsersService implements OnApplicationBootstrap {
       return user;
     }
 
-    const game = await this.gamesService.findByGameIdOrFail(gameId, {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
-      loadRelations: false,
     });
 
     await this.userRepository
@@ -444,6 +480,19 @@ export class UsersService implements OnApplicationBootstrap {
     });
 
     return user;
+  }
+
+  public calculateAge(birthDate: Date) {
+    if (!birthDate) {
+      return 0;
+    }
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   /**
@@ -469,7 +518,10 @@ export class UsersService implements OnApplicationBootstrap {
       where.push({ email: ILike(email) });
     }
 
-    const existingUser = await this.userRepository.findOne({ where });
+    const existingUser = await this.userRepository.findOne({
+      where,
+      relationLoadStrategy: "query",
+    });
 
     if (existingUser) {
       const duplicateField =

@@ -20,7 +20,7 @@ import configuration from "../../configuration";
 
 @Injectable()
 export class DatabaseService {
-  private readonly logger = new Logger(DatabaseService.name);
+  private readonly logger = new Logger(this.constructor.name);
   private execPromise = promisify(exec);
 
   constructor(private dataSource: DataSource) {}
@@ -83,17 +83,17 @@ export class DatabaseService {
 
   async connect() {
     this.logger.log("Connecting Database...");
-    return await this.dataSource.initialize();
+    return this.dataSource.initialize();
   }
 
   async disconnect() {
     this.logger.log("Disconnecting Database...");
-    return await this.dataSource.destroy();
+    return this.dataSource.destroy();
   }
 
   async migrate() {
     this.logger.log("Migrating Database...");
-    return await this.dataSource.runMigrations();
+    return this.dataSource.runMigrations();
   }
 
   async backupPostgresql(backupFilePath: string): Promise<StreamableFile> {

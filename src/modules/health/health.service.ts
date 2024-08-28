@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 
 import configuration from "../../configuration";
-import { Health, HealthProtocolEntry } from "./models/health.model";
 import { HealthStatus } from "./models/health-status.enum";
+import { Health, HealthProtocolEntry } from "./models/health.model";
 
 @Injectable()
 export class HealthService {

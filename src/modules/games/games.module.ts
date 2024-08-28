@@ -1,24 +1,25 @@
-import { forwardRef, Module } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { BoxartsModule } from "../boxarts/boxarts.module";
-import { FilesModule } from "../files/files.module";
-import { ImagesModule } from "../images/images.module";
-import { RawgModule } from "../providers/rawg/rawg.module";
-import { Game } from "./game.entity";
+import { MediaModule } from "../media/media.module";
+import { MetadataModule } from "../metadata/metadata.module";
+import { ProgressModule } from "../progresses/progress.module";
+import { UsersModule } from "../users/users.module";
+import { FilesService } from "./files.service";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
+import { GamevaultGame } from "./gamevault-game.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Game]),
-    forwardRef(() => RawgModule),
-    forwardRef(() => FilesModule),
-    forwardRef(() => BoxartsModule),
-    ImagesModule,
+    TypeOrmModule.forFeature([GamevaultGame]),
+    MediaModule,
+    MetadataModule,
+    ProgressModule,
+    UsersModule,
   ],
   controllers: [GamesController],
-  providers: [GamesService],
-  exports: [GamesService],
+  providers: [GamesService, FilesService],
+  exports: [GamesService, FilesService],
 })
 export class GamesModule {}

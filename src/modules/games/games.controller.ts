@@ -7,6 +7,8 @@ import {
   Logger,
   Param,
   Put,
+  Request,
+  Res,
   StreamableFile,
 } from "@nestjs/common";
 import {
@@ -18,8 +20,8 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Response } from "express";
 import {
-  NO_PAGINATION,
   Paginate,
   paginate,
   Paginated,
@@ -28,69 +30,102 @@ import {
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
+import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
-import { IdDto } from "../database/models/id.dto";
-import { FilesService } from "../files/files.service";
+import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
-import { Game } from "./game.entity";
+import { UsersService } from "../users/users.service";
+import { FilesService } from "./files.service";
 import { GamesService } from "./games.service";
+import { GamevaultGame } from "./gamevault-game.entity";
+import { GameIdDto } from "./models/game-id.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBasicAuth()
 @ApiTags("game")
 @Controller("games")
 export class GamesController {
-  private readonly logger = new Logger(GamesController.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(
     private gamesService: GamesService,
     private filesService: FilesService,
-    @InjectRepository(Game)
-    private readonly gamesRepository: Repository<Game>,
+    @InjectRepository(GamevaultGame)
+    private readonly gamesRepository: Repository<GamevaultGame>,
+    private usersService: UsersService,
   ) {}
+
+  @Put("reindex")
+  @ApiOperation({
+    summary: "manually triggers an index of all games",
+    operationId: "putFilesReindex",
+  })
+  @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
+  @MinimumRole(Role.ADMIN)
+  async putFilesReindex() {
+    return this.filesService.index();
+  }
 
   /** Get paginated games list based on the given query parameters. */
   @Get()
   @PaginateQueryOptions()
-  @ApiOkResponsePaginated(Game)
+  @ApiOkResponsePaginated(GamevaultGame)
   @ApiOperation({
     summary: "get a list of games",
     operationId: "getGames",
   })
   @MinimumRole(Role.GUEST)
-  async getGames(@Paginate() query: PaginateQuery): Promise<Paginated<Game>> {
-    const relations = ["box_image", "background_image", "bookmarked_users"];
-    if (query.filter) {
-      if (query.filter["genres.name"]) {
-        relations.push("genres");
-      }
-      if (query.filter["tags.name"]) {
-        relations.push("tags");
-      }
+  async findGames(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<GamevaultGame>> {
+    const relations = ["bookmarked_users", "metadata", "metadata.cover"];
+
+    if (query.filter?.["metadata.genres.name"]) {
+      relations.push("metadata.genres");
+    }
+
+    if (query.filter?.["metadata.tags.name"]) {
+      relations.push("metadata.tags");
+    }
+
+    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+      query.filter ??= {};
+      query.filter["metadata.age_rating"] =
+        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
     }
 
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
-      maxLimit: NO_PAGINATION,
+      maxLimit: -1,
       nullSort: "last",
       relations,
       sortableColumns: [
         "id",
         "title",
         "release_date",
-        "rawg_release_date",
         "created_at",
         "size",
-        "metacritic_rating",
-        "average_playtime",
         "early_access",
         "type",
+        "download_count",
         "bookmarked_users.id",
+        "metadata.title",
+        "metadata.early_access",
+        "metadata.release_date",
+        "metadata.average_playtime",
+        "metadata.rating",
       ],
-      searchableColumns: ["title", "description"],
+      loadEagerRelations: false,
+      searchableColumns: [
+        "id",
+        "title",
+        "metadata.title",
+        "metadata.description",
+      ],
       filterableColumns: {
         id: true,
         title: true,
@@ -101,9 +136,11 @@ export class GamesController {
         average_playtime: true,
         early_access: true,
         type: true,
+        download_count: true,
         "bookmarked_users.id": true,
-        "genres.name": true,
-        "tags.name": true,
+        "metadata.genres.name": true,
+        "metadata.tags.name": true,
+        "metadata.age_rating": true,
       },
       withDeleted: false,
     });
@@ -115,29 +152,42 @@ export class GamesController {
     summary: "get a random game",
     operationId: "getGameRandom",
   })
-  @ApiOkResponse({ type: () => Game })
+  @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameRandom(): Promise<Game> {
-    return await this.gamesService.getRandom();
+  async getGameRandom(
+    @Request() request: { gamevaultuser: GamevaultUser },
+  ): Promise<GamevaultGame> {
+    return this.gamesService.findRandom({
+      loadDeletedEntities: false,
+      loadRelations: true,
+      filterByAge: await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
+    });
   }
 
   /** Retrieves details for a game with the specified ID. */
-  @Get(":id")
+  @Get(":game_id")
   @ApiOperation({
     summary: "get details on a game",
     operationId: "getGameByGameId",
   })
-  @ApiOkResponse({ type: () => Game })
+  @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
-  async getGameByGameId(@Param() params: IdDto): Promise<Game> {
-    return await this.gamesService.findByGameIdOrFail(Number(params.id), {
-      loadRelations: true,
+  async getGameByGameId(
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Param() params: GameIdDto,
+  ): Promise<GamevaultGame> {
+    return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
       loadDeletedEntities: true,
+      filterByAge: await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
     });
   }
 
   /** Download a game by its ID. */
-  @Get(":id/download")
+  @Get(":game_id/download")
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
@@ -173,18 +223,24 @@ export class GamesController {
   @ApiOkResponse({ type: () => StreamableFile })
   @Header("Accept-Ranges", "bytes")
   async getGameDownload(
-    @Param() params: IdDto,
+    @Request() request: { gamevaultuser: GamevaultUser },
+    @Param() params: GameIdDto,
+    @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
-    return await this.filesService.download(
-      Number(params.id),
+    return this.filesService.download(
+      response,
+      Number(params.game_id),
       Number(speedlimit),
       range,
+      await this.usersService.findUserAgeByUsername(
+        request.gamevaultuser.username,
+      ),
     );
   }
 
-  @Put(":id")
+  @Put(":game_id")
   @ApiOperation({
     summary: "updates the details of a game",
     operationId: "putGameUpdate",
@@ -192,9 +248,9 @@ export class GamesController {
   @ApiBody({ type: () => UpdateGameDto })
   @MinimumRole(Role.EDITOR)
   async putGameUpdate(
-    @Param() params: IdDto,
+    @Param() params: GameIdDto,
     @Body() dto: UpdateGameDto,
-  ): Promise<Game> {
-    return await this.gamesService.update(Number(params.id), dto);
+  ): Promise<GamevaultGame> {
+    return this.gamesService.update(Number(params.game_id), dto);
   }
 }

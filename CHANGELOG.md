@@ -1,5 +1,23 @@
 # GameVault Backend Server Changelog
 
+## 13.0.0
+
+Recommended Gamevault App Version: `v1.11.1.0`
+
+### Breaking Changes & Migration
+
+(Migration Instructions are marked **fat**)
+
+- Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
+- Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove all old plugins.**
+- Removed RAWG Integration aswell and all configuration for it. -> **Remove all RAWG related configuration.**
+- Removed Google Images Boxart Scraper. (Let's be honest, it was shit anyway.)
+- Introduced a new Plugin Framework that universally supports any metadata provider plugin.
+- Implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider. -> **Learn how to set it up [here](#TODO:)**
+- Optimized Game Indexer. It now only reads games that have changed instead of reading all files all the time.
+- Implemented parental control settings. [#304](https://github.com/Phalcode/gamevault-backend/issues/304) -> **Learn how to set it up [here](#TODO:)**
+- TODO: Migrated old Games to new Metadata System.
+
 ## 12.2.0
 
 Recommended Gamevault App Version: `v1.11.0.0`
