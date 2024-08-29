@@ -165,7 +165,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         game.videos
           ?.filter((video) =>
             ["trailer", "teaser", "intro"].some((word) =>
-              video.name.toLowerCase().includes(word),
+              video.name?.toLowerCase().includes(word),
             ),
           )
           .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
@@ -174,7 +174,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         game.videos
           ?.filter((video) =>
             ["gameplay"].some((word) =>
-              video.name.toLowerCase().includes(word),
+              video.name?.toLowerCase().includes(word),
             ),
           )
           .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
