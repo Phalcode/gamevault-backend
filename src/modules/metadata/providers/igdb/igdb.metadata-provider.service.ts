@@ -148,7 +148,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           : game.summary || game.storyline || null,
       )
       .rating(game.total_rating)
-      .url_websites(game.websites.map((website) => website.url))
+      .url_websites(game.websites?.map((website) => website.url))
       .early_access(
         [
           IgdbGameStatus.alpha,

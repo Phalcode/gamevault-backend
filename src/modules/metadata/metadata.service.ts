@@ -175,13 +175,25 @@ export class MetadataService {
       provider: provider.getLoggableData(),
       game: game.getLoggableData(),
     });
-    const bestMatchingGame = await provider.getBestMatch(game);
-    await this.map(
-      game.id,
-      provider.slug,
-      bestMatchingGame.provider_data_id,
-      undefined,
-    );
+    try {
+      const bestMatchingGame = await provider.getBestMatch(game);
+      await this.map(
+        game.id,
+        provider.slug,
+        bestMatchingGame.provider_data_id,
+        undefined,
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        this.logger.log({
+          message: "No matching game found.",
+          game: game.getLoggableData(),
+          provider: provider.getLoggableData(),
+        });
+        return;
+      }
+      throw error;
+    }
   }
 
   /**
