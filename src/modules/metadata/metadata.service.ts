@@ -185,7 +185,7 @@ export class MetadataService {
       );
     } catch (error) {
       if (error instanceof NotFoundException) {
-        this.logger.log({
+        this.logger.debug({
           message: "No matching game found.",
           game: game.getLoggableData(),
           provider: provider.getLoggableData(),
