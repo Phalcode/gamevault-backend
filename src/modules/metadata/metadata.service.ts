@@ -119,6 +119,14 @@ export class MetadataService {
       game: game.getLoggableData(),
     });
 
+    if (game.file_path.includes("(NC)")) {
+      this.logger.debug({
+        message: "Skipping metadata update for (NC) game.",
+        game: game.getLoggableData(),
+      });
+      return game;
+    }
+
     for (const provider of this.providers) {
       try {
         const existingProviderMetadata = game.provider_metadata.find(
