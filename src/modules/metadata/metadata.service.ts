@@ -113,12 +113,22 @@ export class MetadataService {
     }
   }
 
+  /**
+   * Updates the metadata of a game if necessary.
+   * If the game's file path contains "(NC)", the metadata update is skipped.
+   * If the game's metadata is already up to date (i.e. the TTL has not been exceeded),
+   * the metadata update is skipped.
+   * If the metadata update fails for a provider, the error is logged and the update is skipped.
+   * @param game The game to update the metadata for.
+   * @returns The updated game.
+   */
   private async updateMetadata(game: GamevaultGame): Promise<GamevaultGame> {
     this.logger.log({
       message: "Updating metadata.",
       game: game.getLoggableData(),
     });
 
+    // If the game's file path contains "(NC)", skip the metadata update.
     if (game.file_path.includes("(NC)")) {
       this.logger.debug({
         message: "Skipping metadata update for (NC) game.",
@@ -127,29 +137,34 @@ export class MetadataService {
       return game;
     }
 
+    let changeCount = 0;
     for (const provider of this.providers) {
       try {
+        // Find the existing provider metadata for the game and provider.
         const existingProviderMetadata = game.provider_metadata.find(
           (metadata) => metadata.provider_slug === provider.slug,
         );
 
-        if (existingProviderMetadata) {
-          if (
-            existingProviderMetadata.updated_at ??
-            existingProviderMetadata.created_at >
-              new Date(
-                Date.now() -
-                  configuration.METADATA.TTL_IN_DAYS * 24 * 60 * 60 * 1000,
-              )
-          ) {
-            this.logger.debug({
-              message: "Metadata is already up to date. Skipping.",
-              game: game.getLoggableData(),
-              provider: provider.getLoggableData(),
-            });
-            continue;
-          }
+        // If the existing provider metadata is already up to date, skip the update.
+        if (
+          existingProviderMetadata &&
+          (existingProviderMetadata.updated_at ??
+            existingProviderMetadata.created_at) >
+            new Date(
+              Date.now() -
+                configuration.METADATA.TTL_IN_DAYS * 24 * 60 * 60 * 1000,
+            )
+        ) {
+          this.logger.debug({
+            message: "Metadata is already up to date. Skipping.",
+            game: game.getLoggableData(),
+            provider: provider.getLoggableData(),
+          });
+          continue;
+        }
 
+        // If the existing provider metadata is not up to date, update it.
+        if (existingProviderMetadata) {
           await this.map(
             game.id,
             provider.slug,
@@ -157,10 +172,13 @@ export class MetadataService {
             undefined,
           );
         } else {
+          // If the existing provider metadata is not found, find the metadata.
           await this.findMetadata(game, provider);
         }
+        changeCount++;
       } catch (error) {
-        this.logger.warn({
+        // If the metadata update fails, log the error and skip the update.
+        this.logger.error({
           message: "Failed updating metadata for game and provider. Skipping.",
           game: game.getLoggableData(),
           provider: provider.getLoggableData(),
@@ -168,6 +186,17 @@ export class MetadataService {
         });
       }
     }
+
+    // If no metadata changes were made, return the game without merging the metadata.
+    if (changeCount === 0) {
+      this.logger.debug({
+        message: "No metadata changes. Skipping merge.",
+        game: game.getLoggableData(),
+      });
+      return game;
+    }
+
+    // Merge the updated metadata and return the updated game.
     return this.merge(game.id);
   }
 
