@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { Builder } from "builder-pattern";
 import {
   fields,
   igdb,
@@ -9,12 +8,14 @@ import {
   whereIn,
 } from "ts-igdb-client";
 
+import { isNumberString } from "class-validator";
 import { isEmpty } from "lodash";
 import configuration from "../../../../configuration";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
 import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
 import { GenreMetadata } from "../../genres/genre.metadata.entity";
+import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import {
@@ -75,9 +76,11 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   public override async search(
     query: string,
   ): Promise<MinimalGameMetadataDto[]> {
-    const games = await (
-      await this.getClient()
-    )
+    const client = await this.getClient();
+
+    const found_games = [];
+
+    const searchByName = await client
       .request("games")
       .pipe(
         fields(["id", "name", "first_release_date", "cover.*"]),
@@ -86,15 +89,28 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       )
       .execute();
 
+    found_games.push(searchByName.data);
+
+    if (isNumberString(query)) {
+      const searchById = await client
+        .request("games")
+        .pipe(
+          fields(["id", "name", "first_release_date", "cover.*"]),
+          where("id", "=", Number(query)),
+        )
+        .execute();
+      found_games.push(searchById.data);
+    }
+
     this.logger.debug({
-      message: `Found ${games.data.length} games on IGDB`,
+      message: `Found ${found_games.length} games on IGDB`,
       query,
-      count: games.data.length,
-      games: games.data,
+      count: found_games.length,
+      games: found_games,
     });
 
     const minimalGameMetadata = [];
-    for (const game of games.data) {
+    for (const game of found_games) {
       minimalGameMetadata.push(
         await this.mapMinimalGameMetadata(game as IgdbGame),
       );
@@ -125,6 +141,114 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     }
   }
 
+  private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
+    return {
+      age_rating: this.calculateAverageAgeRating(game.name, game.age_ratings),
+      provider_slug: this.slug,
+      provider_data_id: game.id?.toString(),
+      provider_data_url: game.url,
+      title: game.name,
+      release_date: new Date(game.first_release_date * 1000),
+      description:
+        game.summary && game.storyline
+          ? `${game.summary}\n\n${game.storyline}`
+          : game.summary || game.storyline || null,
+      rating: game.total_rating,
+      url_websites: game.websites?.map((website) => website.url),
+      early_access: [
+        IgdbGameStatus.alpha,
+        IgdbGameStatus.beta,
+        IgdbGameStatus.early_access,
+      ].includes(game.status),
+      url_screenshots: [
+        ...(game.screenshots || []),
+        ...(game.artworks || []),
+      ].map((image) => this.replaceUrl(image.url, "t_thumb", "t_1080p_2x")),
+      url_trailers: game.videos
+        ?.filter((video) =>
+          ["trailer", "teaser", "intro"].some((word) =>
+            video.name?.toLowerCase().includes(word),
+          ),
+        )
+        .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
+      url_gameplays: game.videos
+        ?.filter((video) => video.name?.toLowerCase().includes("gameplay"))
+        .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
+      developers: (game.involved_companies || [])
+        .filter((company) => company.developer)
+        .map(
+          (company) =>
+            ({
+              provider_slug: "igdb",
+              provider_data_id: company.company.id.toString(),
+              name: company.company.name,
+            }) as DeveloperMetadata,
+        ),
+      publishers: (game.involved_companies || [])
+        .filter((company) => company.publisher)
+        .map(
+          (company) =>
+            ({
+              provider_slug: "igdb",
+              provider_data_id: company.company.id.toString(),
+              name: company.company.name,
+            }) as PublisherMetadata,
+        ),
+      genres: (game.genres || []).map(
+        (genre) =>
+          ({
+            provider_slug: "igdb",
+            provider_data_id: genre.id.toString(),
+            name: genre.name,
+          }) as GenreMetadata,
+      ),
+      tags: [
+        ...(game.keywords || []).map(
+          (keyword) =>
+            ({
+              provider_slug: "igdb",
+              provider_data_id: keyword.id.toString(),
+              name: keyword.name,
+            }) as TagMetadata,
+        ),
+        ...(game.themes || []).map(
+          (theme) =>
+            ({
+              provider_slug: "igdb",
+              provider_data_id: theme.id.toString(),
+              name: theme.name,
+            }) as TagMetadata,
+        ),
+      ],
+      cover: await this.downloadImage(
+        game.cover?.url,
+        "t_thumb",
+        "t_cover_big_2x",
+      ),
+      background: await this.downloadImage(
+        game.artworks?.[0]?.url,
+        "t_thumb",
+        "t_1080p_2x",
+      ),
+    } as GameMetadata;
+  }
+
+  private async mapMinimalGameMetadata(
+    game: IgdbGame,
+  ): Promise<MinimalGameMetadataDto> {
+    return {
+      provider_slug: "igdb",
+      provider_data_id: game.id?.toString(),
+      title: game.name,
+      description:
+        game.summary && game.storyline
+          ? `${game.summary}\n\n${game.storyline}`
+          : game.summary || game.storyline || null,
+      release_date: new Date(game.first_release_date * 1000),
+      cover_url: this.replaceUrl(game.cover?.url, "t_thumb", "t_cover_big_2x"),
+    } as MinimalGameMetadataDto;
+  }
+
   private async getClient() {
     const token = await twitchAccessToken({
       client_id: configuration.METADATA.IGDB.CLIENT_ID,
@@ -133,139 +257,19 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
-
-  private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
-    return Builder<GameMetadata>()
-      .age_rating(this.calculateAverageAgeRating(game.name, game.age_ratings))
-      .provider_slug(this.slug)
-      .provider_data_id(game.id?.toString())
-      .provider_data_url(game.url)
-      .title(game.name)
-      .release_date(new Date(game.first_release_date * 1000))
-      .description(
-        game.summary && game.storyline
-          ? `${game.summary}\n\n${game.storyline}`
-          : game.summary || game.storyline || null,
-      )
-      .rating(game.total_rating)
-      .url_websites(game.websites?.map((website) => website.url))
-      .early_access(
-        [
-          IgdbGameStatus.alpha,
-          IgdbGameStatus.beta,
-          IgdbGameStatus.early_access,
-        ].includes(game.status),
-      )
-      .url_screenshots(
-        [...(game.screenshots || []), ...(game.artworks || [])].map((image) =>
-          image.url.replace("//", "https://").replace("t_thumb", "t_1080p_2x"),
-        ),
-      )
-      .url_trailers(
-        game.videos
-          ?.filter((video) =>
-            ["trailer", "teaser", "intro"].some((word) =>
-              video.name?.toLowerCase().includes(word),
-            ),
-          )
-          .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
-      )
-      .url_gameplays(
-        game.videos
-          ?.filter((video) =>
-            ["gameplay"].some((word) =>
-              video.name?.toLowerCase().includes(word),
-            ),
-          )
-          .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
-      )
-      .developers(
-        (game.involved_companies || [])
-          .filter((involved_company) => involved_company.developer)
-          .map((involved_company) => {
-            return Builder<DeveloperMetadata>()
-              .provider_slug("igdb")
-              .provider_data_id(involved_company.company.id.toString())
-              .name(involved_company.company.name)
-              .build();
-          }),
-      )
-      .publishers(
-        (game.involved_companies || [])
-          .filter((involved_company) => involved_company.publisher)
-          .map((involved_company) => {
-            return Builder<DeveloperMetadata>()
-              .provider_slug("igdb")
-              .provider_data_id(involved_company.company.id.toString())
-              .name(involved_company.company.name)
-              .build();
-          }),
-      )
-      .genres(
-        (game.genres || []).map((genre) => {
-          return Builder<GenreMetadata>()
-            .provider_slug("igdb")
-            .provider_data_id(genre.id.toString())
-            .name(genre.name)
-            .build();
-        }),
-      )
-      .tags([
-        ...(game.keywords || []).map((keyword) => {
-          return Builder<TagMetadata>()
-            .provider_slug("igdb")
-            .provider_data_id(keyword.id.toString())
-            .name(keyword.name)
-            .build();
-        }),
-        ...(game.themes || []).map((theme) => {
-          return Builder<TagMetadata>()
-            .provider_slug("igdb")
-            .provider_data_id(theme.id.toString())
-            .name(theme.name)
-            .build();
-        }),
-      ])
-      .cover(
-        game.cover
-          ? await this.mediaService.downloadByUrl(
-              game.cover?.url
-                .replace("//", "https://")
-                .replace("t_thumb", "t_cover_big_2x"),
-            )
-          : undefined,
-      )
-      .background(
-        game.artworks?.[0]
-          ? await this.mediaService.downloadByUrl(
-              game.artworks?.[0]?.url
-                .replace("//", "https://")
-                .replace("t_thumb", "t_1080p_2x"),
-            )
-          : undefined,
-      )
-      .build();
+  private replaceUrl(url: string, from: string, to: string) {
+    return url.replace("//", "https://").replace(from, to);
   }
-
-  private async mapMinimalGameMetadata(
-    game: IgdbGame,
-  ): Promise<MinimalGameMetadataDto> {
-    return Builder<MinimalGameMetadataDto>()
-      .provider_slug("igdb")
-      .provider_data_id(game.id?.toString())
-      .title(game.name)
-      .description(
-        game.summary && game.storyline
-          ? `${game.summary}\n\n${game.storyline}`
-          : game.summary || game.storyline || null,
-      )
-      .release_date(new Date(game.first_release_date * 1000))
-      .cover_url(
-        game.cover?.url
-          .replace("//", "https://")
-          .replace("t_thumb", "t_cover_big_2x"),
-      )
-      .build();
+  private async downloadImage(url?: string, from?: string, to?: string) {
+    if (!url) return undefined;
+    try {
+      return await this.mediaService.downloadByUrl(
+        this.replaceUrl(url, from, to),
+      );
+    } catch (error) {
+      this.logger.error(`Failed to download image from ${url}:`, error);
+      return undefined;
+    }
   }
 
   private calculateAverageAgeRating(

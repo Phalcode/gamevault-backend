@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { Builder } from "builder-pattern";
 import { randomUUID } from "crypto";
 
 import configuration from "../../../../configuration";
@@ -31,49 +30,49 @@ export class TestHighPriorityProviderService extends MetadataProvider {
   }
 
   private fakeGame(): GameMetadata {
-    return Builder<GameMetadata>()
-      .provider_slug(this.slug)
-      .provider_data_id(randomUUID())
-      .title(this.name)
-      .description(this.name)
-      .developers([
+    return {
+      provider_slug: this.slug,
+      provider_data_id: randomUUID(),
+      title: this.name,
+      description: this.name,
+      developers: [
         {
           provider_slug: this.slug,
           provider_data_id: randomUUID(),
           name: this.name,
         } as DeveloperMetadata,
-      ])
-      .publishers([
+      ],
+      publishers: [
         {
           provider_slug: this.slug,
           provider_data_id: randomUUID(),
           name: this.name,
         } as PublisherMetadata,
-      ])
-      .genres([
+      ],
+      genres: [
         {
           provider_slug: this.slug,
           provider_data_id: randomUUID(),
           name: this.name,
         } as GenreMetadata,
-      ])
-      .tags([
+      ],
+      tags: [
         {
           provider_slug: this.slug,
           provider_data_id: randomUUID(),
           name: this.name,
         } as TagMetadata,
-      ])
-      .build();
+      ],
+    } as GameMetadata;
   }
 
   private fakeMinimalGame(): MinimalGameMetadataDto {
-    return Builder<MinimalGameMetadataDto>()
-      .provider_slug(this.slug)
-      .provider_data_id(randomUUID())
-      .release_date(new Date())
-      .description(this.name)
-      .title(this.name)
-      .build();
+    return {
+      provider_slug: this.slug,
+      provider_data_id: randomUUID(),
+      release_date: new Date(),
+      description: this.name,
+      title: this.name,
+    } as MinimalGameMetadataDto;
   }
 }
