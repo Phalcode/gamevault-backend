@@ -89,7 +89,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       )
       .execute();
 
-    found_games.push(searchByName.data);
+    found_games.push(...searchByName.data);
 
     if (isNumberString(query)) {
       const searchById = await client
@@ -99,7 +99,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           where("id", "=", Number(query)),
         )
         .execute();
-      found_games.push(searchById.data);
+      found_games.push(...searchById.data);
     }
 
     this.logger.debug({
