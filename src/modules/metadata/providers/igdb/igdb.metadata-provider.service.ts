@@ -258,6 +258,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
   private replaceUrl(url: string, from: string, to: string) {
+    if (!url) return undefined;
     return url.replace("//", "https://").replace(from, to);
   }
   private async downloadImage(url?: string, from?: string, to?: string) {
