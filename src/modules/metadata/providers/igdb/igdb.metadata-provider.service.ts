@@ -148,7 +148,9 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       provider_data_id: game.id?.toString(),
       provider_data_url: game.url,
       title: game.name,
-      release_date: new Date(game.first_release_date * 1000),
+      release_date: isNaN(new Date(game.first_release_date * 1000).getTime())
+        ? undefined
+        : new Date(game.first_release_date * 1000),
       description:
         game.summary && game.storyline
           ? `${game.summary}\n\n${game.storyline}`
@@ -166,13 +168,17 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       ].map((image) => this.replaceUrl(image.url, "t_thumb", "t_1080p_2x")),
       url_trailers: game.videos
         ?.filter((video) =>
-          ["trailer", "teaser", "intro"].some((word) =>
+          ["trailer", "teaser", "intro", "showcase", "preview"].some((word) =>
             video.name?.toLowerCase().includes(word),
           ),
         )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
       url_gameplays: game.videos
-        ?.filter((video) => video.name?.toLowerCase().includes("gameplay"))
+        ?.filter((video) =>
+          ["gameplay", "playthrough", "demo"].some((word) =>
+            video.name?.toLowerCase().includes(word),
+          ),
+        )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
       developers: (game.involved_companies || [])
         .filter((company) => company.developer)
