@@ -398,7 +398,7 @@ export class MetadataService {
     }
 
     // Clear the user metadata if necessary.
-    if (providerSlug === "user") {
+    if (providerSlug === "user" && game.user_metadata?.id) {
       await this.gameMetadataService.deleteByGameMetadataIdOrFail(
         game.user_metadata.id,
       );
