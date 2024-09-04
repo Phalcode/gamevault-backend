@@ -37,14 +37,12 @@ export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
   private runDebouncedIntegrityCheck = debounce(async () => {
-    const gamesInFileSystem = await this.readAllFiles();
-    let gamesInDatabase = await this.gamesService.find({
-      loadDeletedEntities: false,
-      loadRelations: true,
-    });
-    gamesInDatabase = await this.checkIntegrity(
-      gamesInFileSystem,
-      gamesInDatabase,
+    await this.checkIntegrity(
+      await this.readAllFiles(),
+      await this.gamesService.find({
+        loadDeletedEntities: false,
+        loadRelations: true,
+      }),
     );
   }, 5000);
 

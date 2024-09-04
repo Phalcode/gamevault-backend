@@ -11,7 +11,6 @@ import { validateOrReject } from "class-validator";
 import configuration from "../../configuration";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
-import { MediaService } from "../media/media.service";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
@@ -26,7 +25,6 @@ export class MetadataService {
     @Inject(forwardRef(() => GamesService))
     private gamesService: GamesService,
     private gameMetadataService: GameMetadataService,
-    private mediaService: MediaService,
   ) {}
 
   /**
@@ -122,7 +120,16 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async updateMetadata(game: GamevaultGame): Promise<GamevaultGame> {
+  private async updateMetadata(
+    gameToUpdate: GamevaultGame,
+  ): Promise<GamevaultGame> {
+    const game = await this.gamesService.findOneByGameIdOrFail(
+      gameToUpdate.id,
+      {
+        loadDeletedEntities: false,
+      },
+    );
+
     this.logger.log({
       message: "Updating metadata.",
       game: game.getLoggableData(),
