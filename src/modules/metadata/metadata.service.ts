@@ -100,7 +100,7 @@ export class MetadataService {
   async check(games: GamevaultGame[]): Promise<void> {
     for (const game of games) {
       try {
-        await this.updateMetadata(game);
+        await this.updateMetadata(game.id);
       } catch (error) {
         this.logger.warn({
           message: "Error checking metadata for game.",
@@ -120,15 +120,10 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async updateMetadata(
-    gameToUpdate: GamevaultGame,
-  ): Promise<GamevaultGame> {
-    const game = await this.gamesService.findOneByGameIdOrFail(
-      gameToUpdate.id,
-      {
-        loadDeletedEntities: false,
-      },
-    );
+  private async updateMetadata(gameId: number): Promise<GamevaultGame> {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+    });
 
     this.logger.log({
       message: "Updating metadata.",
