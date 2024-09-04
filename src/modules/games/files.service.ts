@@ -36,7 +36,7 @@ import { RangeHeader } from "./models/range-header.model";
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
-  private postIngest = debounce(async () => {
+  private runDebouncedIntegrityCheck = debounce(async () => {
     const gamesInFileSystem = await this.readAllFiles();
     let gamesInDatabase = await this.gamesService.find({
       loadDeletedEntities: false,
@@ -46,8 +46,7 @@ export class FilesService implements OnApplicationBootstrap {
       gamesInFileSystem,
       gamesInDatabase,
     );
-    this.metadataService.check(gamesInDatabase);
-  }, 3000);
+  }, 5000);
 
   constructor(
     private gamesService: GamesService,
@@ -76,7 +75,7 @@ export class FilesService implements OnApplicationBootstrap {
       });
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES || 60} * * * *`, {
+  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
     disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0,
   })
   public async index(files?: File[]): Promise<GamevaultGame[]> {
@@ -93,7 +92,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     await this.ingest(validatedFilesToIngest);
-    this.postIngest();
+    this.runDebouncedIntegrityCheck();
   }
 
   private async ingest(files: File[]): Promise<void> {
@@ -101,6 +100,7 @@ export class FilesService implements OnApplicationBootstrap {
       message: "Ingesting games.",
       count: files.length,
     });
+    const updatedGames: GamevaultGame[] = [];
     for (const file of files) {
       const gameToIndex = new GamevaultGame();
       try {
@@ -123,6 +123,7 @@ export class FilesService implements OnApplicationBootstrap {
               game: gameToIndex.getLoggableData(),
               existingGame: existingGameTuple[1].getLoggableData(),
             });
+            updatedGames.push(existingGameTuple[1]);
             continue;
           }
 
@@ -132,7 +133,7 @@ export class FilesService implements OnApplicationBootstrap {
               game: gameToIndex.getLoggableData(),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            await this.gamesService.save(gameToIndex);
+            updatedGames.push(await this.gamesService.save(gameToIndex));
             continue;
           }
 
@@ -146,7 +147,9 @@ export class FilesService implements OnApplicationBootstrap {
               existingGameTuple[1].id,
             );
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            await this.updateFileInfo(restoredGame.id, gameToIndex);
+            updatedGames.push(
+              await this.updateFileInfo(restoredGame.id, gameToIndex),
+            );
             continue;
           }
 
@@ -157,7 +160,9 @@ export class FilesService implements OnApplicationBootstrap {
               existingGame: existingGameTuple[1].getLoggableData(),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            await this.updateFileInfo(existingGameTuple[1].id, gameToIndex);
+            updatedGames.push(
+              await this.updateFileInfo(existingGameTuple[1].id, gameToIndex),
+            );
             continue;
           }
         }
@@ -169,6 +174,7 @@ export class FilesService implements OnApplicationBootstrap {
         });
       }
     }
+    await this.metadataService.check(updatedGames);
     this.logger.log({
       message: "Finished ingesting games.",
       count: files.length,
