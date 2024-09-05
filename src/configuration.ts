@@ -97,6 +97,7 @@ const configuration = {
     ),
   } as const,
   VOLUMES: {
+    CONFIG: parsePath(process.env.VOLUMES_CONFIG, "/config"),
     FILES: parsePath(process.env.VOLUMES_FILES, "/files"),
     MEDIA: parsePath(process.env.VOLUMES_MEDIA, "/media"),
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
@@ -202,6 +203,8 @@ export function getCensoredConfiguration() {
   const censoredConfig = JSON.parse(JSON.stringify(configuration));
   censoredConfig.DB.PASSWORD = "**REDACTED**";
   censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
+  censoredConfig.METADATA.IGDB.CLIENT_ID = "**REDACTED**";
+  censoredConfig.METADATA.IGDB.CLIENT_SECRET = "**REDACTED**";
   return censoredConfig;
 }
 
