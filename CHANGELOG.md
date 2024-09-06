@@ -2,21 +2,29 @@
 
 ## 13.0.0
 
-Recommended Gamevault App Version: `v1.11.1.0`
+Recommended Gamevault App Version: `v1.12.0.0`
 
 ### Breaking Changes & Migration
 
 (Migration Instructions are marked **fat**)
 
-- Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
-- Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove all old plugins.**
-- Removed RAWG Integration aswell and all configuration for it. -> **Remove all RAWG related configuration.**
-- Removed Google Images Boxart Scraper. (Let's be honest, it was shit anyway.)
+- **Check if your configuation still aligns [the new version](https://gamevau.lt/docs/server-docs/configuration).**
 - Introduced a new Plugin Framework that universally supports any metadata provider plugin.
-- Implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider. -> **Learn how to set it up [here](#TODO:)**
-- Optimized Game Indexer. It now only reads games that have changed instead of reading all files all the time.
-- Implemented parental control settings. [#304](https://github.com/Phalcode/gamevault-backend/issues/304) -> **Learn how to set it up [here](#TODO:)**
-- TODO: Migrated old Games to new Metadata System.
+- Implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider. -> **Learn how to set it up [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb)**
+- Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
+- Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove them if you used them (Spoiler: You pprobably didn't).**
+- Implemented parental control features. [#304](https://github.com/Phalcode/gamevault-backend/issues/304) -> **Learn how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control)**
+
+### Changes
+
+- Implemented Migrations to migrate all data to new schemes.
+- Optimized Game Indexer. It now usually only reads games that have changed instead of reading all files all the time.
+- Removed RAWG Integration aswell and all configuration for it.
+- Removed Google Images Boxart Scraper. (Let's be honest, it was shit anyway.)
+- Implemented Editing of Games
+- Implemented a `news.md` (a.k.a. Message of the Day) file and a `GET /config/news` API you can use to communicate news to your users. -> **Learn how to set it up [here](#TODO:)**
+- Implemented Notes field in Games
+- Implemented Default Launch Parameters, Default Launch Executable & Default Installer File fields in Games
 
 ## 12.2.0
 
