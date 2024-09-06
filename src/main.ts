@@ -15,7 +15,6 @@ import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import { join, resolve } from "path";
 
-import { static as serveStatic } from "express";
 import { AppModule } from "./app.module";
 import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
@@ -193,8 +192,6 @@ async function bootstrap(): Promise<void> {
         '<p style=\'font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.5; text-align: center;\'\'><strong>🕹️ GameVault UI is in Another Castle! 🏰</strong><br/>The server is operational, but there is currently no Web UI available for GameVault.<br/><br/><strong>Simply connect to the server using the <a target="_blank" href="https://www.microsoft.com/store/apps/9PCKDV76GL75" >GameVault Client Application</a> for now.</strong></p>',
       );
     });
-
-  app.use("/news.md", serveStatic(`${configuration.VOLUMES.CONFIG}/news.md`));
 
   await app.listen(configuration.SERVER.PORT);
 

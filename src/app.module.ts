@@ -5,6 +5,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
 import { AdminModule } from "./modules/admin/admin.module";
+import { ConfigModule } from "./modules/config/admin.module";
 import { DatabaseModule } from "./modules/database/database.module";
 import { GamesModule } from "./modules/games/games.module";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
@@ -28,6 +29,7 @@ import { UsersModule } from "./modules/users/users.module";
     GamesModule,
     EventEmitterModule.forRoot(),
     MetadataModule,
+    ConfigModule,
   ],
   providers: [
     DefaultStrategy,
