@@ -19,9 +19,9 @@ import { ProgressV12 } from "../../legacy-entities/progress.v12-entity";
 import { PublisherV12 } from "../../legacy-entities/publisher.v12-entity";
 import { TagV12 } from "../../legacy-entities/tag.v12-entity";
 
-export class V13Part3MigrateData1724800000000 implements MigrationInterface {
+export class V13Part3MigrateData1725821356900 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
-  name = "V13Part3MigrateData1724800000000";
+  name = "V13Part3MigrateData1725821356900";
   legacyProviderSlug = "rawg-legacy";
   public async up(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Starting Migration to V13.0.0 - Part 3" });
