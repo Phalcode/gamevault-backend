@@ -196,11 +196,14 @@ export class FilesService implements OnApplicationBootstrap {
     gameToUpdate.early_access = updatesToApply.early_access;
     gameToUpdate.type = updatesToApply.type;
 
+    const updatedGame = await this.gamesService.save(gameToUpdate);
     this.logger.log({
       message: `Updated new Game Information based on file changes.`,
-      game: gameToUpdate.getLoggableData(),
+      updatesToApply,
+      updatedGame,
     });
-    return await this.gamesService.save(gameToUpdate);
+
+    return updatedGame;
   }
 
   private isValidFilePath(filename: string) {
