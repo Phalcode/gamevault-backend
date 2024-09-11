@@ -374,11 +374,6 @@ export class GamesService {
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if (foundGame.release_date?.getTime() !== game.release_date?.getTime()) {
-      differences.push(
-        `release_date: ${foundGame.release_date} -> ${game.release_date}`,
-      );
-    }
     if (foundGame.early_access != game.early_access) {
       differences.push(
         `early_access: ${foundGame.early_access} -> ${game.early_access}`,
