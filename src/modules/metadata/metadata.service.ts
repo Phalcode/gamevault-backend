@@ -334,25 +334,25 @@ export class MetadataService {
     mergedMetadata.genres?.forEach((genre) => {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
-      genre.provider_data_id = genre.provider_data_id || genre.name;
+      genre.provider_data_id = genre.name.toLowerCase();
     });
 
     mergedMetadata.tags?.forEach((tag) => {
       tag.id = undefined;
       tag.provider_slug = "gamevault";
-      tag.provider_data_id = tag.provider_data_id || tag.name;
+      tag.provider_data_id = tag.name.toLowerCase();
     });
 
     mergedMetadata.developers?.forEach((developer) => {
       developer.id = undefined;
       developer.provider_slug = "gamevault";
-      developer.provider_data_id = developer.provider_data_id || developer.name;
+      developer.provider_data_id = developer.name.toLowerCase();
     });
 
     mergedMetadata.publishers?.forEach((publisher) => {
       publisher.id = undefined;
       publisher.provider_slug = "gamevault";
-      publisher.provider_data_id = publisher.provider_data_id || publisher.name;
+      publisher.provider_data_id = publisher.name.toLowerCase();
     });
 
     // Save the merged metadata
