@@ -9,7 +9,7 @@ import {
 } from "ts-igdb-client";
 
 import { isNumberString } from "class-validator";
-import { isEmpty } from "lodash";
+import { isEmpty, lowerCase } from "lodash";
 import configuration from "../../../../configuration";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
@@ -169,14 +169,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       url_trailers: game.videos
         ?.filter((video) =>
           ["trailer", "teaser", "intro", "showcase", "preview"].some((word) =>
-            video.name?.toLowerCase().includes(word),
+            lowerCase(video.name).includes(word),
           ),
         )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
       url_gameplays: game.videos
         ?.filter((video) =>
           ["gameplay", "playthrough", "demo"].some((word) =>
-            video.name?.toLowerCase().includes(word),
+            lowerCase(video.name).includes(word),
           ),
         )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),

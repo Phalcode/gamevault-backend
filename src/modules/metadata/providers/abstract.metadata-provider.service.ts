@@ -14,6 +14,7 @@ import {
 } from "class-validator";
 import { stringSimilarity } from "string-similarity-js";
 
+import { kebabCase } from "lodash";
 import globals from "../../../globals";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { MediaService } from "../../media/media.service";
@@ -128,13 +129,10 @@ export abstract class MetadataProvider implements OnModuleInit {
 
     // Calculate the probability of a game result being a match for the input game.
     for (const gameResult of gameResults) {
-      // Remove non-alphanumeric characters and convert both titles to lowercase.
-      const cleanedGameTitle = game.title
-        ?.toLowerCase()
-        .replace(/[^\w\s]/g, "");
-      const cleanedGameResultTitle = gameResult.title
-        ?.toLowerCase()
-        .replace(/[^\w\s]/g, "");
+
+      // Clean casing
+      const cleanedGameTitle = kebabCase(game.title);
+      const cleanedGameResultTitle = kebabCase(gameResult.title);
 
       if (!cleanedGameTitle || !cleanedGameResultTitle) {
         this.logger.warn({

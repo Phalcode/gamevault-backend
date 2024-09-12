@@ -8,6 +8,7 @@ import {
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
+import { kebabCase } from "lodash";
 import configuration from "../../configuration";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
@@ -334,25 +335,25 @@ export class MetadataService {
     mergedMetadata.genres?.forEach((genre) => {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
-      genre.provider_data_id = genre.name.toLowerCase();
+      genre.provider_data_id = kebabCase(genre.name);
     });
 
     mergedMetadata.tags?.forEach((tag) => {
       tag.id = undefined;
       tag.provider_slug = "gamevault";
-      tag.provider_data_id = tag.name.toLowerCase();
+      tag.provider_data_id = kebabCase(tag.name);
     });
 
     mergedMetadata.developers?.forEach((developer) => {
       developer.id = undefined;
       developer.provider_slug = "gamevault";
-      developer.provider_data_id = developer.name.toLowerCase();
+      developer.provider_data_id = kebabCase(developer.name);
     });
 
     mergedMetadata.publishers?.forEach((publisher) => {
       publisher.id = undefined;
       publisher.provider_slug = "gamevault";
-      publisher.provider_data_id = publisher.name.toLowerCase();
+      publisher.provider_data_id = kebabCase(publisher.name);
     });
 
     // Save the merged metadata

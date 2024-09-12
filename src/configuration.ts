@@ -1,3 +1,4 @@
+import { lowerCase } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
 
@@ -5,7 +6,7 @@ function parseBooleanEnvVariable(
   environmentVariable: string,
   defaultCase: boolean = false,
 ): boolean {
-  switch (environmentVariable?.toLocaleLowerCase()) {
+  switch (lowerCase(environmentVariable)) {
     case "0":
     case "false":
     case "no":

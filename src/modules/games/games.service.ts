@@ -14,7 +14,7 @@ import {
   Repository,
 } from "typeorm";
 
-import { isEmpty } from "lodash";
+import { isEmpty, kebabCase } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -269,7 +269,7 @@ export class GamesService {
         updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
           return {
             provider_slug: "user",
-            provider_data_id: tag?.toLowerCase().replaceAll(" ", "-"),
+            provider_data_id: kebabCase(tag),
             name: tag,
           } as TagMetadata;
         });
@@ -279,7 +279,7 @@ export class GamesService {
         updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
           return {
             provider_slug: "user",
-            provider_data_id: genre?.toLowerCase().replaceAll(" ", "-"),
+            provider_data_id: kebabCase(genre),
             name: genre,
           } as GenreMetadata;
         });
@@ -290,7 +290,7 @@ export class GamesService {
           (developer) => {
             return {
               provider_slug: "user",
-              provider_data_id: developer?.toLowerCase().replaceAll(" ", "-"),
+              provider_data_id: kebabCase(developer),
               name: developer,
             } as DeveloperMetadata;
           },
@@ -302,7 +302,7 @@ export class GamesService {
           (publisher) => {
             return {
               provider_slug: "user",
-              provider_data_id: publisher?.toLowerCase().replaceAll(" ", "-"),
+              provider_data_id: kebabCase(publisher),
               name: publisher,
             } as PublisherMetadata;
           },
