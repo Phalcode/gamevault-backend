@@ -8,6 +8,7 @@ Recommended Gamevault App Version: `v1.12.0.0`
 
 (Migration Instructions are marked **fat**)
 
+- Various API changes. **Check the API Docs if you're using the Rest API.**
 - **Check if your configuation still aligns [the new version](https://gamevau.lt/docs/server-docs/configuration).**
 - Introduced a new Plugin Framework that universally supports any metadata provider plugin.
 - Implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider. -> **Learn how to set it up [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb)**

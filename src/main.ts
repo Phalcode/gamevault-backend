@@ -20,7 +20,7 @@ import configuration, { getCensoredConfiguration } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { GameVaultPluginModule } from "./globals";
 import { default as logger, stream, default as winston } from "./logging";
-import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
+import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 
@@ -83,16 +83,18 @@ async function bootstrap(): Promise<void> {
   } else {
     app.enableCors();
   }
-
   // GZIP
   app.use(compression());
+
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
+
   // Cookies
   app.use(cookieparser());
-  // Redircect API Versioning
-  app.use(new ApiVersionMiddleware().use);
 
+  // Support Legacy Routes
+  app.use(new LegacyRoutesMiddleware().use);
+  
   // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
