@@ -129,7 +129,6 @@ export abstract class MetadataProvider implements OnModuleInit {
 
     // Calculate the probability of a game result being a match for the input game.
     for (const gameResult of gameResults) {
-
       // Clean casing
       const cleanedGameTitle = kebabCase(game.title);
       const cleanedGameResultTitle = kebabCase(gameResult.title);
