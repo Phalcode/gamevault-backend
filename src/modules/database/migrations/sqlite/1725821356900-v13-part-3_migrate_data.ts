@@ -55,15 +55,17 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
     `);
 
     for (const table of tables) {
-        // Update the auto-increment value for each table
-        await queryRunner.query(`
+      // Update the auto-increment value for each table
+      await queryRunner.query(`
           UPDATE sqlite_sequence 
           SET seq = ${randomSeq} 
           WHERE name = '${table.name}';
         `);
     }
 
-    this.logger.log({ message: "All auto-increment values reset to a random value." });
+    this.logger.log({
+      message: "All auto-increment values reset to a random value.",
+    });
   }
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {

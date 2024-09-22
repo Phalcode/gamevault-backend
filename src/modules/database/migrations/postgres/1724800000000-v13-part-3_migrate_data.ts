@@ -68,8 +68,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           -- Set all sequences to randomSeq
           EXECUTE format('SELECT setval(pg_get_serial_sequence(''%I'', ''id''), ${randomSeq}, false);', rec.tablename);
         END LOOP;
-      END $$;`,
-    );
+      END $$;`);
     this.logger.log({ message: "All sequences reset to a random value." });
   }
 
