@@ -94,7 +94,7 @@ async function bootstrap(): Promise<void> {
 
   // Support Legacy Routes
   app.use(new LegacyRoutesMiddleware().use);
-  
+
   // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {

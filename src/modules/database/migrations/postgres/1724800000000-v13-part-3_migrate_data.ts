@@ -45,32 +45,32 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
   private async resetSequences(queryRunner: QueryRunner) {
     const randomSeq = randomInt(999_999, 999_999_999);
     await queryRunner.query(`
-        DO $$
-        DECLARE
-            rec RECORD;
-        BEGIN
-            FOR rec IN 
-                SELECT 
-                    tablename, 
-                    column_default
-                FROM 
-                    pg_tables t
-                JOIN 
-                    information_schema.columns c 
-                ON 
-                    t.tablename = c.table_name 
-                WHERE 
-                    schemaname = 'public' 
-                    AND column_default LIKE 'nextval(%::regclass)' 
-                    AND c.column_name = 'id'
-                    AND t.tablename != 'migrations' -- Exclude migrations table
-            LOOP
-                -- Set all sequences to 9999999
-                EXECUTE format('SELECT setval(pg_get_serial_sequence(''%I'', ''id''), ${randomSeq}, false);', rec.tablename);
-            END LOOP;
-        END $$;
-    `);
-    this.logger.log({ message: "All sequences reset..." });
+      DO $$
+      DECLARE
+        rec RECORD;
+      BEGIN
+        FOR rec IN 
+          SELECT 
+            tablename, 
+            column_default
+          FROM 
+            pg_tables t
+          JOIN 
+            information_schema.columns c 
+          ON 
+            t.tablename = c.table_name 
+          WHERE 
+            schemaname = 'public' 
+            AND column_default LIKE 'nextval(%::regclass)' 
+            AND c.column_name = 'id'
+            AND t.tablename != 'migrations' -- Exclude migrations table
+        LOOP
+          -- Set all sequences to randomSeq
+          EXECUTE format('SELECT setval(pg_get_serial_sequence(''%I'', ''id''), ${randomSeq}, false);', rec.tablename);
+        END LOOP;
+      END $$;`,
+    );
+    this.logger.log({ message: "All sequences reset to a random value." });
   }
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {
@@ -84,7 +84,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const image of images) {
-      this.logger.log({ message: `Migrating image`, image });
+      this.logger.log({
+        message: `Migrating image ID ${image.id}, Source: ${image.source}`,
+      });
 
       const newImage = await queryRunner.manager.save(Media, {
         source_url: image.source,
@@ -116,7 +118,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const tag of tags) {
-      this.logger.log({ message: `Migrating tag`, tag });
+      this.logger.log({
+        message: `Migrating tag ID ${tag.id}, Name: ${tag.name}`,
+      });
 
       if (
         await queryRunner.manager.existsBy(TagMetadata, {
@@ -124,8 +128,10 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           provider_data_id: tag.rawg_id.toString(),
         })
       ) {
-        this.logger.log({ message: `Tag already exists.` });
-        return;
+        this.logger.log({
+          message: `Tag ID ${tag.id} already exists. Skipping.`,
+        });
+        continue;
       }
 
       const newTag = await queryRunner.manager.save(TagMetadata, {
@@ -159,7 +165,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const genre of genres) {
-      this.logger.log({ message: `Migrating genre`, genre });
+      this.logger.log({
+        message: `Migrating genre ID ${genre.id}, Name: ${genre.name}`,
+      });
 
       if (
         await queryRunner.manager.existsBy(GenreMetadata, {
@@ -167,8 +175,10 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           provider_data_id: genre.rawg_id.toString(),
         })
       ) {
-        this.logger.log({ message: `Genre already exists.` });
-        return;
+        this.logger.log({
+          message: `Genre ID ${genre.id} already exists. Skipping.`,
+        });
+        continue;
       }
 
       const newGenre = await queryRunner.manager.save(GenreMetadata, {
@@ -202,7 +212,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const developer of developers) {
-      this.logger.log({ message: `Migrating developer`, developer });
+      this.logger.log({
+        message: `Migrating developer ID ${developer.id}, Name: ${developer.name}`,
+      });
 
       if (
         await queryRunner.manager.existsBy(DeveloperMetadata, {
@@ -210,8 +222,10 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           provider_data_id: developer.rawg_id.toString(),
         })
       ) {
-        this.logger.log({ message: `Developer already exists.` });
-        return;
+        this.logger.log({
+          message: `Developer ID ${developer.id} already exists. Skipping.`,
+        });
+        continue;
       }
 
       const newDeveloper = await queryRunner.manager.save(DeveloperMetadata, {
@@ -248,7 +262,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const publisher of publishers) {
-      this.logger.log({ message: `Migrating publisher`, publisher });
+      this.logger.log({
+        message: `Migrating publisher ID ${publisher.id}, Name: ${publisher.name}`,
+      });
 
       if (
         await queryRunner.manager.existsBy(PublisherMetadata, {
@@ -256,8 +272,10 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           provider_data_id: publisher.rawg_id.toString(),
         })
       ) {
-        this.logger.log({ message: `Publisher already exists.` });
-        return;
+        this.logger.log({
+          message: `Publisher ID ${publisher.id} already exists. Skipping.`,
+        });
+        continue;
       }
 
       const newPublisher = await queryRunner.manager.save(PublisherMetadata, {
@@ -303,7 +321,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const game of games) {
-      this.logger.log({ message: `Migrating game ${game.id}` });
+      this.logger.log({
+        message: `Migrating game ID ${game.id}, Title: ${game.title}`,
+      });
 
       const migratedGame = await queryRunner.manager.save(GamevaultGame, {
         file_path: game.file_path,
@@ -321,27 +341,25 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
       });
 
       this.logger.log({
-        message: `Migrated game ${game.id} as ${migratedGame.id}.`,
+        message: `Migrated game. Original ID: ${game.id}, Temporary migrated ID: ${migratedGame.id}, Title: ${migratedGame.title}`,
       });
 
-      this.logger.log({
-        message: `Resetting game id ${migratedGame.id} back to ${game.id}.`,
-      });
       await queryRunner.manager.update(GamevaultGame, migratedGame.id, {
         id: game.id,
       });
 
-      const savedGame = await queryRunner.manager.findOneOrFail(GamevaultGame, {
-        where: { id: game.id },
-        withDeleted: true,
-        relations: ["provider_metadata"],
+      const updatedGame = await queryRunner.manager.findOneBy(GamevaultGame, {
+        id: game.id,
       });
-      this.logger.log({ message: `Game saved successfully`, savedGame });
+      this.logger.log({
+        message: `Game migration completed. Updated ID: ${updatedGame.id}, Title: ${updatedGame.title}`,
+      });
 
       const cover = game.box_image
         ? await queryRunner.manager.findOneBy(Media, { id: game.box_image.id })
         : undefined;
-      if (cover) this.logger.log({ message: "Linked cover image", cover });
+      if (cover)
+        this.logger.log({ message: `Linked cover image, ID: ${cover.id}` });
 
       const background = game.background_image
         ? await queryRunner.manager.findOneBy(Media, {
@@ -349,12 +367,13 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.log({ message: "Linked background image", background });
+        this.logger.log({
+          message: `Linked background image, ID: ${background.id}`,
+        });
 
       if (!game.rawg_id) {
         this.logger.log({
-          message: "No rawg_id found. Skipping metadata.",
-          gameId: game.id,
+          message: `No rawg_id found. Skipping metadata for game ID: ${game.id}.`,
         });
         continue;
       }
@@ -365,7 +384,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
             provider_data_id: In(game.tags.map((t) => t.rawg_id)),
           })
         : [];
-      this.logger.log({ message: `Linked tags`, tagCount: tags.length });
+      this.logger.log({
+        message: `Linked ${tags.length} tags for game ID: ${game.id}`,
+      });
 
       const genres = game.genres?.length
         ? await queryRunner.manager.findBy(GenreMetadata, {
@@ -373,7 +394,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
             provider_data_id: In(game.genres.map((g) => g.rawg_id)),
           })
         : [];
-      this.logger.log({ message: `Linked genres`, genreCount: genres.length });
+      this.logger.log({
+        message: `Linked ${genres.length} genres for game ID: ${game.id}`,
+      });
 
       const developers = game.developers?.length
         ? await queryRunner.manager.findBy(DeveloperMetadata, {
@@ -382,8 +405,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           })
         : [];
       this.logger.log({
-        message: `Linked developers`,
-        developerCount: developers.length,
+        message: `Linked ${developers.length} developers for game ID: ${game.id}`,
       });
 
       const publishers = game.publishers?.length
@@ -393,8 +415,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           })
         : [];
       this.logger.log({
-        message: `Linked publishers`,
-        publisherCount: publishers.length,
+        message: `Linked ${publishers.length} publishers for game ID: ${game.id}`,
       });
 
       if (
@@ -403,7 +424,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           provider_data_id: game.rawg_id.toString(),
         })
       ) {
-        this.logger.log({ message: `Game Metadata already exists. Skipping.` });
+        this.logger.log({
+          message: `Game Metadata already exists for game ID ${game.id}. Skipping.`,
+        });
         continue;
       }
 
@@ -425,12 +448,11 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         publishers,
       });
 
-      savedGame.provider_metadata = [gameMetadata];
-      await queryRunner.manager.save(GamevaultGame, savedGame);
+      updatedGame.provider_metadata = [gameMetadata];
+      await queryRunner.manager.save(GamevaultGame, updatedGame);
 
       this.logger.log({
-        message: `Game metadata saved successfully`,
-        gameMetadata,
+        message: `Game metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
       });
     }
 
@@ -470,14 +492,17 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const user of users) {
-      this.logger.log({ message: `Migrating user`, user });
+      this.logger.log({
+        message: `Migrating user ID ${user.id}, Username: ${user.username}`,
+      });
 
       const avatar = user.profile_picture
         ? await queryRunner.manager.findOneBy(Media, {
             id: user.profile_picture.id,
           })
         : undefined;
-      if (avatar) this.logger.log({ message: "Linked avatar image", avatar });
+      if (avatar)
+        this.logger.log({ message: `Linked avatar image, ID: ${avatar.id}` });
 
       const background = user.background_image
         ? await queryRunner.manager.findOneBy(Media, {
@@ -485,7 +510,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.log({ message: "Linked background image", background });
+        this.logger.log({
+          message: `Linked background image, ID: ${background.id}`,
+        });
 
       const bookmarkedGames = user.bookmarked_games?.length
         ? await queryRunner.manager.findBy(GamevaultGame, {
@@ -516,7 +543,12 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         id: user.id,
       });
 
-      this.logger.log({ message: `User migrated successfully`, newUser });
+      const updatedUser = await queryRunner.manager.findOneBy(GamevaultUser, {
+        id: user.id,
+      });
+      this.logger.log({
+        message: `User migrated successfully. Updated ID: ${updatedUser.id}, Username: ${updatedUser.username}`,
+      });
     }
 
     this.logger.log({ message: "User migration completed." });
@@ -536,7 +568,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     });
 
     for (const progress of progresses) {
-      this.logger.log({ message: `Migrating progress`, progress });
+      this.logger.log({
+        message: `Migrating progress ID ${progress.id}, User: ${progress.user?.id}, Game: ${progress.game?.id}`,
+      });
 
       const user = progress.user
         ? await queryRunner.manager.findOne(GamevaultUser, {
@@ -568,9 +602,11 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         id: progress.id,
       });
 
+      const updatedProgress = await queryRunner.manager.findOneBy(Progress, {
+        id: progress.id,
+      });
       this.logger.log({
-        message: `Progress migrated successfully`,
-        newProgress,
+        message: `Progress migrated successfully. Updated ID: ${updatedProgress.id}, Minutes Played: ${updatedProgress.minutes_played}`,
       });
     }
 
