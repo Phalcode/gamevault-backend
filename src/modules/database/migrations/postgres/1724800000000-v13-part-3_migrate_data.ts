@@ -1,4 +1,5 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
+import { randomInt } from "crypto";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { Media } from "../../../media/media.entity";
@@ -26,6 +27,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Starting Migration to V13.0.0 - Part 3" });
 
+    await this.resetSequences(queryRunner);
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
     await this.migrateGenres(queryRunner);
@@ -38,6 +40,37 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     this.logger.log({
       message: "Migration to V13.0.0 - Part 3 completed successfully.",
     });
+  }
+
+  private async resetSequences(queryRunner: QueryRunner) {
+    const randomSeq = randomInt(999_999, 999_999_999);
+    await queryRunner.query(`
+        DO $$
+        DECLARE
+            rec RECORD;
+        BEGIN
+            FOR rec IN 
+                SELECT 
+                    tablename, 
+                    column_default
+                FROM 
+                    pg_tables t
+                JOIN 
+                    information_schema.columns c 
+                ON 
+                    t.tablename = c.table_name 
+                WHERE 
+                    schemaname = 'public' 
+                    AND column_default LIKE 'nextval(%::regclass)' 
+                    AND c.column_name = 'id'
+                    AND t.tablename != 'migrations' -- Exclude migrations table
+            LOOP
+                -- Set all sequences to 9999999
+                EXECUTE format('SELECT setval(pg_get_serial_sequence(''%I'', ''id''), ${randomSeq}, false);', rec.tablename);
+            END LOOP;
+        END $$;
+    `);
+    this.logger.log({ message: "All sequences reset..." });
   }
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {
@@ -54,7 +87,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
       this.logger.log({ message: `Migrating image`, image });
 
       const newImage = await queryRunner.manager.save(Media, {
-        id: image.id,
         source_url: image.source,
         file_path: image.path.replace("/images/", "/media/"),
         type: image.mediaType ?? "application/octet-stream",
@@ -100,7 +132,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         provider_slug: this.legacyProviderSlug,
         provider_data_id: tag.rawg_id.toString(),
         name: tag.name,
-        id: tag.id,
         created_at: tag.created_at,
         updated_at: tag.updated_at,
         deleted_at: tag.deleted_at,
@@ -144,7 +175,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         provider_slug: this.legacyProviderSlug,
         provider_data_id: genre.rawg_id.toString(),
         name: genre.name,
-        id: genre.id,
         created_at: genre.created_at,
         updated_at: genre.updated_at,
         deleted_at: genre.deleted_at,
@@ -188,7 +218,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         provider_slug: this.legacyProviderSlug,
         provider_data_id: developer.rawg_id.toString(),
         name: developer.name,
-        id: developer.id,
         created_at: developer.created_at,
         updated_at: developer.updated_at,
         deleted_at: developer.deleted_at,
@@ -235,7 +264,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         provider_slug: this.legacyProviderSlug,
         provider_data_id: publisher.rawg_id.toString(),
         name: publisher.name,
-        id: publisher.id,
         created_at: publisher.created_at,
         updated_at: publisher.updated_at,
         deleted_at: publisher.deleted_at,
@@ -277,8 +305,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     for (const game of games) {
       this.logger.log({ message: `Migrating game ${game.id}` });
 
-      const savedGame = await queryRunner.manager.save(GamevaultGame, {
-        id: game.id,
+      const migratedGame = await queryRunner.manager.save(GamevaultGame, {
         file_path: game.file_path,
         size: game.size,
         title: game.title,
@@ -293,10 +320,22 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         entity_version: game.entity_version,
       });
 
-      await queryRunner.manager.update(GamevaultGame, savedGame.id, {
+      this.logger.log({
+        message: `Migrated game ${game.id} as ${migratedGame.id}.`,
+      });
+
+      this.logger.log({
+        message: `Resetting game id ${migratedGame.id} back to ${game.id}.`,
+      });
+      await queryRunner.manager.update(GamevaultGame, migratedGame.id, {
         id: game.id,
       });
 
+      const savedGame = await queryRunner.manager.findOneOrFail(GamevaultGame, {
+        where: { id: game.id },
+        withDeleted: true,
+        relations: ["provider_metadata"],
+      });
       this.logger.log({ message: `Game saved successfully`, savedGame });
 
       const cover = game.box_image
@@ -455,7 +494,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         : [];
 
       const newUser = await queryRunner.manager.save(GamevaultUser, {
-        id: user.id,
         username: user.username,
         password: user.password,
         socket_secret: user.socket_secret,
@@ -520,7 +558,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
         minutes_played: progress.minutes_played,
         state: State[progress.state.valueOf()],
         last_played_at: progress.last_played_at,
-        id: progress.id,
         created_at: progress.created_at,
         updated_at: progress.updated_at,
         deleted_at: progress.deleted_at,
