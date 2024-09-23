@@ -7,10 +7,9 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
   name = "V13Part1RenameTables1716000000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log("Starting Migration to V13.0.0 - Part 1");
     if (existsSync("/images")) {
       throw new Error(
-        "Your media volume mount point is still pointing to /images. This is deprecated in v13.0.0. From now on, mount your media to /media instead.",
+        "Your media volume mount point is still pointing to /images. This is deprecated since v13.0.0. From now on, mount your images to /media instead.",
       );
     }
 
@@ -107,7 +106,6 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
     );
 
     await queryRunner.dropTable("query-result-cache", true);
-    this.logger.log("Migration Part 1 Complete");
   }
 
   public async down(): Promise<void> {

@@ -36,7 +36,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
   ];
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Starting Migration to V13.0.0 - Part 3" });
     await this.toggleAutoIncrementId(queryRunner, this.newTables, false);
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
@@ -47,10 +46,6 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     await this.migrateUsersAndBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
     await this.toggleAutoIncrementId(queryRunner, this.newTables, true);
-
-    this.logger.log({
-      message: "Migration to V13.0.0 - Part 3 completed successfully.",
-    });
   }
 
   private async toggleAutoIncrementId(

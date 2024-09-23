@@ -21,11 +21,10 @@ import { TagV12 } from "../../legacy-entities/tag.v12-entity";
 
 export class V13Part3MigrateData1725821356900 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
-  name = "V13Part3MigrateData1724800000000";
+  name = "V13Part3MigrateData1725821356900";
   legacyProviderSlug = "rawg-legacy";
+  
   public async up(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Starting Migration to V13.0.0 - Part 3" });
-    await this.toggleAutoIncrementId();
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
     await this.migrateGenres(queryRunner);
@@ -34,16 +33,7 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
     await this.migrateGames(queryRunner);
     await this.migrateUsersAndBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
-    await this.toggleAutoIncrementId();
-
-    this.logger.log({
-      message: "Migration to V13.0.0 - Part 3 completed successfully.",
-    });
-  }
-
-  private async toggleAutoIncrementId() {
-    throw new NotImplementedException();
-  }
+  }  
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Migrating Images..." });

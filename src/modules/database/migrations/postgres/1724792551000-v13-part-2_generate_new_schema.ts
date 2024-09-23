@@ -5,11 +5,8 @@ export class V13Part2GenerateNewSchema1724792551000
   implements MigrationInterface
 {
   private readonly logger = new Logger(this.constructor.name);
-  name = "V13Part2GenerateNewSchema1724792551000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log("Starting Migration to V13.0.0 - Part 2");
-
     this.logger.log("Creating ENUM type: progress_state_enum");
     await queryRunner.query(`
             CREATE TYPE "public"."progress_state_enum" AS ENUM(
@@ -538,8 +535,6 @@ export class V13Part2GenerateNewSchema1724792551000
             ALTER TABLE "bookmark"
             ADD CONSTRAINT "FK_3c8d93fdd9e34a97f5a5903129b" FOREIGN KEY ("gamevault_game_id") REFERENCES "gamevault_game"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
-
-    this.logger.log("Migration to V13.0.0 - Part 2 completed successfully.");
   }
 
   public async down(): Promise<void> {
