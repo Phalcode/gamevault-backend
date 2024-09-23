@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import {
-    fields,
-    igdb,
-    search,
-    twitchAccessToken,
-    where,
-    whereIn,
+  fields,
+  igdb,
+  search,
+  twitchAccessToken,
+  where,
+  whereIn,
 } from "ts-igdb-client";
 
 import { isNumberString } from "class-validator";
@@ -19,8 +19,8 @@ import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import {
-    GameVaultIgdbAgeRatingMap,
-    IgdbAgeRating,
+  GameVaultIgdbAgeRatingMap,
+  IgdbAgeRating,
 } from "./models/igdb-age-rating.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";

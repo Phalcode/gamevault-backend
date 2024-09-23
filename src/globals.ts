@@ -104,11 +104,10 @@ export default {
 };
 
 export interface FindOptions {
-
   /**
    * Fields to select
    */
-  select?: string[]
+  select?: string[];
 
   /**
    * Indicates whether deleted (sub)entities should be loaded. Subentities may
