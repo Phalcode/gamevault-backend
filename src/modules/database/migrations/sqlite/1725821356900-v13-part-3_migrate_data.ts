@@ -23,7 +23,7 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
   name = "V13Part3MigrateData1725821356900";
   legacyProviderSlug = "rawg-legacy";
-  
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
@@ -33,7 +33,7 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
     await this.migrateGames(queryRunner);
     await this.migrateUsersAndBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
-  }  
+  }
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Migrating Images..." });

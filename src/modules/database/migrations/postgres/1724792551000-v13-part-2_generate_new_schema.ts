@@ -29,11 +29,6 @@ export class V13Part2GenerateNewSchema1724792551000
             )
         `);
 
-    this.logger.log("Creating ENUM type: gamevault_user_role_enum");
-    await queryRunner.query(`
-            CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3')
-        `);
-
     this.logger.log("Creating table: media");
     await queryRunner.query(`
         CREATE TABLE "media" (
@@ -206,7 +201,6 @@ export class V13Part2GenerateNewSchema1724792551000
             "avatar_id" integer,
             "background_id" integer,
             CONSTRAINT "UQ_4c835305e86b28e416cfe13dace" UNIQUE ("username"),
-            CONSTRAINT "UQ_e0da4bbf1074bca2d980a810771" UNIQUE ("socket_secret"),
             CONSTRAINT "UQ_284621e91b3886db5ebd901384a" UNIQUE ("email"),
             CONSTRAINT "REL_872748cf76003216d011ae0feb" UNIQUE ("avatar_id"),
             CONSTRAINT "REL_0bd4a25fe30450010869557666" UNIQUE ("background_id"),
@@ -388,10 +382,10 @@ export class V13Part2GenerateNewSchema1724792551000
             CREATE INDEX "IDX_73e99cf1379987ed7c5983d74f" ON "gamevault_game" ("release_date")
         `);
     await queryRunner.query(`
-            CREATE INDEX "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
+            CREATE INDEX IF NOT EXISTS "IDX_c2a3f8b06558be9508161af22e" ON "gamevault_user" ("id")
         `);
     await queryRunner.query(`
-            CREATE UNIQUE INDEX "IDX_4c835305e86b28e416cfe13dac" ON "gamevault_user" ("username")
+            CREATE UNIQUE INDEX IF NOT EXISTS "IDX_4c835305e86b28e416cfe13dac" ON "gamevault_user" ("username")
         `);
     await queryRunner.query(`
             CREATE UNIQUE INDEX "IDX_e0da4bbf1074bca2d980a81077" ON "gamevault_user" ("socket_secret")
