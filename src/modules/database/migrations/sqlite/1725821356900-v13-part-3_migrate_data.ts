@@ -25,7 +25,7 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
   legacyProviderSlug = "rawg-legacy";
   public async up(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Starting Migration to V13.0.0 - Part 3" });
-    await this.toggleAutoIncrementId(queryRunner, false);
+    await this.toggleAutoIncrementId();
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
     await this.migrateGenres(queryRunner);
@@ -34,17 +34,14 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
     await this.migrateGames(queryRunner);
     await this.migrateUsersAndBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
-    await this.toggleAutoIncrementId(queryRunner, true);
+    await this.toggleAutoIncrementId();
 
     this.logger.log({
       message: "Migration to V13.0.0 - Part 3 completed successfully.",
     });
   }
 
-  private async toggleAutoIncrementId(
-    queryRunner: QueryRunner,
-    enable: boolean,
-  ) {
+  private async toggleAutoIncrementId() {
     throw new NotImplementedException();
   }
 

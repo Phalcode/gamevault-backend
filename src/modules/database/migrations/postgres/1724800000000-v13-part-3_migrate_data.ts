@@ -63,7 +63,7 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     ); // Get only the metadata of specified tables
 
     for (const entity of entities) {
-      const repository: Repository<any> = queryRunner.manager.getRepository(
+      const repository: Repository<unknown> = queryRunner.manager.getRepository(
         entity.name,
       );
 
