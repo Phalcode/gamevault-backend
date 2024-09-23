@@ -8,34 +8,34 @@ export class V13Part4Sync1727131216466 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "v12_image" DROP CONSTRAINT "FK_81cba867ad852a0b6402f0e82fb"
+            ALTER TABLE "v12_image" DROP CONSTRAINT IF EXISTS "FK_81cba867ad852a0b6402f0e82fb"
         `);
     await queryRunner.query(`
-            ALTER TABLE "v12_gamevault_user" DROP CONSTRAINT "FK_4b83e27ed50c1e183a69fceef68"
+            ALTER TABLE "v12_gamevault_user" DROP CONSTRAINT IF EXISTS "FK_4b83e27ed50c1e183a69fceef68"
         `);
     await queryRunner.query(`
-            ALTER TABLE "v12_gamevault_user" DROP CONSTRAINT "FK_c1779b9b22212754248aa404bad"
+            ALTER TABLE "v12_gamevault_user" DROP CONSTRAINT IF EXISTS "FK_c1779b9b22212754248aa404bad"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_d6db1ab4ee9ad9dbe86c64e4cc"
+            DROP INDEX IF EXISTS "public"."IDX_d6db1ab4ee9ad9dbe86c64e4cc"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_c2a3f8b06558be9508161af22e"
+            DROP INDEX IF EXISTS "public"."IDX_c2a3f8b06558be9508161af22e"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_4c835305e86b28e416cfe13dac"
+            DROP INDEX IF EXISTS "public"."IDX_4c835305e86b28e416cfe13dac"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_352a30652cd352f552fef73dec"
+            DROP INDEX IF EXISTS "public"."IDX_352a30652cd352f552fef73dec"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_0b50d89427a7a8aa095340a30f"
+            DROP INDEX IF EXISTS "public"."IDX_0b50d89427a7a8aa095340a30f"
         `);
     await queryRunner.query(`
-            DROP INDEX "public"."IDX_7770cb331bdc54951bb9046fa9"
+            DROP INDEX IF EXISTS "public"."IDX_7770cb331bdc54951bb9046fa9"
         `);
     await queryRunner.query(`
-            ALTER TABLE "v12_game" DROP CONSTRAINT "FK_58972db9052aa0dbc1815defd6a"
+            ALTER TABLE "v12_game" DROP CONSTRAINT IF EXISTS "FK_58972db9052aa0dbc1815defd6a"
         `);
     await queryRunner.query(`
             CREATE SEQUENCE IF NOT EXISTS "v12_image_id_seq" OWNED BY "v12_image"."id"
@@ -50,10 +50,10 @@ export class V13Part4Sync1727131216466 implements MigrationInterface {
             ALTER COLUMN "id" DROP DEFAULT
         `);
     await queryRunner.query(`
-            ALTER TABLE "v12_progress" DROP CONSTRAINT "FK_c20491fd4d90ac21f386d572013"
+            ALTER TABLE "v12_progress" DROP CONSTRAINT IF EXISTS "FK_c20491fd4d90ac21f386d572013"
         `);
     await queryRunner.query(`
-            ALTER TABLE "v12_bookmark" DROP CONSTRAINT "FK_ba0312a26cea7e0d2e4f3a47b3f"
+            ALTER TABLE "v12_bookmark" DROP CONSTRAINT IF EXISTS "FK_ba0312a26cea7e0d2e4f3a47b3f"
         `);
     await queryRunner.query(`
             CREATE SEQUENCE IF NOT EXISTS "v12_gamevault_user_id_seq" OWNED BY "v12_gamevault_user"."id"
