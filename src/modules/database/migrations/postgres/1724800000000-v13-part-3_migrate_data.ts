@@ -365,9 +365,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
 
       const background = game.background_image
         ? await queryRunner.manager.findOne(Media, {
-          where: { id: game.background_image.id },
-          withDeleted: true,
-        })
+            where: { id: game.background_image.id },
+            withDeleted: true,
+          })
         : undefined;
       if (background)
         this.logger.log({
@@ -501,18 +501,18 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
 
       const avatar = user.profile_picture
         ? await queryRunner.manager.findOne(Media, {
-          where: { id: user.profile_picture.id },
-          withDeleted: true,
-        })
+            where: { id: user.profile_picture.id },
+            withDeleted: true,
+          })
         : undefined;
       if (avatar)
         this.logger.log({ message: `Linked avatar image, ID: ${avatar?.id}` });
 
       const background = user.background_image
         ? await queryRunner.manager.findOne(Media, {
-          where: { id: user.background_image.id },
-          withDeleted: true,
-        })
+            where: { id: user.background_image.id },
+            withDeleted: true,
+          })
         : undefined;
       if (background)
         this.logger.log({
