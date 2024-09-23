@@ -1,4 +1,4 @@
-import { lowerCase } from "lodash";
+import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
 
@@ -6,7 +6,7 @@ function parseBooleanEnvVariable(
   environmentVariable: string,
   defaultCase: boolean = false,
 ): boolean {
-  switch (lowerCase(environmentVariable)) {
+  switch (toLower(environmentVariable)) {
     case "0":
     case "false":
     case "no":

@@ -14,7 +14,7 @@ import { compareSync, hashSync } from "bcrypt";
 import { randomBytes } from "crypto";
 import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 
-import { lowerCase } from "lodash";
+import { toLower } from "lodash";
 import configuration from "../../configuration";
 import { FindOptions } from "../../globals";
 import { GamesService } from "../games/games.service";
@@ -323,7 +323,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     user: GamevaultUser,
   ): Promise<void> {
-    if (lowerCase(dto.username) !== lowerCase(user.username)) {
+    if (toLower(dto.username) !== toLower(user.username)) {
       await this.throwIfAlreadyExists(dto.username, undefined);
     }
     user.username = dto.username;
@@ -333,7 +333,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     user: GamevaultUser,
   ): Promise<void> {
-    if (lowerCase(dto.email) !== lowerCase(user.email)) {
+    if (toLower(dto.email) !== toLower(user.email)) {
       await this.throwIfAlreadyExists(undefined, dto.email);
     }
     user.email = dto.email;
@@ -407,7 +407,7 @@ export class UsersService implements OnApplicationBootstrap {
     if (user.role === Role.ADMIN) {
       return true;
     }
-    if (lowerCase(user.username) !== lowerCase(username)) {
+    if (toLower(user.username) !== toLower(username)) {
       throw new ForbiddenException(
         {
           requestedId: userId,
@@ -532,7 +532,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (existingUser) {
       const duplicateField =
-        lowerCase(existingUser.username) === lowerCase(username)
+        toLower(existingUser.username) === toLower(username)
           ? "username"
           : "email";
       throw new ForbiddenException(

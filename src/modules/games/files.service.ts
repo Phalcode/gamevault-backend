@@ -11,7 +11,7 @@ import { randomBytes } from "crypto";
 import { Response } from "express";
 import { Stats, createReadStream, existsSync, statSync } from "fs";
 import { readdir, stat } from "fs/promises";
-import { debounce, lowerCase } from "lodash";
+import { debounce, toLower } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
 import path, { basename, join } from "path";
@@ -210,7 +210,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     if (
       !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-        lowerCase(path.extname(actualFilename)),
+        toLower(path.extname(actualFilename)),
       )
     ) {
       this.logger.debug({
@@ -292,7 +292,7 @@ export class FilesService implements OnApplicationBootstrap {
     const detectedPatterns: string[] = [];
 
     for (const path of filepaths) {
-      const fileName = lowerCase(basename(path));
+      const fileName = toLower(basename(path));
 
       for (const pattern of windowsInstallerPatterns) {
         if (pattern.regex.test(fileName)) {
@@ -349,7 +349,7 @@ export class FilesService implements OnApplicationBootstrap {
       }
 
       // Detect single File executables
-      if (lowerCase(path).endsWith(".exe")) {
+      if (toLower(path).endsWith(".exe")) {
         this.logger.debug({
           message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
           reason: "Filename ends with .exe .",
@@ -358,7 +358,7 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
-      if (lowerCase(path).endsWith(".sh")) {
+      if (toLower(path).endsWith(".sh")) {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
           reason: "Filename ends with .sh .",

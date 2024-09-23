@@ -10,11 +10,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   FindManyOptions,
   FindOneOptions,
+  FindOptionsSelect,
   LessThanOrEqual,
   Repository,
 } from "typeorm";
 
-import { isEmpty, kebabCase } from "lodash";
+import { isEmpty, kebabCase, sample } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -86,6 +87,11 @@ export class GamesService {
       relationLoadStrategy: "query",
     };
 
+    if (options.select) {
+      findParameters.select =
+        options.select as FindOptionsSelect<GamevaultGame>;
+    }
+
     if (options.loadRelations) {
       if (options.loadRelations === true) {
         findParameters.relations = this.defaultRelations;
@@ -116,29 +122,16 @@ export class GamesService {
       );
     }
 
-    const randomQuery = this.gamesRepository
-      .createQueryBuilder("game")
-      .select("game.id, game.age_rating")
-      .where("game.deleted_at IS NULL");
+    const gameIds: number[] = (
+      await this.find({
+        filterByAge: options.filterByAge,
+        loadDeletedEntities: false,
+        loadRelations: false,
+        select: ["id"],
+      })
+    ).map((game) => game.id);
 
-    if (options.filterByAge) {
-      randomQuery.andWhere("game.age_rating <= :ageRating", {
-        ageRating: options.filterByAge,
-      });
-    }
-
-    randomQuery.orderBy("RANDOM()").limit(1);
-
-    const game = await randomQuery.getOne();
-
-    if (!game) {
-      throw new NotFoundException("Could not find a suitable random game.");
-    }
-
-    return this.findOneByGameIdOrFail(game.id, {
-      loadDeletedEntities: false,
-      filterByAge: options.filterByAge,
-    });
+    return this.findOneByGameIdOrFail(sample(gameIds), {});
   }
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {

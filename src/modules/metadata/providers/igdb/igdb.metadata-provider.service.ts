@@ -1,15 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import {
-  fields,
-  igdb,
-  search,
-  twitchAccessToken,
-  where,
-  whereIn,
+    fields,
+    igdb,
+    search,
+    twitchAccessToken,
+    where,
+    whereIn,
 } from "ts-igdb-client";
 
 import { isNumberString } from "class-validator";
-import { isEmpty, lowerCase } from "lodash";
+import { isEmpty, toLower } from "lodash";
 import configuration from "../../../../configuration";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
 import { GameMetadata } from "../../games/game.metadata.entity";
@@ -19,8 +19,8 @@ import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
 import {
-  GameVaultIgdbAgeRatingMap,
-  IgdbAgeRating,
+    GameVaultIgdbAgeRatingMap,
+    IgdbAgeRating,
 } from "./models/igdb-age-rating.interface";
 import { IgdbGameCategory } from "./models/igdb-game-category.enum";
 import { IgdbGameStatus } from "./models/igdb-game-status.enum";
@@ -169,14 +169,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       url_trailers: game.videos
         ?.filter((video) =>
           ["trailer", "teaser", "intro", "showcase", "preview"].some((word) =>
-            lowerCase(video.name).includes(word),
+            toLower(video.name).includes(word),
           ),
         )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),
       url_gameplays: game.videos
         ?.filter((video) =>
           ["gameplay", "playthrough", "demo"].some((word) =>
-            lowerCase(video.name).includes(word),
+            toLower(video.name).includes(word),
           ),
         )
         .map((video) => `https://www.youtube.com/watch?v=${video.video_id}`),

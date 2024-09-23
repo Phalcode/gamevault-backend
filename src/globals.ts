@@ -104,6 +104,12 @@ export default {
 };
 
 export interface FindOptions {
+
+  /**
+   * Fields to select
+   */
+  select?: string[]
+
   /**
    * Indicates whether deleted (sub)entities should be loaded. Subentities may
    * be deleted by app-logic afterwards.
