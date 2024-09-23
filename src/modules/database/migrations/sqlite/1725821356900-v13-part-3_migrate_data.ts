@@ -346,24 +346,25 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
       const updatedGame = await queryRunner.manager.findOneBy(GamevaultGame, {
         id: game.id,
       });
-      this.logger.log({
-        message: `Game migration completed. Updated ID: ${updatedGame.id}, Title: ${updatedGame.title}`,
-      });
 
       const cover = game.box_image
-        ? await queryRunner.manager.findOneBy(Media, { id: game.box_image.id })
+        ? await queryRunner.manager.findOne(Media, {
+          where: { id: game.box_image.id },
+          withDeleted: true,
+        })
         : undefined;
       if (cover)
-        this.logger.log({ message: `Linked cover image, ID: ${cover.id}` });
+        this.logger.log({ message: `Linked cover image, ID: ${cover?.id}` });
 
       const background = game.background_image
-        ? await queryRunner.manager.findOneBy(Media, {
-            id: game.background_image.id,
-          })
+        ? await queryRunner.manager.findOne(Media, {
+          where: { id: game.background_image.id },
+          withDeleted: true,
+        })
         : undefined;
       if (background)
         this.logger.log({
-          message: `Linked background image, ID: ${background.id}`,
+          message: `Linked background image, ID: ${background?.id}`,
         });
 
       if (!game.rawg_id) {
@@ -492,21 +493,23 @@ export class V13Part3MigrateData1725821356900 implements MigrationInterface {
       });
 
       const avatar = user.profile_picture
-        ? await queryRunner.manager.findOneBy(Media, {
-            id: user.profile_picture.id,
-          })
+        ? await queryRunner.manager.findOne(Media, {
+          where: { id: user.profile_picture.id },
+          withDeleted: true,
+        })
         : undefined;
       if (avatar)
-        this.logger.log({ message: `Linked avatar image, ID: ${avatar.id}` });
+        this.logger.log({ message: `Linked avatar image, ID: ${avatar?.id}` });
 
       const background = user.background_image
-        ? await queryRunner.manager.findOneBy(Media, {
-            id: user.background_image.id,
-          })
+        ? await queryRunner.manager.findOne(Media, {
+          where: { id: user.background_image.id },
+          withDeleted: true,
+        })
         : undefined;
       if (background)
         this.logger.log({
-          message: `Linked background image, ID: ${background.id}`,
+          message: `Linked background image, ID: ${background?.id}`,
         });
 
       const bookmarkedGames = user.bookmarked_games?.length
