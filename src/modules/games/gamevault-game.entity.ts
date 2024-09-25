@@ -56,8 +56,8 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
-      "sort title of the game, usually same as title, but can be different to customize sorting",
-    example: "Grand Theft Auto 5",
+      "sort title of the game, generated and used to optimize sorting.",
+    example: "grand theft auto 5",
   })
   sort_title?: string;
 
