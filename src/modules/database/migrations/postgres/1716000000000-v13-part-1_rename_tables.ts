@@ -18,14 +18,14 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX "IDX_f03b89f33671086e6733828e79"`);
     await queryRunner.renameTable("game", "v12_game");
     await queryRunner.renameTable("gamevault_user", "v12_gamevault_user");
-
+    
     await queryRunner.renameTable("progress", "v12_progress");
     await queryRunner.renameTable("developer", "v12_developer");
     await queryRunner.renameTable("genre", "v12_genre");
     await queryRunner.renameTable("publisher", "v12_publisher");
     await queryRunner.renameTable("store", "v12_store");
     await queryRunner.renameTable("tag", "v12_tag");
-
+    
     await queryRunner.renameTable("bookmark", "v12_bookmark");
     await queryRunner.renameColumn(
       "v12_bookmark",
@@ -33,7 +33,7 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
       "v12_gamevault_user_id",
     );
     await queryRunner.renameColumn("v12_bookmark", "game_id", "v12_game_id");
-
+    
     await queryRunner.renameTable(
       "game_developers_developer",
       "v12_game_developers_v12_developer",
@@ -63,7 +63,7 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
       "genre_id",
       "v12_genre_id",
     );
-
+    
     await queryRunner.renameTable(
       "game_publishers_publisher",
       "v12_game_publishers_v12_publisher",
@@ -78,7 +78,7 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
       "publisher_id",
       "v12_publisher_id",
     );
-
+    
     await queryRunner.renameTable(
       "game_stores_store",
       "v12_game_stores_v12_store",
@@ -93,7 +93,7 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
       "store_id",
       "v12_store_id",
     );
-
+    
     await queryRunner.renameTable("game_tags_tag", "v12_game_tags_v12_tag");
     await queryRunner.renameColumn(
       "v12_game_tags_v12_tag",
@@ -105,10 +105,15 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
       "tag_id",
       "v12_tag_id",
     );
-
+    
     await queryRunner.dropTable("query-result-cache", true);
-  }
 
+    //Final Cleanup Measures
+    await queryRunner.query(`DROP SEQUENCE IF EXISTS crackpipe_user_id_seq`);
+    await queryRunner.query(`ALTER SEQUENCE gamevault_user_id_seq RENAME TO v12_gamevault_user_id_seq`);
+    await queryRunner.query(`ALTER SEQUENCE image_id_seq RENAME TO v12_image_id_seq`);
+  }
+  
   public async down(): Promise<void> {
     throw new NotImplementedException(
       "There is no way to undo this migration.",

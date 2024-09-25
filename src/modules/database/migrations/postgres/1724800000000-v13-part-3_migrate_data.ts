@@ -1,6 +1,5 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
-import { In, MigrationInterface, QueryRunner, Repository } from "typeorm";
-import { ColumnMetadata } from "typeorm/metadata/ColumnMetadata";
+import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { Media } from "../../../media/media.entity";
 import { DeveloperMetadata } from "../../../metadata/developers/developer.metadata.entity";
@@ -24,19 +23,9 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
   name = "V13Part3MigrateData1724800000000";
   legacyProviderSlug = "rawg-legacy";
-  newTables = [
-    "media",
-    "developer_metadata",
-    "genre_metadata",
-    "publisher_metadata",
-    "tag_metadata",
-    "progress",
-    "gamevault_game",
-    "gamevault_user",
-  ];
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await this.toggleAutoIncrementId(queryRunner, this.newTables, false);
+    await this.toggleAutoIncrementId(queryRunner, false);
     await this.migrateImages(queryRunner);
     await this.migrateTags(queryRunner);
     await this.migrateGenres(queryRunner);
@@ -45,52 +34,39 @@ export class V13Part3MigrateData1724800000000 implements MigrationInterface {
     await this.migrateGames(queryRunner);
     await this.migrateUsersAndBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
-    await this.toggleAutoIncrementId(queryRunner, this.newTables, true);
+    await this.toggleAutoIncrementId(queryRunner, true);
   }
 
   private async toggleAutoIncrementId(
     queryRunner: QueryRunner,
-    tableNames: string[],
     enable: boolean,
   ) {
-    const entities = queryRunner.connection.entityMetadatas.filter((entity) =>
-      tableNames.includes(entity.tableName),
-    ); // Get only the metadata of specified tables
-
-    for (const entity of entities) {
-      const repository: Repository<unknown> = queryRunner.manager.getRepository(
-        entity.name,
-      );
-
-      repository.metadata.columns =
-        repository.metadata.columns.map<ColumnMetadata>((c) => {
-          if (c.propertyName === "id") {
-            c.isGenerated = enable;
-            c.generationStrategy = enable ? "increment" : undefined;
-          }
-          return c;
-        });
-
+    const tableNames = [
+      "media",
+      "tag_metadata",
+      "genre_metadata",
+      "developer_metadata",
+      "publisher_metadata",
+      "gamevault_game",
+      "gamevault_user",
+      "progress",
+    ];
+    for (const tableName of tableNames) {
       if (enable) {
-        // Get the max value of the 'id' column
-        const result = await repository.query(
-          `SELECT MAX(id) as maxid FROM ${repository.metadata.tableName}`,
+        const [{ maxid }] = await queryRunner.query(
+          `SELECT MAX(id) as maxid FROM ${tableName}`,
         );
-        const maxId = Number(result[0].maxid) + 1 || 1;
+        const maxId = Number(maxid) || 1;
 
-        // Reset sequence to the max 'id' value BEFORE enabling auto-increment
-        await repository.query(
-          `SELECT setval('${repository.metadata.tableName}_id_seq', ${maxId}, true);`,
+        await queryRunner.query(
+          `ALTER SEQUENCE ${tableName}_id_seq RESTART WITH ${maxId}`,
         );
-
-        // Enable auto-increment
-        await repository.query(
-          `ALTER TABLE ${repository.metadata.tableName} ALTER COLUMN id SET DEFAULT nextval('${repository.metadata.tableName}_id_seq');`,
+        await queryRunner.query(
+          `ALTER TABLE ${tableName} ALTER COLUMN id SET DEFAULT nextval('${tableName}_id_seq')`,
         );
       } else {
-        // Disable auto-increment
-        await repository.query(
-          `ALTER TABLE ${repository.metadata.tableName} ALTER COLUMN id DROP DEFAULT;`,
+        await queryRunner.query(
+          `ALTER TABLE ${tableName} ALTER COLUMN id DROP DEFAULT`,
         );
       }
     }
