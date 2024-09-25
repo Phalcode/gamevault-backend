@@ -18,7 +18,7 @@ import {
 import { MediaValidator } from "../../../validators/media.validator";
 import { Media } from "../../media/media.entity";
 
-export class UserGameMetadataDto {
+export class UpdateGameUserMetadataDto {
   @ApiPropertyOptional({
     description: "the minimum age required to play the game",
     example: 18,
@@ -33,11 +33,21 @@ export class UserGameMetadataDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "title of the game",
     example: "Grand Theft Auto V",
   })
   title?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @ApiPropertyOptional({
+    description:
+      "sort title of the game, generated and used to optimize sorting.",
+    example: "grand theft auto 5",
+  })
+  sort_title?: string;
 
   @ApiPropertyOptional({
     description: "release date of the game as ISO8601 string",

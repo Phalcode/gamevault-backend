@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsArray, IsOptional, ValidateNested } from "class-validator";
 
-import { UserGameMetadataDto } from "../../metadata/models/user-game-metadata.dto";
+import { UpdateGameUserMetadataDto } from "../../metadata/models/user-game-metadata.dto";
 import { MapGameDto } from "./map-game.dto";
 
 export class UpdateGameDto {
@@ -21,7 +21,7 @@ export class UpdateGameDto {
   @ApiPropertyOptional({
     description:
       "The updated user metadata. If not provided, the games user_metadata will not be updated.",
-    type: () => UserGameMetadataDto,
+    type: () => UpdateGameUserMetadataDto,
   })
-  user_metadata?: UserGameMetadataDto;
+  user_metadata?: UpdateGameUserMetadataDto;
 }
