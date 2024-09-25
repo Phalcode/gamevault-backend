@@ -100,6 +100,7 @@ export class GamesController {
     return paginate(query, this.gamesRepository, {
       paginationType: PaginationType.TAKE_AND_SKIP,
       defaultLimit: 100,
+      defaultSortBy: [["sort_title", "ASC"]],
       maxLimit: -1,
       nullSort: "last",
       relations,
