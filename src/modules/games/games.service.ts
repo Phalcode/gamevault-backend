@@ -170,6 +170,11 @@ export class GamesService {
     }
 
     if (dto.user_metadata) {
+      this.logger.debug({
+        message: "Updating User Metadata",
+        game: game.getLoggableData(),
+        user_metadata: dto.user_metadata
+      });
       const updatedUserMetadata = game.user_metadata || new GameMetadata();
 
       updatedUserMetadata.id = updatedUserMetadata.id || undefined;
@@ -194,7 +199,7 @@ export class GamesService {
 
       if (dto.user_metadata.sort_title != null) {
         // Allow user to override sort title
-        game.sort_title = dto.user_metadata.title;
+        game.sort_title = dto.user_metadata.sort_title;
       }
 
       if (dto.user_metadata.release_date != null) {
