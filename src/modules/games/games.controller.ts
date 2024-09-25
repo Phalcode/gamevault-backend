@@ -23,10 +23,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Response } from "express";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -106,6 +106,7 @@ export class GamesController {
       sortableColumns: [
         "id",
         "title",
+        "sort_title",
         "release_date",
         "created_at",
         "size",

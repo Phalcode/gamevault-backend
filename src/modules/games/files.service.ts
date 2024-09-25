@@ -105,6 +105,7 @@ export class FilesService implements OnApplicationBootstrap {
         gameToIndex.size = file.size;
         gameToIndex.file_path = `${file.path}`;
         gameToIndex.title = this.extractTitle(file.path);
+        gameToIndex.sort_title = this.createSortTitle(gameToIndex.title);
         gameToIndex.release_date = this.extractReleaseYear(file.path);
         gameToIndex.version = this.extractVersion(file.path);
         gameToIndex.early_access = this.extractEarlyAccessFlag(
@@ -190,6 +191,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     gameToUpdate.file_path = updatesToApply.file_path;
     gameToUpdate.title = updatesToApply.title;
+    gameToUpdate.sort_title = this.createSortTitle(updatesToApply.title);
     gameToUpdate.release_date = updatesToApply.release_date;
     gameToUpdate.size = updatesToApply.size;
     gameToUpdate.version = updatesToApply.version;
@@ -238,9 +240,11 @@ export class FilesService implements OnApplicationBootstrap {
    * regular expression.
    */
   private extractTitle(filePath: string): string {
-    const basename = path.basename(filePath, path.extname(filePath));
-    const parenthesesRemoved = basename.replace(/\([^)]*\)/g, "");
-    return parenthesesRemoved.trim();
+    return path
+      .basename(filePath, path.extname(filePath))
+      .replace(/\([^)]*\)/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   /**
@@ -710,5 +714,28 @@ export class FilesService implements OnApplicationBootstrap {
       end: rangeEnd,
       size: rangeSize,
     };
+  }
+
+  private createSortTitle(title: string): string {
+    // List of leading articles to be removed
+    const articles: string[] = ["the", "a", "an"];
+
+    // Convert the title to lowercase
+    let sortTitle: string = toLower(title).trim();
+
+    // Remove any leading article
+    for (const article of articles) {
+      const articleWithSpace = `${article} `;
+      if (sortTitle.startsWith(articleWithSpace)) {
+        sortTitle = sortTitle.substring(articleWithSpace.length);
+        break;
+      }
+    }
+
+    // Remove special characters except alphanumeric and spaces and Replace multiple spaces with a single space and trim
+    return sortTitle
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 }

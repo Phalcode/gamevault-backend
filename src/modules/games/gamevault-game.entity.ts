@@ -55,6 +55,14 @@ export class GamevaultGame extends DatabaseEntity {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
+    description:
+      "sort title of the game, usually same as title, but can be different to customize sorting",
+    example: "Grand Theft Auto 5",
+  })
+  sort_title?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
     description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
     example: "v1.0.0",
   })
@@ -158,6 +166,31 @@ export class GamevaultGame extends DatabaseEntity {
       id: this.id,
       file_path: this.file_path,
     };
+  }
+
+  private createSortTitle(title: string): string {
+    // List of leading articles to be removed
+    const articles: string[] = ["the", "a", "an"];
+
+    // Convert the title to lowercase
+    let sortTitle: string = title.toLowerCase().trim();
+
+    // Remove any leading article
+    for (const article of articles) {
+      const articleWithSpace = article + " ";
+      if (sortTitle.startsWith(articleWithSpace)) {
+        sortTitle = sortTitle.substring(articleWithSpace.length);
+        break;
+      }
+    }
+
+    // Remove special characters except alphanumeric and spaces
+    sortTitle = sortTitle.replace(/[^a-z0-9\s]/g, "");
+
+    // Replace multiple spaces with a single space and trim
+    sortTitle = sortTitle.replace(/\s+/g, " ").trim();
+
+    return sortTitle;
   }
 
   @AfterLoad()
