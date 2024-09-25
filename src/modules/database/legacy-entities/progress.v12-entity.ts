@@ -5,7 +5,7 @@ import { DatabaseEntityV12 } from "./database.v12-entity";
 import { GameV12 } from "./game.v12-entity";
 import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
 
-@Entity("v12_progress")
+@Entity("v12_progress", { synchronize: false })
 export class ProgressV12 extends DatabaseEntityV12 {
   @Index()
   @ManyToOne(() => GamevaultUserV12, (user) => user.progresses)

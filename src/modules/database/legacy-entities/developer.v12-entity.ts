@@ -3,7 +3,7 @@ import { Column, Entity, Index, ManyToMany } from "typeorm";
 import { DatabaseEntityV12 } from "./database.v12-entity";
 import { GameV12 } from "./game.v12-entity";
 
-@Entity("v12_developer")
+@Entity("v12_developer", { synchronize: false })
 export class DeveloperV12 extends DatabaseEntityV12 {
   @Index()
   @Column({ nullable: true })

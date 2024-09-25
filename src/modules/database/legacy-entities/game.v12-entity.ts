@@ -20,7 +20,7 @@ import { PublisherV12 } from "./publisher.v12-entity";
 import { StoreV12 } from "./store.v12-entity";
 import { TagV12 } from "./tag.v12-entity";
 
-@Entity("v12_game")
+@Entity("v12_game", { synchronize: false })
 export class GameV12 extends DatabaseEntityV12 {
   @Column({ nullable: true })
   @ApiPropertyOptional({
