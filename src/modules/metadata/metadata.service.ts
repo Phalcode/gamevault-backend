@@ -406,6 +406,7 @@ export class MetadataService {
         game.user_metadata.id,
       );
       game.user_metadata = null;
+      game.sort_title = this.gamesService.generateSortTitle(game.title);
       this.logger.log({
         message: "Deleted user metadata from a game.",
         game: game.getLoggableData(),

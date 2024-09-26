@@ -15,7 +15,7 @@ import {
   Repository,
 } from "typeorm";
 
-import { isEmpty, kebabCase, sample } from "lodash";
+import { isEmpty, kebabCase, sample, toLower } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -173,7 +173,7 @@ export class GamesService {
       this.logger.debug({
         message: "Updating User Metadata",
         game: game.getLoggableData(),
-        user_metadata: dto.user_metadata
+        user_metadata: dto.user_metadata,
       });
       const updatedUserMetadata = game.user_metadata || new GameMetadata();
 
@@ -406,5 +406,27 @@ export class GamesService {
     }
 
     return [GameExistence.EXISTS, foundGame];
+  }
+
+  public generateSortTitle(title: string): string {
+    // List of leading articles to be removed
+    const articles: string[] = ["the", "a", "an"];
+
+    // Convert the title to lowercase
+    let sortTitle: string = toLower(title).trim();
+
+    // Remove any leading article
+    for (const article of articles) {
+      const articleWithSpace = `${article} `;
+      if (sortTitle.startsWith(articleWithSpace)) {
+        sortTitle = sortTitle.substring(articleWithSpace.length);
+        break;
+      }
+    }
+    // Remove special characters except alphanumeric and spaces and Replace multiple spaces with a single space and trim
+    return sortTitle
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 }
