@@ -116,22 +116,17 @@ export class GamesService {
   }
 
   public async findRandom(options: FindOptions): Promise<GamevaultGame> {
-    if (options.loadDeletedEntities) {
-      throw new InternalServerErrorException(
-        "Cannot load deleted games in random mode.",
-      );
-    }
-
     const gameIds: number[] = (
       await this.find({
         filterByAge: options.filterByAge,
-        loadDeletedEntities: false,
+        loadDeletedEntities: options.loadDeletedEntities,
         loadRelations: false,
-        select: ["id"],
       })
     ).map((game) => game.id);
 
-    return this.findOneByGameIdOrFail(sample(gameIds), {});
+    return this.findOneByGameIdOrFail(sample(gameIds), {
+      loadRelations: options.loadRelations,
+    });
   }
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
