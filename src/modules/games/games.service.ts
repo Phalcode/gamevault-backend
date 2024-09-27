@@ -15,7 +15,7 @@ import {
   Repository,
 } from "typeorm";
 
-import { isEmpty, kebabCase, shuffle, toLower } from "lodash";
+import { isEmpty, kebabCase, sample, toLower } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -122,27 +122,16 @@ export class GamesService {
       );
     }
 
-    const gameIds: number[] = shuffle(
-      (
-        await this.find({
-          loadDeletedEntities: false,
-          loadRelations: false,
-          select: ["id"],
-        })
-      ).map((game) => game.id),
-    );
+    const gameIds: number[] = (
+      await this.find({
+        filterByAge: options.filterByAge,
+        loadDeletedEntities: false,
+        loadRelations: false,
+        select: ["id"],
+      })
+    ).map((game) => game.id);
 
-    for (const id of gameIds) {
-      try {
-        return await this.findOneByGameIdOrFail(id, {
-          filterByAge: options.filterByAge,
-        });
-      } catch (error) {
-        continue;
-      }
-    }
-
-    throw new NotFoundException("Could not find a suitable game.");
+    return this.findOneByGameIdOrFail(sample(gameIds), {});
   }
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
