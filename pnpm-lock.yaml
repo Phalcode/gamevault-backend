@@ -78,7 +78,7 @@ importers:
         specifier: ^4.21.0
         version: 4.21.0
       fastify:
-        specifier: 4.0.0
+        specifier: ^4.0.0
         version: 4.0.0
       file-type-checker:
         specifier: ^1.1.2
