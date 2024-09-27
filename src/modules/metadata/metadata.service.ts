@@ -141,7 +141,7 @@ export class MetadataService {
     }
 
     let changeCount = 0;
-    for (const provider of this.providers) {
+    for (const provider of this.providers.filter((p) => p.enabled)) {
       try {
         // Find the existing provider metadata for the game and provider.
         const existingProviderMetadata = game.provider_metadata.find(

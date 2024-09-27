@@ -14,6 +14,10 @@ export class RawgLegacyMetadataProviderService extends MetadataProvider {
   readonly noopMessage =
     "The RAWG (Legacy) Metadata Provider does not support this functionality. It is designed solely for compatibility with data of GameVault instances below version 13.0.0.";
 
+  public override async register() {
+    this.metadataService.registerProvider(this);
+  }
+
   public override async search(
     query: string,
   ): Promise<MinimalGameMetadataDto[]> {

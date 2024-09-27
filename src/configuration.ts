@@ -185,7 +185,7 @@ const configuration = {
     RAWG_LEGACY: {
       ENABLED: parseBooleanEnvVariable(
         process.env.METADATA_RAWG_LEGACY_ENABLED,
-        true,
+        false,
       ),
       PRIORITY: parseNumber(process.env.METADATA_RAWG_LEGACY_PRIORITY, -10),
     },

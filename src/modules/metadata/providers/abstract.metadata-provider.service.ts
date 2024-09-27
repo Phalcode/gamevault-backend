@@ -35,7 +35,7 @@ import { TagMetadataService } from "../tags/tag.metadata.service";
 export abstract class MetadataProvider implements OnModuleInit {
   protected readonly logger = new Logger(this.constructor.name);
   constructor(
-    private readonly metadataService: MetadataService,
+    protected readonly metadataService: MetadataService,
     private readonly gameMetadataService: GameMetadataService,
     private readonly developerMetadataService: DeveloperMetadataService,
     private readonly publisherMetadataService: PublisherMetadataService,
