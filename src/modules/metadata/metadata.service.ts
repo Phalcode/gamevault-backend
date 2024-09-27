@@ -24,8 +24,8 @@ export class MetadataService {
 
   constructor(
     @Inject(forwardRef(() => GamesService))
-    private gamesService: GamesService,
-    private gameMetadataService: GameMetadataService,
+    private readonly gamesService: GamesService,
+    private readonly gameMetadataService: GameMetadataService,
   ) {}
 
   /**

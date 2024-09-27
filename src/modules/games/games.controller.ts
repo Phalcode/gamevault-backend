@@ -50,11 +50,11 @@ export class GamesController {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private gamesService: GamesService,
-    private filesService: FilesService,
+    private readonly gamesService: GamesService,
+    private readonly filesService: FilesService,
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
-    private usersService: UsersService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Put("reindex")

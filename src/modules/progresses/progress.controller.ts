@@ -47,8 +47,8 @@ export class ProgressController {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private progressService: ProgressService,
-    private usersService: UsersService,
+    private readonly progressService: ProgressService,
+    private readonly usersService: UsersService,
     @InjectRepository(Progress)
     private readonly progressRepository: Repository<Progress>,
   ) {}

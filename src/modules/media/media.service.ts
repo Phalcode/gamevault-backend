@@ -28,9 +28,9 @@ export class MediaService {
   constructor(
     private readonly httpService: HttpService,
     @InjectRepository(Media)
-    private mediaRepository: Repository<Media>,
+    private readonly mediaRepository: Repository<Media>,
     @Inject(forwardRef(() => UsersService))
-    private usersService: UsersService,
+    private readonly usersService: UsersService,
   ) {}
 
   public async isAvailable(id: number): Promise<boolean> {

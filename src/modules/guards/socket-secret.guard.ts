@@ -12,7 +12,7 @@ import { SocketSecretService } from "../users/socket-secret.service";
 export class SocketSecretGuard implements CanActivate {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private socketSecretService: SocketSecretService) {}
+  constructor(private readonly socketSecretService: SocketSecretService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient<Socket>();

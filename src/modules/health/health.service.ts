@@ -6,7 +6,7 @@ import { Health, HealthProtocolEntry } from "./models/health.model";
 
 @Injectable()
 export class HealthService {
-  private epoch: Date = new Date();
+  private readonly epoch: Date = new Date();
   private currentHealth: Health = new Health();
 
   constructor() {

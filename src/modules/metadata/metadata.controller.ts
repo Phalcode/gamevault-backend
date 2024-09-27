@@ -18,7 +18,7 @@ import { ProviderSlugDto } from "./providers/models/provider-slug.dto";
 @ApiTags("metadata")
 @ApiBasicAuth()
 export class MetadataController {
-  constructor(private metadataService: MetadataService) {}
+  constructor(private readonly metadataService: MetadataService) {}
 
   @Get("/providers")
   @ApiOperation({

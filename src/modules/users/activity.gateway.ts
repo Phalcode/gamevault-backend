@@ -40,7 +40,7 @@ export class ActivityGateway
   @WebSocketServer()
   server: Server;
 
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @AsyncApiSub({
     channel: "set-activity",

@@ -42,11 +42,11 @@ export class GamesService {
 
   constructor(
     @InjectRepository(GamevaultGame)
-    private gamesRepository: Repository<GamevaultGame>,
+    private readonly gamesRepository: Repository<GamevaultGame>,
     @Inject(forwardRef(() => MetadataService))
-    private metadataService: MetadataService,
+    private readonly metadataService: MetadataService,
     @Inject(forwardRef(() => GameMetadataService))
-    private gameMetadataService: GameMetadataService,
+    private readonly gameMetadataService: GameMetadataService,
   ) {}
 
   public async findOneByGameIdOrFail(

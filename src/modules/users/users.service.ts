@@ -30,11 +30,11 @@ export class UsersService implements OnApplicationBootstrap {
 
   constructor(
     @InjectRepository(GamevaultUser)
-    private userRepository: Repository<GamevaultUser>,
+    private readonly userRepository: Repository<GamevaultUser>,
     @Inject(forwardRef(() => MediaService))
-    private mediaService: MediaService,
+    private readonly mediaService: MediaService,
     @Inject(forwardRef(() => GamesService))
-    private gamesService: GamesService,
+    private readonly gamesService: GamesService,
   ) {}
 
   async onApplicationBootstrap() {

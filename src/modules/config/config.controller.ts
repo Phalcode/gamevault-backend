@@ -16,8 +16,6 @@ import { Role } from "../users/models/role.enum";
 @Controller("config")
 @ApiTags("config")
 export class ConfigController {
-  constructor() {}
-
   @Get("news")
   @ApiOkResponse({ type: () => Health })
   @ApiOperation({

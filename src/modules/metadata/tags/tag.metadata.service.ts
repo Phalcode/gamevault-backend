@@ -11,7 +11,7 @@ export class TagMetadataService {
 
   constructor(
     @InjectRepository(TagMetadata)
-    private tagRepository: Repository<TagMetadata>,
+    private readonly tagRepository: Repository<TagMetadata>,
   ) {}
 
   async findByProviderSlug(

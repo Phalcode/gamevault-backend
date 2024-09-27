@@ -8,7 +8,7 @@ import { Health } from "./models/health.model";
 @Controller("health")
 @ApiTags("health")
 export class HealthController {
-  constructor(private healthService: HealthService) {}
+  constructor(private readonly healthService: HealthService) {}
 
   @Get()
   @ApiOkResponse({ type: () => Health })

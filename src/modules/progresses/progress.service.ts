@@ -24,9 +24,9 @@ export class ProgressService {
 
   constructor(
     @InjectRepository(Progress)
-    private progressRepository: Repository<Progress>,
-    private usersService: UsersService,
-    private gamesService: GamesService,
+    private readonly progressRepository: Repository<Progress>,
+    private readonly usersService: UsersService,
+    private readonly gamesService: GamesService,
   ) {
     this.readIgnoreFile();
   }

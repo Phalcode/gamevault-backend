@@ -8,7 +8,7 @@ import { GamevaultUser } from "./gamevault-user.entity";
 export class SocketSecretService {
   constructor(
     @InjectRepository(GamevaultUser)
-    private userRepository: Repository<GamevaultUser>,
+    private readonly userRepository: Repository<GamevaultUser>,
   ) {}
 
   async findUserBySocketSecretOrFail(socketSecret: string) {

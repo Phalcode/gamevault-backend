@@ -18,11 +18,11 @@ import { GameMetadata } from "./game.metadata.entity";
 export class GameMetadataService {
   constructor(
     @InjectRepository(GameMetadata)
-    private gameMetadataRepository: Repository<GameMetadata>,
-    private developerMetadataService: DeveloperMetadataService,
-    private publisherMetadataService: PublisherMetadataService,
-    private tagMetadataService: TagMetadataService,
-    private genreMetadataService: GenreMetadataService,
+    private readonly gameMetadataRepository: Repository<GameMetadata>,
+    private readonly developerMetadataService: DeveloperMetadataService,
+    private readonly publisherMetadataService: PublisherMetadataService,
+    private readonly tagMetadataService: TagMetadataService,
+    private readonly genreMetadataService: GenreMetadataService,
   ) {}
 
   async findByProviderSlug(

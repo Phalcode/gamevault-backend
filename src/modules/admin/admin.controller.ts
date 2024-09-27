@@ -26,8 +26,8 @@ import { Role } from "../users/models/role.enum";
 @ApiTags("admin")
 export class AdminController {
   constructor(
-    private healthService: HealthService,
-    private databaseService: DatabaseService,
+    private readonly healthService: HealthService,
+    private readonly databaseService: DatabaseService,
   ) {}
 
   @Get("health")

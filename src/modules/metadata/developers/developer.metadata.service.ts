@@ -10,7 +10,7 @@ export class DeveloperMetadataService {
   private readonly logger = new Logger(this.constructor.name);
   constructor(
     @InjectRepository(DeveloperMetadata)
-    private developerRepository: Repository<DeveloperMetadata>,
+    private readonly developerRepository: Repository<DeveloperMetadata>,
   ) {}
 
   async findByProviderSlug(

@@ -18,12 +18,12 @@ export class MediaGarbageCollectionService {
 
   constructor(
     @InjectRepository(Media)
-    private mediaRepository: Repository<Media>,
+    private readonly mediaRepository: Repository<Media>,
     @InjectRepository(GameMetadata)
-    private gameMetadataRepository: Repository<GameMetadata>,
+    private readonly gameMetadataRepository: Repository<GameMetadata>,
     @InjectRepository(GamevaultUser)
-    private userRepository: Repository<GamevaultUser>,
-    private mediaService: MediaService,
+    private readonly userRepository: Repository<GamevaultUser>,
+    private readonly mediaService: MediaService,
   ) {
     this.garbageCollectUnusedMedia();
   }

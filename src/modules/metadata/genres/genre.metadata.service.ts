@@ -10,7 +10,7 @@ export class GenreMetadataService {
   private readonly logger = new Logger(this.constructor.name);
   constructor(
     @InjectRepository(GenreMetadata)
-    private genreRepository: Repository<GenreMetadata>,
+    private readonly genreRepository: Repository<GenreMetadata>,
   ) {}
 
   async findByProviderSlug(

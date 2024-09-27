@@ -39,7 +39,7 @@ import { MediaService } from "./media.service";
 export class MediaController {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private mediaService: MediaService) {}
+  constructor(private readonly mediaService: MediaService) {}
 
   /** Retrieve media by its ID and send it as the response. */
   @Get(":id")
