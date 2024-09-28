@@ -136,7 +136,7 @@ export class GamesService {
     const game = await this.gamesRepository
       .createQueryBuilder()
       .setFindOptions(findParameters)
-      .orderBy("RAND()")
+      .orderBy("RANDOM()")
       .limit(1)
       .getOneOrFail();
 
