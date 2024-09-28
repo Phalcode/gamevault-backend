@@ -191,7 +191,7 @@ export class MetadataService {
     }
 
     // If no metadata changes were made, return the game without merging the metadata.
-    if (changeCount === 0) {
+    if (changeCount === 0 && game.metadata) {
       this.logger.debug({
         message: "No metadata changes. Skipping merge.",
         game: game.getLoggableData(),

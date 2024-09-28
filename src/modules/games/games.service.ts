@@ -116,18 +116,45 @@ export class GamesService {
   }
 
   public async findRandom(options: FindOptions): Promise<GamevaultGame> {
-    const gameIds: number[] = (
-      await this.find({
-        filterByAge: options.filterByAge,
-        loadDeletedEntities: options.loadDeletedEntities,
-        loadRelations: false,
-      })
-    ).map((game) => game.id);
-
-    return this.findOneByGameIdOrFail(sample(gameIds), {
-      loadRelations: options.loadRelations,
-    });
+    const findParameters: FindManyOptions<GamevaultGame> = {
+      relationLoadStrategy: "query",
+    };
+  
+    if (options.select) {
+      findParameters.select = options.select as FindOptionsSelect<GamevaultGame>;
+    }
+  
+    if (options.loadRelations) {
+      if (options.loadRelations === true) {
+        findParameters.relations = this.defaultRelations;
+      } else if (Array.isArray(options.loadRelations)) {
+        findParameters.relations = options.loadRelations;
+      }
+    }
+  
+    if (options.loadDeletedEntities) {
+      findParameters.withDeleted = true;
+    }
+  
+    if (options.filterByAge) {
+      if (!options.loadRelations) {
+        findParameters.relations = ["metadata"];
+      }
+      findParameters.where = {
+        metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+      };
+    }
+  
+    return await this.gamesRepository
+    .createQueryBuilder('game')
+    .setFindOptions(findParameters)
+    .orderBy('RAND()')
+    .limit(1)
+    .getOneOrFail();
   }
+  
+  
+
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
     return this.gamesRepository.save(game);

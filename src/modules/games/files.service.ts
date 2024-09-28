@@ -36,7 +36,7 @@ import { RangeHeader } from "./models/range-header.model";
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
-  private runDebouncedIntegrityCheck = debounce(async () => {
+  private readonly runDebouncedIntegrityCheck = debounce(async () => {
     await this.checkIntegrity(
       await this.readAllFiles(),
       await this.gamesService.find({
@@ -47,8 +47,8 @@ export class FilesService implements OnApplicationBootstrap {
   }, 5000);
 
   constructor(
-    private gamesService: GamesService,
-    private metadataService: MetadataService,
+    private readonly gamesService: GamesService,
+    private readonly metadataService: MetadataService,
   ) {}
 
   onApplicationBootstrap() {
