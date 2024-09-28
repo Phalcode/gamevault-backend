@@ -15,7 +15,7 @@ import {
   Repository,
 } from "typeorm";
 
-import { isEmpty, kebabCase, sample, toLower } from "lodash";
+import { isEmpty, kebabCase, toLower } from "lodash";
 import { FindOptions } from "../../globals";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -118,42 +118,34 @@ export class GamesService {
   public async findRandom(options: FindOptions): Promise<GamevaultGame> {
     const findParameters: FindManyOptions<GamevaultGame> = {
       relationLoadStrategy: "query",
+      loadEagerRelations: false,
+      select: ["id"],
     };
-  
-    if (options.select) {
-      findParameters.select = options.select as FindOptionsSelect<GamevaultGame>;
-    }
-  
-    if (options.loadRelations) {
-      if (options.loadRelations === true) {
-        findParameters.relations = this.defaultRelations;
-      } else if (Array.isArray(options.loadRelations)) {
-        findParameters.relations = options.loadRelations;
-      }
-    }
-  
+
     if (options.loadDeletedEntities) {
       findParameters.withDeleted = true;
     }
-  
+
     if (options.filterByAge) {
-      if (!options.loadRelations) {
-        findParameters.relations = ["metadata"];
-      }
+      findParameters.relations = ["metadata"];
       findParameters.where = {
         metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
       };
     }
-  
-    return await this.gamesRepository
-    .createQueryBuilder('game')
-    .setFindOptions(findParameters)
-    .orderBy('RAND()')
-    .limit(1)
-    .getOneOrFail();
+
+    const game = await this.gamesRepository
+      .createQueryBuilder()
+      .setFindOptions(findParameters)
+      .orderBy("RAND()")
+      .limit(1)
+      .getOneOrFail();
+
+    return this.findOneByGameIdOrFail(game.id, {
+      loadDeletedEntities: options.loadDeletedEntities,
+      select: options.select,
+      loadRelations: options.loadRelations,
+    });
   }
-  
-  
 
   /** Save a game to the database. */
   public async save(game: GamevaultGame): Promise<GamevaultGame> {
