@@ -182,13 +182,6 @@ const configuration = {
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
     } as const,
-    RAWG_LEGACY: {
-      ENABLED: parseBooleanEnvVariable(
-        process.env.METADATA_RAWG_LEGACY_ENABLED,
-        false,
-      ),
-      PRIORITY: parseNumber(process.env.METADATA_RAWG_LEGACY_PRIORITY, -10),
-    },
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
