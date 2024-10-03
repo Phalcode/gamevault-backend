@@ -15,7 +15,7 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
 
     // Rename all existing tables, so no conflicts appear
     await queryRunner.query(`ALTER TABLE "image" RENAME TO "v12_image"`);
-    await queryRunner.query(`DROP INDEX "IDX_f03b89f33671086e6733828e79"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_f03b89f33671086e6733828e79"`);
     await queryRunner.renameTable("game", "v12_game");
     await queryRunner.renameTable("gamevault_user", "v12_gamevault_user");
 
@@ -111,10 +111,10 @@ export class V13Part1RenameTables1716000000000 implements MigrationInterface {
     //Final Cleanup Measures
     await queryRunner.query(`DROP SEQUENCE IF EXISTS crackpipe_user_id_seq`);
     await queryRunner.query(
-      `ALTER SEQUENCE gamevault_user_id_seq RENAME TO v12_gamevault_user_id_seq`,
+      `ALTER SEQUENCE IF EXISTS gamevault_user_id_seq RENAME TO v12_gamevault_user_id_seq`,
     );
     await queryRunner.query(
-      `ALTER SEQUENCE image_id_seq RENAME TO v12_image_id_seq`,
+      `ALTER SEQUENCE IF EXISTS image_id_seq RENAME TO v12_image_id_seq`,
     );
   }
 
