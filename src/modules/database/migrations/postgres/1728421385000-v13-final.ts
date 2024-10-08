@@ -39,8 +39,7 @@ export class V13Final1728421385000 implements MigrationInterface {
 
   private async checkMigrationRun(queryRunner: QueryRunner): Promise<boolean> {
     const migrations = await queryRunner.query(
-      `SELECT * FROM migrations WHERE name LIKE $1`,
-      ["V13Part%"],
+      `SELECT * FROM migrations WHERE name LIKE 'V13Part%'`,
     );
 
     if (migrations.length > 0) {
