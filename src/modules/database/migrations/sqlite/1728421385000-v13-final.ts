@@ -1635,8 +1635,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                     "activated",
                     "role",
                     "profile_picture_id",
-                    "background_image_id",
-                    "socket_secret"
+                    "background_image_id"
                 )
             SELECT "id",
                 "created_at",
@@ -1651,8 +1650,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "activated",
                 "role",
                 "profile_picture_id",
-                "background_image_id",
-                "socket_secret"
+                "background_image_id"
             FROM "v12_gamevault_user"
         `);
     await queryRunner.query(`
