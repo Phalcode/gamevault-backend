@@ -628,7 +628,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             CREATE INDEX "IDX_8e4052373c579afc1471f52676" ON "tag" ("id")
         `);
   }
-  
+
   private async part1_rename_tables(queryRunner: QueryRunner) {
     if (existsSync("/images")) {
       throw new Error(
