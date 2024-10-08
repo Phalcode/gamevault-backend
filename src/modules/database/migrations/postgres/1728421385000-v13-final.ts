@@ -1,4 +1,5 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
+import { randomBytes } from "crypto";
 import { existsSync } from "fs";
 import { toLower } from "lodash";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
@@ -348,6 +349,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             "file_path" character varying NOT NULL,
             "size" bigint NOT NULL DEFAULT '0',
             "title" character varying,
+            "sort_title" character varying,
             "version" character varying,
             "release_date" TIMESTAMP,
             "early_access" boolean NOT NULL DEFAULT false,
@@ -1255,7 +1257,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         id: user.id,
         username: user.username,
         password: user.password,
-        socket_secret: user.socket_secret,
+        socket_secret: user.socket_secret ?? randomBytes(32).toString("hex"),
         avatar,
         background,
         email: user.email,

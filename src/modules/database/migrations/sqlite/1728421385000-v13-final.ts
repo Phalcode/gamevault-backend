@@ -20,6 +20,7 @@ import { ImageV12 } from "../../legacy-entities/image.v12-entity";
 import { ProgressV12 } from "../../legacy-entities/progress.v12-entity";
 import { PublisherV12 } from "../../legacy-entities/publisher.v12-entity";
 import { TagV12 } from "../../legacy-entities/tag.v12-entity";
+import { randomBytes } from "crypto";
 
 export class V13Final1728421385000 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
@@ -1442,6 +1443,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "file_path" varchar NOT NULL,
                 "size" bigint NOT NULL DEFAULT (0),
                 "title" varchar,
+                "sort_title" varchar,
                 "version" varchar,
                 "release_date" datetime,
                 "early_access" boolean NOT NULL DEFAULT (0),
@@ -1614,7 +1616,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "role" varchar CHECK("role" IN ('0', '1', '2', '3')) NOT NULL DEFAULT (1),
                 "profile_picture_id" integer,
                 "background_image_id" integer,
-                "socket_secret" varchar(64) NOT NULL,
+                "socket_secret" varchar(64),
                 CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username"),
                 CONSTRAINT "UQ_d0e7d50057240e5752a2c303ffb" UNIQUE ("email"),
                 CONSTRAINT "UQ_ef1c27a5c7e1f58650e6b0e6122" UNIQUE ("socket_secret")
@@ -1733,7 +1735,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "role" varchar CHECK("role" IN ('0', '1', '2', '3')) NOT NULL DEFAULT (1),
                 "profile_picture_id" integer,
                 "background_image_id" integer,
-                "socket_secret" varchar(64) NOT NULL,
+                "socket_secret" varchar(64),
                 CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username"),
                 CONSTRAINT "UQ_d0e7d50057240e5752a2c303ffb" UNIQUE ("email"),
                 CONSTRAINT "UQ_ef1c27a5c7e1f58650e6b0e6122" UNIQUE ("socket_secret"),
@@ -2413,6 +2415,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "file_path" varchar NOT NULL,
                 "size" bigint NOT NULL DEFAULT (0),
                 "title" varchar,
+                "sort_title" varchar,
                 "version" varchar,
                 "release_date" datetime,
                 "early_access" boolean NOT NULL DEFAULT (0),
@@ -2661,7 +2664,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "role" varchar CHECK("role" IN ('0', '1', '2', '3')) NOT NULL DEFAULT (1),
                 "profile_picture_id" integer,
                 "background_image_id" integer,
-                "socket_secret" varchar(64) NOT NULL,
+                "socket_secret" varchar(64),
                 CONSTRAINT "UQ_ad2fda40ce941655c838fb1435f" UNIQUE ("username"),
                 CONSTRAINT "UQ_d0e7d50057240e5752a2c303ffb" UNIQUE ("email"),
                 CONSTRAINT "UQ_ef1c27a5c7e1f58650e6b0e6122" UNIQUE ("socket_secret"),
@@ -4224,11 +4227,6 @@ export class V13Final1728421385000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "v12_tag"`);
   }
   private async part6_sorting_title(queryRunner: QueryRunner) {
-    await queryRunner.query(`
-  ALTER TABLE "gamevault_game"
-  ADD "sort_title" TEXT
-`);
-
     const gameRepository = queryRunner.manager.getRepository("gamevault_game");
 
     // Fetch all games
@@ -4704,7 +4702,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         id: user.id,
         username: user.username,
         password: user.password,
-        socket_secret: user.socket_secret,
+        socket_secret: user.socket_secret ?? randomBytes(32).toString("hex"),
         avatar,
         background,
         email: user.email,
