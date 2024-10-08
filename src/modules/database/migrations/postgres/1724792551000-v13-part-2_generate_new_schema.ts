@@ -29,6 +29,11 @@ export class V13Part2GenerateNewSchema1724792551000
             )
         `);
 
+    this.logger.log("Creating ENUM type: gamevault_user_role_enum");
+    await queryRunner.query(
+      `CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3')`,
+    );
+
     this.logger.log("Creating table: media");
     await queryRunner.query(`
         CREATE TABLE "media" (
