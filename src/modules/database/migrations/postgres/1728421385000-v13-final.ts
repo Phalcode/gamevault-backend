@@ -171,6 +171,9 @@ export class V13Final1728421385000 implements MigrationInterface {
   private async part2_generate_new_schema(queryRunner: QueryRunner) {
     this.logger.log("Creating ENUM type: progress_state_enum");
     await queryRunner.query(`
+    DO $$ 
+    BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'progress_state_enum' AND typtype = 'e') THEN 
             CREATE TYPE "public"."progress_state_enum" AS ENUM(
                 'UNPLAYED',
                 'INFINITE',
@@ -178,23 +181,35 @@ export class V13Final1728421385000 implements MigrationInterface {
                 'COMPLETED',
                 'ABORTED_TEMPORARY',
                 'ABORTED_PERMANENT'
-            )
-        `);
+            );
+        END IF; 
+    END $$;            
+  `);
 
     this.logger.log("Creating ENUM type: gamevault_game_type_enum");
     await queryRunner.query(`
+    DO $$ 
+    BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gamevault_game_type_enum' AND typtype = 'e') THEN 
             CREATE TYPE "public"."gamevault_game_type_enum" AS ENUM(
                 'UNDETECTABLE',
                 'WINDOWS_SETUP',
                 'WINDOWS_PORTABLE',
                 'LINUX_PORTABLE'
-            )
-        `);
+            );
+        END IF; 
+    END $$;
+  `);
 
     this.logger.log("Creating ENUM type: gamevault_user_role_enum");
-    await queryRunner.query(
-      `CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3')`,
-    );
+    await queryRunner.query(`
+    DO $$ 
+    BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gamevault_user_role_enum' AND typtype = 'e') THEN 
+            CREATE TYPE "public"."gamevault_user_role_enum" AS ENUM('0', '1', '2', '3'); 
+        END IF; 
+    END $$;
+  `);
 
     this.logger.log("Creating table: media");
     await queryRunner.query(`
