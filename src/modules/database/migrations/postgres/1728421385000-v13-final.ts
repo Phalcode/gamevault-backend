@@ -1318,7 +1318,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     await queryRunner.query(
       `
       INSERT INTO "bookmark" ("gamevault_user_id", "gamevault_game_id")
-      SELECT "gamevault_user_id", "game_id" FROM "v12_bookmark"
+      SELECT "v12_gamevault_user_id", "v12_game_id" FROM "v12_bookmark"
       `,
     );
     this.logger.log({ message: "Bookmark migration completed." });
