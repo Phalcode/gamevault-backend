@@ -194,11 +194,23 @@ const configuration = {
 } as const;
 
 export function getCensoredConfiguration() {
-  const censoredConfig = JSON.parse(JSON.stringify(configuration));
-  censoredConfig.DB.PASSWORD = "**REDACTED**";
-  censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
-  censoredConfig.METADATA.IGDB.CLIENT_ID = "**REDACTED**";
-  censoredConfig.METADATA.IGDB.CLIENT_SECRET = "**REDACTED**";
+  const censoredConfig = JSON.parse(
+    JSON.stringify(configuration, (_k, v) => (v === undefined ? null : v)),
+  );
+  censoredConfig.DB.PASSWORD = censoredConfig.DB.PASSWORD
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.SERVER.ADMIN_PASSWORD = censoredConfig.SERVER.ADMIN_PASSWORD
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.METADATA.IGDB.CLIENT_ID = censoredConfig.METADATA.IGDB
+    .CLIENT_ID
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.METADATA.IGDB.CLIENT_SECRET = censoredConfig.METADATA.IGDB
+    .CLIENT_SECRET
+    ? "**REDACTED**"
+    : null;
   return censoredConfig;
 }
 

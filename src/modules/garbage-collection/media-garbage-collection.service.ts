@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
@@ -13,7 +13,7 @@ import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Injectable()
-export class MediaGarbageCollectionService {
+export class MediaGarbageCollectionService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
@@ -24,8 +24,10 @@ export class MediaGarbageCollectionService {
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
     private readonly mediaService: MediaService,
-  ) {
-    this.garbageCollectUnusedMedia();
+  ) {}
+
+  async onApplicationBootstrap() {
+    await this.garbageCollectUnusedMedia();
   }
 
   /**
@@ -60,17 +62,15 @@ export class MediaGarbageCollectionService {
       allMedia,
       usedMediaPaths,
     );
-
-    // Clean up the file system
-    const fsRemovedCount = await this.cleanupFileSystem(usedMediaPaths);
-
-    // Log the number of deleted media from the database and file system (if any)
     if (dbRemovedCount) {
       this.logger.log(
-        `Deleted ${dbRemovedCount} unused media from the database.`,
+        `Deleted ${dbRemovedCount} unused media entities from the database.`,
       );
     }
 
+    // Clean up the file system
+    const fsRemovedCount =
+      await this.removeUnusedMediaFromFileSystem(usedMediaPaths);
     if (fsRemovedCount) {
       this.logger.log(
         `Deleted ${fsRemovedCount} unused media files from ${configuration.VOLUMES.MEDIA}.`,
@@ -89,27 +89,27 @@ export class MediaGarbageCollectionService {
      * The entities and properties that are checked for media usage.
      * Each element in the array is an object with a `repository` property and a
      * `properties` property. The `repository` property is the TypeORM repository
-     * instance for the entity. The `properties` property is an array of strings
-     * representing the properties of the entity that may contain media.
+     * instance for the entity. The `relations` property is an array of strings
+     * representing the relations of the entity that may contain media.
      */
     const entityMediaProperties = [
       {
         repository: this.userRepository,
-        properties: ["background", "avatar"],
+        relations: ["background", "avatar"],
       },
       {
         repository: this.gameMetadataRepository,
-        properties: ["cover", "background"],
+        relations: ["background", "cover"],
       },
     ];
     /**
      * Loop through the entities and their properties and find the media that is
      * being used.
      */
-    for (const { repository, properties } of entityMediaProperties) {
+    for (const { repository, relations } of entityMediaProperties) {
       const entities = await repository.find({
         withDeleted: true,
-        relations: properties,
+        relations,
         loadEagerRelations: false,
         relationLoadStrategy: "query",
       });
@@ -119,11 +119,29 @@ export class MediaGarbageCollectionService {
          * Loop through each property of the entity and check if it contains
          * media.
          */
-        for (const property of properties) {
-          if (Array.isArray(entity[property])) {
-            foundMedia.push(...entity[property]);
-          } else if (entity[property]) {
-            foundMedia.push(entity[property]);
+        for (const relation of relations) {
+          if (Array.isArray(entity[relation])) {
+            this.logger.debug({
+              message: `Found ${entity[relation].length} media entities in relation.`,
+              entity: entity.constructor.name,
+              entity_id: entity.id,
+              entity_relation: relation,
+              media_ids: entity[relation].map((media: Media) => media.id),
+              media_paths: entity[relation].map(
+                (media: Media) => media.file_path,
+              ),
+            });
+            foundMedia.push(...entity[relation]);
+          } else if (entity[relation]) {
+            this.logger.debug({
+              message: `Found 1 media entity in relation.`,
+              entity: entity.constructor.name,
+              entity_id: entity.id,
+              entity_relation: relation,
+              media_id: entity[relation].id,
+              media_path: entity[relation].file_path,
+            });
+            foundMedia.push(entity[relation]);
           }
         }
         /**
@@ -150,6 +168,13 @@ export class MediaGarbageCollectionService {
     allMedia: Media[],
     usedMediaPaths: string[],
   ): Promise<number> {
+    this.logger.log({
+      message: "Calculated difference of all media paths and used media paths.",
+      all_count: allMedia.length,
+      used_count: usedMediaPaths.length,
+      delta: allMedia.length - usedMediaPaths.length,
+    });
+
     // Filter out media that are not being used
     const unusedMedia = allMedia.filter(
       (media) => !usedMediaPaths.includes(media.file_path),
@@ -173,7 +198,9 @@ export class MediaGarbageCollectionService {
    * @param usedMediaPaths - A Set of paths to used media files.
    * @returns The number of files removed.
    */
-  private async cleanupFileSystem(usedMediaPaths: string[]): Promise<number> {
+  private async removeUnusedMediaFromFileSystem(
+    usedMediaPaths: string[],
+  ): Promise<number> {
     // Skip garbage collection if TESTING_MOCK_FILES is true
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
