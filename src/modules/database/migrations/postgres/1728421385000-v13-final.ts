@@ -1316,7 +1316,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     this.logger.log({ message: "Migrating Bookmarks..." });
     await queryRunner.query(
       `
-      INSERT INTO "bookmarks" ("gamevault_user_id", "game_id")
+      INSERT INTO "bookmarks" ("gamevault_user_id", "gamevault_game_id")
       SELECT "gamevault_user_id", "game_id" FROM "v12_bookmark"
       `,
     );
