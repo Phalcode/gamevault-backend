@@ -720,6 +720,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     await this.migratePublishers(queryRunner);
     await this.migrateGames(queryRunner);
     await this.migrateUsers(queryRunner);
+    await this.migrateBookmarks(queryRunner);
     await this.migrateProgresses(queryRunner);
     await this.toggleAutoIncrementId(queryRunner, true);
   }
