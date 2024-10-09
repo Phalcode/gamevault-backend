@@ -5,18 +5,20 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: gamevault
-      POSTGRES_PASSWORD: gamevault
+      POSTGRES_PASSWORD: 8ef717f9191024
       POSTGRES_DB: gamevault
     ports:
       - "5432:5432"
     healthcheck:
       test: pg_isready -U pgweb -h 127.0.0.1
       interval: 5s
+    volumes:
+      - /home/alfagun74/git/phalcode/gamevault-backend/.local/db:/var/lib/postgresql/data
   pgweb:
     container_name: pgweb
     image: sosedoff/pgweb:latest
     environment:
-      PGWEB_DATABASE_URL: postgres://gamevault:gamevault@db:5432/gamevault?sslmode=disable
+      PGWEB_DATABASE_URL: postgres://gamevault:8ef717f9191024@db:5432/gamevault?sslmode=disable
     ports:
       - 8081:8081
     depends_on: 
