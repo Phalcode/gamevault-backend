@@ -1,4 +1,5 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
+import { randomBytes } from "crypto";
 import { existsSync } from "fs";
 import { toLower } from "lodash";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
@@ -20,7 +21,6 @@ import { ImageV12 } from "../../legacy-entities/image.v12-entity";
 import { ProgressV12 } from "../../legacy-entities/progress.v12-entity";
 import { PublisherV12 } from "../../legacy-entities/publisher.v12-entity";
 import { TagV12 } from "../../legacy-entities/tag.v12-entity";
-import { randomBytes } from "crypto";
 
 export class V13Final1728421385000 implements MigrationInterface {
   private readonly logger = new Logger(this.constructor.name);
