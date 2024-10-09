@@ -10,9 +10,6 @@ import { GameMetadata } from "../../../metadata/games/game.metadata.entity";
 import { GenreMetadata } from "../../../metadata/genres/genre.metadata.entity";
 import { PublisherMetadata } from "../../../metadata/publishers/publisher.metadata.entity";
 import { TagMetadata } from "../../../metadata/tags/tag.metadata.entity";
-import { State } from "../../../progresses/models/state.enum";
-import { Progress } from "../../../progresses/progress.entity";
-import { GamevaultUser } from "../../../users/gamevault-user.entity";
 import { DeveloperV12 } from "../../legacy-entities/developer.v12-entity";
 import { GameV12 } from "../../legacy-entities/game.v12-entity";
 import { GamevaultUserV12 } from "../../legacy-entities/gamevault-user.v12-entity";
@@ -722,7 +719,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     await this.migrateDevelopers(queryRunner);
     await this.migratePublishers(queryRunner);
     await this.migrateGames(queryRunner);
-    await this.migrateUsersAndBookmarks(queryRunner);
+    await this.migrateUsers(queryRunner);
     await this.migrateProgresses(queryRunner);
     await this.toggleAutoIncrementId(queryRunner, true);
   }
@@ -844,19 +841,25 @@ export class V13Final1728421385000 implements MigrationInterface {
         message: `Migrating image ID ${image.id}, Source: ${image.source}`,
       });
 
-      const newImage = await queryRunner.manager.save(Media, {
-        id: image.id,
-        source_url: image.source,
-        file_path: image.path.replace("/images/", "/media/"),
-        type: image.mediaType ?? "application/octet-stream",
-        uploader: image.uploader,
-        created_at: image.created_at,
-        updated_at: image.updated_at,
-        deleted_at: image.deleted_at,
-        entity_version: image.entity_version,
-      });
+      await queryRunner.query(
+        `
+      INSERT INTO "media" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "source_url", "file_path", "type", "uploader_id")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+      `,
+        [
+          image.id,
+          image.created_at,
+          image.updated_at,
+          image.deleted_at,
+          image.entity_version,
+          image.source,
+          image.path.replace("/images/", "/media/"),
+          image.mediaType ?? "application/octet-stream",
+          image.uploader?.id,
+        ],
+      );
 
-      this.logger.log({ message: `Image migrated successfully`, newImage });
+      this.logger.log({ message: `Image migrated successfully` });
     }
 
     this.logger.log({ message: "Image migration completed." });
@@ -887,18 +890,24 @@ export class V13Final1728421385000 implements MigrationInterface {
         continue;
       }
 
-      const newTag = await queryRunner.manager.save(TagMetadata, {
-        id: tag.id,
-        provider_slug: this.legacyProviderSlug,
-        provider_data_id: tag.rawg_id.toString(),
-        name: tag.name,
-        created_at: tag.created_at,
-        updated_at: tag.updated_at,
-        deleted_at: tag.deleted_at,
-        entity_version: tag.entity_version,
-      });
+      await queryRunner.query(
+        `
+      INSERT INTO "tag_metadata"("id", "created_at", "updated_at", "deleted_at", "entity_version", "provider_slug", "provider_data_id", "name") 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `,
+        [
+          tag.id,
+          tag.created_at,
+          tag.updated_at,
+          tag.deleted_at,
+          tag.entity_version,
+          this.legacyProviderSlug,
+          tag.rawg_id?.toString(),
+          tag.name,
+        ],
+      );
 
-      this.logger.log({ message: `Tag migrated successfully`, newTag });
+      this.logger.log({ message: `Tag migrated successfully` });
     }
 
     this.logger.log({ message: "Tag migration completed." });
@@ -931,18 +940,24 @@ export class V13Final1728421385000 implements MigrationInterface {
         continue;
       }
 
-      const newGenre = await queryRunner.manager.save(GenreMetadata, {
-        id: genre.id,
-        provider_slug: this.legacyProviderSlug,
-        provider_data_id: genre.rawg_id.toString(),
-        name: genre.name,
-        created_at: genre.created_at,
-        updated_at: genre.updated_at,
-        deleted_at: genre.deleted_at,
-        entity_version: genre.entity_version,
-      });
+      await queryRunner.query(
+        `
+        INSERT INTO "genre_metadata" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "provider_slug", "provider_data_id", "name") 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `,
+        [
+          genre.id,
+          genre.created_at,
+          genre.updated_at,
+          genre.deleted_at,
+          genre.entity_version,
+          this.legacyProviderSlug,
+          genre.rawg_id?.toString(),
+          genre.name,
+        ],
+      );
 
-      this.logger.log({ message: `Genre migrated successfully`, newGenre });
+      this.logger.log({ message: `Genre migrated successfully` });
     }
 
     this.logger.log({ message: "Genre migration completed." });
@@ -975,20 +990,25 @@ export class V13Final1728421385000 implements MigrationInterface {
         continue;
       }
 
-      const newDeveloper = await queryRunner.manager.save(DeveloperMetadata, {
-        id: developer.id,
-        provider_slug: this.legacyProviderSlug,
-        provider_data_id: developer.rawg_id.toString(),
-        name: developer.name,
-        created_at: developer.created_at,
-        updated_at: developer.updated_at,
-        deleted_at: developer.deleted_at,
-        entity_version: developer.entity_version,
-      });
+      await queryRunner.query(
+        `
+        INSERT INTO "developer_metadata" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "provider_slug", "provider_data_id", "name") 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `,
+        [
+          developer.id,
+          developer.created_at,
+          developer.updated_at,
+          developer.deleted_at,
+          developer.entity_version,
+          this.legacyProviderSlug,
+          developer.rawg_id?.toString(),
+          developer.name,
+        ],
+      );
 
       this.logger.log({
         message: `Developer migrated successfully`,
-        newDeveloper,
       });
     }
 
@@ -1022,20 +1042,25 @@ export class V13Final1728421385000 implements MigrationInterface {
         continue;
       }
 
-      const newPublisher = await queryRunner.manager.save(PublisherMetadata, {
-        id: publisher.id,
-        provider_slug: this.legacyProviderSlug,
-        provider_data_id: publisher.rawg_id.toString(),
-        name: publisher.name,
-        created_at: publisher.created_at,
-        updated_at: publisher.updated_at,
-        deleted_at: publisher.deleted_at,
-        entity_version: publisher.entity_version,
-      });
+      await queryRunner.query(
+        `
+        INSERT INTO "publisher_metadata" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "provider_slug", "provider_data_id", "name") 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `,
+        [
+          publisher.id,
+          publisher.created_at,
+          publisher.updated_at,
+          publisher.deleted_at,
+          publisher.entity_version,
+          this.legacyProviderSlug,
+          publisher.rawg_id?.toString(),
+          publisher.name,
+        ],
+      );
 
       this.logger.log({
         message: `Publisher migrated successfully`,
-        newPublisher,
       });
     }
 
@@ -1066,20 +1091,31 @@ export class V13Final1728421385000 implements MigrationInterface {
         message: `Migrating game ID ${game.id}, Title: ${game.title}`,
       });
 
-      const migratedGame = await queryRunner.manager.save(GamevaultGame, {
-        id: game.id,
-        file_path: game.file_path,
-        size: game.size,
-        title: game.title,
-        version: game.version,
-        release_date: game.release_date,
-        early_access: game.early_access,
-        download_count: 0,
-        type: game.type,
-        created_at: game.created_at,
-        updated_at: game.updated_at,
-        deleted_at: game.deleted_at,
-        entity_version: game.entity_version,
+      await queryRunner.query(
+        `
+        INSERT INTO "gamevault_game" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "file_path", "size", "title", "sort_title", "version", "release_date", "early_access", "download_count", "type", "user_metadata_id", "metadata_id")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, DEFAULT, $9, $10, $11, $12, $13, DEFAULT, DEFAULT)
+        `,
+        [
+          game.id,
+          game.created_at,
+          game.updated_at,
+          game.deleted_at,
+          game.entity_version,
+          game.file_path,
+          game.size,
+          game.title,
+          game.version,
+          game.release_date,
+          game.early_access,
+          0,
+          game.type,
+        ],
+      );
+
+      const migratedGame = await queryRunner.manager.findOne(GamevaultGame, {
+        where: { id: game.id },
+        withDeleted: true,
       });
 
       const cover = game.box_image
@@ -1190,9 +1226,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     this.logger.log({ message: "Game migration completed." });
   }
 
-  private async migrateUsersAndBookmarks(
-    queryRunner: QueryRunner,
-  ): Promise<void> {
+  private async migrateUsers(queryRunner: QueryRunner): Promise<void> {
     this.logger.log({ message: "Migrating Users..." });
 
     const users = await queryRunner.manager.find(GamevaultUserV12, {
@@ -1213,9 +1247,8 @@ export class V13Final1728421385000 implements MigrationInterface {
         "last_name",
         "activated",
         "role",
-        "bookmarked_games",
       ],
-      relations: ["profile_picture", "background_image", "bookmarked_games"],
+      relations: ["profile_picture", "background_image"],
       relationLoadStrategy: "query",
     });
     this.logger.log({
@@ -1247,39 +1280,47 @@ export class V13Final1728421385000 implements MigrationInterface {
           message: `Linked background image, ID: ${background?.id}`,
         });
 
-      const bookmarkedGames = user.bookmarked_games?.length
-        ? await queryRunner.manager.findBy(GamevaultGame, {
-            id: In(user.bookmarked_games.map((b) => b.id)),
-          })
-        : [];
+      await queryRunner.query(
+        `
+        INSERT INTO "gamevault_user" ("created_at", "updated_at", "deleted_at", "entity_version", "username", "password", "socket_secret", "email", "first_name", "last_name", "birth_date", "activated", "role", "avatar_id", "background_id", "id")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, DEFAULT, $11, $12, $13, $14, $15)
+        `,
+        [
+          user.created_at,
+          user.updated_at,
+          user.deleted_at,
+          user.entity_version,
+          user.username,
+          user.password,
+          user.socket_secret ?? randomBytes(32).toString("hex"),
+          user.email,
+          user.first_name,
+          user.last_name,
+          user.activated,
+          user.role.valueOf(),
+          avatar?.id,
+          background?.id,
+          user.id,
+        ],
+      );
 
-      const newUser = await queryRunner.manager.save(GamevaultUser, {
-        id: user.id,
-        username: user.username,
-        password: user.password,
-        socket_secret: user.socket_secret ?? randomBytes(32).toString("hex"),
-        avatar,
-        background,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        birth_date: undefined,
-        activated: user.activated,
-        role: user.role.valueOf(),
-        bookmarked_games: bookmarkedGames,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        deleted_at: user.deleted_at,
-        entity_version: user.entity_version,
-      });
       this.logger.log({
         message: `User migrated successfully.`,
-        username: newUser.username,
-        userId: newUser.id,
       });
     }
 
     this.logger.log({ message: "User migration completed." });
+  }
+
+  private async migrateBookmarks(queryRunner: QueryRunner): Promise<void> {
+    this.logger.log({ message: "Migrating Bookmarks..." });
+    await queryRunner.query(
+      `
+      INSERT INTO "bookmarks" ("gamevault_user_id", "game_id")
+      SELECT "gamevault_user_id", "game_id" FROM "v12_bookmark"
+      `,
+    );
+    this.logger.log({ message: "Bookmark migration completed." });
   }
 
   private async migrateProgresses(queryRunner: QueryRunner): Promise<void> {
@@ -1300,35 +1341,27 @@ export class V13Final1728421385000 implements MigrationInterface {
         message: `Migrating progress ID ${progress.id}, User: ${progress.user?.id}, Game: ${progress.game?.id}`,
       });
 
-      const user = progress.user
-        ? await queryRunner.manager.findOne(GamevaultUser, {
-            where: { id: progress.user.id },
-            withDeleted: true,
-          })
-        : undefined;
+      await queryRunner.query(
+        `
+        INSERT INTO "progress" ("id", "created_at", "updated_at", "deleted_at", "entity_version", "minutes_played", "state", "last_played_at", "user_id", "game_id")
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `,
+        [
+          progress.id,
+          progress.created_at,
+          progress.updated_at,
+          progress.deleted_at,
+          progress.entity_version,
+          progress.minutes_played,
+          progress.state,
+          progress.last_played_at,
+          progress.user?.id,
+          progress.game?.id,
+        ],
+      );
 
-      const game = progress.game
-        ? await queryRunner.manager.findOne(GamevaultGame, {
-            where: { id: progress.game.id },
-            withDeleted: true,
-          })
-        : undefined;
-
-      const newProgress = await queryRunner.manager.save(Progress, {
-        id: progress.id,
-        user,
-        game,
-        minutes_played: progress.minutes_played,
-        state: State[progress.state.valueOf()],
-        last_played_at: progress.last_played_at,
-        created_at: progress.created_at,
-        updated_at: progress.updated_at,
-        deleted_at: progress.deleted_at,
-        entity_version: progress.entity_version,
-      });
       this.logger.log({
         message: `Progress migrated successfully.`,
-        progress: newProgress,
       });
     }
 

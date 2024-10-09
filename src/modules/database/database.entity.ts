@@ -7,16 +7,10 @@ import {
   UpdateDateColumn,
   VersionColumn,
 } from "typeorm";
-import configuration from "../../configuration";
 
 export abstract class DatabaseEntity {
   @Index()
-  @PrimaryGeneratedColumn(
-    configuration.DB.SYSTEM === "POSTGRESQL" ? "identity" : undefined,
-    configuration.DB.SYSTEM === "POSTGRESQL"
-      ? { name: "id", generatedIdentity: "BY DEFAULT" }
-      : undefined,
-  )
+  @PrimaryGeneratedColumn()
   @ApiProperty({
     example: 1,
     description: "Unique gamevault-identifier of the entity",
