@@ -365,7 +365,7 @@ export class MetadataService {
         publisher.provider_data_id = kebabCase(publisher.name);
       }
     }
-    
+
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);
