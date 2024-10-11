@@ -21,9 +21,9 @@ import configuration from "../../configuration";
 @Injectable()
 export class DatabaseService {
   private readonly logger = new Logger(this.constructor.name);
-  private execPromise = promisify(exec);
+  private readonly execPromise = promisify(exec);
 
-  constructor(private dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   async backup(password: string): Promise<StreamableFile> {
     if (configuration.TESTING.IN_MEMORY_DB) {

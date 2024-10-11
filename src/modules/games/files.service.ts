@@ -35,6 +35,7 @@ import { RangeHeader } from "./models/range-header.model";
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
+  private readonly indexJobs = new Map<string, File>();
 
   private readonly runDebouncedIntegrityCheck = debounce(async () => {
     await this.checkIntegrity(
@@ -44,6 +45,11 @@ export class FilesService implements OnApplicationBootstrap {
         loadRelations: true,
       }),
     );
+  }, 5000);
+
+  private readonly runDebouncedIndex = debounce(async () => {
+    const files = Array.from(this.indexJobs.values());
+    await this.index(files);
   }, 5000);
 
   constructor(
@@ -59,15 +65,18 @@ export class FilesService implements OnApplicationBootstrap {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
     })
-      .on("add", (path: string, stats: Stats) =>
-        this.index([{ path, size: BigInt(stats.size) }]),
-      )
-      .on("change", (path: string, stats: Stats) =>
-        this.index([{ path, size: BigInt(stats.size) }]),
-      )
-      .on("unlink", (path: string, stats: Stats) =>
-        this.index([{ path, size: BigInt(stats.size) }]),
-      )
+      .on("add", (path: string, stats: Stats) => {
+        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
+        this.runDebouncedIndex();
+      })
+      .on("change", (path: string, stats: Stats) => {
+        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
+        this.runDebouncedIndex();
+      })
+      .on("unlink", (path: string, stats: Stats) => {
+        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
+        this.runDebouncedIndex();
+      })
       .on("error", (error) => {
         this.logger.error({ message: "Error in FileWatcher.", error });
       });
@@ -77,7 +86,12 @@ export class FilesService implements OnApplicationBootstrap {
     disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0,
   })
   public async index(files?: File[]): Promise<GamevaultGame[]> {
-    this.logger.log({ message: "Indexing game(s).", files });
+    this.logger.log({
+      message: "Indexing game(s).",
+      files,
+      jobs: this.indexJobs.size,
+    });
+    this.indexJobs.clear();
     const unvalidatedFilesToIngest = files ?? (await this.readAllFiles());
 
     const validatedFilesToIngest = unvalidatedFilesToIngest.filter((file) =>
