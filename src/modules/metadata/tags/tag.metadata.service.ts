@@ -40,6 +40,11 @@ export class TagMetadataService {
       provider_slug: tag.provider_slug,
       provider_data_id: tag.provider_data_id,
     });
+    this.logger.debug({
+      message: "Saving tag metadata",
+      tag,
+      already_exists: !!tag,
+    })
     return this.tagRepository.save({
       ...existingTag,
       ...{

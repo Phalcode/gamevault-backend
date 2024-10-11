@@ -39,6 +39,11 @@ export class GenreMetadataService {
       provider_slug: genre.provider_slug,
       provider_data_id: genre.provider_data_id,
     });
+    this.logger.debug({
+      message: "Saving genre metadata",
+      genre,
+      already_exists: !!genre,
+    })
     return this.genreRepository.save({
       ...existingGenre,
       ...{

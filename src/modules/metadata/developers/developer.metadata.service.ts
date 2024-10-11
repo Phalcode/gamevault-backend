@@ -39,6 +39,11 @@ export class DeveloperMetadataService {
       provider_slug: developer.provider_slug,
       provider_data_id: developer.provider_data_id,
     });
+    this.logger.debug({
+      message: "Saving developer metadata",
+      developer,
+      already_exists: !!existingDeveloper,
+    })
     return this.developerRepository.save({
       ...existingDeveloper,
       ...{

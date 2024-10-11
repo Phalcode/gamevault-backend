@@ -39,6 +39,11 @@ export class PublisherMetadataService {
       provider_slug: publisher.provider_slug,
       provider_data_id: publisher.provider_data_id,
     });
+    this.logger.debug({
+      message: "Saving publisher metadata",
+      publisher,
+      already_exists: !!publisher,
+    })
     return this.publisherRepository.save({
       ...existingPublisher,
       ...{

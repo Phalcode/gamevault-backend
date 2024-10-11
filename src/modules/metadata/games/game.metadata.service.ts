@@ -237,8 +237,9 @@ export class GameMetadataService {
     }
 
     logger.debug({
-      message: `Saving GameMetadata`,
+      message: `Saving game metadata`,
       game: upsertedGame,
+      already_exists: !!existingGame,
     });
 
     return this.gameMetadataRepository.save(upsertedGame);
