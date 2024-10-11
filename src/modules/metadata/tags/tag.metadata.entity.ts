@@ -5,12 +5,13 @@ import { Column, Entity, Index, ManyToMany } from "typeorm";
 import globals from "../../../globals";
 import { DatabaseEntity } from "../../database/database.entity";
 import { GameMetadata } from "../games/game.metadata.entity";
+import { Metadata } from "../models/metadata.interface";
 
 @Entity()
 @Index("UQ_TAG_METADATA", ["provider_slug", "provider_data_id"], {
   unique: true,
 })
-export class TagMetadata extends DatabaseEntity {
+export class TagMetadata extends DatabaseEntity implements Metadata {
   @Column()
   @Index()
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {

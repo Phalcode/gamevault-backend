@@ -17,6 +17,7 @@ import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { Media } from "../../media/media.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
+import { Metadata } from "../models/metadata.interface";
 import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../tags/tag.metadata.entity";
 
@@ -24,7 +25,7 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
 @Index("UQ_GAME_METADATA", ["provider_slug", "provider_data_id"], {
   unique: true,
 })
-export class GameMetadata extends DatabaseEntity {
+export class GameMetadata extends DatabaseEntity implements Metadata {
   @JoinTable()
   @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
   @ApiPropertyOptional({
