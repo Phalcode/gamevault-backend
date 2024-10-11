@@ -161,77 +161,70 @@ export class GameMetadataService {
       getLoggableData: game.getLoggableData,
     };
 
-    if (game.developers != null && game.developers.length > 0) {
+    if (game.developers?.length > 0) {
       const upsertedDevelopers: DeveloperMetadata[] = [];
       for (const developer of game.developers) {
-        if (
-          upsertedDevelopers.some(
-            (upsertedDeveloper) =>
-              upsertedDeveloper.provider_data_id ===
-                developer.provider_data_id &&
-              upsertedDeveloper.provider_slug === developer.provider_slug,
-          )
-        ) {
-          continue;
+        try {
+          upsertedDevelopers.push(
+            await this.developerMetadataService.save(developer),
+          );
+        } catch (error) {
+          logger.error({
+            message: `Error upserting developer metadata`,
+            error,
+            developer,
+          });
         }
-        upsertedDevelopers.push(
-          await this.developerMetadataService.save(developer),
-        );
       }
       upsertedGame.developers = upsertedDevelopers;
     }
 
-    if (game.publishers != null && game.publishers.length > 0) {
+    if (game.publishers?.length > 0) {
       const upsertedPublishers: PublisherMetadata[] = [];
       for (const publisher of game.publishers) {
-        if (
-          upsertedPublishers.some(
-            (upsertedPublisher) =>
-              upsertedPublisher.provider_data_id ===
-                publisher.provider_data_id &&
-              upsertedPublisher.provider_slug === publisher.provider_slug,
-          )
-        ) {
-          continue;
+        try {
+          upsertedPublishers.push(
+            await this.publisherMetadataService.save(publisher),
+          );
+        } catch (error) {
+          logger.error({
+            message: `Error upserting publisher metadata`,
+            error,
+            publisher,
+          });
         }
-
-        upsertedPublishers.push(
-          await this.publisherMetadataService.save(publisher),
-        );
       }
       upsertedGame.publishers = upsertedPublishers;
     }
 
-    if (game.tags != null && game.tags.length > 0) {
+    if (game.tags?.length > 0) {
       const upsertedTags: TagMetadata[] = [];
       for (const tag of game.tags) {
-        if (
-          upsertedTags.some(
-            (upsertedTag) =>
-              upsertedTag.provider_data_id === tag.provider_data_id &&
-              upsertedTag.provider_slug === tag.provider_slug,
-          )
-        ) {
-          continue;
+        try {
+          upsertedTags.push(await this.tagMetadataService.save(tag));
+        } catch (error) {
+          logger.error({
+            message: `Error upserting tag metadata`,
+            error,
+            tag,
+          });
         }
-        upsertedTags.push(await this.tagMetadataService.save(tag));
       }
       upsertedGame.tags = upsertedTags;
     }
 
-    if (game.genres != null && game.genres.length > 0) {
+    if (game.genres?.length > 0) {
       const upsertedGenres: GenreMetadata[] = [];
       for (const genre of game.genres) {
-        if (
-          upsertedGenres.some(
-            (upsertedGenre) =>
-              upsertedGenre.provider_data_id === genre.provider_data_id &&
-              upsertedGenre.provider_slug === genre.provider_slug,
-          )
-        ) {
-          continue;
+        try {
+          upsertedGenres.push(await this.genreMetadataService.save(genre));
+        } catch (error) {
+          logger.error({
+            message: `Error upserting genre metadata`,
+            error,
+            genre,
+          });
         }
-        upsertedGenres.push(await this.genreMetadataService.save(genre));
       }
       upsertedGame.genres = upsertedGenres;
     }
