@@ -161,7 +161,7 @@ export class GameMetadataService {
       getLoggableData: game.getLoggableData,
     };
 
-    if (game.developers?.length > 0) {
+    if (game.developers?.length) {
       const upsertedDevelopers: DeveloperMetadata[] = [];
       for (const developer of game.developers) {
         try {
@@ -179,7 +179,7 @@ export class GameMetadataService {
       upsertedGame.developers = upsertedDevelopers;
     }
 
-    if (game.publishers?.length > 0) {
+    if (game.publishers?.length) {
       const upsertedPublishers: PublisherMetadata[] = [];
       for (const publisher of game.publishers) {
         try {
@@ -197,7 +197,7 @@ export class GameMetadataService {
       upsertedGame.publishers = upsertedPublishers;
     }
 
-    if (game.tags?.length > 0) {
+    if (game.tags?.length) {
       const upsertedTags: TagMetadata[] = [];
       for (const tag of game.tags) {
         try {
@@ -213,7 +213,7 @@ export class GameMetadataService {
       upsertedGame.tags = upsertedTags;
     }
 
-    if (game.genres?.length > 0) {
+    if (game.genres?.length) {
       const upsertedGenres: GenreMetadata[] = [];
       for (const genre of game.genres) {
         try {

@@ -334,30 +334,38 @@ export class MetadataService {
       },
     } as GameMetadata;
 
-    for (const genre of mergedMetadata.genres) {
-      genre.id = undefined;
-      genre.provider_slug = "gamevault";
-      genre.provider_data_id = kebabCase(genre.name);
+    if (mergedMetadata.genres?.length) {
+      for (const genre of mergedMetadata.genres) {
+        genre.id = undefined;
+        genre.provider_slug = "gamevault";
+        genre.provider_data_id = kebabCase(genre.name);
+      }
     }
 
-    for (const tag of mergedMetadata.tags) {
-      tag.id = undefined;
-      tag.provider_slug = "gamevault";
-      tag.provider_data_id = kebabCase(tag.name);
+    if (mergedMetadata.tags?.length) {
+      for (const tag of mergedMetadata.tags) {
+        tag.id = undefined;
+        tag.provider_slug = "gamevault";
+        tag.provider_data_id = kebabCase(tag.name);
+      }
     }
 
-    for (const developer of mergedMetadata.developers) {
-      developer.id = undefined;
-      developer.provider_slug = "gamevault";
-      developer.provider_data_id = kebabCase(developer.name);
+    if (mergedMetadata.developers?.length) {
+      for (const developer of mergedMetadata.developers) {
+        developer.id = undefined;
+        developer.provider_slug = "gamevault";
+        developer.provider_data_id = kebabCase(developer.name);
+      }
     }
 
-    for (const publisher of mergedMetadata.publishers) {
-      publisher.id = undefined;
-      publisher.provider_slug = "gamevault";
-      publisher.provider_data_id = kebabCase(publisher.name);
+    if (mergedMetadata.publishers?.length) {
+      for (const publisher of mergedMetadata.publishers) {
+        publisher.id = undefined;
+        publisher.provider_slug = "gamevault";
+        publisher.provider_data_id = kebabCase(publisher.name);
+      }
     }
-
+    
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
     const mergedGame = await this.gamesService.save(game);
