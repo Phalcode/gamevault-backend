@@ -43,7 +43,7 @@ export class PublisherMetadataService {
       message: "Saving publisher metadata",
       publisher,
       already_exists: !!publisher,
-    })
+    });
     return this.publisherRepository.save({
       ...existingPublisher,
       ...{

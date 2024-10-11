@@ -43,7 +43,7 @@ export class DeveloperMetadataService {
       message: "Saving developer metadata",
       developer,
       already_exists: !!existingDeveloper,
-    })
+    });
     return this.developerRepository.save({
       ...existingDeveloper,
       ...{

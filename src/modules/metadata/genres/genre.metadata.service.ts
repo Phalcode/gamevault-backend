@@ -43,7 +43,7 @@ export class GenreMetadataService {
       message: "Saving genre metadata",
       genre,
       already_exists: !!genre,
-    })
+    });
     return this.genreRepository.save({
       ...existingGenre,
       ...{

@@ -44,7 +44,7 @@ export class TagMetadataService {
       message: "Saving tag metadata",
       tag,
       already_exists: !!tag,
-    })
+    });
     return this.tagRepository.save({
       ...existingTag,
       ...{
