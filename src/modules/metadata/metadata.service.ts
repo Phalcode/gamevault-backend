@@ -287,14 +287,14 @@ export class MetadataService {
     // Create New Effective Metadata by applying the priorotized metadata one by one
     for (const metadata of providerMetadata) {
       // Delete all empty fields of provider so only delta is overwritten
-      Object.keys(metadata).forEach((key) => {
+      for (const key of Object.keys(metadata)) {
         if (metadata[key] == null) {
           delete metadata[key];
         }
         if (Array.isArray(metadata[key]) && metadata[key].length === 0) {
           delete metadata[key];
         }
-      });
+      }
 
       mergedMetadata = {
         ...mergedMetadata,
@@ -305,7 +305,7 @@ export class MetadataService {
     // Apply the users changes on top
     if (userMetadata) {
       // Delete all empty fields of dto.user_metadata so only delta is overwritten
-      Object.keys(userMetadata)?.forEach((key) => {
+      for (const key of Object.keys(userMetadata)) {
         if (userMetadata[key] == null) {
           delete userMetadata[key];
         }
@@ -315,7 +315,7 @@ export class MetadataService {
         ) {
           delete userMetadata[key];
         }
-      });
+      }
 
       mergedMetadata = {
         ...mergedMetadata,
@@ -334,29 +334,29 @@ export class MetadataService {
       },
     } as GameMetadata;
 
-    mergedMetadata.genres?.forEach((genre) => {
+    for (const genre of mergedMetadata.genres) {
       genre.id = undefined;
       genre.provider_slug = "gamevault";
       genre.provider_data_id = kebabCase(genre.name);
-    });
+    }
 
-    mergedMetadata.tags?.forEach((tag) => {
+    for (const tag of mergedMetadata.tags) {
       tag.id = undefined;
       tag.provider_slug = "gamevault";
       tag.provider_data_id = kebabCase(tag.name);
-    });
+    }
 
-    mergedMetadata.developers?.forEach((developer) => {
+    for (const developer of mergedMetadata.developers) {
       developer.id = undefined;
       developer.provider_slug = "gamevault";
       developer.provider_data_id = kebabCase(developer.name);
-    });
+    }
 
-    mergedMetadata.publishers?.forEach((publisher) => {
+    for (const publisher of mergedMetadata.publishers) {
       publisher.id = undefined;
       publisher.provider_slug = "gamevault";
       publisher.provider_data_id = kebabCase(publisher.name);
-    });
+    }
 
     // Save the merged metadata
     game.metadata = await this.gameMetadataService.save(mergedMetadata);
