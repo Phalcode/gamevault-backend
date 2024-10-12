@@ -95,6 +95,7 @@ export class MediaController {
         validators: [
           new MaxFileSizeValidator({
             maxSize: configuration.MEDIA.MAX_SIZE_IN_KB,
+            message: `File exceeds maximum allowed size of ${configuration.MEDIA.MAX_SIZE_IN_KB / 1000} MB.`,
           }),
           new FileTypeValidator({ fileType: /^(image|video|audio)\/.*/ }),
         ],
