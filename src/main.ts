@@ -86,6 +86,24 @@ async function bootstrap(): Promise<void> {
   // GZIP
   app.use(compression());
 
+  // Set Max Body Size
+  app.useBodyParser("json", {
+    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
+    extended: true,
+  });
+  app.useBodyParser("urlencoded", {
+    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
+    extended: true,
+  });
+  app.useBodyParser("text", {
+    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
+    extended: true,
+  });
+  app.useBodyParser("raw", {
+    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
+    extended: true,
+  });
+
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
 
