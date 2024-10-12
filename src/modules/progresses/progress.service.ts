@@ -213,7 +213,10 @@ export class ProgressService {
         progress.last_played_at = new Date();
       }
     }
-    this.logger.log({ message: `Updating progress.`, progress: progress.getLoggableData(), });
+    this.logger.log({
+      message: `Updating progress.`,
+      progress: progress.getLoggableData(),
+    });
     return this.progressRepository.save(progress);
   }
 
