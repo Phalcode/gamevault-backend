@@ -2,7 +2,6 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
@@ -33,7 +32,7 @@ import { GameType } from "./models/game-type.enum";
 import { RangeHeader } from "./models/range-header.model";
 
 @Injectable()
-export class FilesService implements OnApplicationBootstrap {
+export class FilesService {
   private readonly logger = new Logger(this.constructor.name);
   private readonly indexJobs = new Map<string, File>();
 
@@ -55,9 +54,7 @@ export class FilesService implements OnApplicationBootstrap {
   constructor(
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
-  ) {}
-
-  onApplicationBootstrap() {
+  ) {
     if (configuration.TESTING.MOCK_FILES) {
       return;
     }
@@ -65,21 +62,24 @@ export class FilesService implements OnApplicationBootstrap {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
     })
-      .on("add", (path: string, stats: Stats) => {
-        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
-        this.runDebouncedIndex();
-      })
-      .on("change", (path: string, stats: Stats) => {
-        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
-        this.runDebouncedIndex();
-      })
-      .on("unlink", (path: string, stats: Stats) => {
-        this.indexJobs.set(path, { path, size: BigInt(stats.size) });
-        this.runDebouncedIndex();
-      })
+      .on("add", (path: string, stats: Stats) => this.addIndexJob(path, stats))
+      .on("change", (path: string, stats: Stats) =>
+        this.addIndexJob(path, stats),
+      )
+      .on("unlink", (path: string, stats: Stats) =>
+        this.addIndexJob(path, stats),
+      )
       .on("error", (error) => {
         this.logger.error({ message: "Error in FileWatcher.", error });
       });
+  }
+
+  private addIndexJob(path: string, stats: Stats) {
+    if (!path || !stats?.size) {
+      return;
+    }
+    this.indexJobs.set(path, { path, size: BigInt(stats.size) });
+    this.runDebouncedIndex();
   }
 
   @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
