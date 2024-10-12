@@ -357,15 +357,15 @@ export class GamesService {
         "Dupe-Checking Data not available in indexed game!",
       );
     }
-    const existingGameByPath = await this.gamesRepository.findOne({
-      relationLoadStrategy: "query",
-      where: { file_path: game.file_path },
-      relations: this.defaultRelations,
-      withDeleted: true,
-    });
 
-    const existingGameByTitleAndReleaseDate =
-      await this.gamesRepository.findOne({
+    const foundGame =
+      (await this.gamesRepository.findOne({
+        relationLoadStrategy: "query",
+        where: { file_path: game.file_path },
+        relations: this.defaultRelations,
+        withDeleted: true,
+      })) ??
+      (await this.gamesRepository.findOne({
         relationLoadStrategy: "query",
         where: {
           title: game.title,
@@ -373,9 +373,7 @@ export class GamesService {
         },
         relations: this.defaultRelations,
         withDeleted: true,
-      });
-
-    const foundGame = existingGameByPath ?? existingGameByTitleAndReleaseDate;
+      }));
 
     if (!foundGame) {
       return [GameExistence.DOES_NOT_EXIST, undefined];
