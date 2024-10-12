@@ -38,7 +38,7 @@ export class UsersService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    await this.recoverAdmin();
+    this.recoverAdmin();
   }
 
   private async recoverAdmin() {

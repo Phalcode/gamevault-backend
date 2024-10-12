@@ -27,7 +27,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    await this.garbageCollectUnusedMedia();
+    this.garbageCollectUnusedMedia();
   }
 
   /**
