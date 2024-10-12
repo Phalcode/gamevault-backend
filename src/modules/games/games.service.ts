@@ -360,6 +360,7 @@ export class GamesService {
     const existingGameByPath = await this.gamesRepository.findOne({
       relationLoadStrategy: "query",
       where: { file_path: game.file_path },
+      relations: this.defaultRelations,
       withDeleted: true,
     });
 
@@ -370,6 +371,7 @@ export class GamesService {
           title: game.title,
           release_date: game.release_date,
         },
+        relations: this.defaultRelations,
         withDeleted: true,
       });
 
