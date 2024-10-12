@@ -82,8 +82,7 @@ export class MediaService {
       const response = await this.fetchFromUrl(media.source_url);
       this.logger.debug({
         message: `Downloaded media.`,
-        url: sourceUrl,
-        uploader: uploaderUsername,
+        media: media.getLoggableData(),
       });
       const mediaBuffer = Buffer.from(response.data);
       const validatedMediaBuffer = await this.validate(mediaBuffer);
@@ -160,7 +159,7 @@ export class MediaService {
     } catch (error) {
       this.logger.error({
         message: "Error deleting media.",
-        media,
+        media: media.getLoggableData(),
         error,
       });
     }
@@ -177,8 +176,7 @@ export class MediaService {
       const uploadedMedia = await this.mediaRepository.save(media);
       this.logger.log({
         message: "Media successfully uploaded.",
-        media: uploadedMedia,
-        uploader: username,
+        media: uploadedMedia.getLoggableData(),
       });
       return uploadedMedia;
     } catch (error) {
