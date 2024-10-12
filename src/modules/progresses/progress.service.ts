@@ -190,7 +190,7 @@ export class ProgressService {
         const deleteResult = await this.progressRepository.remove(progress);
         this.logger.log({
           message: `Deleted empty progress.`,
-          progress,
+          progress: progress.getLoggableData(),
         });
         return deleteResult;
       }
@@ -213,7 +213,7 @@ export class ProgressService {
         progress.last_played_at = new Date();
       }
     }
-    this.logger.log({ message: `Updating progress.`, progress });
+    this.logger.log({ message: `Updating progress.`, progress: progress.getLoggableData(), });
     return this.progressRepository.save(progress);
   }
 
@@ -245,7 +245,7 @@ export class ProgressService {
     }
     this.logger.log({
       message: `Incrementing progress by ${incrementBy} minute(s).`,
-      progress,
+      progress: progress.getLoggableData(),
     });
     progress.last_played_at = new Date();
     progress.minutes_played += incrementBy;
