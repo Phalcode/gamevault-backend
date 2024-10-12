@@ -103,8 +103,7 @@ export class FilesService {
       return;
     }
 
-    await this.ingest(validatedFilesToIngest);
-    this.runDebouncedIntegrityCheck();
+    this.ingest(validatedFilesToIngest);
   }
 
   private async ingest(files: File[]): Promise<void> {
@@ -189,7 +188,10 @@ export class FilesService {
         });
       }
     }
-    await this.metadataService.check(updatedGames);
+
+    // Run metadata and integrity checks.
+    this.metadataService.check(updatedGames);
+    this.runDebouncedIntegrityCheck();
     this.logger.log({
       message: "Finished ingesting games.",
       count: files.length,
