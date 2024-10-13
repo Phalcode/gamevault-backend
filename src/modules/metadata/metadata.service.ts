@@ -36,8 +36,10 @@ export class MetadataService {
    */
   registerProvider(provider: MetadataProvider) {
     // Check if a provider with the same slug or priority already exists
-    const existingProvider = this.providers.find(
-      (p) => p.slug === provider.slug || p.priority === provider.priority,
+    const existingProvider = this.providers?.find(
+      (provider) =>
+        provider.slug === provider.slug ||
+        provider.priority === provider.priority,
     );
 
     if (existingProvider) {
@@ -142,7 +144,7 @@ export class MetadataService {
     )) {
       try {
         // Find the existing provider metadata for the game and provider.
-        const existingProviderMetadata = game.provider_metadata.find(
+        const existingProviderMetadata = game.provider_metadata?.find(
           (metadata) => metadata.provider_slug === provider.slug,
         );
 
