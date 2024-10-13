@@ -37,13 +37,7 @@ export class FilesService {
   private readonly indexJobs = new Map<string, File>();
 
   private readonly runDebouncedIntegrityCheck = debounce(async () => {
-    await this.checkIntegrity(
-      await this.readAllFiles(),
-      await this.gamesService.find({
-        loadDeletedEntities: false,
-        loadRelations: true,
-      }),
-    );
+    await this.checkIntegrity();
   }, 5000);
 
   private readonly runDebouncedIndex = debounce(async () => {
@@ -516,10 +510,13 @@ export class FilesService {
    * system with the games in the database, marking the deleted games as deleted
    * in the database. Then returns the updated games in the database.
    */
-  private async checkIntegrity(
-    gamesInFileSystem: File[],
-    gamesInDatabase: GamevaultGame[],
-  ): Promise<GamevaultGame[]> {
+  private async checkIntegrity(): Promise<GamevaultGame[]> {
+    const gamesInFileSystem = await this.readAllFiles();
+    const gamesInDatabase = await this.gamesService.find({
+      loadDeletedEntities: false,
+      loadRelations: true,
+    });
+
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.log({
         message: "Skipping Integrity Check.",
