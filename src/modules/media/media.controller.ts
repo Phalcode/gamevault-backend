@@ -22,6 +22,7 @@ import {
   ApiProduces,
   ApiTags,
 } from "@nestjs/swagger";
+import bytes from "bytes";
 import { Response } from "express";
 import fs from "fs";
 
@@ -94,8 +95,8 @@ export class MediaController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: configuration.MEDIA.MAX_SIZE_IN_KB,
-            message: `File exceeds maximum allowed size of ${configuration.MEDIA.MAX_SIZE_IN_KB / 1000} MB.`,
+            maxSize: configuration.MEDIA.MAX_SIZE,
+            message: `File exceeds maximum allowed size of ${bytes(configuration.MEDIA.MAX_SIZE, { unit: "MB", thousandsSeparator: "." })}.`,
           }),
           new FileTypeValidator({ fileType: /^(image|video|audio)\/.*/ }),
         ],

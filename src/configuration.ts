@@ -63,10 +63,7 @@ function parseKibibytesToBytes(
 }
 
 export function getMaxBodySizeInBytes() {
-  return Math.min(
-    bytes("10mb"),
-    bytes(`${configuration.MEDIA.MAX_SIZE_IN_KB}kb`),
-  );
+  return Math.max(bytes("10mb"), configuration.MEDIA.MAX_SIZE);
 }
 
 const configuration = {
@@ -170,8 +167,7 @@ const configuration = {
       process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
   } as const,
   MEDIA: {
-    MAX_SIZE_IN_KB:
-      parseNumber(process.env.MEDIA_MAX_SIZE_IN_KB, 1000) * 10_000,
+    MAX_SIZE: bytes(toLower(process.env.MEDIA_MAX_SIZE)) ?? bytes("10mb"),
     SUPPORTED_FORMATS: parseList(
       process.env.MEDIA_SUPPORTED_FORMATS,
       globals.SUPPORTED_MEDIA_FORMATS,
