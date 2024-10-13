@@ -47,8 +47,7 @@ export class FilesService {
   }, 5000);
 
   private readonly runDebouncedIndex = debounce(async () => {
-    const files = Array.from(this.indexJobs.values());
-    await this.index(files);
+    await this.index(Array.from(this.indexJobs.values()));
   }, 5000);
 
   constructor(
