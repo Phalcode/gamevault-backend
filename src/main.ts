@@ -16,7 +16,10 @@ import morgan from "morgan";
 import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
-import configuration, { getCensoredConfiguration } from "./configuration";
+import configuration, {
+  getCensoredConfiguration,
+  getMaxBodySizeInBytes,
+} from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { GameVaultPluginModule } from "./globals";
 import { default as logger, stream, default as winston } from "./logging";
@@ -87,22 +90,15 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
 
   // Set Max Body Size
-  app.useBodyParser("json", {
-    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
+
+  const maxBodySettings = {
+    limit: `${getMaxBodySizeInBytes()}b`,
     extended: true,
-  });
-  app.useBodyParser("urlencoded", {
-    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
-    extended: true,
-  });
-  app.useBodyParser("text", {
-    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
-    extended: true,
-  });
-  app.useBodyParser("raw", {
-    limit: `${configuration.MEDIA.MAX_SIZE_IN_KB}kb`,
-    extended: true,
-  });
+  };
+  app.useBodyParser("json", maxBodySettings);
+  app.useBodyParser("urlencoded", maxBodySettings);
+  app.useBodyParser("text", maxBodySettings);
+  app.useBodyParser("raw", maxBodySettings);
 
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));

@@ -1,3 +1,4 @@
+import bytes from "bytes";
 import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
@@ -59,6 +60,13 @@ function parseKibibytesToBytes(
     return defaultValue ?? undefined;
   }
   return bytes;
+}
+
+export function getMaxBodySizeInBytes() {
+  return Math.min(
+    bytes("10mb"),
+    bytes(`${configuration.MEDIA.MAX_SIZE_IN_KB}kb`),
+  );
 }
 
 const configuration = {
