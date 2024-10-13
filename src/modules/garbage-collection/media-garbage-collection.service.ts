@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
@@ -13,7 +13,7 @@ import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Injectable()
-export class MediaGarbageCollectionService implements OnApplicationBootstrap {
+export class MediaGarbageCollectionService {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
@@ -24,12 +24,10 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
     private readonly mediaService: MediaService,
-  ) {}
-
-  async onApplicationBootstrap() {
+  ) {
     this.garbageCollectUnusedMedia();
   }
-
+  
   /**
    * Garbage collects unused medias.
    *
