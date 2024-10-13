@@ -242,7 +242,7 @@ export class ProgressService {
       this.logger.debug({
         message: `Automatically setting progress state to "${State.PLAYING}".`,
         reason: "Current state is not 'INFINITE' or 'COMPLETED'",
-        progress,
+        progress: progress.getLoggableData(),
       });
       progress.state = State.PLAYING;
     }
