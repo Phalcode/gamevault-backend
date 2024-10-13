@@ -165,9 +165,18 @@ export class GameMetadataService {
       const upsertedDevelopers: DeveloperMetadata[] = [];
       for (const developer of game.developers) {
         try {
-          upsertedDevelopers.push(
-            await this.developerMetadataService.save(developer),
-          );
+          if (
+            !upsertedDevelopers.find(
+              (upsertedDeveloper) =>
+                upsertedDeveloper.provider_slug === developer.provider_slug &&
+                upsertedDeveloper.provider_data_id ===
+                  developer.provider_data_id,
+            )
+          ) {
+            upsertedDevelopers.push(
+              await this.developerMetadataService.save(developer),
+            );
+          }
         } catch (error) {
           logger.error({
             message: `Error upserting developer metadata`,
@@ -183,9 +192,18 @@ export class GameMetadataService {
       const upsertedPublishers: PublisherMetadata[] = [];
       for (const publisher of game.publishers) {
         try {
-          upsertedPublishers.push(
-            await this.publisherMetadataService.save(publisher),
-          );
+          if (
+            !upsertedPublishers.find(
+              (upsertedPublisher) =>
+                upsertedPublisher.provider_slug === publisher.provider_slug &&
+                upsertedPublisher.provider_data_id ===
+                  publisher.provider_data_id,
+            )
+          ) {
+            upsertedPublishers.push(
+              await this.publisherMetadataService.save(publisher),
+            );
+          }
         } catch (error) {
           logger.error({
             message: `Error upserting publisher metadata`,
@@ -201,7 +219,15 @@ export class GameMetadataService {
       const upsertedTags: TagMetadata[] = [];
       for (const tag of game.tags) {
         try {
-          upsertedTags.push(await this.tagMetadataService.save(tag));
+          if (
+            !upsertedTags.find(
+              (upsertedTag) =>
+                upsertedTag.provider_slug === tag.provider_slug &&
+                upsertedTag.provider_data_id === tag.provider_data_id,
+            )
+          ) {
+            upsertedTags.push(await this.tagMetadataService.save(tag));
+          }
         } catch (error) {
           logger.error({
             message: `Error upserting tag metadata`,
@@ -217,7 +243,15 @@ export class GameMetadataService {
       const upsertedGenres: GenreMetadata[] = [];
       for (const genre of game.genres) {
         try {
-          upsertedGenres.push(await this.genreMetadataService.save(genre));
+          if (
+            !upsertedGenres.find(
+              (upsertedGenre) =>
+                upsertedGenre.provider_slug === genre.provider_slug &&
+                upsertedGenre.provider_data_id === genre.provider_data_id,
+            )
+          ) {
+            upsertedGenres.push(await this.genreMetadataService.save(genre));
+          }
         } catch (error) {
           logger.error({
             message: `Error upserting genre metadata`,
