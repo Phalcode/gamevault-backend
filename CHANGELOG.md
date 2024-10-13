@@ -15,6 +15,7 @@ Recommended Gamevault App Version: `v1.12.0.0`
 - Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
 - Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove them if you used them (Spoiler: You pprobably didn't).**
 - Implemented parental control features. [#304](https://github.com/Phalcode/gamevault-backend/issues/304) -> **Learn how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control)**
+- Replaced `MEDIA_MAX_SIZE_IN_KB` environment variable with `MEDIA_MAX_SIZE`.
 
 ### Changes
 
