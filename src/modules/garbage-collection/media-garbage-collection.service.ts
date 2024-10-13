@@ -27,7 +27,7 @@ export class MediaGarbageCollectionService {
   ) {
     this.garbageCollectUnusedMedia();
   }
-  
+
   /**
    * Garbage collects unused medias.
    *
@@ -49,30 +49,37 @@ export class MediaGarbageCollectionService {
       return;
     }
 
-    // Retrieve all media from the media repository
-    const allMedia = await this.mediaRepository.find();
+    try {
+      // Retrieve all media from the media repository
+      const allMedia = await this.mediaRepository.find();
 
-    // Collect paths of used media dynamically
-    const usedMediaPaths = await this.collectUsedMediaPaths();
+      // Collect paths of used media dynamically
+      const usedMediaPaths = await this.collectUsedMediaPaths();
 
-    // Remove unused media from the database
-    const dbRemovedCount = await this.removeUnusedMediaFromDB(
-      allMedia,
-      usedMediaPaths,
-    );
-    if (dbRemovedCount) {
-      this.logger.log(
-        `Deleted ${dbRemovedCount} unused media entities from the database.`,
+      // Remove unused media from the database
+      const dbRemovedCount = await this.removeUnusedMediaFromDB(
+        allMedia,
+        usedMediaPaths,
       );
-    }
+      if (dbRemovedCount) {
+        this.logger.log(
+          `Deleted ${dbRemovedCount} unused media entities from the database.`,
+        );
+      }
 
-    // Clean up the file system
-    const fsRemovedCount =
-      await this.removeUnusedMediaFromFileSystem(usedMediaPaths);
-    if (fsRemovedCount) {
-      this.logger.log(
-        `Deleted ${fsRemovedCount} unused media files from ${configuration.VOLUMES.MEDIA}.`,
-      );
+      // Clean up the file system
+      const fsRemovedCount =
+        await this.removeUnusedMediaFromFileSystem(usedMediaPaths);
+      if (fsRemovedCount) {
+        this.logger.log(
+          `Deleted ${fsRemovedCount} unused media files from ${configuration.VOLUMES.MEDIA}.`,
+        );
+      }
+    } catch (error) {
+      this.logger.error({
+        message: "Error garbage collecting unused media.",
+        error,
+      });
     }
   }
 
