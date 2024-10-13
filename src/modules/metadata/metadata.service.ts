@@ -37,9 +37,9 @@ export class MetadataService {
   registerProvider(provider: MetadataProvider) {
     // Check if a provider with the same slug or priority already exists
     const existingProvider = this.providers?.find(
-      (provider) =>
-        provider.slug === provider.slug ||
-        provider.priority === provider.priority,
+      (existingProvider) =>
+        existingProvider.slug === provider.slug ||
+        existingProvider.priority === provider.priority,
     );
 
     if (existingProvider) {
