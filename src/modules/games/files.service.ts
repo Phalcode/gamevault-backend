@@ -21,6 +21,7 @@ import unidecode from "unidecode";
 
 import configuration from "../../configuration";
 import globals from "../../globals";
+import { logGamevaultGame } from "../../logging";
 import { MetadataService } from "../metadata/metadata.service";
 import mock from "./games.mock";
 import { GamesService } from "./games.service";
@@ -127,8 +128,8 @@ export class FilesService {
           case GameExistence.EXISTS: {
             this.logger.debug({
               message: `Identical file is already indexed in the database. Skipping it.`,
-              game: gameToIndex.getLoggableData(),
-              existingGame: existingGameTuple[1].getLoggableData(),
+              game: logGamevaultGame(gameToIndex),
+              existingGame: logGamevaultGame(existingGameTuple[1]),
             });
             updatedGames.push(existingGameTuple[1]);
             continue;
@@ -137,7 +138,7 @@ export class FilesService {
           case GameExistence.DOES_NOT_EXIST: {
             this.logger.debug({
               message: `Indexing new file.`,
-              game: gameToIndex.getLoggableData(),
+              game: logGamevaultGame(gameToIndex),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
             updatedGames.push(await this.gamesService.save(gameToIndex));
@@ -147,8 +148,8 @@ export class FilesService {
           case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
             this.logger.debug({
               message: `A Soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
-              game: gameToIndex.getLoggableData(),
-              existingGame: existingGameTuple[1].getLoggableData(),
+              game: logGamevaultGame(gameToIndex),
+              existingGame: logGamevaultGame(existingGameTuple[1]),
             });
             const restoredGame = await this.gamesService.restore(
               existingGameTuple[1].id,
@@ -163,8 +164,8 @@ export class FilesService {
           case GameExistence.EXISTS_BUT_ALTERED: {
             this.logger.debug({
               message: `An altered duplicate of the file has been found in the database. Updating the information.`,
-              game: gameToIndex.getLoggableData(),
-              existingGame: existingGameTuple[1].getLoggableData(),
+              game: logGamevaultGame(gameToIndex),
+              existingGame: logGamevaultGame(existingGameTuple[1]),
             });
             gameToIndex.type = await this.detectType(gameToIndex.file_path);
             updatedGames.push(
@@ -214,7 +215,7 @@ export class FilesService {
     const updatedGame = await this.gamesService.save(gameToUpdate);
     this.logger.log({
       message: `Updated new Game Information based on file changes.`,
-      game: gameToUpdate.getLoggableData(),
+      game: logGamevaultGame(gameToUpdate),
     });
     return updatedGame;
   }

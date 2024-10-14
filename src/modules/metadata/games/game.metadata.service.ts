@@ -158,7 +158,6 @@ export class GameMetadataService {
       developers: null,
       tags: null,
       genres: null,
-      getLoggableData: game.getLoggableData,
     };
 
     if (game.developers?.length) {

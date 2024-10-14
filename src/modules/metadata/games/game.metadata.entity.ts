@@ -256,13 +256,4 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     isArray: true,
   })
   genres?: GenreMetadata[];
-
-  public getLoggableData() {
-    return {
-      id: this.id,
-      provider_slug: this.provider_slug,
-      provider_data_id: this.provider_data_id,
-      updated_at: this.updated_at,
-    };
-  }
 }

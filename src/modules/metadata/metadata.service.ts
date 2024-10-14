@@ -10,6 +10,7 @@ import { validateOrReject } from "class-validator";
 
 import { kebabCase } from "lodash";
 import configuration from "../../configuration";
+import { logGamevaultGame, logMetadataProvider } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
 import { GameMetadata } from "./games/game.metadata.entity";
@@ -55,7 +56,7 @@ export class MetadataService {
     validateOrReject(provider).catch((errors) => {
       this.logger.error({
         message: `Failed to register metadata provider.`,
-        provider: provider.getLoggableData(),
+        provider: logMetadataProvider(provider),
         errors,
       });
     });
@@ -107,7 +108,7 @@ export class MetadataService {
       } catch (error) {
         this.logger.warn({
           message: "Error checking metadata for game.",
-          game: game.getLoggableData(),
+          game: logGamevaultGame(game),
           error,
         });
       }
@@ -126,14 +127,14 @@ export class MetadataService {
   private async updateMetadata(game: GamevaultGame): Promise<GamevaultGame> {
     this.logger.log({
       message: "Updating metadata.",
-      game: game.getLoggableData(),
+      game: logGamevaultGame(game),
     });
 
     // If the game's file path contains "(NC)", skip the metadata update.
     if (game.file_path.includes("(NC)")) {
       this.logger.debug({
         message: "Skipping metadata update for (NC) game.",
-        game: game.getLoggableData(),
+        game: logGamevaultGame(game),
       });
       return game;
     }
@@ -160,8 +161,8 @@ export class MetadataService {
         ) {
           this.logger.debug({
             message: "Metadata is already up to date. Skipping.",
-            game: game.getLoggableData(),
-            provider: provider.getLoggableData(),
+            game: logGamevaultGame(game),
+            provider: logMetadataProvider(provider),
           });
           continue;
         }
@@ -183,8 +184,8 @@ export class MetadataService {
         // If the metadata update fails, log the error and skip the update.
         this.logger.error({
           message: "Failed updating metadata for game and provider. Skipping.",
-          game: game.getLoggableData(),
-          provider: provider.getLoggableData(),
+          game: logGamevaultGame(game),
+          provider: logMetadataProvider(provider),
           error,
         });
       }
@@ -194,7 +195,7 @@ export class MetadataService {
     if (changeCount === 0 && game.metadata) {
       this.logger.debug({
         message: "No metadata changes. Skipping merge.",
-        game: game.getLoggableData(),
+        game: logGamevaultGame(game),
       });
       return game;
     }
@@ -212,8 +213,8 @@ export class MetadataService {
   ): Promise<void> {
     this.logger.log({
       message: "Searching for metadata.",
-      provider: provider.getLoggableData(),
-      game: game.getLoggableData(),
+      game: logGamevaultGame(game),
+      provider: logMetadataProvider(provider),
     });
     try {
       const bestMatchingGame = await provider.getBestMatch(game);
@@ -227,8 +228,8 @@ export class MetadataService {
       if (error instanceof NotFoundException) {
         this.logger.debug({
           message: "No matching game found.",
-          game: game.getLoggableData(),
-          provider: provider.getLoggableData(),
+          game: logGamevaultGame(game),
+          provider: logMetadataProvider(provider),
         });
         return;
       }
@@ -369,7 +370,7 @@ export class MetadataService {
     const mergedGame = await this.gamesService.save(game);
     this.logger.debug({
       message: "Merged metadata.",
-      game: mergedGame.getLoggableData(),
+      game: logGamevaultGame(mergedGame),
       details: mergedGame,
     });
     return mergedGame;
@@ -391,7 +392,7 @@ export class MetadataService {
     );
     this.logger.log({
       message: "Unmapped metadata provider from a game.",
-      game: game.getLoggableData(),
+      game: logGamevaultGame(game),
       providerSlug,
     });
 
@@ -403,7 +404,7 @@ export class MetadataService {
       game.metadata = null;
       this.logger.debug({
         message: "Deleted merged metadata for a game.",
-        game: game.getLoggableData(),
+        game: logGamevaultGame(game),
         providerSlug,
       });
     }
@@ -417,7 +418,7 @@ export class MetadataService {
       game.sort_title = this.gamesService.generateSortTitle(game.title);
       this.logger.log({
         message: "Deleted user metadata from a game.",
-        game: game.getLoggableData(),
+        game: logGamevaultGame(game),
         providerSlug,
       });
     }
@@ -447,7 +448,7 @@ export class MetadataService {
     const mappedGame = await this.gamesService.save(game);
     this.logger.log({
       message: "Mapped metadata provider to a game.",
-      game: mappedGame.getLoggableData(),
+      game: logGamevaultGame(game),
       providerSlug,
     });
     return mappedGame;

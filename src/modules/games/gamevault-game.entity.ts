@@ -161,13 +161,6 @@ export class GamevaultGame extends DatabaseEntity {
   })
   bookmarked_users?: GamevaultUser[];
 
-  public getLoggableData() {
-    return {
-      id: this.id,
-      file_path: this.file_path,
-    };
-  }
-
   private createSortTitle(title: string): string {
     // List of leading articles to be removed
     const articles: string[] = ["the", "a", "an"];

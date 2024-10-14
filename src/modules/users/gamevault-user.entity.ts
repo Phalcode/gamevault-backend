@@ -133,12 +133,4 @@ export class GamevaultUser extends DatabaseEntity {
     isArray: true,
   })
   bookmarked_games?: GamevaultGame[];
-
-  public getLoggableData() {
-    return {
-      id: this.id,
-      username: this.username,
-      role: this.role,
-    };
-  }
 }

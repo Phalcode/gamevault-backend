@@ -46,14 +46,4 @@ export class Progress extends DatabaseEntity {
     example: "2020-01-01T00:00:00.000Z",
   })
   last_played_at?: Date;
-  public getLoggableData() {
-    return {
-      id: this.id,
-      minutes_played: this.minutes_played,
-      state: this.state,
-      last_played_at: this.last_played_at,
-      user: this.user?.getLoggableData(),
-      game: this.game?.getLoggableData(),
-    };
-  }
 }

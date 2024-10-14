@@ -17,6 +17,7 @@ import {
 
 import { isEmpty, kebabCase, toLower } from "lodash";
 import { FindOptions } from "../../globals";
+import { logGamevaultGame } from "../../logging";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GameMetadataService } from "../metadata/games/game.metadata.service";
@@ -167,7 +168,7 @@ export class GamesService {
       for (const request of dto.mapping_requests) {
         this.logger.log({
           message: "Handling Mapping Request",
-          game: game.getLoggableData(),
+          game: logGamevaultGame(game),
           details: request,
         });
         if (request.provider_data_id) {
@@ -186,7 +187,7 @@ export class GamesService {
     if (dto.user_metadata) {
       this.logger.debug({
         message: "Updating User Metadata",
-        game: game.getLoggableData(),
+        game: logGamevaultGame(game),
         user_metadata: dto.user_metadata,
       });
       const updatedUserMetadata = game.user_metadata || new GameMetadata();
@@ -329,10 +330,14 @@ export class GamesService {
       game.user_metadata =
         await this.gameMetadataService.save(updatedUserMetadata);
       const updatedGame = await this.save(game);
+      this.logger.debug({
+        message: "Game User Metadata updated",
+        game: logGamevaultGame(game),
+        user_metadata: updatedGame.user_metadata,
+      });
       this.logger.log({
         message: "Game User Metadata updated",
-        game: game.getLoggableData(),
-        details: updatedGame,
+        game: logGamevaultGame(game),
       });
     }
 

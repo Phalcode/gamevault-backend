@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@nestjs/axios':
-        specifier: ^3.0.3
-        version: 3.0.3(@nestjs/common@10.4.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(axios@1.7.7)(rxjs@7.8.1)
       '@nestjs/common':
         specifier: ^10.4.4
         version: 10.4.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
@@ -47,9 +44,6 @@ importers:
       '@types/stream-throttle':
         specifier: ^0.1.4
         version: 0.1.4
-      axios:
-        specifier: ^1.7.7
-        version: 1.7.7
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1(encoding@0.1.13)
@@ -1204,13 +1198,6 @@ packages:
 
   '@microsoft/tsdoc@0.15.0':
     resolution: {integrity: sha512-HZpPoABogPvjeJOdzCOSJsXeL/SMCBgBZMVC3X3d7YYp2gf31MfxhUoYUNwf1ERPJOnQc0wkFn9trqI6ZEdZuA==}
-
-  '@nestjs/axios@3.0.3':
-    resolution: {integrity: sha512-h6TCn3yJwD6OKqqqfmtRS5Zo4E46Ip2n+gK1sqwzNBC+qxQ9xpCu+ODVRFur6V3alHSCSBxb3nNtt73VEdluyA==}
-    peerDependencies:
-      '@nestjs/common': ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-      axios: ^1.3.1
-      rxjs: ^6.0.0 || ^7.0.0
 
   '@nestjs/cli@10.4.5':
     resolution: {integrity: sha512-FP7Rh13u8aJbHe+zZ7hM0CC4785g9Pw4lz4r2TTgRtf0zTxSWMkJaPEwyjX8SK9oWK2GsYxl+fKpwVZNbmnj9A==}
@@ -7723,12 +7710,6 @@ snapshots:
       - supports-color
 
   '@microsoft/tsdoc@0.15.0': {}
-
-  '@nestjs/axios@3.0.3(@nestjs/common@10.4.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1))(axios@1.7.7)(rxjs@7.8.1)':
-    dependencies:
-      '@nestjs/common': 10.4.4(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
-      axios: 1.7.7
-      rxjs: 7.8.1
 
   '@nestjs/cli@10.4.5':
     dependencies:

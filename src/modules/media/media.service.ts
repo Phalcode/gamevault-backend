@@ -1,4 +1,3 @@
-import { HttpService } from "@nestjs/axios";
 import {
   BadRequestException,
   forwardRef,
@@ -9,15 +8,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { existsSync } from "fs";
 import { unlink, writeFile } from "fs/promises";
-import { catchError, firstValueFrom } from "rxjs";
 import { Repository } from "typeorm";
 
 import configuration from "../../configuration";
+import { logMedia } from "../../logging";
 import { UsersService } from "../users/users.service";
 import { Media } from "./media.entity";
 
@@ -26,7 +24,6 @@ export class MediaService {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private readonly httpService: HttpService,
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
     @Inject(forwardRef(() => UsersService))
@@ -79,12 +76,11 @@ export class MediaService {
         media.uploader =
           await this.usersService.findOneByUsernameOrFail(uploaderUsername);
       }
-      const response = await this.fetchFromUrl(media.source_url);
+      const mediaBuffer = await this.fetchFromUrl(media.source_url);
       this.logger.debug({
         message: `Downloaded media.`,
-        media: media.getLoggableData(),
+        media: logMedia(media),
       });
-      const mediaBuffer = Buffer.from(response.data);
       const validatedMediaBuffer = await this.validate(mediaBuffer);
 
       media.type = validatedMediaBuffer.mimeType;
@@ -105,22 +101,29 @@ export class MediaService {
     }
   }
 
-  private async fetchFromUrl(sourceUrl: string): Promise<AxiosResponse> {
-    return firstValueFrom(
-      this.httpService
-        .get(sourceUrl, {
-          responseType: "arraybuffer",
-          timeout: 30_000,
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            throw new Error(
-              `Failed to download media from ${sourceUrl}: ${error.status} ${error.message}`,
-              { cause: error.toJSON() },
-            );
-          }),
-        ),
-    );
+  private async fetchFromUrl(sourceUrl: string): Promise<Buffer> {
+    try {
+      const response = await fetch(sourceUrl, {
+        method: "GET",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        },
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to download media from ${sourceUrl}: ${response.status} ${response.statusText}`,
+        );
+      }
+      return Buffer.from(await response.arrayBuffer());
+    } catch (error) {
+      this.logger.error(`Error downloading media from ${sourceUrl}`, error);
+      throw new Error(`Failed to download media from ${sourceUrl}`, {
+        cause: error,
+      });
+    }
   }
 
   private async saveToFileSystem(
@@ -159,7 +162,7 @@ export class MediaService {
     } catch (error) {
       this.logger.error({
         message: "Error deleting media.",
-        media: media.getLoggableData(),
+        media: logMedia(media),
         error,
       });
     }
@@ -176,7 +179,7 @@ export class MediaService {
       const uploadedMedia = await this.mediaRepository.save(media);
       this.logger.log({
         message: "Media successfully uploaded.",
-        media: uploadedMedia.getLoggableData(),
+        media: logMedia(uploadedMedia),
       });
       return uploadedMedia;
     } catch (error) {

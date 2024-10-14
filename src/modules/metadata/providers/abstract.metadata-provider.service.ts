@@ -16,6 +16,7 @@ import { stringSimilarity } from "string-similarity-js";
 
 import { kebabCase } from "lodash";
 import globals from "../../../globals";
+import { logGamevaultGame } from "../../../logging";
 import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { MediaService } from "../../media/media.service";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
@@ -136,7 +137,7 @@ export abstract class MetadataProvider implements OnModuleInit {
       if (!cleanedGameTitle || !cleanedGameResultTitle) {
         this.logger.warn({
           message: "Could not clean game title.",
-          game: game.getLoggableData(),
+          game: logGamevaultGame(game),
           gameResult,
         });
         continue;
@@ -174,7 +175,7 @@ export abstract class MetadataProvider implements OnModuleInit {
 
     this.logger.debug({
       message: "Found matching games.",
-      game: game.getLoggableData(),
+      game: logGamevaultGame(game),
       gameResults: gameResults.map((gameResult) => ({
         probability: probabilityMap.get(gameResults.indexOf(gameResult)),
         title: gameResult.title,
@@ -215,13 +216,5 @@ export abstract class MetadataProvider implements OnModuleInit {
 
   public async findGenres(): Promise<GenreMetadata[]> {
     return this.genreMetadataService.findByProviderSlug(this.slug);
-  }
-
-  public getLoggableData() {
-    return {
-      slug: this.slug,
-      priority: this.priority,
-      enabled: this.enabled,
-    };
   }
 }

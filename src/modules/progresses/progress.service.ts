@@ -11,6 +11,7 @@ import path from "path";
 import { FindOneOptions, IsNull, LessThanOrEqual, Repository } from "typeorm";
 
 import { FindOptions } from "../../globals";
+import { logProgress } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
 import { State } from "./models/state.enum";
@@ -190,7 +191,7 @@ export class ProgressService {
         const deleteResult = await this.progressRepository.remove(progress);
         this.logger.log({
           message: `Deleted empty progress.`,
-          progress: progress.getLoggableData(),
+          progress: logProgress(progress),
         });
         return deleteResult;
       }
@@ -215,7 +216,7 @@ export class ProgressService {
     }
     this.logger.log({
       message: `Updating progress.`,
-      progress: progress.getLoggableData(),
+      progress: logProgress(progress),
     });
     return this.progressRepository.save(progress);
   }
@@ -242,13 +243,13 @@ export class ProgressService {
       this.logger.debug({
         message: `Automatically setting progress state to "${State.PLAYING}".`,
         reason: "Current state is not 'INFINITE' or 'COMPLETED'",
-        progress: progress.getLoggableData(),
+        progress: logProgress(progress),
       });
       progress.state = State.PLAYING;
     }
     this.logger.log({
       message: `Incrementing progress by ${incrementBy} minute(s).`,
-      progress: progress.getLoggableData(),
+      progress: logProgress(progress),
     });
     progress.last_played_at = new Date();
     progress.minutes_played += incrementBy;

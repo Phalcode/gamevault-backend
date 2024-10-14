@@ -4,4 +4,6 @@ export interface Metadata {
   provider_data_id?: string;
   provider_priority?: number;
   name?: string;
+  created_at?: Date;
+  updated_at?: Date;
 }

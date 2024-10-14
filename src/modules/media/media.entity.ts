@@ -38,14 +38,4 @@ export class Media extends DatabaseEntity {
     type: () => GamevaultUser,
   })
   uploader?: GamevaultUser;
-
-  public getLoggableData() {
-    return {
-      id: this.id,
-      source_url: this.source_url,
-      file_path: this.file_path,
-      type: this.type,
-      uploader: this.uploader.getLoggableData(),
-    };
-  }
 }
