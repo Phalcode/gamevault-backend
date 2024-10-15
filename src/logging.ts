@@ -131,6 +131,5 @@ export {
   logMetadata,
   logMetadataProvider,
   logProgress,
-  stream
+  stream,
 };
-
