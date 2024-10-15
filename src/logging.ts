@@ -109,6 +109,7 @@ function logMetadataProvider(provider: MetadataProvider) {
     slug: provider?.slug,
     priority: provider?.priority,
     enabled: provider?.enabled,
+    request_interval_ms: provider?.request_interval_ms,
   };
 }
 
@@ -130,5 +131,6 @@ export {
   logMetadata,
   logMetadataProvider,
   logProgress,
-  stream,
+  stream
 };
+

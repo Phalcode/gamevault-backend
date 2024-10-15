@@ -11,6 +11,7 @@ import {
   IsNotEmpty,
   IsNotIn,
   Matches,
+  Min,
 } from "class-validator";
 import { stringSimilarity } from "string-similarity-js";
 
@@ -88,6 +89,15 @@ export abstract class MetadataProvider implements OnModuleInit {
     default: true,
   })
   public enabled = true;
+
+  @IsInt()
+  @Min(0)
+  @ApiProperty({
+    type: Number,
+    description:
+      "the interval, in milliseconds, to wait between consecutive requests to prevent exceeding rate limits. this delay will be applied before each call to the provider.",
+  })
+  public request_interval_ms = 0;
 
   /**
    * Searches for a game using the provider. Only returns the minimal info of a game.

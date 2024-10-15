@@ -4,7 +4,6 @@ import {
   IsInt,
   IsNotEmpty,
   IsNotIn,
-  IsPositive,
   Matches,
 } from "class-validator";
 
@@ -28,7 +27,6 @@ export class MetadataProviderDto {
   public slug: string;
 
   @IsInt()
-  @IsPositive()
   @IsNotEmpty()
   @ApiProperty({
     type: Number,

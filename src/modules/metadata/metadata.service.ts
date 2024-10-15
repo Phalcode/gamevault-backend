@@ -3,12 +3,14 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
 
 import { kebabCase } from "lodash";
+import { setTimeout } from "timers/promises";
 import configuration from "../../configuration";
 import { logGamevaultGame, logMetadataProvider } from "../../logging";
 import { GamesService } from "../games/games.service";
@@ -17,6 +19,7 @@ import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
 import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
+import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception";
 
 @Injectable()
 export class MetadataService {
@@ -55,10 +58,10 @@ export class MetadataService {
     // Validate the provider using class-validator
     validateOrReject(provider).catch((errors) => {
       this.logger.error({
-        message: `Failed to register metadata provider.`,
+        message: `Failed to register metadata provider due to validation errors.`,
         provider: logMetadataProvider(provider),
-        errors,
       });
+      console.error(errors);
     });
 
     // Add the provider to the list of providers
@@ -70,8 +73,7 @@ export class MetadataService {
     // Log the registration of the metadata provider
     this.logger.log({
       message: `Registered metadata provider.`,
-      slug: provider.slug,
-      priority: provider.priority,
+      provider: logMetadataProvider(provider),
     });
   }
 
@@ -89,7 +91,7 @@ export class MetadataService {
 
     // If no provider is found, throw a NotFoundException.
     if (!provider) {
-      throw new NotFoundException(
+      throw new ProviderNotFoundException(
         `There is no registered provider with slug "${slug}".`,
       );
     }
@@ -165,6 +167,16 @@ export class MetadataService {
             provider: logMetadataProvider(provider),
           });
           continue;
+        }
+
+        if (provider.request_interval_ms) {
+          // Waiting the specified request interval to prevent hitting rate limits before making requests to the provider
+          this.logger.debug({
+            message: `Delaying requests by ${provider.request_interval_ms} ms to avoid rate limits.`,
+            game: logGamevaultGame(game),
+            provider: logMetadataProvider(provider),
+          });
+          await setTimeout(provider.request_interval_ms);
         }
 
         // If the existing provider metadata is not up to date, update it.
@@ -244,14 +256,28 @@ export class MetadataService {
     query: string,
     providerSlug: string,
   ): Promise<MinimalGameMetadataDto[]> {
-    const results = this.getProviderBySlugOrFail(providerSlug).search(query);
-    this.logger.debug({
-      message: "Searched for metadata.",
-      provider: providerSlug,
-      query,
-      results,
-    });
-    return results;
+    const provider = this.getProviderBySlugOrFail(providerSlug);
+    try {
+      const results = provider.search(query);
+      this.logger.debug({
+        message: "Searched for metadata.",
+        provider: logMetadataProvider(provider),
+        query,
+        results,
+      });
+      return results;
+    } catch (error) {
+      this.logger.error({
+        message: "Error searching provider.",
+        provider: logMetadataProvider(provider),
+        query,
+        error,
+      });
+      throw new InternalServerErrorException(
+        error,
+        "Error searching provider. Please check the server logs for details.",
+      );
+    }
   }
 
   async merge(gameId: number): Promise<GamevaultGame> {
@@ -437,20 +463,35 @@ export class MetadataService {
     providerPriority: number,
   ) {
     const provider = this.getProviderBySlugOrFail(providerSlug);
-    const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
+    try {
+      const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
 
-    if (providerPriority != null) {
-      metadata.provider_priority = providerPriority;
+      if (providerPriority != null) {
+        metadata.provider_priority = providerPriority;
+      }
+
+      const game = await this.unmap(gameId, providerSlug);
+      game.provider_metadata.push(
+        await this.gameMetadataService.save(metadata),
+      );
+      const mappedGame = await this.gamesService.save(game);
+      this.logger.log({
+        message: "Mapped metadata provider to a game.",
+        game: logGamevaultGame(game),
+        providerSlug,
+      });
+      return mappedGame;
+    } catch (error) {
+      this.logger.error({
+        message: "Error mapping game to provider.",
+        provider: logMetadataProvider(provider),
+        game: logGamevaultGame({ id: gameId } as GamevaultGame),
+        error,
+      });
+      throw new InternalServerErrorException(
+        error,
+        "Error mapping game to provider. Please check the server logs for details.",
+      );
     }
-
-    const game = await this.unmap(gameId, providerSlug);
-    game.provider_metadata.push(await this.gameMetadataService.save(metadata));
-    const mappedGame = await this.gamesService.save(game);
-    this.logger.log({
-      message: "Mapped metadata provider to a game.",
-      game: logGamevaultGame(game),
-      providerSlug,
-    });
-    return mappedGame;
   }
 }

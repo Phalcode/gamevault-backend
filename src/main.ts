@@ -1,6 +1,7 @@
 /* eslint-disable */
 import * as dotenv from "dotenv";
 dotenv.config();
+Error.stackTraceLimit = 420;
 /* eslint-enable */
 
 import { ValidationPipe } from "@nestjs/common";

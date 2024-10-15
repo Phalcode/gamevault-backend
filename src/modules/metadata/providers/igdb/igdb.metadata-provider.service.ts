@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import {
   fields,
   igdb,
@@ -29,6 +29,7 @@ import { IgdbGame } from "./models/igdb-game.interface";
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
   enabled = configuration.METADATA.IGDB.ENABLED;
+  request_interval_ms = configuration.METADATA.IGDB.REQUEST_INTERVAL_MS;
   readonly slug = "igdb";
   readonly name = "IGDB";
   readonly priority = configuration.METADATA.IGDB.PRIORITY;
@@ -121,24 +122,17 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   public override async getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata> {
-    try {
-      const update = await (
-        await this.getClient()
+    const update = await (
+      await this.getClient()
+    )
+      .request("games")
+      .pipe(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fields(this.fieldsToInclude as any),
+        where("id", "=", Number(provider_data_id)),
       )
-        .request("games")
-        .pipe(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          fields(this.fieldsToInclude as any),
-          where("id", "=", Number(provider_data_id)),
-        )
-        .execute();
-      return this.mapGameMetadata(update.data[0] as IgdbGame);
-    } catch (error) {
-      throw new NotFoundException({
-        message: "Game not found on IGDB",
-        provider_data_id,
-      });
-    }
+      .execute();
+    return this.mapGameMetadata(update.data[0] as IgdbGame);
   }
 
   private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
@@ -260,13 +254,13 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       client_id: configuration.METADATA.IGDB.CLIENT_ID,
       client_secret: configuration.METADATA.IGDB.CLIENT_SECRET,
     });
-
     return igdb(configuration.METADATA.IGDB.CLIENT_ID, token);
   }
   private replaceUrl(url: string, from: string, to: string) {
     if (!url) return undefined;
     return url.replace("//", "https://").replace(from, to);
   }
+
   private async downloadImage(url?: string, from?: string, to?: string) {
     if (!url) return undefined;
     try {

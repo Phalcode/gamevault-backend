@@ -33,6 +33,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     await this.part3_migrate_data(queryRunner);
     await this.part4_delete_old_tables(queryRunner);
     await this.part5_sync(queryRunner);
+    await this.part6_sorting_title(queryRunner);
   }
 
   private async checkMigrationRun(queryRunner: QueryRunner): Promise<boolean> {

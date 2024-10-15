@@ -183,6 +183,10 @@ const configuration = {
     IGDB: {
       ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
       PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 10),
+      REQUEST_INTERVAL_MS: parseNumber(
+        process.env.METADATA_IGDB_REQUEST_INTERVAL_MS,
+        500,
+      ),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
     } as const,
