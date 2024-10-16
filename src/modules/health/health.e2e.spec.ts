@@ -19,7 +19,7 @@ describe("/api/health", () => {
     const result = await healthController.getHealth();
     expect(result).toStrictEqual({
       status: "HEALTHY",
-      version: configuration.SERVER.VERSION
+      version: configuration.SERVER.VERSION,
     });
   });
 });
