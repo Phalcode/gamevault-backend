@@ -237,7 +237,13 @@ export class MetadataService {
     }
 
     // Merge the updated metadata and return the updated game.
-    return this.merge(game.id);
+    this.merge(game.id).catch((error) => {
+      this.logger.warn({
+        message: "Error merging metadata for game.",
+        game: logGamevaultGame(game),
+        error,
+      });
+    });
   }
 
   /**
