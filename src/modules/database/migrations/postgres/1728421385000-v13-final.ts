@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { existsSync } from "fs";
 import { toLower } from "lodash";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
+import { logMedia } from "../../../../logging";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { Media } from "../../../media/media.entity";
 import { DeveloperMetadata } from "../../../metadata/developers/developer.metadata.entity";
@@ -808,7 +809,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         const [{ maxid }] = await queryRunner.query(
           `SELECT MAX(id) as maxid FROM ${tableName}`,
         );
-        const maxId = Number(maxid) || 1;
+        const maxId = Number(maxid) + 1 || 1;
 
         await queryRunner.query(
           `ALTER SEQUENCE ${tableName}_id_seq RESTART WITH ${maxId}`,
@@ -836,7 +837,8 @@ export class V13Final1728421385000 implements MigrationInterface {
 
     for (const image of images) {
       this.logger.log({
-        message: `Migrating image ID ${image.id}, Source: ${image.source}`,
+        message: `Migrating image.`,
+        image: logMedia(image as Media),
       });
 
       await queryRunner.query(
