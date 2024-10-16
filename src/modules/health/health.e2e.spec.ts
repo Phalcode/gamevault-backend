@@ -1,6 +1,7 @@
 import { Test } from "@nestjs/testing";
 
 import { AppModule } from "../../app.module";
+import configuration from "../../configuration";
 import { HealthController } from "./health.controller";
 
 describe("/api/health", () => {
@@ -18,6 +19,7 @@ describe("/api/health", () => {
     const result = await healthController.getHealth();
     expect(result).toStrictEqual({
       status: "HEALTHY",
+      version: configuration.SERVER.VERSION
     });
   });
 });

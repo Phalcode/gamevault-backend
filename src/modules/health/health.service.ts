@@ -31,7 +31,6 @@ export class HealthService {
     const healthCopy = { ...health };
     delete healthCopy.protocol;
     delete healthCopy.uptime;
-    delete healthCopy.version;
     return healthCopy;
   }
 
