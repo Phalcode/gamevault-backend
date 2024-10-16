@@ -106,14 +106,18 @@ export class MetadataService {
    */
   async checkAndUpdateMetadata(games: GamevaultGame[]): Promise<void> {
     for (const game of games) {
+      const alreadyEnqueued = this.metadataJobs.has(game.id);
       this.metadataJobs.set(game.id, game);
-      if (this.metadataJobs.has(game.id)) {
+
+      if (alreadyEnqueued) {
         this.logger.debug({
-          message: "Skipping metadata job, because it is already enqueued.",
+          message:
+            "Skipping metadata job, because it is already enqueued, but updated game details accordingly.",
           game: logGamevaultGame(game),
         });
         continue;
       }
+
       try {
         await this.runUpdateMetadataJob(game.id);
       } catch (error) {
