@@ -84,11 +84,6 @@ export class FilesService implements OnApplicationBootstrap {
 
   private addIndexJob(path: string, stats: Stats) {
     const size = BigInt(stats?.size ?? 0);
-    this.logger.debug({
-      messsage: "Adding Index Job.",
-      path,
-      size,
-    });
     if (!path || !stats?.size) {
       this.logger.warn({
         message: "Ignoring Index Job due to missing path or size.",
@@ -97,6 +92,11 @@ export class FilesService implements OnApplicationBootstrap {
       });
       return;
     }
+    this.logger.debug({
+      messsage: "Adding Index Job.",
+      path,
+      size,
+    });
     this.indexJobs.set(path, { path, size });
     this.runDebouncedIndex();
   }

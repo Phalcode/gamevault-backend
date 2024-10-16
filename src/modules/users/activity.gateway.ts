@@ -35,7 +35,10 @@ export class ActivityGateway
 {
   private readonly logger = new Logger(this.constructor.name);
 
-  private readonly activities: Map<number, Activity> = new Map<number, Activity>();
+  private readonly activities: Map<number, Activity> = new Map<
+    number,
+    Activity
+  >();
 
   @WebSocketServer()
   server: Server;
