@@ -209,7 +209,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     // Run metadata and integrity checks.
-    this.metadataService.check(updatedGames);
+    this.metadataService.checkAndUpdateMetadata(updatedGames);
     this.runDebouncedIntegrityCheck();
     this.logger.log({
       message: "Finished ingesting games.",

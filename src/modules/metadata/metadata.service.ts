@@ -24,6 +24,7 @@ import { ProviderNotFoundException } from "./providers/models/provider-not-found
 @Injectable()
 export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
+  private readonly metadataJobs = new Map<number, GamevaultGame>();
   providers: MetadataProvider[] = [];
 
   constructor(
@@ -103,16 +104,26 @@ export class MetadataService {
   /**
    * Checks the metadata of games and updates them if necessary.
    */
-  async check(games: GamevaultGame[]): Promise<void> {
+  async checkAndUpdateMetadata(games: GamevaultGame[]): Promise<void> {
     for (const game of games) {
+      this.metadataJobs.set(game.id, game);
+      if (this.metadataJobs.has(game.id)) {
+        this.logger.debug({
+          message: "Skipping metadata job, because it is already enqueued.",
+          game: logGamevaultGame(game),
+        });
+        continue;
+      }
       try {
-        await this.updateMetadata(game);
+        await this.runUpdateMetadataJob(game.id);
       } catch (error) {
         this.logger.warn({
-          message: "Error checking metadata for game.",
+          message: "Error checking and updating metadata for game.",
           game: logGamevaultGame(game),
           error,
         });
+      } finally {
+        this.metadataJobs.delete(game.id);
       }
     }
   }
@@ -126,7 +137,16 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async updateMetadata(game: GamevaultGame): Promise<GamevaultGame> {
+  private async runUpdateMetadataJob(gameId: number): Promise<GamevaultGame> {
+    const game = this.metadataJobs.get(gameId);
+    if (!game) {
+      this.logger.error({
+        message: "Corresponing metadata-job was not found",
+        game: { id: gameId },
+      });
+      throw new NotFoundException("Corresponing metadata-job was not found");
+    }
+
     this.logger.log({
       message: "Updating metadata.",
       game: logGamevaultGame(game),
