@@ -2,10 +2,10 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { watch } from "chokidar";
 import { randomBytes } from "crypto";
 import { Response } from "express";
 import { Stats, createReadStream, existsSync, statSync } from "fs";
@@ -19,6 +19,7 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
+import { watch } from "chokidar";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { logGamevaultGame } from "../../logging";
@@ -33,7 +34,7 @@ import { GameType } from "./models/game-type.enum";
 import { RangeHeader } from "./models/range-header.model";
 
 @Injectable()
-export class FilesService {
+export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
   private readonly indexJobs = new Map<string, File>();
 
@@ -49,6 +50,19 @@ export class FilesService {
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
   ) {
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn({
+        message: "Skipping File Indexer.",
+        reason: "TESTING_MOCK_FILES is set to true.",
+      });
+    }
+  }
+
+  onApplicationBootstrap() {
+    this.bootstrapIndexer();
+  }
+
+  private async bootstrapIndexer() {
     if (configuration.TESTING.MOCK_FILES) {
       return;
     }
@@ -69,10 +83,21 @@ export class FilesService {
   }
 
   private addIndexJob(path: string, stats: Stats) {
+    const size = BigInt(stats?.size ?? 0);
+    this.logger.debug({
+      messsage: "Adding Index Job.",
+      path,
+      size,
+    });
     if (!path || !stats?.size) {
+      this.logger.warn({
+        message: "Ignoring Index Job due to missing path or size.",
+        path,
+        size,
+      });
       return;
     }
-    this.indexJobs.set(path, { path, size: BigInt(stats.size) });
+    this.indexJobs.set(path, { path, size });
     this.runDebouncedIndex();
   }
 

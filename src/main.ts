@@ -1,7 +1,6 @@
 /* eslint-disable */
 import * as dotenv from "dotenv";
 dotenv.config();
-Error.stackTraceLimit = 420;
 /* eslint-enable */
 
 import { ValidationPipe } from "@nestjs/common";
@@ -221,4 +220,8 @@ async function bootstrap(): Promise<void> {
   });
 }
 
-bootstrap();
+Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT;
+bootstrap().catch((error) => {
+  logger.fatal({ message: "A fatal error occured", error });
+  throw error;
+});

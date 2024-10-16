@@ -101,6 +101,10 @@ const configuration = {
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
+    STACK_TRACE_LIMIT: parseNumber(
+      process.env.CONFIGURATION_STACK_TRACE_LIMIT,
+      10,
+    ),
   } as const,
   VOLUMES: {
     CONFIG: parsePath(process.env.VOLUMES_CONFIG, "/config"),

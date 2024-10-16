@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
@@ -6,6 +6,7 @@ import { readdir, unlink } from "fs/promises";
 import { join } from "path";
 import { Repository } from "typeorm";
 
+import { uniq } from "lodash";
 import configuration from "../../configuration";
 import { Media } from "../media/media.entity";
 import { MediaService } from "../media/media.service";
@@ -13,7 +14,7 @@ import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 
 @Injectable()
-export class MediaGarbageCollectionService {
+export class MediaGarbageCollectionService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
@@ -24,7 +25,9 @@ export class MediaGarbageCollectionService {
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
     private readonly mediaService: MediaService,
-  ) {
+  ) {}
+
+  onApplicationBootstrap() {
     this.garbageCollectUnusedMedia();
   }
 
@@ -173,20 +176,24 @@ export class MediaGarbageCollectionService {
     allMedia: Media[],
     usedMediaPaths: string[],
   ): Promise<number> {
+    const uniqueAllMedia = uniq(allMedia);
+    const uniqueUsedMediaPaths = uniq(usedMediaPaths);
     this.logger.log({
       message: "Calculated difference of all media paths and used media paths.",
-      all_count: allMedia.length,
-      used_count: usedMediaPaths.length,
-      delta: allMedia.length - usedMediaPaths.length,
+      all_count: uniqueAllMedia.length,
+      used_count: uniqueUsedMediaPaths.length,
+      delta: uniqueAllMedia.length - uniqueUsedMediaPaths.length,
     });
 
     // Filter out media that are not being used
-    const unusedMedia = allMedia.filter(
-      (media) => !usedMediaPaths.includes(media.file_path),
+    const uniqueUnusedMedia = uniq(
+      uniqueAllMedia.filter(
+        (media) => !uniqueUsedMediaPaths.includes(media.file_path),
+      ),
     );
 
     // Create an array of promises to delete the unused media
-    const deletePromises = unusedMedia.map((media) =>
+    const deletePromises = uniqueUnusedMedia.map((media) =>
       this.mediaService.delete(media),
     );
 

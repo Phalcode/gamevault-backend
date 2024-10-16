@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  OnApplicationBootstrap,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { readFile } from "fs/promises";
@@ -19,7 +20,7 @@ import { UpdateProgressDto } from "./models/update-progress.dto";
 import { Progress } from "./progress.entity";
 
 @Injectable()
-export class ProgressService {
+export class ProgressService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
   public ignoreList: string[] = [];
 
@@ -28,7 +29,9 @@ export class ProgressService {
     private readonly progressRepository: Repository<Progress>,
     private readonly usersService: UsersService,
     private readonly gamesService: GamesService,
-  ) {
+  ) {}
+
+  onApplicationBootstrap() {
     this.readIgnoreFile();
   }
 

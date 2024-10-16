@@ -19,7 +19,6 @@ import { UsersModule } from "./modules/users/users.module";
 @Module({
   imports: [
     ConfigModule,
-    HealthModule,
     DatabaseModule,
     MediaModule,
     GamesModule,
@@ -30,6 +29,7 @@ import { UsersModule } from "./modules/users/users.module";
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     GarbageCollectionModule,
+    HealthModule,
   ],
   providers: [
     DefaultStrategy,
