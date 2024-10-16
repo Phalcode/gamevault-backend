@@ -37,7 +37,7 @@ export class MediaService {
       }
       await this.findOneByMediaIdOrFail(id);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

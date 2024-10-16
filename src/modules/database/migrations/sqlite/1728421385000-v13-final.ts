@@ -4544,7 +4544,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         if (cover || background) {
           const gameMetadata = await queryRunner.manager.save(GameMetadata, {
             provider_slug: "user",
-            provider_data_id: game.rawg_id.toString(),
+            provider_data_id: game.id?.toString(),
             cover,
             background,
           });

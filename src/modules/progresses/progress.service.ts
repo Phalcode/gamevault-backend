@@ -151,7 +151,7 @@ export class ProgressService implements OnApplicationBootstrap {
       }
 
       return await this.progressRepository.findOneOrFail(findParameters);
-    } catch (error) {
+    } catch {
       const newProgress = new Progress();
       newProgress.user = await this.usersService.findOneByUserIdOrFail(userId, {
         loadDeletedEntities: true,
