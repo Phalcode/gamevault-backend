@@ -772,12 +772,8 @@ export class V13Final1728421385000 implements MigrationInterface {
             CREATE UNIQUE INDEX IF NOT EXISTS "IDX_4c835305e86b28e416cfe13dac" ON "gamevault_user" ("username")
         `);
   }
-  private async part6_sorting_title(queryRunner: QueryRunner) {
-    await queryRunner.query(`
-      ALTER TABLE "gamevault_game"
-      ADD "sort_title" character varying
-    `);
 
+  private async part6_sorting_title(queryRunner: QueryRunner) {
     const gameRepository = queryRunner.manager.getRepository("gamevault_game");
 
     // Fetch all games

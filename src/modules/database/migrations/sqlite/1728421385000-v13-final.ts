@@ -4226,6 +4226,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "v12_store"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "v12_tag"`);
   }
+
   private async part6_sorting_title(queryRunner: QueryRunner) {
     const gameRepository = queryRunner.manager.getRepository("gamevault_game");
 
@@ -4235,18 +4236,10 @@ export class V13Final1728421385000 implements MigrationInterface {
       select: ["id", "title"],
     });
 
-    // Start a transaction for bulk updates
-    await queryRunner.startTransaction();
-    try {
-      // Update each game with the new sort_title
-      for (const game of games) {
-        const sortTitle = this.createSortTitle(game.title); // Apply the sorting function
-        await gameRepository.update(game.id, { sort_title: sortTitle });
-      }
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
+    // Update each game with the new sort_title
+    for (const game of games) {
+      const sortTitle = this.createSortTitle(game.title); // Apply the sorting function
+      await gameRepository.update(game.id, { sort_title: sortTitle });
     }
   }
 
