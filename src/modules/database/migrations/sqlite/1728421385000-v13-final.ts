@@ -4541,8 +4541,23 @@ export class V13Final1728421385000 implements MigrationInterface {
         });
 
       if (!game.rawg_id) {
+        if (cover || background) {
+          const gameMetadata = await queryRunner.manager.save(GameMetadata, {
+            provider_slug: "user",
+            provider_data_id: game.rawg_id.toString(),
+            cover,
+            background,
+          });
+          migratedGame.provider_metadata = [gameMetadata];
+          await queryRunner.manager.save(GamevaultGame, migratedGame);
+          this.logger.log({
+            message: `Game metadata saved successfully (only images). Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
+          });
+          continue;
+        }
+
         this.logger.log({
-          message: `No rawg_id found. Skipping metadata for game ID: ${game.id}.`,
+          message: `No rawg_id or custom images found. Skipping metadata for game ID: ${game.id}.`,
         });
         continue;
       }
