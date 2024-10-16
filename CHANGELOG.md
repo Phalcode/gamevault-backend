@@ -2,29 +2,37 @@
 
 ## 13.0.0
 
-Recommended Gamevault App Version: `v1.12.0.0`
+Recommended Gamevault App Version: `v1.12.0.4`
 
 ### Breaking Changes & Migration
 
-(Migration Instructions are marked **fat**)
+**Lots** of things have changed this version. Ive almost rewritten the entire codebase to be honest.
 
-- Various API changes. **Check the API Docs if you're using the Rest API.**
-- **Check if your configuation still aligns [the new version](https://gamevau.lt/docs/server-docs/configuration).**
-- Introduced a new Plugin Framework that universally supports any metadata provider plugin.
-- Implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider. -> **Learn how to set it up [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb)**
-- Added support for more media than just images. Meaning that you can now upload audio and video files. -> **From now on you need to mount your `/images` volume as `/media`.**
-- Completely overhauled and fully implemented a new plugin system. [#140](https://github.com/Phalcode/gamevault-backend/issues/140) -> **Old Experimental Plugins are no longer supported. Remove them if you used them (Spoiler: You pprobably didn't).**
-- Implemented parental control features. [#304](https://github.com/Phalcode/gamevault-backend/issues/304) -> **Learn how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control)**
-- Replaced `MEDIA_MAX_SIZE_IN_KB` environment variable with `MEDIA_MAX_SIZE`.
+Read the Migration Instructions below **BEFORE UPDATING**! (Migration Instructions are marked **fat**)
+
+- Huge Database and Codebase overhaul!
+  - **I've tried my best to migrate your existing data. But nobody's perfect. Make sure to back your data up thoroughly, before migrating and contact us if you encounter any migration errors.**
+- Some configurations / environment variables changed.
+  - **Check if your used env vars are [being used correctly](https://gamevau.lt/docs/server-docs/configuration).**
+- [#140](https://github.com/Phalcode/gamevault-backend/issues/140) Introduced a new Plugin Framework that universally supports any metadata provider plugin and implemented a built-in IGDB Metadata Provider Plugin as the new default metadata provider.
+  - **You will need this, as there is no RAWG Integration anymore. Learn how to set it up [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb)**
+  - **IDBG Metadata by default is more important than RAWG metadata, as the data quality is much better. If you want your existing data to be the primarily used metadata set the `METADATA_IGDB_PRIORITY` environment variable to a value lower than `-10` before running the update.**
+  - **Old Experimental Plugins are no longer supported. Remove them if you used them (Spoiler: You probably didn't).**
+- Added support for more media-types than just images. Meaning that you can now upload audio and video files.
+  - **From now on you need to mount your `/images` volume as `/media`.**
+- Implemented parental control features. [#304](https://github.com/Phalcode/gamevault-backend/issues/304)
+  - **Learn how it works and how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control)**
+- Various API changes.
+  - **Check the API Docs for any changes if you're using the Rest API.**
 
 ### Changes
 
-- Implemented Migrations to migrate all data to new schemes.
-- Optimized Game Indexer. It now usually only reads games that have changed instead of reading all files all the time.
-- Removed RAWG Integration aswell and all configuration for it.
+- Removed RAWG Integration and all configuration for it.
 - Removed Google Images Boxart Scraper. (Let's be honest, it was shit anyway.)
+- Optimized Game Indexer. It now usually only reads games that have changed instead of reading all files all the time.
+- Optimized Startup Time.
 - Implemented Editing of Games
-- Implemented a `news.md` (a.k.a. Message of the Day) file and a `GET /config/news` API you can use to communicate news to your users. -> **Learn how to set it up [here](#TODO:)**
+- Implemented a `news.md` (a.k.a. Message of the Day) file and a `GET /config/news` API you can use to communicate news to your users. -> **Learn how to set it up [here](https://gamevau.lt/docs/server-docs/server-news)**
 - Implemented Notes field in Games
 - Implemented Default Launch Parameters, Default Launch Executable & Default Installer File fields in Games
 
