@@ -4551,7 +4551,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
           this.logger.log({
-            message: `User metadata saved successfully. Metadata ID: ${userMetadata.id}, Title: ${userMetadata.title}`,
+            message: `User metadata saved successfully. Metadata ID: ${userMetadata.id}, Game ID: ${game.id}, Title: ${userMetadata.title}`,
           });
           continue;
         }
@@ -4602,42 +4602,48 @@ export class V13Final1728421385000 implements MigrationInterface {
         message: `Linked ${publishers.length} publishers for game ID: ${game.id}`,
       });
 
-      if (
-        await queryRunner.manager.existsBy(GameMetadata, {
+      const existingMetadata = await queryRunner.manager.findOneBy(
+        GameMetadata,
+        {
           provider_slug: this.legacyProviderSlug,
           provider_data_id: game.rawg_id.toString(),
-        })
-      ) {
+        },
+      );
+
+      if (existingMetadata) {
         this.logger.log({
-          message: `Game Metadata already exists for game ID ${game.id}. Skipping.`,
+          message: `Rawg Metadata already exists for game ID ${game.id}. Linking...`,
         });
-        continue;
+        migratedGame.provider_metadata = [existingMetadata];
+      } else {
+        const gameMetadata = await queryRunner.manager.save(GameMetadata, {
+          provider_slug: this.legacyProviderSlug,
+          provider_data_id: game.rawg_id.toString(),
+          title: game.rawg_title,
+          release_date: game.rawg_release_date,
+          description: game.description,
+          average_playtime: game.average_playtime,
+          cover,
+          background,
+          url_websites: [game.website_url],
+          rating: game.metacritic_rating,
+          early_access: game.early_access,
+          tags,
+          genres,
+          developers,
+          publishers,
+        });
+        migratedGame.provider_metadata = [gameMetadata];
+        this.logger.log({
+          message: `New Game metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
+        });
       }
 
-      const gameMetadata = await queryRunner.manager.save(GameMetadata, {
-        provider_slug: this.legacyProviderSlug,
-        provider_data_id: game.rawg_id.toString(),
-        title: game.rawg_title,
-        release_date: game.rawg_release_date,
-        description: game.description,
-        average_playtime: game.average_playtime,
-        cover,
-        background,
-        url_websites: [game.website_url],
-        rating: game.metacritic_rating,
-        early_access: game.early_access,
-        tags,
-        genres,
-        developers,
-        publishers,
-      });
-
-      migratedGame.provider_metadata = [gameMetadata];
-      await queryRunner.manager.save(GamevaultGame, migratedGame);
-
-      this.logger.log({
-        message: `Game metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
-      });
+      const savedGame = await queryRunner.manager.save(
+        GamevaultGame,
+        migratedGame,
+      );
+      this.logger.log({ message: "Migrated Game Successfully.", savedGame });
     }
 
     this.logger.log({ message: "Game migration completed." });
