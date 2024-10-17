@@ -165,7 +165,6 @@ export class MetadataService {
       return game;
     }
 
-    let changeCount = 0;
     for (const provider of this.providers.filter(
       (provider) => provider.enabled,
     )) {
@@ -215,7 +214,6 @@ export class MetadataService {
           // If the existing provider metadata is not found, find the metadata.
           await this.findMetadata(game, provider);
         }
-        changeCount++;
       } catch (error) {
         // If the metadata update fails, log the error and skip the update.
         this.logger.error({
@@ -228,7 +226,14 @@ export class MetadataService {
     }
 
     // If no metadata changes were made, return the game without merging the metadata.
-    if (changeCount === 0 && game.metadata) {
+    if (
+      !game.metadata ||
+      game.provider_metadata.some(
+        (provider_metadata) =>
+          provider_metadata?.updated_at > game.metadata?.updated_at,
+      ) ||
+      game.user_metadata?.updated_at > game.metadata?.updated_at
+    ) {
       this.logger.debug({
         message: "No metadata changes. Skipping merge.",
         game: logGamevaultGame(game),
