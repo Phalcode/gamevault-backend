@@ -1146,10 +1146,10 @@ export class V13Final1728421385000 implements MigrationInterface {
             cover,
             background,
           });
-          migratedGame.provider_metadata = [gameMetadata];
+          migratedGame.user_metadata = gameMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
           this.logger.log({
-            message: `Game metadata saved successfully (only images). Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
+            message: `User metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
           });
           continue;
         }

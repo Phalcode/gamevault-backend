@@ -4542,16 +4542,16 @@ export class V13Final1728421385000 implements MigrationInterface {
 
       if (!game.rawg_id) {
         if (cover || background) {
-          const gameMetadata = await queryRunner.manager.save(GameMetadata, {
+          const userMetadata = await queryRunner.manager.save(GameMetadata, {
             provider_slug: "user",
             provider_data_id: game.id?.toString(),
             cover,
             background,
           });
-          migratedGame.provider_metadata = [gameMetadata];
+          migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
           this.logger.log({
-            message: `Game metadata saved successfully (only images). Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
+            message: `User metadata saved successfully. Metadata ID: ${userMetadata.id}, Title: ${userMetadata.title}`,
           });
           continue;
         }
