@@ -141,7 +141,7 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async runUpdateMetadataJob(gameId: number): Promise<GamevaultGame> {
+  private async runUpdateMetadataJob(gameId: number): Promise<void> {
     const game = this.metadataJobs.get(gameId);
     if (!game) {
       this.logger.error({
@@ -162,7 +162,7 @@ export class MetadataService {
         message: "Skipping metadata update for (NC) game.",
         game: logGamevaultGame(game),
       });
-      return game;
+      return;
     }
 
     for (const provider of this.providers.filter(
@@ -234,21 +234,19 @@ export class MetadataService {
       ) ||
       game.user_metadata?.updated_at > game.metadata?.updated_at
     ) {
+      this.merge(game.id).catch((error) => {
+        this.logger.warn({
+          message: "Error merging metadata for game.",
+          game: logGamevaultGame(game),
+          error,
+        });
+      });
+    } else {
       this.logger.debug({
         message: "No metadata changes. Skipping merge.",
         game: logGamevaultGame(game),
       });
-      return game;
     }
-
-    // Merge the updated metadata and return the updated game.
-    this.merge(game.id).catch((error) => {
-      this.logger.warn({
-        message: "Error merging metadata for game.",
-        game: logGamevaultGame(game),
-        error,
-      });
-    });
   }
 
   /**
