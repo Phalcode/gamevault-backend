@@ -2,6 +2,7 @@ import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { existsSync } from "fs";
 import { toLower } from "lodash";
+import { setTimeout } from "timers/promises";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { Media } from "../../../media/media.entity";
@@ -31,13 +32,107 @@ export class V13Final1728421385000 implements MigrationInterface {
     if (await this.checkMigrationRun(queryRunner)) {
       return;
     }
+
+    const totalSteps = 7;
+    let currentStep = 1;
+
+    console.warn(
+      `IMPORTANT INFORMATIONS:
+        - Be sure to back up your data thoroughly before migrating, and contact us if you encounter any migration errors.
+        - The migration process may take up to 30 minutes or even longer for larger servers. During this time, clients will not be able to use the server.
+        - If it takes too long, you can set SERVER_LOG_LEVEL=debug in the environment variables to track the track progress. However, note that enabling verbose logs may slow down the migration.
+        - The container might appear as UNHEALTHY during the migration. This is expected behavior, and no action is needed. Let it complete the process.
+        - Make sure to disable any Docker auto-heal features for GameVault, as they might terminate the container during the migration.
+        - Restarting the server will restart the migration.`,
+    );
+
+    console.warn(
+      "Waiting 15 seconds for you to read this, before starting migration...",
+    );
+    await setTimeout(15_000);
+
+    console.warn("     Alright, let's go.");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⢻⡿⠿⣿⣿⣿⣿⡿⠿⣿⡇⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⢀⣴⣦⡈⠻⣦⣤⣿⣿⣧⣤⣶⠏⢀⣦⣄⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⢀⣴⣿⣿⣿⣷⣤⣈⠙⠛⠛⠛⢉⣠⣴⣿⣿⣿⣷⣄⠀⠀⠀");
+    console.warn("⠀⠀⢠⣿⣿⣿⣿⠟⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⢻⣿⣿⣿⣆⠀⠀");
+    console.warn("⠀⢀⣿⣿⣿⣿⠃⣰⣿⣿⡿⠛⠋⠉⠛⠻⣿⣿⣷⡀⠹⣿⣿⣿⡆⠀");
+    console.warn("⠀⣸⣿⣿⣿⠃⣰⣿⣿⠋⣠⣾⡇⢸⣷⣦⠈⣿⣿⣿⡄⢹⣿⣿⣿⠀");
+    console.warn("⠀⣿⣿⣿⠋⠀⠉⠉⠉⠀⣿⣿⡇⢸⣿⣿⡇⠉⠉⠉⠁⠀⢻⣿⣿⡆");
+    console.warn("⢰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇");
+    console.warn("⠀⠙⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠃⠘⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠁");
+    console.warn("⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀  ");
+    console.warn("⠀⠀⠀⠀⠀⠀⠈⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠃⠀⠀⠀⠀⠀⠀  ");
+
+    this.logger.log("info", "Starting migration...");
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Synchronizing - Running...`,
+    );
     await this.part0_sync(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Synchronizing - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Renaming tables - Running...`,
+    );
     await this.part1_rename_tables(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Renaming tables - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Generating new schema - Running...`,
+    );
     await this.part2_generate_new_schema(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Generating new schema - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Migrating data - Running...`,
+    );
     await this.part3_migrate_data(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Migrating data - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Enabling auto-increment - Running...`,
+    );
     await this.part4_enable_auto_increment(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Enabling auto-increment - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Deleting old tables - Running...`,
+    );
     await this.part5_delete_old_tables(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Deleting old tables - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Sorting title - Running...`,
+    );
     await this.part6_sorting_title(queryRunner);
+    this.logger.log(
+      `Step ${currentStep}/${totalSteps}: Sorting title - Completed`,
+    );
+
+    this.logger.log("info", "Migration completed successfully.");
   }
 
   private async checkMigrationRun(queryRunner: QueryRunner): Promise<boolean> {
@@ -632,7 +727,7 @@ export class V13Final1728421385000 implements MigrationInterface {
   private async part1_rename_tables(queryRunner: QueryRunner) {
     if (existsSync("/images")) {
       throw new Error(
-        "Your media volume mount point is still pointing to /images. This is deprecated since v13.0.0. From now on, mount your images to /media instead.",
+        "Oof... Your media volume mount point is still pointing to /images. This is deprecated since v13.0.0. From now on, mount your images to /media instead of /images. Did you even bother to read the migration instructions? 🥲",
       );
     }
 
@@ -3079,16 +3174,83 @@ export class V13Final1728421385000 implements MigrationInterface {
             CREATE INDEX "IDX_3c8d93fdd9e34a97f5a5903129" ON "bookmark" ("gamevault_game_id")
         `);
   }
+
   private async part3_migrate_data(queryRunner: QueryRunner) {
+    const totalSteps = 8;
+    let currentStep = 1;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating images - Running...`,
+    );
     await this.migrateImages(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating images - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating tags - Running...`,
+    );
     await this.migrateTags(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating tags - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating genres - Running...`,
+    );
     await this.migrateGenres(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating genres - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating developers - Running...`,
+    );
     await this.migrateDevelopers(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating developers - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating publishers - Running...`,
+    );
     await this.migratePublishers(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating publishers - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating games - Running...`,
+    );
     await this.migrateGames(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating games - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating users and bookmarks - Running...`,
+    );
     await this.migrateUsersAndBookmarks(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating users and bookmarks - Completed`,
+    );
+    currentStep++;
+
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating progresses - Running...`,
+    );
     await this.migrateProgresses(queryRunner);
+    this.logger.log(
+      `Sub-Step ${currentStep}/${totalSteps}: Migrating progresses - Completed`,
+    );
   }
+
   private async part4_enable_auto_increment(queryRunner: QueryRunner) {
     await queryRunner.query(`
             DROP INDEX "IDX_907a95c00ab6d81140c1a1b4a3"
@@ -4268,17 +4430,15 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async migrateImages(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Images..." });
-
     const images = await queryRunner.manager.find(ImageV12, {
       withDeleted: true,
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${images.length} images in the V12 database.`,
     });
 
     for (const image of images) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating image ID ${image.id}, Source: ${image.source}`,
       });
 
@@ -4294,22 +4454,18 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: image.entity_version,
       });
 
-      this.logger.log({ message: `Image migrated successfully`, newImage });
+      this.logger.debug({ message: "Migrated Image Successfully.", newImage });
     }
-
-    this.logger.log({ message: "Image migration completed." });
   }
 
   private async migrateTags(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Tags..." });
-
     const tags = await queryRunner.manager.find(TagV12, { withDeleted: true });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${tags.length} tags in the V12 database.`,
     });
 
     for (const tag of tags) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating tag ID ${tag.id}, Name: ${tag.name}`,
       });
 
@@ -4319,7 +4475,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           provider_data_id: tag.rawg_id.toString(),
         })
       ) {
-        this.logger.log({
+        this.logger.debug({
           message: `Tag ID ${tag.id} already exists. Skipping.`,
         });
         continue;
@@ -4336,24 +4492,20 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: tag.entity_version,
       });
 
-      this.logger.log({ message: `Tag migrated successfully`, newTag });
+      this.logger.debug({ message: "Migrated Tag Successfully.", newTag });
     }
-
-    this.logger.log({ message: "Tag migration completed." });
   }
 
   private async migrateGenres(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Genres..." });
-
     const genres = await queryRunner.manager.find(GenreV12, {
       withDeleted: true,
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${genres.length} genres in the V12 database.`,
     });
 
     for (const genre of genres) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating genre ID ${genre.id}, Name: ${genre.name}`,
       });
 
@@ -4363,7 +4515,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           provider_data_id: genre.rawg_id.toString(),
         })
       ) {
-        this.logger.log({
+        this.logger.debug({
           message: `Genre ID ${genre.id} already exists. Skipping.`,
         });
         continue;
@@ -4380,24 +4532,20 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: genre.entity_version,
       });
 
-      this.logger.log({ message: `Genre migrated successfully`, newGenre });
+      this.logger.debug({ message: "Migrated Genre Successfully.", newGenre });
     }
-
-    this.logger.log({ message: "Genre migration completed." });
   }
 
   private async migrateDevelopers(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Developers..." });
-
     const developers = await queryRunner.manager.find(DeveloperV12, {
       withDeleted: true,
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${developers.length} developers in the V12 database.`,
     });
 
     for (const developer of developers) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating developer ID ${developer.id}, Name: ${developer.name}`,
       });
 
@@ -4407,7 +4555,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           provider_data_id: developer.rawg_id.toString(),
         })
       ) {
-        this.logger.log({
+        this.logger.debug({
           message: `Developer ID ${developer.id} already exists. Skipping.`,
         });
         continue;
@@ -4424,27 +4572,23 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: developer.entity_version,
       });
 
-      this.logger.log({
-        message: `Developer migrated successfully`,
+      this.logger.debug({
+        message: "Migrated Developer Successfully.",
         newDeveloper,
       });
     }
-
-    this.logger.log({ message: "Developer migration completed." });
   }
 
   private async migratePublishers(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Publishers..." });
-
     const publishers = await queryRunner.manager.find(PublisherV12, {
       withDeleted: true,
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${publishers.length} publishers in the V12 database.`,
     });
 
     for (const publisher of publishers) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating publisher ID ${publisher.id}, Name: ${publisher.name}`,
       });
 
@@ -4454,7 +4598,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           provider_data_id: publisher.rawg_id.toString(),
         })
       ) {
-        this.logger.log({
+        this.logger.debug({
           message: `Publisher ID ${publisher.id} already exists. Skipping.`,
         });
         continue;
@@ -4470,19 +4614,14 @@ export class V13Final1728421385000 implements MigrationInterface {
         deleted_at: publisher.deleted_at,
         entity_version: publisher.entity_version,
       });
-
-      this.logger.log({
-        message: `Publisher migrated successfully`,
+      this.logger.debug({
+        message: "Migrated Publisher Successfully.",
         newPublisher,
       });
     }
-
-    this.logger.log({ message: "Publisher migration completed." });
   }
 
   private async migrateGames(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Games..." });
-
     const games = await queryRunner.manager.find(GameV12, {
       relations: [
         "box_image",
@@ -4495,12 +4634,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       withDeleted: true,
       relationLoadStrategy: "query",
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${games.length} games in the V12 database.`,
     });
 
     for (const game of games) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating game ID ${game.id}, Title: ${game.title}`,
       });
 
@@ -4527,7 +4666,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (cover)
-        this.logger.log({ message: `Linked cover image, ID: ${cover?.id}` });
+        this.logger.debug({ message: `Linked cover image, ID: ${cover?.id}` });
 
       const background = game.background_image
         ? await queryRunner.manager.findOne(Media, {
@@ -4536,7 +4675,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.log({
+        this.logger.debug({
           message: `Linked background image, ID: ${background?.id}`,
         });
 
@@ -4550,13 +4689,13 @@ export class V13Final1728421385000 implements MigrationInterface {
           });
           migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
-          this.logger.log({
+          this.logger.debug({
             message: `User metadata saved successfully. Metadata ID: ${userMetadata.id}, Game ID: ${game.id}, Title: ${userMetadata.title}`,
           });
           continue;
         }
 
-        this.logger.log({
+        this.logger.debug({
           message: `No rawg_id or custom images found. Skipping metadata for game ID: ${game.id}.`,
         });
         continue;
@@ -4568,7 +4707,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.tags.map((t) => t.rawg_id)),
           })
         : [];
-      this.logger.log({
+      this.logger.debug({
         message: `Linked ${tags.length} tags for game ID: ${game.id}`,
       });
 
@@ -4578,7 +4717,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.genres.map((g) => g.rawg_id)),
           })
         : [];
-      this.logger.log({
+      this.logger.debug({
         message: `Linked ${genres.length} genres for game ID: ${game.id}`,
       });
 
@@ -4588,7 +4727,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.developers.map((d) => d.rawg_id)),
           })
         : [];
-      this.logger.log({
+      this.logger.debug({
         message: `Linked ${developers.length} developers for game ID: ${game.id}`,
       });
 
@@ -4598,7 +4737,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.publishers.map((p) => p.rawg_id)),
           })
         : [];
-      this.logger.log({
+      this.logger.debug({
         message: `Linked ${publishers.length} publishers for game ID: ${game.id}`,
       });
 
@@ -4611,7 +4750,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       );
 
       if (existingMetadata) {
-        this.logger.log({
+        this.logger.debug({
           message: `Rawg Metadata already exists for game ID ${game.id}. Linking...`,
         });
         migratedGame.provider_metadata = [existingMetadata];
@@ -4634,7 +4773,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           publishers,
         });
         migratedGame.provider_metadata = [gameMetadata];
-        this.logger.log({
+        this.logger.debug({
           message: `New Game metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
         });
       }
@@ -4643,17 +4782,13 @@ export class V13Final1728421385000 implements MigrationInterface {
         GamevaultGame,
         migratedGame,
       );
-      this.logger.log({ message: "Migrated Game Successfully.", savedGame });
+      this.logger.debug({ message: "Migrated Game Successfully.", savedGame });
     }
-
-    this.logger.log({ message: "Game migration completed." });
   }
 
   private async migrateUsersAndBookmarks(
     queryRunner: QueryRunner,
   ): Promise<void> {
-    this.logger.log({ message: "Migrating Users..." });
-
     const users = await queryRunner.manager.find(GamevaultUserV12, {
       withDeleted: true,
       select: [
@@ -4677,12 +4812,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       relations: ["profile_picture", "background_image", "bookmarked_games"],
       relationLoadStrategy: "query",
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${users.length} users in the V12 database.`,
     });
 
     for (const user of users) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating user ID ${user.id}, Username: ${user.username}`,
       });
 
@@ -4693,7 +4828,9 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (avatar)
-        this.logger.log({ message: `Linked avatar image, ID: ${avatar?.id}` });
+        this.logger.debug({
+          message: `Linked avatar image, ID: ${avatar?.id}`,
+        });
 
       const background = user.background_image
         ? await queryRunner.manager.findOne(Media, {
@@ -4702,7 +4839,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.log({
+        this.logger.debug({
           message: `Linked background image, ID: ${background?.id}`,
         });
 
@@ -4731,31 +4868,24 @@ export class V13Final1728421385000 implements MigrationInterface {
         deleted_at: user.deleted_at,
         entity_version: user.entity_version,
       });
-      this.logger.log({
-        message: `User migrated successfully.`,
-        username: newUser.username,
-        userId: newUser.id,
-      });
-    }
 
-    this.logger.log({ message: "User migration completed." });
+      this.logger.debug({ message: "Migrated User Successfully.", newUser });
+    }
   }
 
   private async migrateProgresses(queryRunner: QueryRunner): Promise<void> {
-    this.logger.log({ message: "Migrating Progresses..." });
-
     const progresses = await queryRunner.manager.find(ProgressV12, {
       withDeleted: true,
       loadEagerRelations: true,
       relations: ["user", "game"],
       relationLoadStrategy: "query",
     });
-    this.logger.log({
+    this.logger.debug({
       message: `Found ${progresses.length} progresses in the V12 database.`,
     });
 
     for (const progress of progresses) {
-      this.logger.log({
+      this.logger.debug({
         message: `Migrating progress ID ${progress.id}, User: ${progress.user?.id}, Game: ${progress.game?.id}`,
       });
 
@@ -4785,13 +4915,12 @@ export class V13Final1728421385000 implements MigrationInterface {
         deleted_at: progress.deleted_at,
         entity_version: progress.entity_version,
       });
-      this.logger.log({
-        message: `Progress migrated successfully.`,
-        progress: newProgress,
+
+      this.logger.debug({
+        message: "Migrated User Successfully.",
+        newProgress,
       });
     }
-
-    this.logger.log({ message: "Progress migration completed." });
   }
 
   public async down(): Promise<void> {

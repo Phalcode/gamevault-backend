@@ -107,7 +107,6 @@ export class FilesService implements OnApplicationBootstrap {
   public async index(files?: File[]): Promise<GamevaultGame[]> {
     this.logger.log({
       message: "Indexing game(s).",
-      files,
       jobs: this.indexJobs.size,
     });
     this.indexJobs.clear();
