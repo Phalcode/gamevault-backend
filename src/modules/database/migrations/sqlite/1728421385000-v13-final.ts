@@ -1,7 +1,7 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { existsSync } from "fs";
-import { toLower } from "lodash";
+import { toLower, uniqBy } from "lodash";
 import { setTimeout } from "timers/promises";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
@@ -4459,7 +4459,10 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async migrateTags(queryRunner: QueryRunner): Promise<void> {
-    const tags = await queryRunner.manager.find(TagV12, { withDeleted: true });
+    const tags = uniqBy(
+      await queryRunner.manager.find(TagV12, { withDeleted: true }),
+      "rawg_id",
+    );
     this.logger.debug({
       message: `Found ${tags.length} tags in the V12 database.`,
     });
@@ -4468,18 +4471,6 @@ export class V13Final1728421385000 implements MigrationInterface {
       this.logger.debug({
         message: `Migrating tag ID ${tag.id}, Name: ${tag.name}`,
       });
-
-      if (
-        await queryRunner.manager.existsBy(TagMetadata, {
-          provider_slug: this.legacyProviderSlug,
-          provider_data_id: tag.rawg_id.toString(),
-        })
-      ) {
-        this.logger.debug({
-          message: `Tag ID ${tag.id} already exists. Skipping.`,
-        });
-        continue;
-      }
 
       const newTag = await queryRunner.manager.save(TagMetadata, {
         id: tag.id,
@@ -4497,9 +4488,12 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async migrateGenres(queryRunner: QueryRunner): Promise<void> {
-    const genres = await queryRunner.manager.find(GenreV12, {
-      withDeleted: true,
-    });
+    const genres = uniqBy(
+      await queryRunner.manager.find(GenreV12, {
+        withDeleted: true,
+      }),
+      "rawg_id",
+    );
     this.logger.debug({
       message: `Found ${genres.length} genres in the V12 database.`,
     });
@@ -4508,18 +4502,6 @@ export class V13Final1728421385000 implements MigrationInterface {
       this.logger.debug({
         message: `Migrating genre ID ${genre.id}, Name: ${genre.name}`,
       });
-
-      if (
-        await queryRunner.manager.existsBy(GenreMetadata, {
-          provider_slug: this.legacyProviderSlug,
-          provider_data_id: genre.rawg_id.toString(),
-        })
-      ) {
-        this.logger.debug({
-          message: `Genre ID ${genre.id} already exists. Skipping.`,
-        });
-        continue;
-      }
 
       const newGenre = await queryRunner.manager.save(GenreMetadata, {
         id: genre.id,
@@ -4537,9 +4519,12 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async migrateDevelopers(queryRunner: QueryRunner): Promise<void> {
-    const developers = await queryRunner.manager.find(DeveloperV12, {
-      withDeleted: true,
-    });
+    const developers = uniqBy(
+      await queryRunner.manager.find(DeveloperV12, {
+        withDeleted: true,
+      }),
+      "rawg_id",
+    );
     this.logger.debug({
       message: `Found ${developers.length} developers in the V12 database.`,
     });
@@ -4548,18 +4533,6 @@ export class V13Final1728421385000 implements MigrationInterface {
       this.logger.debug({
         message: `Migrating developer ID ${developer.id}, Name: ${developer.name}`,
       });
-
-      if (
-        await queryRunner.manager.existsBy(DeveloperMetadata, {
-          provider_slug: this.legacyProviderSlug,
-          provider_data_id: developer.rawg_id.toString(),
-        })
-      ) {
-        this.logger.debug({
-          message: `Developer ID ${developer.id} already exists. Skipping.`,
-        });
-        continue;
-      }
 
       const newDeveloper = await queryRunner.manager.save(DeveloperMetadata, {
         id: developer.id,
@@ -4580,9 +4553,12 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async migratePublishers(queryRunner: QueryRunner): Promise<void> {
-    const publishers = await queryRunner.manager.find(PublisherV12, {
-      withDeleted: true,
-    });
+    const publishers = uniqBy(
+      await queryRunner.manager.find(PublisherV12, {
+        withDeleted: true,
+      }),
+      "rawg_id",
+    );
     this.logger.debug({
       message: `Found ${publishers.length} publishers in the V12 database.`,
     });
@@ -4591,18 +4567,6 @@ export class V13Final1728421385000 implements MigrationInterface {
       this.logger.debug({
         message: `Migrating publisher ID ${publisher.id}, Name: ${publisher.name}`,
       });
-
-      if (
-        await queryRunner.manager.existsBy(PublisherMetadata, {
-          provider_slug: this.legacyProviderSlug,
-          provider_data_id: publisher.rawg_id.toString(),
-        })
-      ) {
-        this.logger.debug({
-          message: `Publisher ID ${publisher.id} already exists. Skipping.`,
-        });
-        continue;
-      }
 
       const newPublisher = await queryRunner.manager.save(PublisherMetadata, {
         id: publisher.id,
