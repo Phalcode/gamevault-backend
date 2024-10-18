@@ -57,8 +57,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE ${SERVER_PORT}/tcp
 
-# Periodic Healthcheck on /api/v1/health
-HEALTHCHECK CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
+# Periodic Healthcheck on /api/health
+HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD [ "dist/src/main" ]
