@@ -2,7 +2,6 @@ import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { existsSync } from "fs";
 import { toLower, uniqBy } from "lodash";
-import { setTimeout } from "timers/promises";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
 import { Media } from "../../../media/media.entity";
@@ -36,22 +35,21 @@ export class V13Final1728421385000 implements MigrationInterface {
     const totalSteps = 7;
     let currentStep = 1;
 
-    console.warn(
-      `IMPORTANT INFORMATIONS:
+    this.logger.warn(
+      `IMPORTANT INFORMATIONS TO MIGRATE TO V13:
         - Be sure to back up your data thoroughly before migrating, and contact us if you encounter any migration errors.
         - The migration process may take up to 30 minutes or even longer for larger servers. During this time, clients will not be able to use the server.
-        - If it takes too long, you can set SERVER_LOG_LEVEL=debug in the environment variables to track the track progress. However, note that enabling verbose logs may slow down the migration.
         - The container might appear as UNHEALTHY during the migration. This is expected behavior, and no action is needed. Let it complete the process.
         - Make sure to disable any Docker auto-heal features for GameVault, as they might terminate the container during the migration.
-        - Restarting the server will restart the migration.`,
+        - Restarting the server will restart the migration.
+        - Even when the server is running after the migration, it will take a while until you see all your game data. Be patient and check the logs for inactivity.`,
     );
 
-    console.warn(
-      "Waiting 15 seconds for you to read this, before starting migration...",
-    );
-    await setTimeout(15_000);
-
-    console.warn("     Alright, let's go.");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("Alright, let's pray it all works.");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
     console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
     console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀");
     console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀");
@@ -67,9 +65,10 @@ export class V13Final1728421385000 implements MigrationInterface {
     console.warn("⠀⠙⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠃⠘⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠁");
     console.warn("⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀  ");
     console.warn("⠀⠀⠀⠀⠀⠀⠈⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠛⠃⠀⠀⠀⠀⠀⠀  ");
-
-    this.logger.log("info", "Starting migration...");
-
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    console.warn("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀");
+    
     this.logger.log(
       `Step ${currentStep}/${totalSteps}: Synchronizing - Running...`,
     );
@@ -4433,12 +4432,12 @@ export class V13Final1728421385000 implements MigrationInterface {
     const images = await queryRunner.manager.find(ImageV12, {
       withDeleted: true,
     });
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${images.length} images in the V12 database.`,
     });
 
     for (const image of images) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating image ID ${image.id}, Source: ${image.source}`,
       });
 
@@ -4454,7 +4453,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: image.entity_version,
       });
 
-      this.logger.debug({ message: "Migrated Image Successfully.", newImage });
+      this.logger.log({ message: "Migrated Image Successfully.", newImage });
     }
   }
 
@@ -4463,12 +4462,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       await queryRunner.manager.find(TagV12, { withDeleted: true }),
       "rawg_id",
     );
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${tags.length} tags in the V12 database.`,
     });
 
     for (const tag of tags) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating tag ID ${tag.id}, Name: ${tag.name}`,
       });
 
@@ -4483,7 +4482,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: tag.entity_version,
       });
 
-      this.logger.debug({ message: "Migrated Tag Successfully.", newTag });
+      this.logger.log({ message: "Migrated Tag Successfully.", newTag });
     }
   }
 
@@ -4494,12 +4493,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       }),
       "rawg_id",
     );
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${genres.length} genres in the V12 database.`,
     });
 
     for (const genre of genres) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating genre ID ${genre.id}, Name: ${genre.name}`,
       });
 
@@ -4514,7 +4513,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: genre.entity_version,
       });
 
-      this.logger.debug({ message: "Migrated Genre Successfully.", newGenre });
+      this.logger.log({ message: "Migrated Genre Successfully.", newGenre });
     }
   }
 
@@ -4525,12 +4524,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       }),
       "rawg_id",
     );
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${developers.length} developers in the V12 database.`,
     });
 
     for (const developer of developers) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating developer ID ${developer.id}, Name: ${developer.name}`,
       });
 
@@ -4545,7 +4544,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: developer.entity_version,
       });
 
-      this.logger.debug({
+      this.logger.log({
         message: "Migrated Developer Successfully.",
         newDeveloper,
       });
@@ -4559,12 +4558,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       }),
       "rawg_id",
     );
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${publishers.length} publishers in the V12 database.`,
     });
 
     for (const publisher of publishers) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating publisher ID ${publisher.id}, Name: ${publisher.name}`,
       });
 
@@ -4578,7 +4577,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         deleted_at: publisher.deleted_at,
         entity_version: publisher.entity_version,
       });
-      this.logger.debug({
+      this.logger.log({
         message: "Migrated Publisher Successfully.",
         newPublisher,
       });
@@ -4598,12 +4597,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       withDeleted: true,
       relationLoadStrategy: "query",
     });
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${games.length} games in the V12 database.`,
     });
 
     for (const game of games) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating game ID ${game.id}, Title: ${game.title}`,
       });
 
@@ -4630,7 +4629,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (cover)
-        this.logger.debug({ message: `Linked cover image, ID: ${cover?.id}` });
+        this.logger.log({ message: `Linked cover image, ID: ${cover?.id}` });
 
       const background = game.background_image
         ? await queryRunner.manager.findOne(Media, {
@@ -4639,7 +4638,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.debug({
+        this.logger.log({
           message: `Linked background image, ID: ${background?.id}`,
         });
 
@@ -4653,13 +4652,13 @@ export class V13Final1728421385000 implements MigrationInterface {
           });
           migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
-          this.logger.debug({
+          this.logger.log({
             message: `User metadata saved successfully. Metadata ID: ${userMetadata.id}, Game ID: ${game.id}, Title: ${userMetadata.title}`,
           });
           continue;
         }
 
-        this.logger.debug({
+        this.logger.log({
           message: `No rawg_id or custom images found. Skipping metadata for game ID: ${game.id}.`,
         });
         continue;
@@ -4671,7 +4670,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.tags.map((t) => t.rawg_id)),
           })
         : [];
-      this.logger.debug({
+      this.logger.log({
         message: `Linked ${tags.length} tags for game ID: ${game.id}`,
       });
 
@@ -4681,7 +4680,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.genres.map((g) => g.rawg_id)),
           })
         : [];
-      this.logger.debug({
+      this.logger.log({
         message: `Linked ${genres.length} genres for game ID: ${game.id}`,
       });
 
@@ -4691,7 +4690,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.developers.map((d) => d.rawg_id)),
           })
         : [];
-      this.logger.debug({
+      this.logger.log({
         message: `Linked ${developers.length} developers for game ID: ${game.id}`,
       });
 
@@ -4701,7 +4700,7 @@ export class V13Final1728421385000 implements MigrationInterface {
             provider_data_id: In(game.publishers.map((p) => p.rawg_id)),
           })
         : [];
-      this.logger.debug({
+      this.logger.log({
         message: `Linked ${publishers.length} publishers for game ID: ${game.id}`,
       });
 
@@ -4714,7 +4713,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       );
 
       if (existingMetadata) {
-        this.logger.debug({
+        this.logger.log({
           message: `Rawg Metadata already exists for game ID ${game.id}. Linking...`,
         });
         migratedGame.provider_metadata = [existingMetadata];
@@ -4737,7 +4736,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           publishers,
         });
         migratedGame.provider_metadata = [gameMetadata];
-        this.logger.debug({
+        this.logger.log({
           message: `New Game metadata saved successfully. Metadata ID: ${gameMetadata.id}, Title: ${gameMetadata.title}`,
         });
       }
@@ -4746,7 +4745,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         GamevaultGame,
         migratedGame,
       );
-      this.logger.debug({ message: "Migrated Game Successfully.", savedGame });
+      this.logger.log({ message: "Migrated Game Successfully.", savedGame });
     }
   }
 
@@ -4776,12 +4775,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       relations: ["profile_picture", "background_image", "bookmarked_games"],
       relationLoadStrategy: "query",
     });
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${users.length} users in the V12 database.`,
     });
 
     for (const user of users) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating user ID ${user.id}, Username: ${user.username}`,
       });
 
@@ -4792,7 +4791,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (avatar)
-        this.logger.debug({
+        this.logger.log({
           message: `Linked avatar image, ID: ${avatar?.id}`,
         });
 
@@ -4803,7 +4802,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           })
         : undefined;
       if (background)
-        this.logger.debug({
+        this.logger.log({
           message: `Linked background image, ID: ${background?.id}`,
         });
 
@@ -4833,7 +4832,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: user.entity_version,
       });
 
-      this.logger.debug({ message: "Migrated User Successfully.", newUser });
+      this.logger.log({ message: "Migrated User Successfully.", newUser });
     }
   }
 
@@ -4844,12 +4843,12 @@ export class V13Final1728421385000 implements MigrationInterface {
       relations: ["user", "game"],
       relationLoadStrategy: "query",
     });
-    this.logger.debug({
+    this.logger.log({
       message: `Found ${progresses.length} progresses in the V12 database.`,
     });
 
     for (const progress of progresses) {
-      this.logger.debug({
+      this.logger.log({
         message: `Migrating progress ID ${progress.id}, User: ${progress.user?.id}, Game: ${progress.game?.id}`,
       });
 
@@ -4880,7 +4879,7 @@ export class V13Final1728421385000 implements MigrationInterface {
         entity_version: progress.entity_version,
       });
 
-      this.logger.debug({
+      this.logger.log({
         message: "Migrated User Successfully.",
         newProgress,
       });

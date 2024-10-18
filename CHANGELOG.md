@@ -10,6 +10,10 @@ Recommended Gamevault App Version: `v1.12.0.5`
 
 Please read the migration instructions below **BEFORE UPDATING**! (Migration instructions are marked **in bold**)
 
+**For existing servers:** The migration process may take up to 30 minutes or even longer for larger servers. During this time, clients will not be able to use the server. The container may appear as UNHEALTHY after 5 minutes during a long migration, but don’t worry—let it run as long as logs are active. Be sure to disable any auto-heal processes for GameVault to avoid interruptions.
+
+**After the migration:** The existing data might not be visible at first glance because we need to "merge" it. This could also take a while. Check the logs for inactivity before contacting us about this.
+
 - Major database and codebase overhaul!
   - **I’ve done my best to migrate your existing data, but nobody’s perfect. Be sure to back up your data thoroughly before migrating, and contact us if you encounter any migration errors.**
 - Some configurations and environment variables have changed.
@@ -25,10 +29,6 @@ Please read the migration instructions below **BEFORE UPDATING**! (Migration ins
   - **Learn how it works and how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control).**
 - Various API changes.
   - **Check the API documentation for any updates if you're using the REST API.**
-
-**For existing servers:** The migration process may take up to 30 minutes or even longer for larger servers. During this time, clients will not be able to use the server. The container may appear as UNHEALTHY after 5 minutes during a long migration, but don’t worry—let it run as long as logs are active. Be sure to disable any auto-heal processes for GameVault to avoid interruptions.
-
-**After the migration:** The existing data might not be visible at first glance because we need to "merge" it. This could also take a while. Check the logs for inactivity before contacting us about this.
 
 ### Changes
 
