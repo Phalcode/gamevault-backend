@@ -8,20 +8,66 @@ import { NestFactory, Reflector } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
-//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 import cookieparser from "cookie-parser";
+import { readdir } from "fs/promises";
 import helmet from "helmet";
 import morgan from "morgan";
+//import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
+import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
-import configuration, { getCensoredConfiguration } from "./configuration";
+import configuration, {
+  getCensoredConfiguration,
+  getMaxBodySizeInBytes,
+} from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
-import { default as logger, default as winston, stream } from "./logging";
-import { ApiVersionMiddleware } from "./middleware/remove-api-version.middleware";
+import { GameVaultPluginModule } from "./globals";
+import { default as logger, stream, default as winston } from "./logging";
+import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 
+async function loadPlugins() {
+  const pluginModuleFiles = (
+    await readdir(configuration.VOLUMES.PLUGINS, {
+      encoding: "utf8",
+      recursive: true,
+      withFileTypes: true,
+    })
+  ).filter((file) => file.isFile() && file.name.includes(".plugin.module."));
+  const plugins = await Promise.all(
+    pluginModuleFiles.map(
+      (file) => import(resolve(join(file.path, file.name))),
+    ),
+  );
+
+  for (const plugin of plugins) {
+    const instance: GameVaultPluginModule = new plugin.default();
+    logger.log({
+      context: "PluginLoader",
+      message: `Loaded plugin.`,
+      plugin: plugin.default,
+      metadata: instance.metadata,
+    });
+  }
+
+  return plugins.map((module) => module.default);
+}
+
 async function bootstrap(): Promise<void> {
+  // Load Modules & Plugins
+  const builtinModules = Reflect.getOwnMetadata("imports", AppModule);
+  const pluginModules = await loadPlugins();
+
+  logger.log({
+    context: "PluginLoader",
+    message: `Loaded ${pluginModules.length} plugins.`,
+    plugins: pluginModules,
+  });
+  const modules = [...builtinModules, ...pluginModules];
+
+  Reflect.defineMetadata("imports", modules, AppModule);
+  // Create App
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: winston,
   });
@@ -40,15 +86,28 @@ async function bootstrap(): Promise<void> {
   } else {
     app.enableCors();
   }
-
   // GZIP
   app.use(compression());
+
+  // Set Max Body Size
+
+  const maxBodySettings = {
+    limit: `${getMaxBodySizeInBytes()}b`,
+    extended: true,
+  };
+  app.useBodyParser("json", maxBodySettings);
+  app.useBodyParser("urlencoded", maxBodySettings);
+  app.useBodyParser("text", maxBodySettings);
+  app.useBodyParser("raw", maxBodySettings);
+
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
+
   // Cookies
   app.use(cookieparser());
 
-  app.use(new ApiVersionMiddleware().use);
+  // Support Legacy Routes
+  app.use(new LegacyRoutesMiddleware().use);
 
   // Skips logs for /health calls
   app.use(
@@ -64,7 +123,6 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-
   // Logs HTTP 4XX and 5XX as warns and errors
   app.useGlobalFilters(new LoggingExceptionFilter());
 
@@ -109,37 +167,36 @@ async function bootstrap(): Promise<void> {
           .build(),
       ),
     );
-    /* Skip until it works on docker
-    await AsyncApiModule.setup(
-      "api/docs/async",
-      app,
-      AsyncApiModule.createDocument(
-        app,
-        new AsyncApiDocumentBuilder()
-          .setTitle("GameVault Backend Server")
-          .setDescription(
-            "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
-          )
-          .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
-          .setExternalDoc("Documentation", "https://gamevau.lt")
-          .setDefaultContentType("application/json")
-          .setVersion(configuration.SERVER.VERSION)
-          .addServer("Local GameVault Server", {
-            url: "localhost:8080",
-            protocol: "ws",
-          })
-          .addServer("Demo GameVault Server", {
-            url: "demo.gamevau.lt",
-            protocol: "wss",
-          })
-          .setLicense(
-            "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
-            "https://github.com/Phalcode/gamevault-backend/LICENSE",
-          )
-          .build(),
-      ),
-    );
-   */
+    // TODO: Leads to EACCES: permission denied, mkdir '/root/.npm/_cacache/tmp' running in docker for some reason
+    //await AsyncApiModule.setup(
+    //  "api/docs/async",
+    //  app,
+    //  AsyncApiModule.createDocument(
+    //    app,
+    //    new AsyncApiDocumentBuilder()
+    //      .setTitle("GameVault Backend Server")
+    //      .setDescription(
+    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+    //      )
+    //      .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
+    //      .setExternalDoc("Documentation", "https://gamevau.lt")
+    //      .setDefaultContentType("application/json")
+    //      .setVersion(configuration.SERVER.VERSION)
+    //      .addServer("Local GameVault Server", {
+    //        url: "localhost:8080",
+    //        protocol: "ws",
+    //      })
+    //      .addServer("Demo GameVault Server", {
+    //        url: "demo.gamevau.lt",
+    //        protocol: "wss",
+    //      })
+    //      .setLicense(
+    //        "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+    //        "https://github.com/Phalcode/gamevault-backend/LICENSE",
+    //      )
+    //      .build(),
+    //  ),
+    //);
   }
 
   // Provide fancy pants landing page
@@ -155,10 +212,16 @@ async function bootstrap(): Promise<void> {
   await app.listen(configuration.SERVER.PORT);
 
   logger.log({
+    context: "Initialization",
     message: `Started GameVault Server.`,
     version: configuration.SERVER.VERSION,
     port: configuration.SERVER.PORT,
     config: getCensoredConfiguration(),
   });
 }
-bootstrap();
+
+Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT;
+bootstrap().catch((error) => {
+  logger.fatal({ message: "A fatal error occured", error });
+  throw error;
+});

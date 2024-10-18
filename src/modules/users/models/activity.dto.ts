@@ -5,9 +5,15 @@ import { ActivityState } from "./activity-state.enum";
 
 export class Activity {
   @IsEmpty()
+  @ApiPropertyOptional({
+    description: "The id of the user this activity belongs to.",
+  })
   user_id?: number;
 
   @IsEmpty()
+  @ApiPropertyOptional({
+    description: "The socket id of the user this activity belongs to.",
+  })
   socket_id?: string;
 
   @ApiProperty({

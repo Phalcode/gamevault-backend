@@ -1,30 +1,27 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive } from "class-validator";
+import { IsArray, IsOptional, ValidateNested } from "class-validator";
+
+import { UpdateGameUserMetadataDto } from "../../metadata/models/user-game-metadata.dto";
+import { MapGameDto } from "./map-game.dto";
 
 export class UpdateGameDto {
+  @IsArray()
   @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  @IsNotEmpty()
+  @ValidateNested({ each: true })
   @ApiPropertyOptional({
-    example: 1000,
-    description: "unique rawg-api-identifier of the game",
+    description:
+      "The mapping requests. If not provided, the game will not be remapped or unmapped.",
+    type: MapGameDto,
+    isArray: true,
   })
-  rawg_id?: number;
+  mapping_requests?: MapGameDto[];
 
   @IsOptional()
-  @IsNumber()
+  @ValidateNested()
   @ApiPropertyOptional({
-    example: 69_420,
-    description: "id of the image",
+    description:
+      "The updated user metadata. If not provided, the games user_metadata will not be updated.",
+    type: () => UpdateGameUserMetadataDto,
   })
-  box_image_id?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @ApiPropertyOptional({
-    example: 69_420,
-    description: "id of the image",
-  })
-  background_image_id?: number;
+  user_metadata?: UpdateGameUserMetadataDto;
 }

@@ -2,17 +2,16 @@ import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { readFileSync } from "fs";
 import pg from "pg";
 import { TlsOptions } from "tls";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
-import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 import configuration from "../../configuration";
 
 const baseConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
-  entities: ["dist/**/*.entity.js"],
+  entities: ["dist/**/*.*entity.js"],
   synchronize: configuration.DB.SYNCHRONIZE,
-  cache: { alwaysEnabled: true, ignoreErrors: true },
   namingStrategy: new SnakeNamingStrategy(),
   migrationsRun: !configuration.DB.SYNCHRONIZE,
   logging: configuration.DB.DEBUG,

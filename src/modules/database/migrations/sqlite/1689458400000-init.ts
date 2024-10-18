@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class Init1689458400000 implements MigrationInterface {
   name = "Init1689458400000";
-  private readonly logger = new Logger(Init1689458400000.name);
+  private readonly logger = new Logger(this.constructor.name);
   public async up(queryRunner: QueryRunner): Promise<void> {
     if (
       (await queryRunner.hasTable("crackpipe_user")) &&

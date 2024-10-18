@@ -1,3 +1,5 @@
+import bytes from "bytes";
+import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
 
@@ -5,7 +7,7 @@ function parseBooleanEnvVariable(
   environmentVariable: string,
   defaultCase: boolean = false,
 ): boolean {
-  switch (environmentVariable?.toLocaleLowerCase()) {
+  switch (toLower(environmentVariable)) {
     case "0":
     case "false":
     case "no":
@@ -49,18 +51,6 @@ function parseNumber(
   return number;
 }
 
-function parseNumberList(
-  environmentVariable: string,
-  defaultList: number[] = [],
-): number[] {
-  return environmentVariable
-    ? environmentVariable
-        .split(",")
-        .map((item) => Number(item.trim()))
-        .filter((item) => !isNaN(item))
-    : defaultList;
-}
-
 function parseKibibytesToBytes(
   environmentVariable: string,
   defaultValue?: number,
@@ -70,6 +60,10 @@ function parseKibibytesToBytes(
     return defaultValue ?? undefined;
   }
   return bytes;
+}
+
+export function getMaxBodySizeInBytes() {
+  return Math.max(bytes("10mb"), configuration.MEDIA.MAX_SIZE);
 }
 
 const configuration = {
@@ -107,12 +101,18 @@ const configuration = {
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
+    STACK_TRACE_LIMIT: parseNumber(
+      process.env.CONFIGURATION_STACK_TRACE_LIMIT,
+      10,
+    ),
   } as const,
   VOLUMES: {
+    CONFIG: parsePath(process.env.VOLUMES_CONFIG, "/config"),
     FILES: parsePath(process.env.VOLUMES_FILES, "/files"),
-    IMAGES: parsePath(process.env.VOLUMES_IMAGES, "/images"),
+    MEDIA: parsePath(process.env.VOLUMES_MEDIA, "/media"),
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
+    PLUGINS: parsePath(process.env.VOLUMES_PLUGINS, "/plugins"),
   } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
@@ -136,19 +136,6 @@ const configuration = {
       ),
     },
   } as const,
-  RAWG_API: {
-    URL: process.env.RAWG_API_URL || "https://api.rawg.io/api",
-    KEY: process.env.RAWG_API_KEY || "",
-    CACHE_DAYS: parseNumber(process.env.RAWG_API_CACHE_DAYS, 30),
-    INCLUDED_STORES: parseNumberList(
-      process.env.RAWG_API_INCLUDED_STORES,
-      globals.DEFAULT_INCLUDED_RAWG_STORES,
-    ),
-    INCLUDED_PLATFORMS: parseNumberList(
-      process.env.RAWG_API_INCLUDED_PLATFORMS,
-      globals.DEFAULT_INCLUDED_RAWG_PLATFORMS,
-    ),
-  } as const,
   USERS: {
     REQUIRE_EMAIL: parseBooleanEnvVariable(process.env.USERS_REQUIRE_EMAIL),
     REQUIRE_FIRST_NAME: parseBooleanEnvVariable(
@@ -157,6 +144,15 @@ const configuration = {
     REQUIRE_LAST_NAME: parseBooleanEnvVariable(
       process.env.USERS_REQUIRE_LAST_NAME,
     ),
+    REQUIRE_BIRTH_DATE: parseBooleanEnvVariable(
+      process.env.USERS_REQUIRE_BIRTH_DATE,
+    ),
+  } as const,
+  PARENTAL: {
+    AGE_RESTRICTION_ENABLED: parseBooleanEnvVariable(
+      process.env.PARENTAL_AGE_RESTRICTION_ENABLED,
+    ),
+    AGE_OF_MAJORITY: parseNumber(process.env.PARENTAL_AGE_OF_MAJORITY, 18),
   } as const,
   GAMES: {
     INDEX_INTERVAL_IN_MINUTES: parseNumber(
@@ -171,24 +167,33 @@ const configuration = {
       process.env.SEARCH_RECURSIVE,
       true,
     ),
-    DEFAULT_ARCHIVE_PASSWORD: process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
+    DEFAULT_ARCHIVE_PASSWORD:
+      process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
   } as const,
-  IMAGE: {
-    MAX_SIZE_IN_KB:
-      parseNumber(process.env.IMAGE_MAX_SIZE_IN_KB, 1000) * 10_000,
-    GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS: parseNumber(
-      process.env.IMAGE_GOOGLE_API_RATE_LIMIT_COOLDOWN_IN_HOURS,
-      24,
+  MEDIA: {
+    MAX_SIZE: bytes(toLower(process.env.MEDIA_MAX_SIZE)) ?? bytes("10mb"),
+    SUPPORTED_FORMATS: parseList(
+      process.env.MEDIA_SUPPORTED_FORMATS,
+      globals.SUPPORTED_MEDIA_FORMATS,
     ),
-    SUPPORTED_IMAGE_FORMATS: parseList(
-      process.env.GAMES_SUPPORTED_IMAGE_FORMATS,
-      globals.SUPPORTED_IMAGE_FORMATS,
-    ),
-    GC_DISABLED: parseBooleanEnvVariable(process.env.IMAGE_GC_DISABLED, false),
+    GC_DISABLED: parseBooleanEnvVariable(process.env.MEDIA_GC_DISABLED, false),
     GC_INTERVAL_IN_MINUTES: parseNumber(
-      process.env.IMAGE_GC_INTERVAL_IN_MINUTES,
-      24,
+      process.env.MEDIA_GC_INTERVAL_IN_MINUTES,
+      60,
     ),
+  } as const,
+  METADATA: {
+    TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
+    IGDB: {
+      ENABLED: parseBooleanEnvVariable(process.env.METADATA_IGDB_ENABLED, true),
+      PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 10),
+      REQUEST_INTERVAL_MS: parseNumber(
+        process.env.METADATA_IGDB_REQUEST_INTERVAL_MS,
+        250,
+      ),
+      CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
+      CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
+    } as const,
   } as const,
   TESTING: {
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
@@ -196,24 +201,28 @@ const configuration = {
     ),
     MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
-    RAWG_API_DISABLED: parseBooleanEnvVariable(
-      process.env.TESTING_RAWG_API_DISABLED,
-    ),
-    GOOGLE_API_DISABLED: parseBooleanEnvVariable(
-      process.env.TESTING_GOOGLE_API_DISABLED,
-    ),
-  } as const,
-  PLUGIN: {
-    ENABLED: parseBooleanEnvVariable(process.env.PLUGIN_ENABLED),
-    SOURCES: parseList(process.env.PLUGIN_SOURCES, []),
+    MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
 } as const;
 
 export function getCensoredConfiguration() {
-  const censoredConfig = JSON.parse(JSON.stringify(configuration));
-  censoredConfig.DB.PASSWORD = "**REDACTED**";
-  censoredConfig.SERVER.ADMIN_PASSWORD = "**REDACTED**";
-  censoredConfig.RAWG_API.KEY = "**REDACTED**";
+  const censoredConfig = JSON.parse(
+    JSON.stringify(configuration, (_k, v) => (v === undefined ? null : v)),
+  );
+  censoredConfig.DB.PASSWORD = censoredConfig.DB.PASSWORD
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.SERVER.ADMIN_PASSWORD = censoredConfig.SERVER.ADMIN_PASSWORD
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.METADATA.IGDB.CLIENT_ID = censoredConfig.METADATA.IGDB
+    .CLIENT_ID
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.METADATA.IGDB.CLIENT_SECRET = censoredConfig.METADATA.IGDB
+    .CLIENT_SECRET
+    ? "**REDACTED**"
+    : null;
   return censoredConfig;
 }
 

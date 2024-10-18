@@ -1,0 +1,8 @@
+services:
+  gamevault-backend:
+    build: .
+    restart: unless-stopped
+    environment:
+      DB_SYSTEM: SQLITE
+    ports:
+      - 8080:8080

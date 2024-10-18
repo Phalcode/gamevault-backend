@@ -1,15 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {
   IsAlpha,
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   Length,
   Matches,
   MinLength,
-  ValidateIf,
 } from "class-validator";
 
 import configuration from "../../../configuration";
+import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
+import { IsOptionalIf } from "../../../validators/is-optional-if.validator";
 
 export class RegisterUserDto {
   @Matches(/^\w+$/, {
@@ -30,7 +32,7 @@ export class RegisterUserDto {
   })
   password: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_EMAIL)
+  @IsOptionalIf(configuration.USERS.REQUIRE_EMAIL === false)
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({
@@ -40,7 +42,7 @@ export class RegisterUserDto {
   })
   email?: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_FIRST_NAME)
+  @IsOptionalIf(configuration.USERS.REQUIRE_FIRST_NAME === false)
   @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({
@@ -50,7 +52,7 @@ export class RegisterUserDto {
   })
   first_name?: string;
 
-  @ValidateIf(() => configuration.USERS.REQUIRE_LAST_NAME)
+  @IsOptionalIf(configuration.USERS.REQUIRE_LAST_NAME === false)
   @IsAlpha("de-DE")
   @IsNotEmpty()
   @ApiProperty({
@@ -59,4 +61,17 @@ export class RegisterUserDto {
     required: configuration.USERS.REQUIRE_LAST_NAME,
   })
   last_name?: string;
+
+  @IsOptionalIf(
+    !configuration.USERS.REQUIRE_BIRTH_DATE &&
+      !configuration.PARENTAL.AGE_RESTRICTION_ENABLED,
+  )
+  @IsDateString()
+  @IsDateStringBeforeNow()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: "date of birth of the user in ISO8601 format",
+    required: configuration.PARENTAL.AGE_RESTRICTION_ENABLED,
+  })
+  birth_date?: string;
 }

@@ -21,6 +21,7 @@ installfile
 installscript
 installwizard
 notification_helper
+dotNetFx40_Full_setup
 oalinst
 patcher
 patchinstaller

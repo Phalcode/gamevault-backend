@@ -6,7 +6,7 @@ import configuration from "../../configuration";
 
 @Injectable()
 export class AuthenticationGuard extends AuthGuard("basic") {
-  private readonly logger = new Logger(AuthenticationGuard.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   constructor(private readonly reflector: Reflector) {
     super();
@@ -26,10 +26,6 @@ export class AuthenticationGuard extends AuthGuard("basic") {
     );
 
     if (isPublic) {
-      return true;
-    }
-
-    if (configuration.TESTING.AUTHENTICATION_DISABLED) {
       return true;
     }
 

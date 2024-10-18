@@ -13,7 +13,7 @@ import { Role } from "../users/models/role.enum";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  private readonly logger = new Logger(AuthorizationGuard.name);
+  private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly reflector: Reflector) {
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
       this.logger.warn({

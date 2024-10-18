@@ -9,7 +9,7 @@ import { Request, Response } from "express";
 
 @Catch()
 export class LoggingExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(LoggingExceptionFilter.name);
+  private readonly logger = new Logger(this.constructor.name);
 
   /** Handles exceptions that occur during request processing. */
   catch(error: Error, host: ArgumentsHost) {

@@ -12,9 +12,9 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 
 # Create directories and set more restrictive permissions
-RUN mkdir -p /files /images /logs /db \
-    && chown -R node:node /files /images /logs /db \
-    && chmod -R 777 /files /images /logs /db
+RUN mkdir -p /files /media /logs /db /plugins \
+    && chown -R node:node /files /media /logs /db /plugins \
+    && chmod -R 777 /files /media /logs /db /plugins
 
 # Install pnpm and other needed tools
 RUN sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
@@ -57,8 +57,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE ${SERVER_PORT}/tcp
 
-# Periodic Healthcheck on /api/v1/health
-HEALTHCHECK CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
+# Periodic Healthcheck on /api/health
+HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD [ "dist/src/main" ]

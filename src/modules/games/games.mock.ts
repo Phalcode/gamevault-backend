@@ -1,4 +1,4 @@
-import { IGameVaultFile } from "../files/models/file.model";
+import { File } from "./models/file.model";
 
 export default [
   {
@@ -1241,4 +1241,4 @@ export default [
     path: "art of rally (2020).zip",
     size: 933198750n,
   },
-] as IGameVaultFile[];
+] as File[];

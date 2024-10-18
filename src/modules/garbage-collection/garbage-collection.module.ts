@@ -1,21 +1,21 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { Game } from "../games/game.entity";
-import { Image } from "../images/image.entity";
-import { ImagesModule } from "../images/images.module";
+import { Media } from "../media/media.entity";
+import { MediaModule } from "../media/media.module";
+import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
-import { ImageGarbageCollectionService } from "./image-garbage-collection.service";
+import { MediaGarbageCollectionService } from "./media-garbage-collection.service";
 
 @Module({
   imports: [
-    ImagesModule,
-    TypeOrmModule.forFeature([Image]),
-    TypeOrmModule.forFeature([Game]),
+    MediaModule,
+    TypeOrmModule.forFeature([Media]),
+    TypeOrmModule.forFeature([GameMetadata]),
     TypeOrmModule.forFeature([GamevaultUser]),
   ],
   controllers: [],
-  providers: [ImageGarbageCollectionService],
-  exports: [ImageGarbageCollectionService],
+  providers: [MediaGarbageCollectionService],
+  exports: [MediaGarbageCollectionService],
 })
 export class GarbageCollectionModule {}

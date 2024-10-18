@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common";
 
 import configuration from "../../configuration";
-import { Health, HealthProtocolEntry } from "./models/health.model";
 import { HealthStatus } from "./models/health-status.enum";
+import { Health, HealthProtocolEntry } from "./models/health.model";
 
 @Injectable()
 export class HealthService {
-  private epoch: Date = new Date();
+  private readonly epoch: Date = new Date();
   private currentHealth: Health = new Health();
 
   constructor() {
@@ -31,7 +31,6 @@ export class HealthService {
     const healthCopy = { ...health };
     delete healthCopy.protocol;
     delete healthCopy.uptime;
-    delete healthCopy.version;
     return healthCopy;
   }
 
