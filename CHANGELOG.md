@@ -2,7 +2,7 @@
 
 ## 13.0.0
 
-Recommended Gamevault App Version: `v1.12.0.5`
+Recommended Gamevault App Version: `v1.12.5.0`
 
 ### Breaking Changes & Migration
 
