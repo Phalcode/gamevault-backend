@@ -950,7 +950,7 @@ export class V13Final1728421385000 implements MigrationInterface {
                 "title" varchar NOT NULL,
                 "rawg_title" varchar,
                 "version" varchar,
-                "release_date" datetime NOT NULL,
+                "release_date" datetime,
                 "rawg_release_date" datetime,
                 "cache_date" datetime,
                 "file_path" varchar NOT NULL,
