@@ -26,8 +26,8 @@ import { Role } from "../users/models/role.enum";
 @ApiTags("admin")
 export class AdminController {
   constructor(
-    private healthService: HealthService,
-    private databaseService: DatabaseService,
+    private readonly healthService: HealthService,
+    private readonly databaseService: DatabaseService,
   ) {}
 
   @Get("health")
@@ -82,6 +82,6 @@ export class AdminController {
     file: Express.Multer.File,
     @Headers("X-Database-Password") password: string,
   ) {
-    return await this.databaseService.restore(file, password);
+    return this.databaseService.restore(file, password);
   }
 }

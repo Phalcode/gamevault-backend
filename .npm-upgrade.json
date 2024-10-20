@@ -1,8 +1,12 @@
 {
   "ignore": {
     "mime": {
-      "versions": "4",
+      "versions": ">3",
       "reason": "ESM"
+    },
+    "better-sqlite3": {
+      "versions": ">9",
+      "reason": "TypeORM compatibility"
     }
   }
 }

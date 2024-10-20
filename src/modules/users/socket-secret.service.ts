@@ -8,19 +8,23 @@ import { GamevaultUser } from "./gamevault-user.entity";
 export class SocketSecretService {
   constructor(
     @InjectRepository(GamevaultUser)
-    private userRepository: Repository<GamevaultUser>,
+    private readonly userRepository: Repository<GamevaultUser>,
   ) {}
 
-  async getUserBySocketSecretOrFail(socketSecret: string) {
-    return await this.userRepository.findOneByOrFail({
-      socket_secret: socketSecret,
+  async findUserBySocketSecretOrFail(socketSecret: string) {
+    return this.userRepository.findOneOrFail({
+      where: {
+        socket_secret: socketSecret,
+      },
+      relationLoadStrategy: "query",
     });
   }
 
-  async getSocketSecretOrFail(userId: number): Promise<string> {
+  async findSocketSecretOrFail(userId: number): Promise<string> {
     const user = await this.userRepository.findOneOrFail({
       select: ["id", "socket_secret"],
       where: { id: userId },
+      relationLoadStrategy: "query",
     });
 
     return user.socket_secret;

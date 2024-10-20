@@ -33,7 +33,7 @@ export class RemoveImageDeduplication1691366400000
     for (const foreignKey of gamevaultUserForeignKeysToDrop) {
       try {
         await queryRunner.dropForeignKey("gamevault_user", foreignKey);
-      } catch (error) {}
+      } catch {}
     }
 
     await queryRunner.createForeignKeys("gamevault_user", [

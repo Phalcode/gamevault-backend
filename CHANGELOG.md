@@ -1,5 +1,46 @@
 # GameVault Backend Server Changelog
 
+## 13.0.0
+
+Recommended Gamevault App Version: `v1.12.0.5`
+
+### Breaking Changes & Migration
+
+**A lot** has changed in this version. Honestly, I’ve almost rewritten the entire codebase.
+
+Please read the migration instructions below **BEFORE UPDATING**! (Migration instructions are marked **in bold**)
+
+**For existing servers:** The migration process may take up to 30 minutes or even longer for larger servers. During this time, clients will not be able to use the server. The container may appear as UNHEALTHY after 5 minutes during a long migration, but don’t worry—let it run as long as logs are active. Be sure to disable any auto-heal processes for GameVault to avoid interruptions.
+
+**After the migration:** The existing data might not be visible at first glance because we need to "merge" it. This could also take a while. Check the logs for inactivity before contacting us about this.
+
+- Major database and codebase overhaul!
+  - **I’ve done my best to migrate your existing data, but nobody’s perfect. Be sure to back up your data thoroughly before migrating, and contact us if you encounter any migration errors.**
+- Some configurations and environment variables have changed.
+  - **Ensure your environment variables are [configured correctly](https://gamevau.lt/docs/server-docs/configuration).**
+- [#140](https://github.com/Phalcode/gamevault-backend/issues/140): Introduced a new plugin framework that universally supports any metadata provider plugin and implemented a built-in IGDB Metadata Provider Plugin as the new default.
+  - **This is necessary, as RAWG integration has been removed. Learn how to set up the IGDB plugin [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb).**
+  - **IGDB metadata is now prioritized over RAWG, as its data quality is superior. If you want your existing data to remain the primary source, set the `METADATA_IGDB_PRIORITY` environment variable to a value lower than `-10` before running the update.**
+  - **We recommend first migrating the server to v13, then setting up IGDB and restarting, to minimize downtime.**
+  - **Old experimental plugins are no longer supported. Remove them if you were using any (Spoiler: You probably weren’t).**
+- Added support for more media types beyond just images. You can now upload audio and video files as well.
+  - **You now need to mount your `/images` volume as `/media`.**
+- Implemented parental control features. [#304](https://github.com/Phalcode/gamevault-backend/issues/304)
+  - **Learn how it works and how to set it up [here](https://gamevau.lt/docs/server-docs/parental-control).**
+- Various API changes.
+  - **Check the API documentation for any updates if you're using the REST API.**
+
+### Changes
+
+- Removed RAWG integration and all configurations for it.
+- Removed Google Images Boxart Scraper. (Let's be honest, it was shit anyway.)
+- Optimized the Game Indexer. It now usually only reads games that have changed instead of reading all files all the time.
+- Optimized startup time.
+- [#161](https://github.com/Phalcode/gamevault-backend/issues/161) Implemented editing of games.
+- [#423](https://github.com/Phalcode/gamevault-app/issues/423) Implemented a `news.md` (a.k.a. Message of the Day) file and a `GET /config/news` API you can use to communicate news to your users. -> **Learn how to set it up [here](https://gamevau.lt/docs/server-docs/server-news).**
+- Implemented a notes field in games.
+- Implemented default launch parameters, default launch executable, and default installer file fields in games.
+
 ## 12.2.0
 
 Recommended Gamevault App Version: `v1.11.0.0`

@@ -3,7 +3,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { GamesModule } from "../games/games.module";
 import { SocketSecretGuard } from "../guards/socket-secret.guard";
-import { ImagesModule } from "../images/images.module";
+import { MediaModule } from "../media/media.module";
 import { ActivityGateway } from "./activity.gateway";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { SocketSecretService } from "./socket-secret.service";
@@ -13,7 +13,7 @@ import { UsersService } from "./users.service";
 @Module({
   imports: [
     TypeOrmModule.forFeature([GamevaultUser]),
-    forwardRef(() => ImagesModule),
+    forwardRef(() => MediaModule),
     forwardRef(() => GamesModule),
   ],
   controllers: [UsersController],

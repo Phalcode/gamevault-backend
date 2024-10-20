@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "phalcode",
+        "projectKey": "Phalcode_gamevault-backend"
+    }
+}
