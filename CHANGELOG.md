@@ -2,7 +2,7 @@
 
 ## 13.0.0
 
-Recommended Gamevault App Version: `v1.12.0.5`
+Recommended Gamevault App Version: `v1.12.5.0`
 
 ### Breaking Changes & Migration
 
@@ -19,7 +19,7 @@ Please read the migration instructions below **BEFORE UPDATING**! (Migration ins
 - Some configurations and environment variables have changed.
   - **Ensure your environment variables are [configured correctly](https://gamevau.lt/docs/server-docs/configuration).**
 - [#140](https://github.com/Phalcode/gamevault-backend/issues/140): Introduced a new plugin framework that universally supports any metadata provider plugin and implemented a built-in IGDB Metadata Provider Plugin as the new default.
-  - **This is necessary, as RAWG integration has been removed. Learn how to set up the IGDB plugin [here](https://gamevaul.lt/docs/server-docs/metadata-enrichment/provider-igdb).**
+  - **This is necessary, as RAWG integration has been removed. Learn how to set up the IGDB plugin [here](https://gamevau.lt/docs/server-docs/metadata-enrichment/provider-igdb).**
   - **IGDB metadata is now prioritized over RAWG, as its data quality is superior. If you want your existing data to remain the primary source, set the `METADATA_IGDB_PRIORITY` environment variable to a value lower than `-10` before running the update.**
   - **We recommend first migrating the server to v13, then setting up IGDB and restarting, to minimize downtime.**
   - **Old experimental plugins are no longer supported. Remove them if you were using any (Spoiler: You probably weren’t).**
