@@ -15,7 +15,7 @@ RUN mkdir -p /files /media /logs /db /plugins \
     && chmod -R 777 /files /media /logs /db /plugins \
     && sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     && apt update \
-    && apt install -y curl p7zip-full p7zip-rar postgresql-client sudo \
+    && apt install -y curl p7zip-full p7zip-rar postgresql-client sudo  \
     && apt clean \
     && npm i -g pnpm@^9.15.0
 
