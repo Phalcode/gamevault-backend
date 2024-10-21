@@ -91,7 +91,7 @@ export class ActivityGateway
   @AsyncApiPub({
     channel: "activities",
     operationId: "activities",
-    summary: "sends all activites to all users.",
+    summary: "sends all activities to all users.",
     tags: [{ name: "activity" }],
     message: {
       payload: Array<Activity>,
