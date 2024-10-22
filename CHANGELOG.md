@@ -1,5 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 13.0.1
+
+### Changes
+
+- Fixed a bug where you could not delete existing progresses.
+- Fixed a bug in SQLITE migration.
+
+### Thanks
+
+- @Sebastrion on Discord
+- @yann577 on Discord
+
 ## 13.0.0
 
 Recommended Gamevault App Version: `v1.12.5.0`
