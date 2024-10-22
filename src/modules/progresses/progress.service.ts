@@ -95,7 +95,7 @@ export class ProgressService implements OnApplicationBootstrap {
   ): Promise<Progress> {
     const progress = await this.findOneByProgressId(progressId, {
       loadDeletedEntities: false,
-      loadRelations: false,
+      loadRelations: ["user"],
     });
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
