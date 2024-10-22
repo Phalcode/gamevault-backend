@@ -1,7 +1,5 @@
-/* eslint-disable */
 import * as dotenv from "dotenv";
 dotenv.config();
-/* eslint-enable */
 
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory, Reflector } from "@nestjs/core";
