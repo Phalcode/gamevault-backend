@@ -238,7 +238,7 @@ export class UsersService implements OnApplicationBootstrap {
     dto: UpdateUserDto,
     admin = false,
   ): Promise<GamevaultUser> {
-    const user = await this.findOneByUserIdOrFail(id);
+    const user = await this.findOneByUserIdOrFail(id, { loadRelations: false });
     const logUpdate = (property: string, from: string, to: string) => {
       this.logger.log({
         message: "Updating user property",

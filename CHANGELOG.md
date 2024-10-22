@@ -6,11 +6,13 @@
 
 - Fixed a bug where you could not delete existing progresses.
 - Fixed a bug in SQLITE migration.
+- Fixed a bug where updating some users lead to database errors.
 
 ### Thanks
 
-- @Sebastrion on Discord
+- @sebastrion on Discord
 - @yann577 on Discord
+- @johanstrese on Discord
 
 ## 13.0.0
 
