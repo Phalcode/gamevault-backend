@@ -32,7 +32,7 @@ async function loadPlugins() {
       recursive: true,
       withFileTypes: true,
     })
-  ).filter((file) => file.isFile() && file.name.includes(".plugin.module."));
+  ).filter((file) => file.isFile() && file.name.endsWith(".plugin.module.js"));
   const plugins = await Promise.all(
     pluginModuleFiles.map(
       (file) => import(resolve(join(file.path, file.name))),
