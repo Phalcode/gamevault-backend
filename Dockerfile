@@ -42,7 +42,6 @@ COPY package.json pnpm-lock.yaml ./
 
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
-RUN ln -s /app/dist/plugins/injected /plugins
 
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh

@@ -7,11 +7,9 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
 import cookieparser from "cookie-parser";
-import { readdir } from "fs/promises";
 import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
-import { join, resolve } from "path";
 
 import { AppModule } from "./app.module";
 import configuration, {
@@ -19,49 +17,16 @@ import configuration, {
   getMaxBodySizeInBytes,
 } from "./configuration";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
-import { GameVaultPluginModule } from "./globals";
 import { default as logger, stream, default as winston } from "./logging";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
 import { AuthenticationGuard } from "./modules/guards/authentication.guard";
 import { AuthorizationGuard } from "./modules/guards/authorization.guard";
-
-async function loadPlugins() {
-  const pluginModuleFiles = (
-    await readdir(configuration.VOLUMES.PLUGINS, {
-      encoding: "utf8",
-      recursive: true,
-      withFileTypes: true,
-    })
-  ).filter((file) => file.isFile() && file.name.endsWith(".plugin.module.js"));
-  const plugins = await Promise.all(
-    pluginModuleFiles.map(
-      (file) => import(resolve(join(file.path, file.name))),
-    ),
-  );
-
-  for (const plugin of plugins) {
-    const instance: GameVaultPluginModule = new plugin.default();
-    logger.log({
-      context: "PluginLoader",
-      message: `Loaded plugin.`,
-      plugin: plugin.default,
-      metadata: instance.metadata,
-    });
-  }
-
-  return plugins.map((module) => module.default);
-}
+import loadPlugins from "./plugin";
 
 async function bootstrap(): Promise<void> {
   // Load Modules & Plugins
   const builtinModules = Reflect.getOwnMetadata("imports", AppModule);
   const pluginModules = await loadPlugins();
-
-  logger.log({
-    context: "PluginLoader",
-    message: `Loaded ${pluginModules.length} plugins.`,
-    plugins: pluginModules,
-  });
   const modules = [...builtinModules, ...pluginModules];
 
   Reflect.defineMetadata("imports", modules, AppModule);
