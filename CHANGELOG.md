@@ -7,6 +7,7 @@
 - Fixed a bug where you could not delete existing progresses.
 - Fixed a bug in SQLITE migration.
 - Fixed a bug where updating some users lead to database errors.
+- Enabled UPPERCASE SERVER_LOG_LEVEL environment variable values.
 
 ### Thanks
 
