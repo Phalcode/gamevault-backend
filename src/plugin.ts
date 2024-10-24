@@ -5,7 +5,6 @@ import { GameVaultPluginModule } from "./globals";
 import { default as logger } from "./logging";
 
 export default async function loadPlugins() {
-
   const injectDir = `${__dirname}/../plugins/injected`;
 
   // Step 1: Remove /app/dist/plugins/injected folder if it exists

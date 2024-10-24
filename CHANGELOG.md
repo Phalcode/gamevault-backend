@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 13.0.2
+
+### Changes
+
+- Fixed plugin loader not loading plugins.
+
+### Thanks
+
+- @nosyrbllewe on Discord
+
 ## 13.0.1
 
 ### Changes
