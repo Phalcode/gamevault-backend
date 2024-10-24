@@ -73,7 +73,7 @@ const configuration = {
     DEMO_MODE_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_DEMO_MODE_ENABLED,
     ),
-    LOG_LEVEL: process.env.SERVER_LOG_LEVEL || "info",
+    LOG_LEVEL: toLower(process.env.SERVER_LOG_LEVEL) || "info",
     LOG_FILES_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_LOG_FILES_ENABLED,
       true,

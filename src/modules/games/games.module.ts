@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { MediaModule } from "../media/media.module";
@@ -16,7 +16,7 @@ import { GamevaultGame } from "./gamevault-game.entity";
     MediaModule,
     MetadataModule,
     ProgressModule,
-    UsersModule,
+    forwardRef(() => UsersModule),
   ],
   controllers: [GamesController],
   providers: [GamesService, FilesService],
