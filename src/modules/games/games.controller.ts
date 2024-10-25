@@ -22,6 +22,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Response } from "express";
 import {
+  FilterOperator,
   Paginate,
   PaginateQuery,
   Paginated,
@@ -31,6 +32,7 @@ import {
 import { Repository } from "typeorm";
 
 import { isArray } from "lodash";
+import { FilterSuffix } from "nestjs-paginate/lib/filter";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
@@ -101,7 +103,7 @@ export class GamesController {
           const rawFilterValue = progressStateFilter.split(":").pop();
           query.filter["progresses.state"] = [
             "$null",
-            `$or:$in:${rawFilterValue}`,
+            `$or:$eq:${rawFilterValue}`,
           ];
         }
 
@@ -110,7 +112,6 @@ export class GamesController {
           query.filter["progresses.user.id"] = [
             "$null",
             `$or:$not:${rawFilterValue}`,
-            `$or:$eq:${rawFilterValue}`,
           ];
         }
       }
@@ -173,8 +174,16 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
-        "progresses.state": true,
-        "progresses.user.id": true,
+        "progresses.state": [
+          FilterOperator.EQ,
+          FilterOperator.NULL,
+          FilterSuffix.NOT,
+        ],
+        "progresses.user.id": [
+          FilterOperator.EQ,
+          FilterOperator.NULL,
+          FilterSuffix.NOT,
+        ],
       },
       withDeleted: false,
     });
