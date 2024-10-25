@@ -128,7 +128,12 @@ export abstract class MetadataProvider implements OnModuleInit {
     game: GamevaultGame,
   ): Promise<MinimalGameMetadataDto> {
     // Search for the game using all available metadata providers but remove Edition Tags in the search.
-    const gameResults = await this.search(game.title.replace(/\[.*?\]/g, ""));
+    const gameResults = await this.search(
+      game.title
+        .replace(/\[.*?\]/g, "")
+        .replaceAll("  ", " ")
+        .trim(),
+    );
 
     // If no matching games are found, throw an exception.
     if (gameResults.length === 0) {
