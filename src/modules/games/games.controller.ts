@@ -30,6 +30,7 @@ import {
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
+import { isArray } from "lodash";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
@@ -96,18 +97,17 @@ export class GamesController {
     if (progressesFilter || progressesUserFilter) {
       // Support for virtual UNPLAYED state.
       if (progressesFilter?.includes("UNPLAYED")) {
-        if (progressesFilter) {
-          query.filter["progresses.state"] = [
-            "$null",
-            `$or:${progressesFilter}`,
-          ];
+        if (progressesFilter && !isArray(progressesUserFilter)) {
+          const rawFilterValue = progressesUserFilter.split(":").pop();
+          query.filter["progresses.state"] = ["$null", `$or:${rawFilterValue}`];
         }
 
-        if (progressesUserFilter) {
+        if (progressesUserFilter && !isArray(progressesUserFilter)) {
+          const rawFilterValue = progressesUserFilter.split(":").pop();
           query.filter["progresses.user.id"] = [
             "$null",
-            `$or:$not:${progressesUserFilter}`,
-            `$or:$eq:${progressesUserFilter}`,
+            `$or:$not:${rawFilterValue}`,
+            `$or:$eq:${rawFilterValue}`,
           ];
         }
       }
