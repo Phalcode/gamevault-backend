@@ -4,9 +4,9 @@
 
 ### Changes
 
+- [#426](https://github.com/Phalcode/gamevault-app/issues/426) implemented filters for progress states in game search
 - Fixed Metadata Search to not include Edition Tags.
 - Fixed Plugin Loader crashing serveron some systems
-- [#426](https://github.com/Phalcode/gamevault-app/issues/426) implemented filters for your own progresses in game search
 
 ### Thanks
 
