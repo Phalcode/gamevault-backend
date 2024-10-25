@@ -127,8 +127,8 @@ export abstract class MetadataProvider implements OnModuleInit {
   public async getBestMatch(
     game: GamevaultGame,
   ): Promise<MinimalGameMetadataDto> {
-    // Search for the game using all available metadata providers.
-    const gameResults = await this.search(game.title);
+    // Search for the game using all available metadata providers but remove Edition Tags in the search.
+    const gameResults = await this.search(game.title.replace(/\[.*?\]/g, ""));
 
     // If no matching games are found, throw an exception.
     if (gameResults.length === 0) {

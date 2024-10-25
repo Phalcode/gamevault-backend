@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 13.0.5
+
+### Changes
+
+- Fixed Metadata Search to not include Edition Tags.
+
 ## 13.0.4
 
 ### Changes
