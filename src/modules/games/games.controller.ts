@@ -92,18 +92,18 @@ export class GamesController {
       relations.push("metadata.tags");
     }
 
-    const progressesFilter = query.filter?.["progresses.state"];
-    const progressesUserFilter = query.filter?.["progresses.user.id"];
-    if (progressesFilter || progressesUserFilter) {
+    const progressStateFilter = query.filter?.["progresses.state"];
+    const progressUserFilter = query.filter?.["progresses.user.id"];
+    if (progressStateFilter || progressUserFilter) {
       // Support for virtual UNPLAYED state.
-      if (progressesFilter?.includes("UNPLAYED")) {
-        if (progressesFilter && !isArray(progressesUserFilter)) {
-          const rawFilterValue = progressesUserFilter.split(":").pop();
+      if (progressStateFilter?.includes("UNPLAYED")) {
+        if (progressStateFilter && !isArray(progressStateFilter)) {
+          const rawFilterValue = progressStateFilter.split(":").pop();
           query.filter["progresses.state"] = ["$null", `$or:${rawFilterValue}`];
         }
 
-        if (progressesUserFilter && !isArray(progressesUserFilter)) {
-          const rawFilterValue = progressesUserFilter.split(":").pop();
+        if (progressUserFilter && !isArray(progressUserFilter)) {
+          const rawFilterValue = progressUserFilter.split(":").pop();
           query.filter["progresses.user.id"] = [
             "$null",
             `$or:$not:${rawFilterValue}`,
