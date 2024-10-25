@@ -1,5 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 13.0.4
+
+### Changes
+
+- Fixed a stupid bug where users could not run a server without plugins
+
+## 13.0.3
+
+### Changes
+
+- Implemented Auto Plugin injection short circuit for developers.
+
 ## 13.0.2
 
 ### Changes
