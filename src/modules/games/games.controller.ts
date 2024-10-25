@@ -92,6 +92,7 @@ export class GamesController {
     }
 
     if (
+      query.filter?.["progresses"] ||
       query.filter?.["progresses.state"] ||
       query.filter?.["progresses.user.id"]
     ) {
@@ -153,6 +154,7 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
+        "progresses": true,
         "progresses.state": true,
         "progresses.user.id": true,
       },
