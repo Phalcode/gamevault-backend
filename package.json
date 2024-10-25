@@ -1,6 +1,6 @@
 {
   "name": "gamevault-backend",
-  "version": "13.0.4",
+  "version": "13.0.5",
   "description": "the self-hosted gaming platform for drm-free games",
   "author": "Alkan Alper, Schäfer Philip GbR / Phalcode",
   "private": true,
@@ -91,7 +91,7 @@
     "@types/mime": "^3.0.4",
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
-    "@types/node": "^22.7.9",
+    "@types/node": "^22.8.0",
     "@types/node-7z": "^2.1.10",
     "@types/passport-http": "^0.3.11",
     "@types/pg": "^8.11.10",

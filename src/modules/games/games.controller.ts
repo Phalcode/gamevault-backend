@@ -22,6 +22,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { Response } from "express";
 import {
+  FilterOperator,
   Paginate,
   PaginateQuery,
   Paginated,
@@ -30,6 +31,8 @@ import {
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
+import { isArray } from "lodash";
+import { FilterSuffix } from "nestjs-paginate/lib/filter";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
@@ -91,6 +94,31 @@ export class GamesController {
       relations.push("metadata.tags");
     }
 
+    const progressStateFilter = query.filter?.["progresses.state"];
+    const progressUserFilter = query.filter?.["progresses.user.id"];
+    if (progressStateFilter || progressUserFilter) {
+      // Support for virtual UNPLAYED state.
+      if (progressStateFilter?.includes("UNPLAYED")) {
+        if (progressStateFilter && !isArray(progressStateFilter)) {
+          const rawFilterValue = progressStateFilter.split(":").pop();
+          query.filter["progresses.state"] = [
+            "$null",
+            `$or:$eq:${rawFilterValue}`,
+          ];
+        }
+
+        if (progressUserFilter && !isArray(progressUserFilter)) {
+          const rawFilterValue = progressUserFilter.split(":").pop();
+          query.filter["progresses.user.id"] = [
+            "$null",
+            `$or:$not:${rawFilterValue}`,
+          ];
+        }
+      }
+
+      relations.push("progresses", "progresses.user");
+    }
+
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
       query.filter ??= {};
       query.filter["metadata.age_rating"] =
@@ -125,14 +153,17 @@ export class GamesController {
       searchableColumns: [
         "id",
         "title",
+        "file_path",
         "metadata.title",
         "metadata.description",
       ],
       filterableColumns: {
         id: true,
         title: true,
+        file_path: true,
         release_date: true,
         created_at: true,
+        updated_at: true,
         size: true,
         metacritic_rating: true,
         average_playtime: true,
@@ -143,6 +174,16 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
+        "progresses.state": [
+          FilterOperator.EQ,
+          FilterOperator.NULL,
+          FilterSuffix.NOT,
+        ],
+        "progresses.user.id": [
+          FilterOperator.EQ,
+          FilterOperator.NULL,
+          FilterSuffix.NOT,
+        ],
       },
       withDeleted: false,
     });
