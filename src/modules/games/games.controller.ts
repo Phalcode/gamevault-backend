@@ -93,7 +93,7 @@ export class GamesController {
 
     if (
       query.filter?.["progresses.state"] ||
-      query.filter?.["progresses.user.username"]
+      query.filter?.["progresses.user.id"]
     ) {
       relations.push("progresses", "progresses.user");
     }
@@ -154,7 +154,7 @@ export class GamesController {
         "metadata.tags.name": true,
         "metadata.age_rating": true,
         "progresses.state": true,
-        "progresses.user.username": true,
+        "progresses.user.id": true,
       },
       withDeleted: false,
     });
