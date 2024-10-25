@@ -1,10 +1,18 @@
 # GameVault Backend Server Changelog
 
-## 13.0.5
+## 13.1.0
 
 ### Changes
 
 - Fixed Metadata Search to not include Edition Tags.
+- Fixed Plugin Loader crashing serveron some systems
+- [#426](https://github.com/Phalcode/gamevault-app/issues/426) implemented filters for your own progresses in game search
+
+### Thanks
+
+- @D-E-N-U
+- @spaceboy
+- @Kudjo
 
 ## 13.0.4
 
