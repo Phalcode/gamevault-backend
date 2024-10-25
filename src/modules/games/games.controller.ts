@@ -99,7 +99,10 @@ export class GamesController {
       if (progressStateFilter?.includes("UNPLAYED")) {
         if (progressStateFilter && !isArray(progressStateFilter)) {
           const rawFilterValue = progressStateFilter.split(":").pop();
-          query.filter["progresses.state"] = ["$null", `$or:$in:${rawFilterValue}`];
+          query.filter["progresses.state"] = [
+            "$null",
+            `$or:$in:${rawFilterValue}`,
+          ];
         }
 
         if (progressUserFilter && !isArray(progressUserFilter)) {
