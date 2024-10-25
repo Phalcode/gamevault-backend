@@ -1,3 +1,4 @@
+import { existsSync } from "fs";
 import { cp, readdir, rm } from "fs/promises";
 import { join, resolve } from "path";
 import configuration from "./configuration";
@@ -21,7 +22,16 @@ export default async function loadPlugins() {
     });
     injectDir = `${__dirname}/../${pluginDir}`;
   } else {
-    injectPluginFolder(injectDir);
+    await injectPluginFolder(injectDir);
+  }
+
+  if (!existsSync(injectDir)) {
+    logger.log({
+      context: "PluginLoader",
+      message: `No plugins found.`,
+      injectDir,
+    });
+    return [];
   }
 
   const pluginModuleFiles = (
@@ -62,11 +72,13 @@ export default async function loadPlugins() {
 async function injectPluginFolder(injectDir) {
   // Step 1: Remove /app/dist/plugins/injected folder if it exists
   try {
-    await rm(injectDir, { recursive: true, force: true });
-    logger.debug({
-      context: "PluginLoader",
-      message: "Ejecting plugins.",
-    });
+    if (existsSync(injectDir)) {
+      await rm(injectDir, { recursive: true, force: true });
+      logger.debug({
+        context: "PluginLoader",
+        message: "Ejecting plugins.",
+      });
+    }
   } catch (error) {
     logger.error({
       context: "PluginLoader",
