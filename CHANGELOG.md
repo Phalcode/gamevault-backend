@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 13.0.3
+
+### Changes
+
+- Implemented Auto Plugin injection short circuit for developers.
+
 ## 13.0.2
 
 ### Changes
@@ -24,6 +30,7 @@
 - @sebastrion on Discord
 - @yann577 on Discord
 - @johanstrese on Discord
+- @MisterVertigo on Discord
 
 ## 13.0.0
 
