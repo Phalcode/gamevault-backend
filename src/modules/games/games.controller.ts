@@ -91,11 +91,27 @@ export class GamesController {
       relations.push("metadata.tags");
     }
 
-    if (
-      query.filter?.["progresses"] ||
-      query.filter?.["progresses.state"] ||
-      query.filter?.["progresses.user.id"]
-    ) {
+    const progressesFilter = query.filter?.["progresses.state"];
+    const progressesUserFilter = query.filter?.["progresses.user.id"];
+    if (progressesFilter || progressesUserFilter) {
+      // Support for virtual UNPLAYED state.
+      if (progressesFilter?.includes("UNPLAYED")) {
+        if (progressesFilter) {
+          query.filter["progresses.state"] = [
+            "$null",
+            `$or:${progressesFilter}`,
+          ];
+        }
+
+        if (progressesUserFilter) {
+          query.filter["progresses.user.id"] = [
+            "$null",
+            `$or:$not:${progressesUserFilter}`,
+            `$or:$eq:${progressesUserFilter}`,
+          ];
+        }
+      }
+
       relations.push("progresses", "progresses.user");
     }
 
@@ -154,7 +170,6 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
-        progresses: true,
         "progresses.state": true,
         "progresses.user.id": true,
       },
