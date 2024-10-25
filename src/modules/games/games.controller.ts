@@ -91,6 +91,13 @@ export class GamesController {
       relations.push("metadata.tags");
     }
 
+    if (
+      query.filter?.["progresses.state"] ||
+      query.filter?.["progresses.user.username"]
+    ) {
+      relations.push("progresses", "progresses.user");
+    }
+
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
       query.filter ??= {};
       query.filter["metadata.age_rating"] =
@@ -125,14 +132,17 @@ export class GamesController {
       searchableColumns: [
         "id",
         "title",
+        "file_path",
         "metadata.title",
         "metadata.description",
       ],
       filterableColumns: {
         id: true,
         title: true,
+        file_path: true,
         release_date: true,
         created_at: true,
+        updated_at: true,
         size: true,
         metacritic_rating: true,
         average_playtime: true,
@@ -143,6 +153,8 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
+        "progresses.state": true,
+        "progresses.user.username": true,
       },
       withDeleted: false,
     });
