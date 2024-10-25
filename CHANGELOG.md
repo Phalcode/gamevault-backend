@@ -36,6 +36,7 @@
 - @sebastrion on Discord
 - @yann577 on Discord
 - @johanstrese on Discord
+- @MisterVertigo on Discord
 
 ## 13.0.0
 

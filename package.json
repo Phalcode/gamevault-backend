@@ -120,9 +120,9 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "roots": ["src", ".local/plugins"],
     "setupFiles": [
-      "./testing/setup-jest.ts"
+      "./src/testing/setup-jest.ts"
     ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
@@ -131,7 +131,7 @@
     "collectCoverageFrom": [
       "**/*.ts"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "./coverage",
     "testEnvironment": "node"
   },
   "simple-git-hooks": {
