@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Fixed a stupid bug where users could not run a server without plugins
+- Fixed a stupid bug where users could not run a server without plugins.
 
 ## 13.0.3
 
