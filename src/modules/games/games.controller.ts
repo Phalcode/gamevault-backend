@@ -154,7 +154,7 @@ export class GamesController {
         "metadata.genres.name": true,
         "metadata.tags.name": true,
         "metadata.age_rating": true,
-        "progresses": true,
+        progresses: true,
         "progresses.state": true,
         "progresses.user.id": true,
       },
