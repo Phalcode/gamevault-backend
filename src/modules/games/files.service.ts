@@ -5,7 +5,6 @@ import {
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
-import { Cron } from "@nestjs/schedule";
 import { randomBytes } from "crypto";
 import { Response } from "express";
 import { Stats, createReadStream, existsSync, statSync } from "fs";
@@ -36,187 +35,140 @@ import { RangeHeader } from "./models/range-header.model";
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly indexJobs = new Map<string, File>();
 
   private readonly runDebouncedIntegrityCheck = debounce(async () => {
     await this.checkIntegrity();
   }, 5000);
 
-  private readonly runDebouncedIndex = debounce(async () => {
-    await this.index(Array.from(this.indexJobs.values()));
-  }, 5000);
-
   constructor(
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
-  ) {
-    if (configuration.TESTING.MOCK_FILES) {
-      this.logger.warn({
-        message: "Skipping File Indexer.",
-        reason: "TESTING_MOCK_FILES is set to true.",
-      });
-    }
-  }
+  ) {}
 
   onApplicationBootstrap() {
     this.bootstrapIndexer();
   }
 
   private async bootstrapIndexer() {
-    if (configuration.TESTING.MOCK_FILES) {
-      return;
-    }
+    if (configuration.TESTING.MOCK_FILES) return;
+
+    const indexIntervalInMinutes =
+      configuration.GAMES.INDEX_INTERVAL_IN_MINUTES;
+    const interval =
+      indexIntervalInMinutes > 0 ? indexIntervalInMinutes * 60 * 1000 : 0;
+
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
+      usePolling: interval > 0,
+      interval,
+      binaryInterval: interval,
+      alwaysStat: true,
+      awaitWriteFinish: true,
     })
-      .on("add", (path: string, stats: Stats) => this.addIndexJob(path, stats))
-      .on("change", (path: string, stats: Stats) =>
-        this.addIndexJob(path, stats),
-      )
-      .on("unlink", (path: string, stats: Stats) =>
-        this.addIndexJob(path, stats),
-      )
-      .on("error", (error) => {
-        this.logger.error({ message: "Error in FileWatcher.", error });
-      });
+      .on("add", this.index)
+      .on("change", this.index)
+      .on("unlink", this.index)
+      .on("error", (error) =>
+        this.logger.error({ message: "Error in Filewatcher.", error }),
+      );
   }
 
-  private addIndexJob(path: string, stats: Stats) {
-    const size = BigInt(stats?.size ?? 0);
-    if (!path || !stats?.size) {
-      this.logger.warn({
-        message: "Ignoring Index Job due to missing path or size.",
-        path,
-        size,
-      });
+  private async index(path: string, stats?: Stats) {
+    const size = BigInt(stats?.size || 0);
+    if (!size || !path || !this.isValidFilePath(path)) {
       return;
     }
-    this.logger.debug({
-      messsage: "Adding Index Job.",
+
+    // Log the initial ingestion message
+    this.logger.log({
+      message: "Ingesting game.",
       path,
       size,
     });
-    this.indexJobs.set(path, { path, size });
-    this.runDebouncedIndex();
-  }
 
-  @Cron(
-    `*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES > 0 ? configuration.GAMES.INDEX_INTERVAL_IN_MINUTES : 1} * * * *`,
-    {
-      disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0,
-    },
-  )
-  public async index(files?: File[]): Promise<GamevaultGame[]> {
-    this.logger.log({
-      message: "Indexing game(s).",
-      jobs: this.indexJobs.size,
-    });
-    this.indexJobs.clear();
-    const unvalidatedFilesToIngest = files ?? (await this.readAllFiles());
-
-    const validatedFilesToIngest = unvalidatedFilesToIngest.filter((file) =>
-      this.isValidFilePath(file.path),
+    const gameToIndex = new GamevaultGame();
+    gameToIndex.size = size;
+    gameToIndex.file_path = path;
+    gameToIndex.title = this.extractTitle(path);
+    gameToIndex.sort_title = this.gamesService.generateSortTitle(
+      gameToIndex.title,
     );
+    gameToIndex.release_date = this.extractReleaseYear(path);
+    gameToIndex.version = this.extractVersion(path);
+    gameToIndex.early_access = this.extractEarlyAccessFlag(basename(path));
 
-    if (validatedFilesToIngest.length === 0) {
-      this.logger.debug({ message: "No valid files to ingest." });
-      return;
+    try {
+      // Check if the game already exists in the database
+      const existingGameTuple: [GameExistence, GamevaultGame] =
+        await this.gamesService.checkIfExistsInDatabase(gameToIndex);
+      const existingGame = existingGameTuple[1];
+
+      // Prepare log messages based on game existence status
+      const logMessageMap = {
+        [GameExistence.EXISTS]: `Identical file is already indexed in the database. Skipping it.`,
+        [GameExistence.DOES_NOT_EXIST]: `Indexing new file.`,
+        [GameExistence.EXISTS_BUT_DELETED_IN_DATABASE]: `A soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
+        [GameExistence.EXISTS_BUT_ALTERED]: `An altered duplicate of the file has been found in the database. Updating the information.`,
+      };
+
+      // Log the corresponding message based on game existence
+      this.logger.debug({
+        message: logMessageMap[existingGameTuple[0]],
+        game: logGamevaultGame(gameToIndex),
+        ...(existingGame && { existingGame: logGamevaultGame(existingGame) }),
+      });
+
+      // Handle different cases of game existence
+      switch (existingGameTuple[0]) {
+        case GameExistence.EXISTS: {
+          // If it exists, just update the metadata
+          this.metadataService.addUpdateMetadataJob(existingGame);
+          break;
+        }
+
+        case GameExistence.DOES_NOT_EXIST: {
+          // If it doesn't exist, detect the type and save it
+          gameToIndex.type = await this.detectType(gameToIndex.file_path);
+          this.metadataService.addUpdateMetadataJob(
+            await this.gamesService.save(gameToIndex),
+          );
+          break;
+        }
+
+        case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
+          // Restore soft-deleted game and update its information
+          const restoredGame = await this.gamesService.restore(existingGame.id);
+          gameToIndex.type = await this.detectType(gameToIndex.file_path);
+          this.metadataService.addUpdateMetadataJob(
+            await this.updateFileInfo(restoredGame.id, gameToIndex),
+          );
+          break;
+        }
+
+        case GameExistence.EXISTS_BUT_ALTERED: {
+          // Update the information for an altered duplicate
+          gameToIndex.type = await this.detectType(gameToIndex.file_path);
+          this.metadataService.addUpdateMetadataJob(
+            await this.updateFileInfo(existingGame.id, gameToIndex),
+          );
+        }
+      }
+    } catch (error) {
+      // Log an error message if something goes wrong
+      this.logger.error({
+        message: `Failed to index file "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?`,
+        game: { id: gameToIndex.id, path },
+        error,
+      });
     }
 
-    this.ingest(validatedFilesToIngest);
+    this.runDebouncedIntegrityCheck();
   }
 
-  private async ingest(files: File[]): Promise<void> {
-    this.logger.log({
-      message: "Ingesting games.",
-      count: files.length,
-    });
-    const updatedGames: GamevaultGame[] = [];
-    for (const file of files) {
-      const gameToIndex = new GamevaultGame();
-      try {
-        gameToIndex.size = file.size;
-        gameToIndex.file_path = `${file.path}`;
-        gameToIndex.title = this.extractTitle(file.path);
-        gameToIndex.sort_title = this.gamesService.generateSortTitle(
-          gameToIndex.title,
-        );
-        gameToIndex.release_date = this.extractReleaseYear(file.path);
-        gameToIndex.version = this.extractVersion(file.path);
-        gameToIndex.early_access = this.extractEarlyAccessFlag(
-          basename(file.path),
-        );
-        // For each file, check if it already exists in the database.
-        const existingGameTuple: [GameExistence, GamevaultGame] =
-          await this.gamesService.checkIfExistsInDatabase(gameToIndex);
-
-        switch (existingGameTuple[0]) {
-          case GameExistence.EXISTS: {
-            this.logger.debug({
-              message: `Identical file is already indexed in the database. Skipping it.`,
-              game: logGamevaultGame(gameToIndex),
-              existingGame: logGamevaultGame(existingGameTuple[1]),
-            });
-            updatedGames.push(existingGameTuple[1]);
-            continue;
-          }
-
-          case GameExistence.DOES_NOT_EXIST: {
-            this.logger.debug({
-              message: `Indexing new file.`,
-              game: logGamevaultGame(gameToIndex),
-            });
-            gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            updatedGames.push(await this.gamesService.save(gameToIndex));
-            continue;
-          }
-
-          case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
-            this.logger.debug({
-              message: `A Soft-deleted duplicate of the file has been found in the database. Restoring it and updating the information.`,
-              game: logGamevaultGame(gameToIndex),
-              existingGame: logGamevaultGame(existingGameTuple[1]),
-            });
-            const restoredGame = await this.gamesService.restore(
-              existingGameTuple[1].id,
-            );
-            gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            updatedGames.push(
-              await this.updateFileInfo(restoredGame.id, gameToIndex),
-            );
-            continue;
-          }
-
-          case GameExistence.EXISTS_BUT_ALTERED: {
-            this.logger.debug({
-              message: `An altered duplicate of the file has been found in the database. Updating the information.`,
-              game: logGamevaultGame(gameToIndex),
-              existingGame: logGamevaultGame(existingGameTuple[1]),
-            });
-            gameToIndex.type = await this.detectType(gameToIndex.file_path);
-            updatedGames.push(
-              await this.updateFileInfo(existingGameTuple[1].id, gameToIndex),
-            );
-            continue;
-          }
-        }
-      } catch (error) {
-        this.logger.error({
-          message: `Failed to index file "${gameToIndex.file_path}". Does this file really belong here and are you sure the format is correct?`,
-          game: { id: gameToIndex.id, path: file },
-          error,
-        });
-      }
-    }
-
-    // Run metadata and integrity checks.
-    this.metadataService.checkAndUpdateMetadata(updatedGames);
-    this.runDebouncedIntegrityCheck();
-    this.logger.log({
-      message: "Finished ingesting games.",
-      count: files.length,
-    });
+  public async indexAllFiles() {
+    for (const file of await this.readAllFiles())
+      this.index(file.path, { size: Number(file.size) } as Stats);
   }
 
   /** Updates the game information with the information provided by the file. */

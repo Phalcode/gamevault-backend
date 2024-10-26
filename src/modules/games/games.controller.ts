@@ -68,7 +68,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putFilesReindex() {
-    return this.filesService.index();
+    return this.filesService.indexAllFiles();
   }
 
   /** Get paginated games list based on the given query parameters. */

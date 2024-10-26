@@ -104,31 +104,27 @@ export class MetadataService {
   /**
    * Checks the metadata of games and updates them if necessary.
    */
-  async checkAndUpdateMetadata(games: GamevaultGame[]): Promise<void> {
-    for (const game of games) {
-      const alreadyEnqueued = this.metadataJobs.has(game.id);
-      this.metadataJobs.set(game.id, game);
+  async addUpdateMetadataJob(game: GamevaultGame): Promise<void> {
+    if (this.metadataJobs.has(game.id)) {
+      this.logger.debug({
+        message: "Skipping metadata job as it is already enqueued.",
+        game: logGamevaultGame(game),
+      });
+      return;
+    }
 
-      if (alreadyEnqueued) {
-        this.logger.debug({
-          message:
-            "Skipping metadata job, because it is already enqueued, but updated game details accordingly.",
-          game: logGamevaultGame(game),
-        });
-        continue;
-      }
+    this.metadataJobs.set(game.id, game);
 
-      try {
-        await this.runUpdateMetadataJob(game.id);
-      } catch (error) {
-        this.logger.warn({
-          message: "Error checking and updating metadata for game.",
-          game: logGamevaultGame(game),
-          error,
-        });
-      } finally {
-        this.metadataJobs.delete(game.id);
-      }
+    try {
+      await this.updateMetadata(game.id);
+    } catch (error) {
+      this.logger.warn({
+        message: "Error updating metadata for game.",
+        game: logGamevaultGame(game),
+        error,
+      });
+    } finally {
+      this.metadataJobs.delete(game.id);
     }
   }
 
@@ -141,7 +137,7 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async runUpdateMetadataJob(gameId: number): Promise<void> {
+  private async updateMetadata(gameId: number): Promise<void> {
     const game = this.metadataJobs.get(gameId);
     if (!game) {
       this.logger.error({
