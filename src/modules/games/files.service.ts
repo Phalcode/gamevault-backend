@@ -46,10 +46,6 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    this.bootstrapIndexer();
-  }
-
-  private async bootstrapIndexer() {
     if (configuration.TESTING.MOCK_FILES) return;
 
     const indexIntervalInMinutes =
@@ -63,6 +59,7 @@ export class FilesService implements OnApplicationBootstrap {
       usePolling: interval > 0,
       interval,
       binaryInterval: interval,
+      ignoreInitial: true,
       alwaysStat: true,
       awaitWriteFinish: true,
     })
@@ -72,6 +69,12 @@ export class FilesService implements OnApplicationBootstrap {
       .on("error", (error) =>
         this.logger.error({ message: "Error in Filewatcher.", error }),
       );
+    this.indexAllFiles();
+  }
+
+  public async indexAllFiles() {
+    for (const file of await this.readAllFiles())
+      this.index(file.path, { size: Number(file.size) } as Stats);
   }
 
   private async index(path: string, stats?: Stats) {
@@ -164,11 +167,6 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     this.runDebouncedIntegrityCheck();
-  }
-
-  public async indexAllFiles() {
-    for (const file of await this.readAllFiles())
-      this.index(file.path, { size: Number(file.size) } as Stats);
   }
 
   /** Updates the game information with the information provided by the file. */
