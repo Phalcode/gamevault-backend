@@ -528,6 +528,7 @@ export class UsersService implements OnApplicationBootstrap {
     const existingUser = await this.userRepository.findOne({
       where,
       relationLoadStrategy: "query",
+      withDeleted: true,
     });
 
     if (existingUser) {

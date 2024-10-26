@@ -6,6 +6,7 @@
 
 - [#286](https://github.com/Phalcode/gamevault-backend/issues/286) Implemented workaround for [Nestjs-Schedule regression](https://github.com/nestjs/schedule/issues/1794).
 - Optimized Indexer
+- Fixed a server error, when registering a user that was previously soft-deleted.
 
 ## 13.1.0
 
