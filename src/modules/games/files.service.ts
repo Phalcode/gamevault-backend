@@ -101,9 +101,13 @@ export class FilesService implements OnApplicationBootstrap {
     this.runDebouncedIndex();
   }
 
-  @Cron(`*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES} * * * *`, {
-    disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0,
-  })
+  //TODO: Remove this nasty workaround once this resolves: https://github.com/nestjs/schedule/issues/1793
+  @Cron(
+    `*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES > 0 ? configuration.GAMES.INDEX_INTERVAL_IN_MINUTES : 10} * * * *`,
+    {
+      disabled: configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0,
+    },
+  )
   public async index(files?: File[]): Promise<GamevaultGame[]> {
     this.logger.log({
       message: "Indexing game(s).",
