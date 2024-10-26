@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 13.1.1
+
+### Changes
+
+- [#286](https://github.com/Phalcode/gamevault-backend/issues/286) Implemented workaround for [Nestjs-Schedule regression](https://github.com/nestjs/schedule/issues/1794).
+
 ## 13.1.0
 
 ### Changes
