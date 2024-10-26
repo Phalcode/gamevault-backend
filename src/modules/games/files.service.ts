@@ -18,6 +18,7 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
+import { Cron } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import configuration from "../../configuration";
 import globals from "../../globals";
@@ -46,19 +47,17 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
-    if (configuration.TESTING.MOCK_FILES) return;
-
-    const indexIntervalInMinutes =
-      configuration.GAMES.INDEX_INTERVAL_IN_MINUTES;
-    const interval =
-      indexIntervalInMinutes > 0 ? indexIntervalInMinutes * 60 * 1000 : 0;
+    if (configuration.TESTING.MOCK_FILES) {
+      this.logger.warn({
+        message: "Skipping File Indexer.",
+        reason: "TESTING_MOCK_FILES is set to true.",
+      });
+      return;
+    }
 
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
-      usePolling: interval > 0,
-      interval,
-      binaryInterval: interval,
       ignoreInitial: true,
       alwaysStat: true,
       awaitWriteFinish: true,
@@ -72,6 +71,14 @@ export class FilesService implements OnApplicationBootstrap {
     this.indexAllFiles();
   }
 
+  @Cron(
+    `*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES > 0 ? configuration.GAMES.INDEX_INTERVAL_IN_MINUTES : 1} * * * *`,
+    {
+      disabled:
+        configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0 ||
+        configuration.TESTING.MOCK_FILES,
+    },
+  )
   public async indexAllFiles() {
     for (const file of await this.readAllFiles())
       this.index(file.path, { size: Number(file.size) } as Stats);
