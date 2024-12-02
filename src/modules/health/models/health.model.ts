@@ -17,7 +17,7 @@ export class HealthProtocolEntry {
 
   @ApiProperty({
     description: "Status that was set",
-    type: "enum",
+    type: "string",
     enum: HealthStatus,
     example: HealthStatus.UNHEALTHY,
   })
@@ -33,7 +33,7 @@ export class HealthProtocolEntry {
 export class Health {
   @ApiProperty({
     description: "Current status of the server",
-    type: "enum",
+    type: "string",
     enum: HealthStatus,
     example: HealthStatus.HEALTHY,
   })

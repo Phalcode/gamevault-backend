@@ -34,7 +34,7 @@ export class Progress extends DatabaseEntity {
   @Column({ type: "simple-enum", enum: State, default: State.UNPLAYED })
   @ApiProperty({
     description: "state of the game progress",
-    type: "enum",
+    type: "string",
     enum: State,
     example: State.PLAYING,
   })

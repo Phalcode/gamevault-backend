@@ -7,6 +7,14 @@
     "better-sqlite3": {
       "versions": ">9",
       "reason": "TypeORM compatibility"
+    },
+    "fastify": {
+      "versions": ">4",
+      "reason": "NestJS Paginate Compatibility"
+    },
+    "logform": {
+      "versions": ">2.6.1",
+      "reason": "Remove when https://github.com/winstonjs/logform/issues/336 is fixed"
     }
   }
 }

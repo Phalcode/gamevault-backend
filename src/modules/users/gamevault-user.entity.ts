@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  OneToOne,
+    Column,
+    Entity,
+    Index,
+    JoinColumn,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    OneToOne,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -109,7 +109,7 @@ export class GamevaultUser extends DatabaseEntity {
     default: Role.USER,
   })
   @ApiProperty({
-    type: "enum",
+    type: "string",
     enum: Role,
     example: Role.EDITOR,
     description:

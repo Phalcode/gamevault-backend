@@ -1,14 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
-  AfterLoad,
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  OneToOne,
+    AfterLoad,
+    Column,
+    Entity,
+    Index,
+    JoinColumn,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    OneToOne,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity";
@@ -103,7 +103,7 @@ export class GamevaultGame extends DatabaseEntity {
   @ApiProperty({
     description:
       "type of the game, see https://gamevau.lt/docs/server-docs/game-types for all possible values",
-    type: "enum",
+    type: "string",
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })

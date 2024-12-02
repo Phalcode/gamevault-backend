@@ -19,7 +19,7 @@ export class UpdateProgressDto {
   @IsNotEmpty()
   @ApiPropertyOptional({
     description: "the new state of the game progress",
-    type: "enum",
+    type: "string",
     enum: State,
     example: State.PLAYING,
   })
