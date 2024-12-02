@@ -17,7 +17,7 @@ RUN mkdir -p /files /media /logs /db /plugins \
     && apt update \
     && apt install -y curl p7zip-full p7zip-rar postgresql-client sudo \
     && apt clean \
-    && npm i -g pnpm@^9.0.0
+    && npm i -g pnpm@^9.14.2
 
 WORKDIR /app
 
