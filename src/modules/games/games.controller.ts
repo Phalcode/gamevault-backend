@@ -84,7 +84,7 @@ export class GamesController {
     @Request() request: { gamevaultuser: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = ["bookmarked_users", "metadata", "metadata.cover"];
+    const relations = ["bookmarked_users", "metadata", "metadata.cover", "metadata.background"];
 
     if (query.filter?.["metadata.genres.name"]) {
       relations.push("metadata.genres");

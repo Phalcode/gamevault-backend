@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 13.1.2
+
+### Changes
+
+- Added Game Backgrounds into the results object of the game search for preloading purposes.
+
 ## 13.1.1
 
 ### Changes
