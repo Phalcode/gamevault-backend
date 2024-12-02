@@ -1,16 +1,16 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
-    IsAlpha,
-    IsBoolean,
-    IsDateString,
-    IsEmail,
-    IsEnum,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    Length,
-    Matches,
-    MinLength,
+  IsAlpha,
+  IsBoolean,
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  Length,
+  Matches,
+  MinLength,
 } from "class-validator";
 
 import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
