@@ -499,10 +499,9 @@ export class MetadataService {
         metadata.provider_priority = providerPriority;
       }
 
+      const savedNewMetadata = await this.gameMetadataService.save(metadata);
       const game = await this.unmap(gameId, providerSlug);
-      game.provider_metadata.push(
-        await this.gameMetadataService.save(metadata),
-      );
+      game.provider_metadata.push(savedNewMetadata);
       const mappedGame = await this.gamesService.save(game);
       this.logger.log({
         message: "Mapped metadata provider to a game.",

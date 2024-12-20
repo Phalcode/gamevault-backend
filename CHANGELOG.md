@@ -5,6 +5,7 @@
 ### Changes
 
 - Added Game Backgrounds into the results object of the game search for preloading purposes.
+- Fixed a bug where provider metadata was unmapped before new metadata was added.
 
 ## 13.1.1
 
