@@ -173,7 +173,7 @@ export class GameV12 extends DatabaseEntityV12 {
   })
   @ApiProperty({
     description: "type of the game",
-    type: "enum",
+    type: "string",
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })

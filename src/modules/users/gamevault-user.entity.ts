@@ -109,7 +109,7 @@ export class GamevaultUser extends DatabaseEntity {
     default: Role.USER,
   })
   @ApiProperty({
-    type: "enum",
+    type: "string",
     enum: Role,
     example: Role.EDITOR,
     description:

@@ -17,7 +17,7 @@ export class Activity {
   socket_id?: string;
 
   @ApiProperty({
-    type: "enum",
+    type: "string",
     enum: ActivityState,
     example: ActivityState.PLAYING,
     description: "The online-state to set the user to",

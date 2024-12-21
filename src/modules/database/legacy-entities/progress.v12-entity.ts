@@ -33,7 +33,7 @@ export class ProgressV12 extends DatabaseEntityV12 {
   @Column({ type: "simple-enum", enum: State, default: State.UNPLAYED })
   @ApiProperty({
     description: "state of the game progress",
-    type: "enum",
+    type: "string",
     enum: State,
     example: State.PLAYING,
   })

@@ -1,5 +1,20 @@
 # GameVault Backend Server Changelog
 
+## 13.1.2
+
+### Changes
+
+- Added Game Backgrounds into the results object of the game search for preloading purposes.
+- Fixed a bug where provider metadata was unmapped before new metadata was added.
+
+## 13.1.1
+
+### Changes
+
+- [#286](https://github.com/Phalcode/gamevault-backend/issues/286) Implemented workaround for [Nestjs-Schedule regression](https://github.com/nestjs/schedule/issues/1794).
+- Optimized Indexer
+- Fixed a server error, when registering a user that was previously soft-deleted.
+
 ## 13.1.0
 
 ### Changes

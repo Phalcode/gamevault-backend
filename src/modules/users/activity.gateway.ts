@@ -9,7 +9,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
-import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
+//import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
 import { Server, Socket } from "socket.io";
 
 import configuration from "../../configuration";
@@ -45,24 +45,24 @@ export class ActivityGateway
 
   constructor(private readonly usersService: UsersService) {}
 
-  @AsyncApiSub({
-    channel: "set-activity",
-    operationId: "set-activity",
-    summary: "sets the activity of your user.",
-    tags: [{ name: "activity" }],
-    message: {
-      payload: Activity,
-    },
-  })
-  @AsyncApiPub({
-    channel: "activities",
-    operationId: "activity",
-    summary: "sends the new activiy to all users.",
-    tags: [{ name: "activity" }],
-    message: {
-      payload: Activity,
-    },
-  })
+  //@AsyncApiSub({
+  //  channel: "set-activity",
+  //  operationId: "set-activity",
+  //  summary: "sets the activity of your user.",
+  //  tags: [{ name: "activity" }],
+  //  message: {
+  //    payload: Activity,
+  //  },
+  //})
+  //@AsyncApiPub({
+  //  channel: "activities",
+  //  operationId: "activity",
+  //  summary: "sends the new activiy to all users.",
+  //  tags: [{ name: "activity" }],
+  //  message: {
+  //    payload: Activity,
+  //  },
+  //})
   @SubscribeMessage("set-activity")
   async setActivity(
     @ConnectedSocket() client: Socket,
@@ -81,22 +81,22 @@ export class ActivityGateway
     this.server.emit("activity", dto);
   }
 
-  @AsyncApiSub({
-    channel: "get-activities",
-    operationId: "get-activities",
-    summary: "request all activities",
-    tags: [{ name: "activity" }],
-    message: { payload: Object },
-  })
-  @AsyncApiPub({
-    channel: "activities",
-    operationId: "activities",
-    summary: "sends all activities to all users.",
-    tags: [{ name: "activity" }],
-    message: {
-      payload: Array<Activity>,
-    },
-  })
+  //@AsyncApiSub({
+  //  channel: "get-activities",
+  //  operationId: "get-activities",
+  //  summary: "request all activities",
+  //  tags: [{ name: "activity" }],
+  //  message: { payload: Object },
+  //})
+  //@AsyncApiPub({
+  //  channel: "activities",
+  //  operationId: "activities",
+  //  summary: "sends all activities to all users.",
+  //  tags: [{ name: "activity" }],
+  //  message: {
+  //    payload: Array<Activity>,
+  //  },
+  //})
   @SubscribeMessage("get-activities")
   getActivities(@ConnectedSocket() client: Socket) {
     client.emit("activities", this.getAll());

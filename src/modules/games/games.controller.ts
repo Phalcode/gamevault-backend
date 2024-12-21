@@ -68,7 +68,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame, isArray: true })
   @MinimumRole(Role.ADMIN)
   async putFilesReindex() {
-    return this.filesService.index();
+    return this.filesService.indexAllFiles();
   }
 
   /** Get paginated games list based on the given query parameters. */
@@ -84,7 +84,12 @@ export class GamesController {
     @Request() request: { gamevaultuser: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = ["bookmarked_users", "metadata", "metadata.cover"];
+    const relations = [
+      "bookmarked_users",
+      "metadata",
+      "metadata.cover",
+      "metadata.background",
+    ];
 
     if (query.filter?.["metadata.genres.name"]) {
       relations.push("metadata.genres");

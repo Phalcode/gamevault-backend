@@ -203,11 +203,12 @@ export class UsersController {
   @ApiOperation({
     summary: "register a new user",
     description:
-      "The user may has to be activated afterwards. This endpoint only works if registration is enabled",
+      "The user may may has to be activated afterwards to be active. This endpoint only works if registration is enabled",
     operationId: "postUserRegister",
   })
   @ApiOkResponse({ type: () => GamevaultUser })
   @ApiBody({ type: () => RegisterUserDto })
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   @ConditionalRegistration
   async postUserRegister(
     @Body() dto: RegisterUserDto,
@@ -215,7 +216,7 @@ export class UsersController {
   ): Promise<GamevaultUser> {
     if (
       configuration.SERVER.REGISTRATION_DISABLED &&
-      (!req.gamevaultuser?.role || req.gamevaultuser.role < Role.ADMIN)
+      (req.gamevaultuser?.role ?? 0) < Role.ADMIN
     ) {
       throw new MethodNotAllowedException(
         "Registration is disabled on this server.",
