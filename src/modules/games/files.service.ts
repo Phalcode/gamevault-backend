@@ -63,7 +63,7 @@ export class FilesService implements OnApplicationBootstrap {
       awaitWriteFinish: true,
     })
       .on("add", this.index)
-      .on("change", this.index)
+      .on("change", this.index) // TODO: this is all stateless and wont work so we need some sort of middleman.
       .on("unlink", this.index)
       .on("error", (error) =>
         this.logger.error({ message: "Error in Filewatcher.", error }),
