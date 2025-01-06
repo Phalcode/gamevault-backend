@@ -4,6 +4,12 @@
 
 ### Changes
 
+- Fixed file path validation crashing the server in certain circumstances.
+
+## 13.1.2
+
+### Changes
+
 - Added Game Backgrounds into the results object of the game search for preloading purposes.
 - Fixed a bug where provider metadata was unmapped before new metadata was added.
 

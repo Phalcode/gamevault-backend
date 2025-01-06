@@ -86,7 +86,7 @@ export class FilesService implements OnApplicationBootstrap {
 
   private async index(path: string, stats?: Stats) {
     const size = BigInt(stats?.size || 0);
-    if (!size || !path || !this.isValidFilePath(path)) {
+    if (!size || !path || !FilesService.isValidFilePath(path)) {
       return;
     }
 
@@ -204,7 +204,8 @@ export class FilesService implements OnApplicationBootstrap {
     return updatedGame;
   }
 
-  private isValidFilePath(filename: string) {
+  public static isValidFilePath(filename: string) {
+    const logger = new Logger(this.constructor.name);
     const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
@@ -213,7 +214,7 @@ export class FilesService implements OnApplicationBootstrap {
         toLower(path.extname(actualFilename)),
       )
     ) {
-      this.logger.debug({
+      logger.debug({
         message: `Indexer ignoring invalid filename.`,
         reason: "Unsupported file extension.",
         filename,
@@ -222,7 +223,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     if (invalidCharacters.test(actualFilename)) {
-      this.logger.warn({
+      logger.warn({
         message: `Indexer ignoring invalid filename.`,
         reason: "Contains invalid characters.",
         filename,
@@ -568,7 +569,9 @@ export class FilesService implements OnApplicationBootstrap {
           withFileTypes: true,
         })
       )
-        .filter((file) => file.isFile() && this.isValidFilePath(file.name))
+        .filter(
+          (file) => file.isFile() && FilesService.isValidFilePath(file.name),
+        )
         .map(
           (file) =>
             ({
