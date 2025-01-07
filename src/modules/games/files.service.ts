@@ -62,9 +62,9 @@ export class FilesService implements OnApplicationBootstrap {
       alwaysStat: true,
       awaitWriteFinish: true,
     })
-      .on("add", this.index)
-      .on("change", this.index) // TODO: this is all stateless and wont work so we need some sort of middleman.
-      .on("unlink", this.index)
+      .on("add", (path, stats) => this.index(path, stats))
+      .on("change", (path, stats) => this.index(path, stats))
+      .on("unlink", (path, stats) => this.index(path, stats))
       .on("error", (error) =>
         this.logger.error({ message: "Error in Filewatcher.", error }),
       );
@@ -86,7 +86,7 @@ export class FilesService implements OnApplicationBootstrap {
 
   private async index(path: string, stats?: Stats) {
     const size = BigInt(stats?.size || 0);
-    if (!size || !path || !FilesService.isValidFilePath(path)) {
+    if (!size || !path || !this.isValidFilePath(path)) {
       return;
     }
 
@@ -204,8 +204,7 @@ export class FilesService implements OnApplicationBootstrap {
     return updatedGame;
   }
 
-  public static isValidFilePath(filename: string) {
-    const logger = new Logger(this.constructor.name);
+  private isValidFilePath(filename: string) {
     const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
@@ -214,7 +213,7 @@ export class FilesService implements OnApplicationBootstrap {
         toLower(path.extname(actualFilename)),
       )
     ) {
-      logger.debug({
+      this.logger.debug({
         message: `Indexer ignoring invalid filename.`,
         reason: "Unsupported file extension.",
         filename,
@@ -223,7 +222,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     if (invalidCharacters.test(actualFilename)) {
-      logger.warn({
+      this.logger.warn({
         message: `Indexer ignoring invalid filename.`,
         reason: "Contains invalid characters.",
         filename,
@@ -569,9 +568,7 @@ export class FilesService implements OnApplicationBootstrap {
           withFileTypes: true,
         })
       )
-        .filter(
-          (file) => file.isFile() && FilesService.isValidFilePath(file.name),
-        )
+        .filter((file) => file.isFile() && this.isValidFilePath(file.name))
         .map(
           (file) =>
             ({
