@@ -1,6 +1,6 @@
 # GameVault Backend Server Changelog
 
-## 13.1.2
+## 13.1.3
 
 ### Changes
 
