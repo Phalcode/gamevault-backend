@@ -5,6 +5,7 @@
 ### Changes
 
 - Fixed file path validation crashing the server in certain circumstances.
+- Added Symlink Following to the filewatcher
 
 ## 13.1.2
 

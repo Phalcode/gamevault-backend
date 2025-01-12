@@ -59,6 +59,7 @@ export class FilesService implements OnApplicationBootstrap {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
       ignoreInitial: true,
+      followSymlinks: true,
       alwaysStat: true,
       awaitWriteFinish: true,
     })
