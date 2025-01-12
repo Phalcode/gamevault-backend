@@ -59,12 +59,13 @@ export class FilesService implements OnApplicationBootstrap {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
       ignorePermissionErrors: true,
       ignoreInitial: true,
+      followSymlinks: true,
       alwaysStat: true,
       awaitWriteFinish: true,
     })
-      .on("add", this.index)
-      .on("change", this.index)
-      .on("unlink", this.index)
+      .on("add", (path, stats) => this.index(path, stats))
+      .on("change", (path, stats) => this.index(path, stats))
+      .on("unlink", (path, stats) => this.index(path, stats))
       .on("error", (error) =>
         this.logger.error({ message: "Error in Filewatcher.", error }),
       );
