@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 14.0.0
+
+### Changes
+
+- Implement Support for Savegame Uploads & Downloads.
+
 ## 13.1.2
 
 ### Changes

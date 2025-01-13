@@ -113,6 +113,7 @@ const configuration = {
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
     PLUGINS: parsePath(process.env.VOLUMES_PLUGINS, "/plugins"),
+    SAVEGAMES: parsePath(process.env.VOLUMES_SAVEGAMES, "/savegames"),
   } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",

@@ -6,6 +6,7 @@ import { UsersModule } from "../users/users.module";
 import { ProgressController } from "./progress.controller";
 import { Progress } from "./progress.entity";
 import { ProgressService } from "./progress.service";
+import { SavegameService } from "./savegame.service";
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { ProgressService } from "./progress.service";
     forwardRef(() => GamesModule),
   ],
   controllers: [ProgressController],
-  providers: [ProgressService],
+  providers: [ProgressService, SavegameService],
   exports: [ProgressService],
 })
 export class ProgressModule {}

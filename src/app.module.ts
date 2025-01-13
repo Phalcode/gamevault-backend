@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
-
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
 import { AdminModule } from "./modules/admin/admin.module";
 import { ConfigModule } from "./modules/config/config.module";
