@@ -2,9 +2,11 @@
 
 ## 14.0.0
 
-### Changes
+### Breaking Changes & Migration
 
-- Implement Support for Savegame Uploads & Downloads.
+- The `DELETE /api/v1/progress/:progress-id` and `GET /api/v1/progress/:progress-id` endpoints are deprecated: **Use `DELETE /user/:user_id/game/:game_id` and `GET /user/:user_id/game/:game_id` instead**. The deprecated endpoints will be removed in v15.0.0.
+
+- Implement Support for Savefile Uploads & Downloads: **If you want to use this feature mount a folder to `/savefiles`.**
 
 ## 13.1.2
 

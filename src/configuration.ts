@@ -113,7 +113,7 @@ const configuration = {
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
     PLUGINS: parsePath(process.env.VOLUMES_PLUGINS, "/plugins"),
-    SAVEGAMES: parsePath(process.env.VOLUMES_SAVEGAMES, "/savegames"),
+    SAVEFILES: parsePath(process.env.VOLUMES_SAVEFILES, "/savefiles"),
   } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
@@ -182,6 +182,10 @@ const configuration = {
       process.env.MEDIA_GC_INTERVAL_IN_MINUTES,
       60,
     ),
+  } as const,
+  SAVEFILES: {
+    ENABLED: parseBooleanEnvVariable(process.env.SAVEFILES_ENABLED, true),
+    MAX_SIZE: bytes(toLower(process.env.SAVEFILES_MAX_SIZE)) ?? bytes("1gb"),
   } as const,
   METADATA: {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
