@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   FileTypeValidator,
   Get,
   Logger,
@@ -94,7 +95,7 @@ export class SavefileController {
   @ApiOperation({
     summary: "Download a save file from the server",
     description:
-      "Only admins or the user who is associated to the progress can download a games save file.",
+      "Only admins or the user who is associated to the savefile can download a games save file.",
     operationId: "getSaveFileByUserIdAndGameId",
   })
   @ApiOkResponse({
@@ -118,5 +119,23 @@ export class SavefileController {
     );
     res.set("Content-Type", "application/zip");
     fs.createReadStream(path).pipe(res);
+  }
+
+  @Delete("/user/:user_id/game/:game_id")
+  @ApiOperation({
+    summary: "Delete a save file from the server",
+    description:
+      "Only admins or the user who is associated to the savefile can delete a games save file.",
+    operationId: "deleteSaveFileByUserIdAndGameId",
+  })
+  @DisableApiIf(
+    configuration.SERVER.DEMO_MODE_ENABLED || !configuration.SAVEFILES.ENABLED,
+  )
+  @MinimumRole(Role.USER)
+  async deleteSaveFileByUserIdAndGameId(@Param() params: UserIdGameIdDto) {
+    await this.savefileService.delete(
+      Number(params.user_id),
+      Number(params.game_id),
+    );
   }
 }
