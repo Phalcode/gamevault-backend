@@ -186,6 +186,7 @@ const configuration = {
   SAVEFILES: {
     ENABLED: parseBooleanEnvVariable(process.env.SAVEFILES_ENABLED, true),
     MAX_SIZE: bytes(toLower(process.env.SAVEFILES_MAX_SIZE)) ?? bytes("1gb"),
+    MAX_SAVES: parseNumber(process.env.SAVEFILES_MAX_SAVES, 10),
   } as const,
   METADATA: {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),
