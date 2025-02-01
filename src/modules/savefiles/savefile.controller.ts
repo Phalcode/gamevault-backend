@@ -42,7 +42,7 @@ export class SavefileController {
 
   constructor(private readonly savefileService: SavefileService) {}
 
-  @Post("/user/:user_id/game/:game_id/savefile")
+  @Post("/user/:user_id/game/:game_id")
   @ApiOperation({
     summary: "Upload a save file to the server",
     description:
@@ -90,7 +90,7 @@ export class SavefileController {
     );
   }
 
-  @Get("/user/:user_id/game/:game_id/savefile")
+  @Get("/user/:user_id/game/:game_id")
   @ApiOperation({
     summary: "Download a save file from the server",
     description:

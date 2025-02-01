@@ -98,7 +98,7 @@ export class ProgressService implements OnApplicationBootstrap {
       loadRelations: ["user"],
     });
 
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       progress.user.id,
       executorUsername,
     );
@@ -116,7 +116,7 @@ export class ProgressService implements OnApplicationBootstrap {
     gameId: number,
     executorUsername: string,
   ): Promise<Progress> {
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
     );
@@ -194,7 +194,7 @@ export class ProgressService implements OnApplicationBootstrap {
     updateProgressDto: UpdateProgressDto,
     executorUsername: string,
   ) {
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
     );
@@ -252,7 +252,7 @@ export class ProgressService implements OnApplicationBootstrap {
     executorUsername: string,
     incrementBy = 1,
   ): Promise<Progress> {
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
     );

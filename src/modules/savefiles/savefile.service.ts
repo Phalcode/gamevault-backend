@@ -5,51 +5,65 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import fileTypeChecker from "file-type-checker";
-import { existsSync } from "fs";
-import { unlink, writeFile } from "fs/promises";
-import path from "path";
+import { mkdir, readdir, unlink, writeFile } from "fs/promises";
+import path, { dirname } from "path";
 import configuration from "../../configuration";
-import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
 
 @Injectable()
 export class SavefileService {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly gamesService: GamesService,
-  ) {}
-
-  //TODO: SOME SORT OF LIST WOULD BE GOOD.
+  constructor(private readonly usersService: UsersService) {}
 
   public async upload(
     userId: number,
     gameId: number,
     file: Express.Multer.File,
-    username: string,
+    executorUsername: string,
   ) {
-    //TODO: CHECK PERMS
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
+      userId,
+      executorUsername,
+    );
     await this.validate(file.buffer);
-    //TODO: CREATE FILE / ROLLING?
+    await this.saveToFileSystem(
+      this.generateNewPath(userId, gameId),
+      file.buffer,
+    );
   }
 
   public async download(
     userId: number,
     gameId: number,
-    username?: string,
+    executorUsername: string,
   ): Promise<string> {
-    //TODO: CHECK PERMS
-    return this.buildPath(userId, gameId);
-    //TODO: HANDLE ERRRORS
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
+      userId,
+      executorUsername,
+    );
+    const savefiles = await this.findSavefilesByUserIdAndGameIdOrFail(
+      userId,
+      gameId,
+    );
+    if (!savefiles[0]) {
+      throw new NotFoundException(
+        `Savefile for user ${userId} and game ${gameId} was not found.`,
+      );
+    }
+    return savefiles[0];
   }
 
   public async delete(
     userId: number,
     gameId: number,
-    username?: string,
+    executorUsername?: string,
+    last?: number,
   ): Promise<void> {
-    //TODO: CHECK PERMS
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
+      userId,
+      executorUsername,
+    );
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
         message: "Not deleting media from filesystem.",
@@ -58,8 +72,17 @@ export class SavefileService {
       return;
     }
     try {
-      const path = await this.findByUserIdAndGameIdOrFail(userId, gameId);
-      await unlink(path);
+      const paths = await this.findSavefilesByUserIdAndGameIdOrFail(
+        userId,
+        gameId,
+      );
+      if (last !== undefined) {
+        const toDelete = paths.slice(-last);
+        await Promise.all(toDelete.map((p) => unlink(p)));
+      } else {
+        await Promise.all(paths.map((p) => unlink(p)));
+      }
+
       this.logger.debug({
         message: "Savefile successfully deleted from filesystem and database.",
         path,
@@ -73,16 +96,33 @@ export class SavefileService {
     }
   }
 
-  private async findByUserIdAndGameIdOrFail(
+  private async findSavefilesByUserIdAndGameIdOrFail(
     userId: number,
     gameId: number,
-  ): Promise<string> {
+  ): Promise<string[]> {
     try {
-      const path = this.buildPath(userId, gameId);
-      if (!existsSync(path) || configuration.TESTING.MOCK_FILES) {
-        throw new NotFoundException("Savefile not found on filesystem.");
+      if (configuration.TESTING.MOCK_FILES) {
+        this.logger.warn({
+          message: "Not saving media to the filesystem.",
+          reason: "TESTING_MOCK_FILES is set to true.",
+        });
+        return [];
       }
-      return path;
+      const saveDir = path.dirname(this.generateNewPath(userId, gameId));
+      const files = await readdir(saveDir);
+      const paths = files
+        .filter((file) => file.endsWith(".zip"))
+        .map((file) => path.join(saveDir, file))
+        .sort((a, b) => {
+          return (
+            parseInt(path.basename(b, ".zip"), 10) -
+            parseInt(path.basename(a, ".zip"), 10)
+          );
+        });
+      if (paths.length === 0) {
+        throw new Error("No save files found");
+      }
+      return paths;
     } catch (error) {
       throw new NotFoundException(
         `Savefile for user ${userId} and game ${gameId} was not found.`,
@@ -104,6 +144,7 @@ export class SavefileService {
       });
       return;
     }
+    mkdir(dirname(path), { recursive: true });
     await writeFile(path, savefileBuffer);
     this.logger.debug({
       message: "Savefile successfully saved to filesystem.",
@@ -111,9 +152,8 @@ export class SavefileService {
     });
   }
 
-  private buildPath(userId: number, gameId: number): string {
-    //TODO: PATH STRUCTURE?
-    return `${configuration.VOLUMES.SAVEFILES}/user/${userId}/game/${gameId}/savefile.zip`;
+  private generateNewPath(userId: number, gameId: number): string {
+    return `${configuration.VOLUMES.SAVEFILES}/users/${userId}/games/${gameId}/saves/${Date.now()}.zip`;
   }
 
   private async validate(savefileBuffer: Buffer) {
