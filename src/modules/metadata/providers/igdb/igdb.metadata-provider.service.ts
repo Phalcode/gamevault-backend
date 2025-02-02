@@ -137,7 +137,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
   private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
     return {
-      age_rating: this.calculateAverageAgeRating(game.name, game.age_ratings),
+      age_rating: this.calculateAverageAgeRating(game.age_ratings, game.name),
       provider_slug: this.slug,
       provider_data_id: game.id?.toString(),
       provider_data_url: game.url,
@@ -274,8 +274,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private calculateAverageAgeRating(
-    gameTitle: string,
     ageRatings: IgdbAgeRating[],
+    gameTitle: string = "Unknown Game",
   ): number {
     if (isEmpty(ageRatings)) {
       this.logger.debug({
