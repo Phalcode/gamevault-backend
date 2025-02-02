@@ -190,7 +190,7 @@ export class SavefileService {
       });
       return;
     }
-    mkdir(dirname(path), { recursive: true });
+    await mkdir(dirname(path), { recursive: true });
     await writeFile(path, savefileBuffer);
     this.logger.debug({
       message: "Savefile successfully saved to filesystem.",
