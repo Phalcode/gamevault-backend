@@ -6,7 +6,15 @@
 
 - The `DELETE /api/v1/progress/:progress-id` and `GET /api/v1/progress/:progress-id` endpoints are deprecated: **Use `DELETE /user/:user_id/game/:game_id` and `GET /user/:user_id/game/:game_id` instead**. The deprecated endpoints will be removed in v15.0.0.
 
-- Implement Support for Savefile Uploads & Downloads: **If you want to use this feature mount a folder to `/savefiles`.**
+- Implement Support for Savefile Uploads & Downloads: **If you want to use this feature, mount a folder to `/savefiles` and set `SAVEFILES_ENABLED` to true.**
+
+### Changes
+
+- [[#339](https://github.com/Phalcode/gamevault-backend/issues/339)] Added option to disable the landing page: **Set `SERVER_LANDING_PAGE_ENABLED` to false if you want to disable the landing page.**
+
+### Thanks
+
+- @Toylerrr
 
 ## 13.1.2
 
