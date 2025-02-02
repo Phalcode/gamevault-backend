@@ -47,7 +47,7 @@ export class SavefileController {
   @ApiOperation({
     summary: "Upload a save file to the server",
     description:
-      "Only admins or the user who is associated to the progress can upload a games save file. The Save file must be a .zip file. If the save file already exists, it will be overwritten.",
+      "Only admins or the user who is associated to the savefile can upload a games save file. The savefile must be a .zip file.",
     operationId: "postSavefileByUserIdAndGameId",
   })
   @ApiConsumes("multipart/form-data")
