@@ -34,6 +34,10 @@ export class SavefileService {
     file: Express.Multer.File,
     executorUsername: string,
   ) {
+    this.logger.log(`User uploading save file for a game`, {
+      userId,
+      gameId,
+    });
     await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
@@ -72,6 +76,10 @@ export class SavefileService {
     }
     const path = savefiles[0];
     const file = createReadStream(path);
+    this.logger.log(`User downloading save file for a game`, {
+      userId,
+      gameId,
+    });
     return new StreamableFile(file, {
       disposition: `attachment; filename="${basename(path)}"`,
       length: (await stat(path)).size,
@@ -115,10 +123,9 @@ export class SavefileService {
       } else {
         await Promise.all(paths.map((p) => unlink(p)));
       }
-
-      this.logger.debug({
-        message: "Savefile successfully deleted from filesystem and database.",
-        path,
+      this.logger.log("Savefile(s) successfully deleted from filesystem.", {
+        userId,
+        gameId,
       });
     } catch (error) {
       this.logger.error({
@@ -162,6 +169,10 @@ export class SavefileService {
       if (paths.length === 0) {
         throw new Error("No save files found");
       }
+      this.logger.debug(`Found ${paths.length} save files`, {
+        userId,
+        gameId,
+      });
       return paths;
     } catch (error) {
       throw new NotFoundException(
@@ -260,6 +271,10 @@ export class SavefileService {
       const currentCount = saveFiles.length;
       const excess = currentCount - maxSaves;
       if (excess > 0) {
+        this.logger.log(`Deleting ${excess} old save files.`, {
+          userId,
+          gameId,
+        });
         await this.delete(userId, gameId, executorUsername, excess);
       }
     } catch (error) {
