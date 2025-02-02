@@ -5,6 +5,7 @@ import {
   NotFoundException,
   StreamableFile,
 } from "@nestjs/common";
+import { isUUID } from "class-validator";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { createReadStream } from "fs";
@@ -33,9 +34,9 @@ export class SavefileService {
   public async upload(
     userId: number,
     gameId: number,
-    deviceId: string,
     file: Express.Multer.File,
     executorUsername: string,
+    deviceId?: string,
   ) {
     this.logger.log(`User uploading save file for a game`, {
       userId,
@@ -45,6 +46,9 @@ export class SavefileService {
       userId,
       executorUsername,
     );
+    if (deviceId && !isUUID(deviceId, 4)) {
+      throw new BadRequestException("Device ID must be a valid UUID v4.");
+    }
     await this.validate(file.buffer);
     await this.saveToFileSystem(
       this.generateNewPath(userId, gameId, deviceId),

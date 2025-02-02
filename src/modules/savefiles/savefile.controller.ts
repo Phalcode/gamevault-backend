@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Controller,
   Delete,
   FileTypeValidator,
@@ -27,7 +26,6 @@ import {
 
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
-import { isUUID } from "class-validator";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
@@ -97,15 +95,12 @@ export class SavefileController {
     )
     file: Express.Multer.File,
   ) {
-    if (deviceId && !isUUID(deviceId, 4)) {
-      throw new BadRequestException("Device ID must be a valid UUID v4.");
-    }
     return this.savefileService.upload(
       Number(params.user_id),
       Number(params.game_id),
-      deviceId,
       file,
       req.gamevaultuser.username,
+      deviceId,
     );
   }
 
