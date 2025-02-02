@@ -184,7 +184,7 @@ const configuration = {
     ),
   } as const,
   SAVEFILES: {
-    ENABLED: parseBooleanEnvVariable(process.env.SAVEFILES_ENABLED, true),
+    ENABLED: parseBooleanEnvVariable(process.env.SAVEFILES_ENABLED, false),
     MAX_SIZE: bytes(toLower(process.env.SAVEFILES_MAX_SIZE)) ?? bytes("1gb"),
     MAX_SAVES: parseNumber(process.env.SAVEFILES_MAX_SAVES, 10),
   } as const,
