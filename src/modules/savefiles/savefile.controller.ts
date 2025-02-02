@@ -97,7 +97,7 @@ export class SavefileController {
     )
     file: Express.Multer.File,
   ) {
-    if (!isUUID(deviceId, 4)) {
+    if (deviceId && !isUUID(deviceId, 4)) {
       throw new BadRequestException("Device ID must be a valid UUID v4.");
     }
     return this.savefileService.upload(
