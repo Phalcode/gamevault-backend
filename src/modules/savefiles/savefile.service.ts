@@ -3,10 +3,13 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  StreamableFile,
 } from "@nestjs/common";
 import fileTypeChecker from "file-type-checker";
-import { mkdir, readdir, unlink, writeFile } from "fs/promises";
-import path, { dirname } from "path";
+import { createReadStream } from "fs";
+import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
+import mime from "mime";
+import path, { basename, dirname } from "path";
 import configuration from "../../configuration";
 import { UsersService } from "../users/users.service";
 
@@ -48,14 +51,12 @@ export class SavefileService {
    * @param userId - ID of the user owning the save file
    * @param gameId - ID of the game the save belongs to
    * @param executorUsername - Username of the user performing the action
-   * @returns {Promise<string>} Path to the most recent save file
-   * @throws {NotFoundException} If no save files are found
    */
   public async download(
     userId: number,
     gameId: number,
     executorUsername: string,
-  ): Promise<string> {
+  ): Promise<StreamableFile> {
     await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
@@ -69,7 +70,13 @@ export class SavefileService {
         `Savefile for user ${userId} and game ${gameId} was not found.`,
       );
     }
-    return savefiles[0];
+    const path = savefiles[0];
+    const file = createReadStream(path);
+    return new StreamableFile(file, {
+      disposition: `attachment; filename="${basename(path)}"`,
+      length: (await stat(path)).size,
+      type: mime.getType(path),
+    });
   }
 
   /**

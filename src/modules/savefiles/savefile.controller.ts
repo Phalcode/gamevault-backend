@@ -9,7 +9,7 @@ import {
   ParseFilePipe,
   Post,
   Request,
-  Res,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
@@ -19,14 +19,11 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
-  ApiProduces,
   ApiTags,
 } from "@nestjs/swagger";
-import fs from "fs";
 
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
-import { Response } from "express";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
@@ -102,7 +99,7 @@ export class SavefileController {
     type: () => Buffer,
     description: "The requested save file",
   })
-  @ApiProduces("application/zip")
+  @ApiOkResponse({ type: () => StreamableFile })
   @DisableApiIf(
     configuration.SERVER.DEMO_MODE_ENABLED || !configuration.SAVEFILES.ENABLED,
   )
@@ -110,15 +107,12 @@ export class SavefileController {
   async getSaveFileByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
-    @Res() res: Response,
-  ): Promise<void> {
-    const path = await this.savefileService.download(
+  ): Promise<StreamableFile> {
+    return await this.savefileService.download(
       Number(params.user_id),
       Number(params.game_id),
       req.gamevaultuser.username,
     );
-    res.set("Content-Type", "application/zip");
-    fs.createReadStream(path).pipe(res);
   }
 
   @Delete("/user/:user_id/game/:game_id")
