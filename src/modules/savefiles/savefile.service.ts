@@ -5,6 +5,7 @@ import {
   NotFoundException,
   StreamableFile,
 } from "@nestjs/common";
+import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
 import { createReadStream } from "fs";
 import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
@@ -23,6 +24,7 @@ export class SavefileService {
    * Uploads a new save file for a user and game
    * @param userId - ID of the user owning the save file
    * @param gameId - ID of the game the save belongs to
+   * @param deviceId - UUID4 string identifying the device
    * @param file - The uploaded file buffer and metadata
    * @param executorUsername - Username of the user performing the action
    * @throws {BadRequestException} If the file validation fails
@@ -31,6 +33,7 @@ export class SavefileService {
   public async upload(
     userId: number,
     gameId: number,
+    deviceId: string,
     file: Express.Multer.File,
     executorUsername: string,
   ) {
@@ -44,7 +47,7 @@ export class SavefileService {
     );
     await this.validate(file.buffer);
     await this.saveToFileSystem(
-      this.generateNewPath(userId, gameId),
+      this.generateNewPath(userId, gameId, deviceId),
       file.buffer,
     );
     await this.cleanupOldSaves(userId, gameId, executorUsername);
@@ -210,13 +213,18 @@ export class SavefileService {
   }
 
   /**
-   * Generates a new save file path based on user, game, and timestamp
+   * Generates a new save file path with device ID
    * @param userId - ID of the user owning the save file
    * @param gameId - ID of the game the save belongs to
-   * @returns {string} Generated file path in format: /users/{userId}/games/{gameId}/saves/{timestamp}.zip
+   * @param deviceId - UUID4 string identifying the device
+   * @returns {string} Generated file path in format: /users/{userId}/games/{gameId}/saves/{timestamp}_{deviceId}.zip
    */
-  private generateNewPath(userId: number, gameId: number): string {
-    return `${configuration.VOLUMES.SAVEFILES}/users/${userId}/games/${gameId}/saves/${Date.now()}.zip`;
+  private generateNewPath(
+    userId: number,
+    gameId: number,
+    deviceId: string = randomUUID(),
+  ): string {
+    return `${configuration.VOLUMES.SAVEFILES}/users/${userId}/games/${gameId}/saves/${Date.now()}_${deviceId}.zip`;
   }
 
   /**

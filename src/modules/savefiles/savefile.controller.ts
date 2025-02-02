@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Controller,
   Delete,
   FileTypeValidator,
   Get,
+  Headers,
   Logger,
   MaxFileSizeValidator,
   Param,
@@ -17,6 +19,7 @@ import {
   ApiBasicAuth,
   ApiBody,
   ApiConsumes,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -24,6 +27,7 @@ import {
 
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
+import { isUUID } from "class-validator";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
@@ -44,8 +48,14 @@ export class SavefileController {
   @ApiOperation({
     summary: "Upload a save file to the server",
     description:
-      "Only admins or the user who is associated to the savefile can upload a games save file. The savefile must be a .zip file.",
+      "Only admins or the user who is associated to the savefile can upload a games save file. The savefile must be a .zip file. Device ID is optional for multi-device tracking.",
     operationId: "postSavefileByUserIdAndGameId",
+  })
+  @ApiHeader({
+    name: "X-Device-Id",
+    description:
+      "Optional device identifier (UUID v4 format) for multi-device save management",
+    required: false,
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
@@ -67,12 +77,19 @@ export class SavefileController {
   postSavefileByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
+    @Headers("X-Device-Id") deviceId: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
             maxSize: configuration.MEDIA.MAX_SIZE,
-            message: `File exceeds maximum allowed size of ${bytes(configuration.MEDIA.MAX_SIZE, { unit: "MB", thousandsSeparator: "." })}.`,
+            message: `File exceeds maximum allowed size of ${bytes(
+              configuration.MEDIA.MAX_SIZE,
+              {
+                unit: "MB",
+                thousandsSeparator: ".",
+              },
+            )}.`,
           }),
           new FileTypeValidator({ fileType: "application/zip" }),
         ],
@@ -80,9 +97,13 @@ export class SavefileController {
     )
     file: Express.Multer.File,
   ) {
+    if (!isUUID(deviceId, 4)) {
+      throw new BadRequestException("Device ID must be a valid UUID v4.");
+    }
     return this.savefileService.upload(
       Number(params.user_id),
       Number(params.game_id),
+      deviceId,
       file,
       req.gamevaultuser.username,
     );
