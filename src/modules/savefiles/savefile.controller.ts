@@ -46,13 +46,13 @@ export class SavefileController {
   @ApiOperation({
     summary: "Upload a save file to the server",
     description:
-      "Only admins or the user who is associated to the savefile can upload a games save file. The savefile must be a .zip file. Device ID is optional for multi-device tracking.",
+      "Only admins or the user who is associated to the savefile can upload a games save file. The savefile must be a .zip file. Installation ID is optional for multi-device tracking.",
     operationId: "postSavefileByUserIdAndGameId",
   })
   @ApiHeader({
-    name: "X-Device-Id",
+    name: "X-Installation-Id",
     description:
-      "Optional device identifier (UUID v4 format) for multi-device save management",
+      "Optional installation identifier (UUID v4 format) for multi-device save management and uninstall-detection",
     required: false,
   })
   @ApiConsumes("multipart/form-data")
@@ -75,7 +75,7 @@ export class SavefileController {
   postSavefileByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
-    @Headers("X-Device-Id") deviceId: string,
+    @Headers("X-Installation-Id") installationId: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -100,7 +100,7 @@ export class SavefileController {
       Number(params.game_id),
       file,
       req.gamevaultuser.username,
-      deviceId,
+      installationId,
     );
   }
 

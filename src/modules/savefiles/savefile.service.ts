@@ -25,7 +25,7 @@ export class SavefileService {
    * Uploads a new save file for a user and game
    * @param userId - ID of the user owning the save file
    * @param gameId - ID of the game the save belongs to
-   * @param deviceId - UUID4 string identifying the device
+   * @param installationId - UUID4 string identifying the installation
    * @param file - The uploaded file buffer and metadata
    * @param executorUsername - Username of the user performing the action
    * @throws {BadRequestException} If the file validation fails
@@ -36,7 +36,7 @@ export class SavefileService {
     gameId: number,
     file: Express.Multer.File,
     executorUsername: string,
-    deviceId?: string,
+    installationId?: string,
   ) {
     this.logger.log(`User uploading save file for a game`, {
       userId,
@@ -46,12 +46,12 @@ export class SavefileService {
       userId,
       executorUsername,
     );
-    if (deviceId && !isUUID(deviceId, 4)) {
-      throw new BadRequestException("Device ID must be a valid UUID v4.");
+    if (installationId && !isUUID(installationId, 4)) {
+      throw new BadRequestException("Installation ID must be a valid UUID v4.");
     }
     await this.validate(file.buffer);
     await this.saveToFileSystem(
-      this.generateNewPath(userId, gameId, deviceId),
+      this.generateNewPath(userId, gameId, installationId),
       file.buffer,
     );
     await this.cleanupOldSaves(userId, gameId, executorUsername);
@@ -217,18 +217,18 @@ export class SavefileService {
   }
 
   /**
-   * Generates a new save file path with device ID
+   * Generates a new save file path with installation ID
    * @param userId - ID of the user owning the save file
    * @param gameId - ID of the game the save belongs to
-   * @param deviceId - UUID4 string identifying the device
-   * @returns {string} Generated file path in format: /users/{userId}/games/{gameId}/saves/{timestamp}_{deviceId}.zip
+   * @param installationId - UUID4 string identifying the installation
+   * @returns {string} Generated file path in format: /users/{userId}/games/{gameId}/{timestamp}_{installationId}.zip
    */
   private generateNewPath(
     userId: number,
     gameId: number,
-    deviceId: string = randomUUID(),
+    installationId: string = randomUUID(),
   ): string {
-    return `${configuration.VOLUMES.SAVEFILES}/users/${userId}/games/${gameId}/saves/${Date.now()}_${deviceId}.zip`;
+    return `${configuration.VOLUMES.SAVEFILES}/users/${userId}/games/${gameId}/${Date.now()}_${installationId}.zip`;
   }
 
   /**
