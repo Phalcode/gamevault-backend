@@ -10,7 +10,7 @@ export class WebsocketExceptionsFilter extends BaseWsExceptionFilter {
       error,
     });
     const convertedException = new WsException(error.getResponse());
-    super.handleError(host.switchToWs().getClient(), convertedException);
+    super.handleError(host.switchToWs().getClient(), convertedException, null);
     super.catch(convertedException, host);
   }
 }
