@@ -20,7 +20,7 @@ RUN mkdir -p /files /media /logs /db /plugins /savefiles \
     && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
     && apt install -y postgresql-client \
     && apt clean \
-    && npm i -g pnpm@^9.15.0
+    && npm i -g pnpm@^10.4.1
 
 WORKDIR /app
 
