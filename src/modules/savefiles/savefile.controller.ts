@@ -80,9 +80,9 @@ export class SavefileController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: configuration.MEDIA.MAX_SIZE,
+            maxSize: configuration.SAVEFILES.MAX_SIZE,
             message: `File exceeds maximum allowed size of ${bytes(
-              configuration.MEDIA.MAX_SIZE,
+              configuration.SAVEFILES.MAX_SIZE,
               {
                 unit: "MB",
                 thousandsSeparator: ".",

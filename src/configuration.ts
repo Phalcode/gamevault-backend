@@ -63,7 +63,11 @@ function parseKibibytesToBytes(
 }
 
 export function getMaxBodySizeInBytes() {
-  return Math.max(bytes("10mb"), configuration.MEDIA.MAX_SIZE);
+  return Math.max(
+    bytes("10mb"),
+    configuration.MEDIA.MAX_SIZE,
+    configuration.SAVEFILES.MAX_SIZE,
+  );
 }
 
 const configuration = {
