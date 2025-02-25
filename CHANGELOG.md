@@ -11,6 +11,7 @@
 ### Changes
 
 - [[#339](https://github.com/Phalcode/gamevault-backend/issues/339)] Added option to disable the landing page: **Set `SERVER_LANDING_PAGE_ENABLED` to false if you want to disable the landing page.**
+- IGDB Game Search Results now contain a description.
 
 ### Thanks
 
