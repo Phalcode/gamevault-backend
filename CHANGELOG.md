@@ -19,12 +19,13 @@
 - @RobinDadswell
 - Our Early Access Testers
 
-## 13.1.2
+## 13.1.3
 
 ### Changes
 
 - Fixed file path validation crashing the server in certain circumstances.
 - Added Symlink Following to the filewatcher
+- Added Latest PGSQL Client to the image.
 
 ## 13.1.2
 
