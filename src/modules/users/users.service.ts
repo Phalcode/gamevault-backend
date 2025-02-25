@@ -393,7 +393,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Check if the username matches the user ID or is an administrator */
-  public async checkIfUsernameMatchesIdOrIsAdmin(
+  public async checkIfUsernameMatchesIdOrIsAdminOrThrow(
     userId: number,
     username: string,
   ): Promise<boolean> {

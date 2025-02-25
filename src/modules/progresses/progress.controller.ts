@@ -18,10 +18,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -111,8 +111,10 @@ export class ProgressController {
   /** Retrieves a specific progress by its ID. */
   @Get(":progress_id")
   @ApiOperation({
-    summary: "get a specific progress by progress id",
+    summary:
+      "get a specific progress by progress id. DEPRECATED: Use GET /user/:user_id/game/:game_id instead.",
     operationId: "getProgressByProgressId",
+    deprecated: true,
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => Progress, isArray: true })
@@ -137,17 +139,18 @@ export class ProgressController {
   @ApiOperation({
     summary: "delete a progress by progress id.",
     description:
-      "Only admins or the user who is associated to the progress can delete it.",
+      "Only admins or the user who is associated to the progress can delete it. DEPRECATED: Use DELETE /user/:user_id/game/:game_id instead.",
     operationId: "deleteProgressByProgressId",
+    deprecated: true,
   })
-  @ApiOkResponse({ type: () => Progress, isArray: true })
+  @ApiOkResponse({ type: () => Progress })
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteProgressByProgressId(
     @Param() params: ProgressIdDto,
     @Request() req: { gamevaultuser: GamevaultUser },
   ): Promise<Progress> {
-    return this.progressService.delete(
+    return this.progressService.deleteByProgressId(
       Number(params.progress_id),
       req.gamevaultuser.username,
     );
@@ -175,6 +178,28 @@ export class ProgressController {
           request.gamevaultuser.username,
         ),
       },
+    );
+  }
+
+  /** Deletes a progress for a user and game. */
+  @Delete("/user/:user_id/game/:game_id")
+  @ApiOperation({
+    summary: "delete a progress",
+    description:
+      "Only admins or the user who is associated to the progress can delete it.",
+    operationId: "deleteProgressByUserIdAndGameId",
+  })
+  @ApiOkResponse({ type: () => Progress })
+  @MinimumRole(Role.USER)
+  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
+  async deleteProgressByUserIdAndGameId(
+    @Param() params: UserIdGameIdDto,
+    @Request() req: { gamevaultuser: GamevaultUser },
+  ): Promise<Progress> {
+    return this.progressService.deleteByUserIdAndGameId(
+      Number(params.user_id),
+      Number(params.game_id),
+      req.gamevaultuser.username,
     );
   }
 

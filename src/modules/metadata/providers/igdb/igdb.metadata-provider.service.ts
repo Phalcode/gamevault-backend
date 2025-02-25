@@ -84,7 +84,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     const searchByName = await client
       .request("games")
       .pipe(
-        fields(["id", "name", "first_release_date", "cover.*"]),
+        fields([
+          "id",
+          "name",
+          "summary",
+          "storyline",
+          "first_release_date",
+          "cover.*",
+        ]),
         search(query),
         whereIn("category", this.categoriesToInclude),
       )
@@ -96,7 +103,14 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       const searchById = await client
         .request("games")
         .pipe(
-          fields(["id", "name", "first_release_date", "cover.*"]),
+          fields([
+            "id",
+            "name",
+            "summary",
+            "storyline",
+            "first_release_date",
+            "cover.*",
+          ]),
           where("id", "=", Number(query)),
         )
         .execute();
@@ -137,7 +151,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
   private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
     return {
-      age_rating: this.calculateAverageAgeRating(game.name, game.age_ratings),
+      age_rating: this.calculateAverageAgeRating(game.age_ratings, game.name),
       provider_slug: this.slug,
       provider_data_id: game.id?.toString(),
       provider_data_url: game.url,
@@ -240,10 +254,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       provider_slug: "igdb",
       provider_data_id: game.id?.toString(),
       title: game.name,
-      description:
-        game.summary && game.storyline
-          ? `${game.summary}\n\n${game.storyline}`
-          : game.summary || game.storyline || null,
+      description: game.summary || game.storyline || null,
       release_date: new Date(game.first_release_date * 1000),
       cover_url: this.replaceUrl(game.cover?.url, "t_thumb", "t_cover_big_2x"),
     } as MinimalGameMetadataDto;
@@ -274,8 +285,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private calculateAverageAgeRating(
-    gameTitle: string,
     ageRatings: IgdbAgeRating[],
+    gameTitle: string = "Unknown Game",
   ): number {
     if (isEmpty(ageRatings)) {
       this.logger.debug({

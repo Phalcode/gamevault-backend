@@ -89,7 +89,7 @@ export class ProgressService implements OnApplicationBootstrap {
     }
   }
 
-  public async delete(
+  public async deleteByProgressId(
     progressId: number,
     executorUsername: string,
   ): Promise<Progress> {
@@ -98,11 +98,33 @@ export class ProgressService implements OnApplicationBootstrap {
       loadRelations: ["user"],
     });
 
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       progress.user.id,
       executorUsername,
     );
 
+    const softRemoveResult = await this.progressRepository.softRemove(progress);
+    this.logger.log({
+      message: `Soft-deleted progress.`,
+      progress,
+    });
+    return softRemoveResult;
+  }
+
+  public async deleteByUserIdAndGameId(
+    userId: number,
+    gameId: number,
+    executorUsername: string,
+  ): Promise<Progress> {
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
+      userId,
+      executorUsername,
+    );
+    const progress = await this.findOneByUserIdAndGameIdOrReturnEmptyProgress(
+      userId,
+      gameId,
+      { loadDeletedEntities: true, loadRelations: true },
+    );
     const softRemoveResult = await this.progressRepository.softRemove(progress);
     this.logger.log({
       message: `Soft-deleted progress.`,
@@ -172,7 +194,7 @@ export class ProgressService implements OnApplicationBootstrap {
     updateProgressDto: UpdateProgressDto,
     executorUsername: string,
   ) {
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
     );
@@ -230,7 +252,7 @@ export class ProgressService implements OnApplicationBootstrap {
     executorUsername: string,
     incrementBy = 1,
   ): Promise<Progress> {
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdmin(
+    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
       userId,
       executorUsername,
     );

@@ -11,16 +11,16 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV SERVER_PORT=8080
 ENV YES=yes
 
-RUN mkdir -p /files /media /logs /db /plugins \
-    && chown -R node:node /files /media /logs /db /plugins \
-    && chmod -R 777 /files /media /logs /db /plugins \
+RUN mkdir -p /files /media /logs /db /plugins /savefiles \
+    && chown -R node:node /files /media /logs /db /plugins /savefiles \
+    && chmod -R 777 /files /media /logs /db /plugins /savefiles \
     && sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     && apt update \
     && apt install -y curl p7zip-full p7zip-rar postgresql-common sudo \
     && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
     && apt install -y postgresql-client \
     && apt clean \
-    && npm i -g pnpm@^9.15.0
+    && npm i -g pnpm@^10.4.1
 
 WORKDIR /app
 

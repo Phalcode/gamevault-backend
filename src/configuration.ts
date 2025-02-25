@@ -63,7 +63,11 @@ function parseKibibytesToBytes(
 }
 
 export function getMaxBodySizeInBytes() {
-  return Math.max(bytes("10mb"), configuration.MEDIA.MAX_SIZE);
+  return Math.max(
+    bytes("10mb"),
+    configuration.MEDIA.MAX_SIZE,
+    configuration.SAVEFILES.MAX_SIZE,
+  );
 }
 
 const configuration = {
@@ -95,6 +99,10 @@ const configuration = {
     API_DOCS_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_API_DOCS_ENABLED,
     ),
+    LANDING_PAGE_ENABLED: parseBooleanEnvVariable(
+      process.env.SERVER_LANDING_PAGE_ENABLED,
+      true,
+    ),
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
     ),
@@ -113,6 +121,7 @@ const configuration = {
     LOGS: parsePath(process.env.VOLUMES_LOGS, "/logs"),
     SQLITEDB: parsePath(process.env.VOLUMES_SQLITEDB, "/db"),
     PLUGINS: parsePath(process.env.VOLUMES_PLUGINS, "/plugins"),
+    SAVEFILES: parsePath(process.env.VOLUMES_SAVEFILES, "/savefiles"),
   } as const,
   DB: {
     SYSTEM: process.env.DB_SYSTEM || "POSTGRESQL",
@@ -181,6 +190,11 @@ const configuration = {
       process.env.MEDIA_GC_INTERVAL_IN_MINUTES,
       60,
     ),
+  } as const,
+  SAVEFILES: {
+    ENABLED: parseBooleanEnvVariable(process.env.SAVEFILES_ENABLED, false),
+    MAX_SIZE: bytes(toLower(process.env.SAVEFILES_MAX_SIZE)) ?? bytes("1gb"),
+    MAX_SAVES: parseNumber(process.env.SAVEFILES_MAX_SAVES, 10),
   } as const,
   METADATA: {
     TTL_IN_DAYS: parseNumber(process.env.METADATA_TTL_IN_DAYS, 30),

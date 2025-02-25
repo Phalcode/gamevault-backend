@@ -11,4 +11,5 @@ The following Docker Tags are supported by Phalcode and get regular security upd
 | ``early-access``   | :x: |:x:|
 
 ## Reporting a Vulnerability
+
 Please report any vulnerabilities to Phalcode [via Email](mailto:contact@phalco.de).
