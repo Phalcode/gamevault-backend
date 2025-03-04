@@ -99,6 +99,14 @@ export class GamesController {
       relations.push("metadata.tags");
     }
 
+    if (query.filter?.["metadata.developers.name"]) {
+      relations.push("metadata.developers");
+    }
+
+    if (query.filter?.["metadata.publishers.name"]) {
+      relations.push("metadata.publishers");
+    }
+
     const progressStateFilter = query.filter?.["progresses.state"];
     const progressUserFilter = query.filter?.["progresses.user.id"];
     if (progressStateFilter || progressUserFilter) {
@@ -178,6 +186,8 @@ export class GamesController {
         "bookmarked_users.id": true,
         "metadata.genres.name": true,
         "metadata.tags.name": true,
+        "metadata.developers.name": true,
+        "metadata.publishers.name": true,
         "metadata.age_rating": true,
         "progresses.state": [
           FilterOperator.EQ,
