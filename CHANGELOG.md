@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 14.1.0
+
+### Changes
+
+- [#462](https://github.com/Phalcode/gamevault-backend/issues/462) Added filter options for developers and publishers.
+
+### Thanks
+
+- @ramblepaw
+
 ## 14.0.0
 
 ### Breaking Changes & Migration

@@ -75,7 +75,7 @@ async function bootstrap(): Promise<void> {
   // Skips logs for /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
-      stream: stream,
+      stream,
       skip: (req) => req.url.includes("/health"),
     }),
   );
