@@ -1,18 +1,9 @@
-export type AgeRatingMapEntry = {
+type AgeRatingMapEntry = {
   system: string;
   name: string;
   minAge: number;
   igdbEnumValue: number;
 };
-
-export interface IgdbAgeRating {
-  id: number;
-  category: number;
-  content_descriptions: number[];
-  rating: number;
-  synopsis: string;
-  checksum: string;
-}
 
 export const GameVaultIgdbAgeRatingMap: AgeRatingMapEntry[] = [
   { system: "PEGI", name: "Three", minAge: 3, igdbEnumValue: 1 },

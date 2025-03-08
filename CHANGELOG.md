@@ -1,5 +1,18 @@
 # GameVault Backend Server Changelog
 
+## 14.1.1
+
+### Changes
+
+- Implement latest IGDB API and automatic model generation
+- Fix Special Game Editons not being found
+
+### Thanks
+
+- @s-crypt
+- @magne4000
+- @Omni_Noesis
+
 ## 14.1.0
 
 ### Changes
