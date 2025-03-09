@@ -109,7 +109,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     const minimalGameMetadata = [];
     for (const game of found_games) {
       minimalGameMetadata.push(
-        await this.mapMinimalGameMetadata(game as igdbModels.Game),
+        await this.mapMinimalGameMetadata(game as igdbModels.IGame),
       );
     }
     return minimalGameMetadata;
@@ -128,10 +128,10 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         where("id", "=", Number(provider_data_id)),
       )
       .execute();
-    return this.mapGameMetadata(update.data[0] as igdbModels.Game);
+    return this.mapGameMetadata(update.data[0] as igdbModels.IGame);
   }
 
-  private async mapGameMetadata(game: igdbModels.Game): Promise<GameMetadata> {
+  private async mapGameMetadata(game: igdbModels.IGame): Promise<GameMetadata> {
     return {
       age_rating: this.calculateAverageAgeRating(game.age_ratings, game.name),
       provider_slug: this.slug,
@@ -147,11 +147,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           : game.summary || game.storyline || null,
       rating: game.total_rating,
       url_websites: game.websites?.map((website) => website.url),
-      early_access: [
-        igdbModels.GameStatusEnum.ALPHA,
-        igdbModels.GameStatusEnum.BETA,
-        igdbModels.GameStatusEnum.EARLY_ACCESS,
-      ].includes(game.status),
+      early_access: [2, 3, 4].includes(game.status),
       url_screenshots: [
         ...(game.screenshots || []),
         ...(game.artworks || []),
@@ -230,7 +226,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private async mapMinimalGameMetadata(
-    game: igdbModels.Game,
+    game: igdbModels.IGame,
   ): Promise<MinimalGameMetadataDto> {
     return {
       provider_slug: "igdb",
