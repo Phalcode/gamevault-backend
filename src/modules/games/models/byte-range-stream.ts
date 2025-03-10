@@ -35,11 +35,11 @@ export default class ByteRangeStream extends Transform {
     }
 
     // 🔹 Compute exact start and end positions
-    const start =
+    let start =
       this.startByte > this.bytesRead
         ? Number(this.startByte - this.bytesRead)
         : 0;
-    const end =
+    let end =
       this.endByte >= chunkEnd ? chunkSize : this.endByte - this.bytesRead + 1n;
 
     this.push(chunk.subarray(start, Number(end)));
