@@ -9,16 +9,28 @@ echo "#   ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚�
 echo "#                                                      developed by Phalcode    #"
 echo "#################################################################################"
 set -e
-# If running as root, it means the --user directive for Docker CLI/Compose was not used
-# Use then the PUID env to set the user and group IDs
-if [ "$(id -u)" = '0' ]; then
-    # Modify the group ID of the 'node' user to match the PGID environment variable
-    groupmod -o -g "$PGID" node
-    # Modify the user ID of the 'node' user to match the PUID environment variable
-    usermod -o -u "$PUID" node
-    # Run the specified command with the modified user and group IDs
-    sudo -u "#$PUID" -g "#$PGID" -E node "${@}"
+
+echo "Starting container with PUID=${PUID} and PGID=${PGID}"
+echo "Effective UID: $(id -u), GID: $(id -g)"
+
+# If running as root, adjust the "node" user to match PUID/PGID,
+# change ownership on directories, and drop privileges.
+if [ "$(id -u)" = "0" ]; then
+    # Only update the node user's UID/GID if different from defaults.
+    if [ "${PUID}" != "1000" ] || [ "${PGID}" != "1000" ]; then
+        echo "Updating 'node' user to PUID: ${PUID} and PGID: ${PGID}"
+        groupmod -o -g "${PGID}" node
+        usermod -o -u "${PUID}" node
+    fi
+    
+    # Adjust ownership and ensure permissions are open.
+    chown -R "${PUID}:${PGID}" /app /files /media /logs /db /plugins /savefiles
+    chmod -R 777 /app /files /media /logs /db /plugins /savefiles
+    
+    # Drop privileges and run the command.
+    exec sudo -u "#${PUID}" -g "#${PGID}" -E node "$@"
 else
-    # If using the user directive, run the specified command normally
-    exec node "${@}"
+    # If running as non-root (e.g. using docker-compose "user:"), rely on open permissions.
+    echo "Running as non-root user: $(id -u)"
+    exec node "$@"
 fi

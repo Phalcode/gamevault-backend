@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 14.1.2
+
+### Changes
+
+- Loosened some container internal permissions so non-root users can use plugins
+
+### Thanks
+
+- @HiImaWalrus
+
 ## 14.1.1
 
 ### Changes

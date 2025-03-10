@@ -1,51 +1,42 @@
+# Use the official Node LTS slim image as the base
 FROM node:lts-slim AS base
 
-ENV TZ="Etc/UTC"
-ENV PUID=1000
-ENV PGID=1000
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-ENV PATH=$PATH:/home/node/.npm-global/bin
-ENV PNPM_HOME=/pnpm
-ENV PATH=$PNPM_HOME:$PATH
-ENV SERVER_PORT=8080
-ENV YES=yes
+# Set timezone and UID/GID defaults
+ENV TZ="Etc/UTC" \
+    PUID=1000 \
+    PGID=1000
 
-RUN mkdir -p /files /media /logs /db /plugins /savefiles \
-    && chown -R node:node /files /media /logs /db /plugins /savefiles \
-    && chmod -R 777 /files /media /logs /db /plugins /savefiles \
-    && sed -i -e's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
-    && apt update \
-    && apt install -y curl p7zip-full p7zip-rar postgresql-common sudo \
-    && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
-    && apt install -y postgresql-client \
-    && apt clean \
-    && npm i -g pnpm@^10.4.1
+# Install necessary packages (including sudo) and pnpm
+RUN apt-get update \
+    && apt-get install -y curl p7zip-full p7zip-rar postgresql-client sudo \
+    && apt-get clean \
+    && npm i -g pnpm@^10.6.2
 
 WORKDIR /app
 
+# --- Build stage ---
 FROM base AS build
-
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
-
 COPY . .
 RUN pnpm run build
 
-FROM base AS prod-deps
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-
+# --- Release/Production stage ---
 FROM base AS release
-
 ENV NODE_ENV=production
 
+# Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-COPY --from=build --chown=node:node /app/dist ./dist
-COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+# Copy built files and production dependencies
+COPY --from=build --chown=node:node --chmod=777 /app/dist ./dist
+COPY --from=build --chown=node:node --chmod=777 /app/node_modules ./node_modules
 
+# Ensure directories have open permissions (in case later COPY commands altered them)
+RUN mkdir -p /app /files /media /logs /db /plugins /savefiles \ 
+    && chmod -R 777 /app /files /media /logs /db /plugins /savefiles
+
+# Copy the entrypoint script and make it executable
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
