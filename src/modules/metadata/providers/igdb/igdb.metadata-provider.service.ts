@@ -2,11 +2,11 @@ import { Injectable } from "@nestjs/common";
 import {
   fields,
   igdb,
+  proto as igdbModels,
   search,
   twitchAccessToken,
   where,
-  whereIn,
-} from "ts-igdb-client";
+} from "@phalcode/ts-igdb-client";
 
 import { isNumberString } from "class-validator";
 import { isEmpty, toLower } from "lodash";
@@ -18,13 +18,7 @@ import { GenreMetadata } from "../../genres/genre.metadata.entity";
 import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
 import { TagMetadata } from "../../tags/tag.metadata.entity";
 import { MetadataProvider } from "../abstract.metadata-provider.service";
-import {
-  GameVaultIgdbAgeRatingMap,
-  IgdbAgeRating,
-} from "./models/igdb-age-rating.interface";
-import { IgdbGameCategory } from "./models/igdb-game-category.enum";
-import { IgdbGameStatus } from "./models/igdb-game-status.enum";
-import { IgdbGame } from "./models/igdb-game.interface";
+import { GameVaultIgdbAgeRatingMap } from "./models/gamevault-igdb-age-rating.map";
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -46,17 +40,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     "videos.*",
     "themes.*",
     "websites.*",
-  ];
-  readonly categoriesToInclude = [
-    IgdbGameCategory.main_game,
-    IgdbGameCategory.standalone_expansion,
-    IgdbGameCategory.episode,
-    IgdbGameCategory.season,
-    IgdbGameCategory.remake,
-    IgdbGameCategory.remaster,
-    IgdbGameCategory.expanded_game,
-    IgdbGameCategory.port,
-    IgdbGameCategory.fork,
   ];
 
   override async onModuleInit(): Promise<void> {
@@ -93,7 +76,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           "cover.*",
         ]),
         search(query),
-        whereIn("category", this.categoriesToInclude),
       )
       .execute();
 
@@ -127,7 +109,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     const minimalGameMetadata = [];
     for (const game of found_games) {
       minimalGameMetadata.push(
-        await this.mapMinimalGameMetadata(game as IgdbGame),
+        await this.mapMinimalGameMetadata(game as igdbModels.IGame),
       );
     }
     return minimalGameMetadata;
@@ -146,10 +128,10 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         where("id", "=", Number(provider_data_id)),
       )
       .execute();
-    return this.mapGameMetadata(update.data[0] as IgdbGame);
+    return this.mapGameMetadata(update.data[0] as igdbModels.IGame);
   }
 
-  private async mapGameMetadata(game: IgdbGame): Promise<GameMetadata> {
+  private async mapGameMetadata(game: igdbModels.IGame): Promise<GameMetadata> {
     return {
       age_rating: this.calculateAverageAgeRating(game.age_ratings, game.name),
       provider_slug: this.slug,
@@ -165,11 +147,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           : game.summary || game.storyline || null,
       rating: game.total_rating,
       url_websites: game.websites?.map((website) => website.url),
-      early_access: [
-        IgdbGameStatus.alpha,
-        IgdbGameStatus.beta,
-        IgdbGameStatus.early_access,
-      ].includes(game.status),
+      early_access: [2, 3, 4].includes(game.status),
       url_screenshots: [
         ...(game.screenshots || []),
         ...(game.artworks || []),
@@ -248,7 +226,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private async mapMinimalGameMetadata(
-    game: IgdbGame,
+    game: igdbModels.IGame,
   ): Promise<MinimalGameMetadataDto> {
     return {
       provider_slug: "igdb",
@@ -285,7 +263,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   }
 
   private calculateAverageAgeRating(
-    ageRatings: IgdbAgeRating[],
+    ageRatings: igdbModels.IAgeRating[],
     gameTitle: string = "Unknown Game",
   ): number {
     if (isEmpty(ageRatings)) {
