@@ -6,12 +6,14 @@
 
 - Implement latest IGDB API and automatic model generation
 - Fix Special Game Editons not being found
+- [#475](https://github.com/Phalcode/gamevault-app/issues/475) Improved Partial File Downloads to be much faster
 
 ### Thanks
 
 - @s-crypt
 - @magne4000
 - @Omni_Noesis
+- @Sixdd6
 
 ## 14.1.0
 
