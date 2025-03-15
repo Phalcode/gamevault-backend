@@ -56,7 +56,7 @@ export default async function loadPlugins() {
       logger.log({
         context: "PluginLoader",
         message: `Loaded plugin.`,
-        pluginModuleFiles: plugin.default,
+        plugin: plugin.default,
         metadata: instance.metadata,
       });
     }
