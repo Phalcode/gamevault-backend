@@ -46,12 +46,17 @@ export default async function loadPlugins() {
       ),
     );
 
+    logger.log({
+      context: "PluginLoader",
+      message: `Found ${pluginModuleFiles.length} plugins to load.`,
+    });
+
     for (const plugin of plugins) {
       const instance: GameVaultPluginModule = new plugin.default();
       logger.log({
         context: "PluginLoader",
         message: `Loaded plugin.`,
-        plugin: plugin.default,
+        pluginModuleFiles: plugin.default,
         metadata: instance.metadata,
       });
     }
