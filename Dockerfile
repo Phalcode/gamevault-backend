@@ -1,49 +1,80 @@
 # Use the official Node LTS slim image as the base
 FROM node:lts-slim AS base
 
-# Set timezone and UID/GID defaults
+# Set environment variables
 ENV TZ="Etc/UTC" \
     PUID=1000 \
-    PGID=1000
+    PGID=1000 \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    NPM_CONFIG_PREFIX=/home/node/.npm-global \
+    PATH=$PATH:/home/node/.npm-global/bin \
+    PNPM_HOME=/pnpm \
+    PATH=$PNPM_HOME:$PATH \
+    SERVER_PORT=8080 \
+    YES=yes
 
-# Install necessary packages (including sudo) and pnpm
-RUN sed -i 's/main/main contrib non-free/' /etc/apt/sources.list/debian.sources \
-    && apt-get update \
-    && apt-get install -y curl p7zip-full p7zip-rar postgresql-client sudo \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
+# Create necessary directories with appropriate permissions
+RUN mkdir -p /files /media /logs /db /plugins /savefiles \
+    && chown -R node:node /files /media /logs /db /plugins /savefiles \
+    && chmod -R 777 /files /media /logs /db /plugins /savefiles \
+    # Enable non-free and contrib repositories for Debian-based package installations
+    && sed -i -e 's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
+    # Update package list and install necessary dependencies
+    && apt update \
+    && apt install -y --no-install-recommends curl p7zip-full p7zip-rar postgresql-common sudo \
+    # Install PostgreSQL client from the PostgreSQL Global Development Group (PGDG)
+    && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
+    && apt install -y --no-install-recommends postgresql-client \
+    # Clean up to reduce image size
+    && apt clean && rm -rf /var/lib/apt/lists/* \
+    # Install PNPM package manager globally
+    && npm i -g pnpm@^10.4.1
+
+# Set working directory for the application
 WORKDIR /app
 
-# --- Build stage ---
+# ---- Build Stage ----
 FROM base AS build
+
+# Copy dependency files and install dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
+
+# Copy application source code and build the project
 COPY . .
 RUN pnpm run build
 
-# --- Release/Production stage ---
+# ---- Production Dependencies Stage ----
+FROM base AS prod-deps
+
+# Copy dependency files and install only production dependencies
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+# ---- Release Stage ----
 FROM base AS release
+
+# Set the environment to production mode
 ENV NODE_ENV=production
 
-# Copy package files
+# Copy dependency files (ensuring same versions as build)
 COPY package.json pnpm-lock.yaml ./
 
-# Copy built files and production dependencies
+# Copy built application and production dependencies
 COPY --from=build --chown=node:node --chmod=777 /app/dist ./dist
-COPY --from=build --chown=node:node --chmod=777 /app/node_modules ./node_modules
+COPY --from=prod-deps --chown=node:node --chmod=777 /app/node_modules ./node_modules
 
-# Ensure directories have open permissions (in case later COPY commands altered them)
-RUN mkdir -p /app /files /media /logs /db /plugins /savefiles \ 
-    && chmod -R 777 /app /files /media /logs /db /plugins /savefiles
-
-# Copy the entrypoint script and make it executable
+# Copy entrypoint script and ensure it has execution permissions
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Expose the server port
 EXPOSE ${SERVER_PORT}/tcp
 
-HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit
+# Add a health check for the service
+HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit 1
 
+# Set entrypoint and default command
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD [ "dist/src/main" ]
+CMD ["dist/src/main"]
