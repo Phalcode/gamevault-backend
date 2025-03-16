@@ -7,10 +7,11 @@ ENV TZ="Etc/UTC" \
     PGID=1000
 
 # Install necessary packages (including sudo) and pnpm
-RUN apt-get update \
+RUN sed -i 's/main/main contrib non-free/' /etc/apt/sources.list/debian.sources \
+    && apt-get update \
     && apt-get install -y curl p7zip-full p7zip-rar postgresql-client sudo \
     && apt-get clean \
-    && npm i -g pnpm@^10.6.2
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
