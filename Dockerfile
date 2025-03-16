@@ -2,17 +2,15 @@
 FROM node:lts-slim AS base
 
 # Set environment variables
-ENV TZ="Etc/UTC"
-ENV PUID=1000
-ENV PGID=1000
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-ENV PATH=$PATH:/home/node/.npm-global/bin
-ENV PNPM_HOME=/pnpm
-ENV PATH=$PNPM_HOME:$PATH
-ENV SERVER_PORT=8080
-ENV YES=yes
-
+ENV TZ="Etc/UTC" \
+    PUID=1000 \
+    PGID=1000 \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    NPM_CONFIG_PREFIX=/home/node/.npm-global \
+    PNPM_HOME=/pnpm \
+    SERVER_PORT=8080 \
+    YES=yes \
+    PATH="/home/node/.npm-global/bin:/pnpm:$PATH"
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /files /media /logs /db /plugins /savefiles \
