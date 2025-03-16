@@ -14,8 +14,6 @@ ENV TZ="Etc/UTC" \
 
 # Create necessary directories with appropriate permissions
 RUN mkdir -p /files /media /logs /db /plugins /savefiles \
-    && chown -R node:node /files /media /logs /db /plugins /savefiles \
-    && chmod -R 777 /files /media /logs /db /plugins /savefiles \
     # Enable non-free and contrib repositories for Debian-based package installations
     && sed -i -e 's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     # Update package list and install necessary dependencies
@@ -60,12 +58,13 @@ ENV NODE_ENV=production
 COPY package.json pnpm-lock.yaml ./
 
 # Copy built application and production dependencies
-COPY --from=build --chown=node:node --chmod=777 /app/dist ./dist
-COPY --from=prod-deps --chown=node:node --chmod=777 /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node  entrypoint.sh /usr/local/bin/
 
-# Copy entrypoint script and ensure it has execution permissions
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chown -R node:node /app /files /media /logs /db /plugins /savefiles \
+    && chmod -R 777 /app /files /media /logs /db /plugins /savefiles \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose the server port
 EXPOSE ${SERVER_PORT}/tcp
