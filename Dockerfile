@@ -62,8 +62,8 @@ COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node  entrypoint.sh /usr/local/bin/
 
-RUN chown -R node:node /app /files /media /logs /db /plugins /savefiles \
-    && chmod -R 777 /app /files /media /logs /db /plugins /savefiles \
+RUN chown -R node:node /app/dist /files /media /logs /db /plugins /savefiles \
+    && chmod -R 777 /app/dist /files /media /logs /db /plugins /savefiles \
     && chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose the server port

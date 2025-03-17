@@ -24,8 +24,8 @@ if [ "$(id -u)" = "0" ]; then
     fi
     
     # Adjust ownership and ensure permissions are open.
-    chown -R "${PUID}:${PGID}" /app /files /media /logs /db /plugins /savefiles
-    chmod -R 777 /app /files /media /logs /db /plugins /savefiles
+    chown -R "${PUID}:${PGID}" /app/dist /files /media /logs /db /plugins /savefiles
+    chmod -R 777 /app/dist /files /media /logs /db /plugins /savefiles
     
     # Drop privileges and run the command.
     exec sudo -u "#${PUID}" -g "#${PGID}" -E node "$@"
