@@ -19,8 +19,8 @@ import configuration, {
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { default as logger, stream, default as winston } from "./logging";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
-import { AuthenticationGuard } from "./modules/guards/authentication.guard";
-import { AuthorizationGuard } from "./modules/guards/authorization.guard";
+import { AuthenticationGuard } from "./modules/auth/guards/authentication.guard";
+import { AuthorizationGuard } from "./modules/auth/guards/authorization.guard";
 import loadPlugins from "./plugin";
 
 async function bootstrap(): Promise<void> {

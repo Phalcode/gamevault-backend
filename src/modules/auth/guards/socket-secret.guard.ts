@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { Socket } from "socket.io";
 
-import { SocketSecretService } from "../users/socket-secret.service";
+import { SocketSecretService } from "../../users/socket-secret.service";
 
 @Injectable()
 export class SocketSecretGuard implements CanActivate {

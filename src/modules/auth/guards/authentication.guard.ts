@@ -2,7 +2,7 @@ import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 
-import configuration from "../../configuration";
+import configuration from "../../../configuration";
 
 @Injectable()
 export class AuthenticationGuard extends AuthGuard("basic") {

@@ -2,9 +2,9 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { BasicStrategy } from "passport-http";
 
-import configuration from "../../configuration";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { UsersService } from "../users/users.service";
+import configuration from "../../../configuration";
+import { GamevaultUser } from "../../users/gamevault-user.entity";
+import { UsersService } from "../../users/users.service";
 
 @Injectable()
 export class DefaultStrategy extends PassportStrategy(BasicStrategy) {

@@ -217,6 +217,13 @@ const configuration = {
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
+  OAUTH: {
+    CLIENT_ID: process.env.OAUTH_CLIENT_ID || undefined,
+    CLIENT_SECRET: process.env.OAUTH_CLIENT_SECRET || undefined,
+    AUTHORIZATION_URL: process.env.OAUTH_AUTHORIZATION_URL || undefined,
+    TOKEN_URL: process.env.OAUTH_TOKEN_URL || undefined,
+    CALLBACK_URL: process.env.OAUTH_CALLBACK_URL || undefined,
+  } as const,
 } as const;
 
 export function getCensoredConfiguration() {
