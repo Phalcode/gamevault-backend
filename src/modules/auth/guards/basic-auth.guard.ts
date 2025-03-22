@@ -3,8 +3,9 @@ import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class AuthenticationGuard extends AuthGuard("auth") {
+export class BasicAuthGuard extends AuthGuard("basic") {
   private readonly logger = new Logger(this.constructor.name);
+
   constructor(private readonly reflector: Reflector) {
     super();
   }
@@ -18,7 +19,6 @@ export class AuthenticationGuard extends AuthGuard("auth") {
     if (disabledFor?.includes(this.constructor.name)) {
       return true;
     }
-
     return super.canActivate(context);
   }
 }

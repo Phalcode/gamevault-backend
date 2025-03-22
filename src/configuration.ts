@@ -1,4 +1,5 @@
 import bytes from "bytes";
+import { createHash } from "crypto";
 import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
@@ -217,12 +218,32 @@ const configuration = {
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
-  OAUTH: {
-    CLIENT_ID: process.env.OAUTH_CLIENT_ID || undefined,
-    CLIENT_SECRET: process.env.OAUTH_CLIENT_SECRET || undefined,
-    AUTHORIZATION_URL: process.env.OAUTH_AUTHORIZATION_URL || undefined,
-    TOKEN_URL: process.env.OAUTH_TOKEN_URL || undefined,
-    CALLBACK_URL: process.env.OAUTH_CALLBACK_URL || undefined,
+  AUTH: {
+    JWT: {
+      ACCESS_TOKEN: {
+        SECRET:
+          process.env.AUTH_JWT_ACCESS_TOKEN_SECRET ||
+          "DEFAULT5TXZFADJJPFO9SMYDYMA25LGOCVORAHHL1QS24Q0LFBLK310F1VPF8G8U", //Used to create session tokens. You need to change this, since the default secret is well known. Any string will do.
+        EXPIRES_IN: process.env.AUTH_JWT_ACCESS_TOKEN_EXPIRES_IN || "1h",
+      } as const,
+      REFRESH_TOKEN: {
+        SECRET: createHash("sha256")
+          .update(
+            process.env.AUTH_JWT_ACCESS_TOKEN_SECRET ||
+              "DEFAULT5TXZFADJJPFO9SMYDYMA25LGOCVORAHHL1QS24Q0LFBLK310F1VPF8G8U",
+          )
+          .digest("hex"),
+        EXPIRES_IN: process.env.AUTH_JWT_REFRESH_TOKEN_EXPIRES_IN || "30d",
+      } as const,
+    } as const,
+    OAUTH: {
+      ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH_ENABLED),
+      CLIENT_ID: process.env.AUTH_OAUTH_CLIENT_ID || undefined,
+      CLIENT_SECRET: process.env.AUTH_OAUTH_CLIENT_SECRET || undefined,
+      AUTH_URL: process.env.AUTH_OAUTH_AUTH_URL || undefined,
+      TOKEN_URL: process.env.AUTH_OAUTH_TOKEN_URL || undefined,
+      CALLBACK_URL: process.env.AUTH_OAUTH_CALLBACK_URL || undefined,
+    } as const,
   } as const,
 } as const;
 

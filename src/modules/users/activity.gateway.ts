@@ -69,10 +69,10 @@ export class ActivityGateway
     @MessageBody() dto: Activity,
   ) {
     const requestingUser = client as unknown as {
-      gamevaultuser: GamevaultUser;
+      user: GamevaultUser;
     };
     const user = await this.usersService.findOneByUserIdOrFail(
-      requestingUser.gamevaultuser.id,
+      requestingUser.user.id,
     );
     dto.user_id = user.id;
     dto.socket_id = client.id;

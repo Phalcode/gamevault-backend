@@ -5,7 +5,6 @@ import {
   Logger,
 } from "@nestjs/common";
 import { Socket } from "socket.io";
-
 import { SocketSecretService } from "../../users/socket-secret.service";
 
 @Injectable()

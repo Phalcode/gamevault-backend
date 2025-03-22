@@ -1,13 +1,17 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { BasicStrategy } from "passport-http";
 
+import { compareSync } from "bcrypt";
 import configuration from "../../../configuration";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { UsersService } from "../../users/users.service";
 
 @Injectable()
-export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
+export class BasicAuthenticationStrategy extends PassportStrategy(
+  BasicStrategy,
+  "basic",
+) {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly usersService: UsersService) {
     super({
@@ -17,7 +21,7 @@ export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
 
   /** Validates a username and password. */
   async validate(
-    req: { gamevaultuser: GamevaultUser },
+    req: { user: GamevaultUser },
     username: string,
     password: string,
   ) {
@@ -28,8 +32,25 @@ export class DefaultStrategy extends PassportStrategy(BasicStrategy) {
       return true;
     }
 
-    const user = await this.usersService.login(username, password);
-    req.gamevaultuser = user;
-    return !!user;
+    // TODO: save this double call somehow?
+    const user = await this.usersService.findUserForAuthOrFail(username);
+    const cleanedUser = await this.usersService.findOneByUsernameOrFail(
+      user.username,
+    );
+    req.user = cleanedUser;
+
+    if (!configuration.TESTING.AUTHENTICATION_DISABLED) {
+      return cleanedUser;
+    }
+
+    if (!compareSync(password, user.password)) {
+      throw new UnauthorizedException(
+        "Authentication Failed: Incorrect Password",
+      );
+    }
+
+    //TODO: For some reason token is incomplete for basic users
+
+    return cleanedUser;
   }
 }

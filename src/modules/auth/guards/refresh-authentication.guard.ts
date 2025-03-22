@@ -3,7 +3,7 @@ import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class AuthenticationGuard extends AuthGuard("auth") {
+export class RefreshAuthenticationGuard extends AuthGuard("refresh-auth") {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly reflector: Reflector) {
     super();

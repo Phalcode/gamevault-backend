@@ -1,7 +1,7 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { Public } from "../../decorators/public.decorator";
+import { DisableAuthenticationGuard } from "../../decorators/disable-authentication-guard";
 import { HealthService } from "./health.service";
 import { Health } from "./models/health.model";
 
@@ -16,7 +16,7 @@ export class HealthController {
     summary: "returns a lifesign",
     operationId: "getHealth",
   })
-  @Public()
+  @DisableAuthenticationGuard()
   async getHealth(): Promise<Health> {
     return this.healthService.get();
   }

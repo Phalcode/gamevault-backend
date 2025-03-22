@@ -90,7 +90,7 @@ export class MediaController {
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   postMedia(
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -104,6 +104,6 @@ export class MediaController {
     )
     file: Express.Multer.File,
   ) {
-    return this.mediaService.upload(file, req.gamevaultuser.username);
+    return this.mediaService.upload(file, req.user.username);
   }
 }

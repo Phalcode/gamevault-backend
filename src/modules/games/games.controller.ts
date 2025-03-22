@@ -81,7 +81,7 @@ export class GamesController {
   })
   @MinimumRole(Role.GUEST)
   async findGames(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
     const relations = [
@@ -135,7 +135,7 @@ export class GamesController {
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
       query.filter ??= {};
       query.filter["metadata.age_rating"] =
-        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
+        `$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`;
     }
 
     return paginate(query, this.gamesRepository, {
@@ -213,13 +213,13 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameRandom(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultGame> {
     return this.gamesService.findRandom({
       loadDeletedEntities: false,
       loadRelations: true,
       filterByAge: await this.usersService.findUserAgeByUsername(
-        request.gamevaultuser.username,
+        request.user.username,
       ),
     });
   }
@@ -233,13 +233,13 @@ export class GamesController {
   @ApiOkResponse({ type: () => GamevaultGame })
   @MinimumRole(Role.GUEST)
   async getGameByGameId(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Param() params: GameIdDto,
   ): Promise<GamevaultGame> {
     return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
       loadDeletedEntities: true,
       filterByAge: await this.usersService.findUserAgeByUsername(
-        request.gamevaultuser.username,
+        request.user.username,
       ),
     });
   }
@@ -281,7 +281,7 @@ export class GamesController {
   @ApiOkResponse({ type: () => StreamableFile })
   @Header("Accept-Ranges", "bytes")
   async getGameDownload(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Param() params: GameIdDto,
     @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
@@ -293,7 +293,7 @@ export class GamesController {
       Number(speedlimit),
       range,
       await this.usersService.findUserAgeByUsername(
-        request.gamevaultuser.username,
+        request.user.username,
       ),
     );
   }

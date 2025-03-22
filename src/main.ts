@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { ValidationPipe } from "@nestjs/common";
-import { NestFactory, Reflector } from "@nestjs/core";
+import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
@@ -19,8 +19,6 @@ import configuration, {
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { default as logger, stream, default as winston } from "./logging";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
-import { AuthenticationGuard } from "./modules/auth/guards/authentication.guard";
-import { AuthorizationGuard } from "./modules/auth/guards/authorization.guard";
 import loadPlugins from "./plugin";
 
 async function bootstrap(): Promise<void> {
@@ -91,16 +89,9 @@ async function bootstrap(): Promise<void> {
 
   // Basepath
   app.setGlobalPrefix("api");
-  const reflector = app.get(Reflector);
 
   // Enable automatic HTTP Error Response Logging
   app.useGlobalFilters(new LoggingExceptionFilter());
-
-  // Enable Authentication and Authorization
-  app.useGlobalGuards(
-    new AuthenticationGuard(reflector),
-    new AuthorizationGuard(reflector),
-  );
 
   // Provide API Specification
   if (configuration.SERVER.API_DOCS_ENABLED) {

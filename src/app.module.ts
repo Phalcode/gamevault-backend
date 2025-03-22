@@ -4,7 +4,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
 import { AdminModule } from "./modules/admin/admin.module";
-import { DefaultStrategy } from "./modules/auth/strategies/basic-auth.strategy";
+import { AuthModule } from "./modules/auth/auth.module";
 import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
 import { GamesModule } from "./modules/games/games.module";
@@ -19,6 +19,7 @@ import { UsersModule } from "./modules/users/users.module";
 @Module({
   imports: [
     ConfigModule,
+    AuthModule,
     DatabaseModule,
     MediaModule,
     GamesModule,
@@ -33,7 +34,6 @@ import { UsersModule } from "./modules/users/users.module";
     HealthModule,
   ],
   providers: [
-    DefaultStrategy,
     {
       provide: APP_INTERCEPTOR,
       useClass: DisableApiIfInterceptor,

@@ -25,12 +25,12 @@ export class AuthorizationGuard implements CanActivate {
 
   /** Determines whether the route can be activated. */
   canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.get<boolean>(
-      "public",
-      context.getHandler(),
+    const disabledFor = this.reflector.getAllAndOverride<string[]>(
+      "disable-auth",
+      [context.getHandler(), context.getClass()],
     );
 
-    if (isPublic) {
+    if (disabledFor?.includes(this.constructor.name)) {
       return true;
     }
 
@@ -52,7 +52,7 @@ export class AuthorizationGuard implements CanActivate {
 
     if (userRole < requiredRole) {
       throw new ForbiddenException(
-        `Insufficient Role. You need to be '${Role[requiredRole]}' to do this, but you are a '${Role[userRole]}'.`,
+        `Authorization Failed: Insufficient Role. You need to be '${Role[requiredRole]}' to do this, but you are a '${Role[userRole]}'.`,
       );
     }
     return true;

@@ -10,7 +10,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { compareSync, hashSync } from "bcrypt";
+import { hashSync } from "bcrypt";
 import { randomBytes } from "crypto";
 import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 
@@ -192,43 +192,50 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Logs in a user with the provided username and password. */
-  public async login(
-    username: string,
-    password: string,
-  ): Promise<GamevaultUser> {
+  public async findUserForAuthOrFail(username: string): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { username: ILike(username) },
-        select: ["username", "password", "activated", "role", "deleted_at"],
+        select: [
+          "username",
+          "password",
+          "socket_secret",
+          "activated",
+          "role",
+          "deleted_at",
+        ],
         withDeleted: true,
         loadEagerRelations: false,
       })
       .catch((error) => {
+        if (error instanceof NotFoundException) {
+          throw new UnauthorizedException(
+            `Authentication Failed: User "${username}" not found. If you are a new user, please register first.`,
+          );
+        }
         throw new UnauthorizedException(
-          `Login Failed: User "${username}" not found.`,
+          "Authentication Failed: Contact an Administrator to check the server logs for more information.",
           {
             cause: error,
           },
         );
       });
-
-    if (configuration.TESTING.AUTHENTICATION_DISABLED) {
-      delete user.password;
-      return user;
-    }
-
-    if (!compareSync(password, user.password)) {
-      throw new UnauthorizedException("Login Failed: Incorrect Password");
-    }
-    delete user.password;
     if (user.deleted_at) {
-      throw new NotFoundException("Login Failed: User has been deleted");
+      throw new UnauthorizedException(
+        "Authentication Failed: User has been deleted. Contact an Administrator to recover the User.",
+      );
     }
     if (!user.activated && user.role !== Role.ADMIN) {
       throw new ForbiddenException(
-        "Login Failed: User is not activated. Contact an Administrator to activate the User.",
+        "Authentication Failed: User is not activated. Contact an Administrator to activate the User.",
       );
     }
+    return user;
+  }
+
+  public cleanConfidentialUser(user: GamevaultUser): GamevaultUser {
+    delete user.password;
+    delete user.socket_secret;
     return user;
   }
 
@@ -537,7 +544,7 @@ export class UsersService implements OnApplicationBootstrap {
           ? "username"
           : "email";
       throw new ForbiddenException(
-        `A user with this ${duplicateField} already exists. (case-insensitive)`,
+        `A user with this ${duplicateField} already exists. Please note, that usernames are case-insensitive.`,
       );
     }
   }

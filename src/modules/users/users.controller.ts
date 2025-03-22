@@ -3,7 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  MethodNotAllowedException,
+  Logger,
   Param,
   Post,
   Put,
@@ -18,12 +18,10 @@ import {
 } from "@nestjs/swagger";
 
 import configuration from "../../configuration";
-import { ConditionalRegistration } from "../../decorators/conditional-registration.decorator";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { GameIdDto } from "../games/models/game-id.dto";
 import { GamevaultUser } from "./gamevault-user.entity";
-import { RegisterUserDto } from "./models/register-user.dto";
 import { Role } from "./models/role.enum";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { UserIdDto } from "./models/user-id.dto";
@@ -38,6 +36,7 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly socketSecretService: SocketSecretService,
   ) {}
+  private readonly logger = new Logger(this.constructor.name);
 
   @Get()
   @ApiOperation({
@@ -48,9 +47,9 @@ export class UsersController {
   @ApiOkResponse({ type: () => GamevaultUser, isArray: true })
   @MinimumRole(Role.GUEST)
   async getUsers(
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<GamevaultUser[]> {
-    const includeHidden = req.gamevaultuser.role >= Role.ADMIN;
+    const includeHidden = req.user.role >= Role.ADMIN;
     return this.usersService.find(includeHidden);
   }
 
@@ -63,15 +62,12 @@ export class UsersController {
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
   async getUsersMe(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findOneByUsernameOrFail(
-      request.gamevaultuser.username,
-    );
-    user.socket_secret = await this.socketSecretService.findSocketSecretOrFail(
-      user.id,
-    );
-    return user;
+    this.logger.log(request);
+    request.user.socket_secret =
+      await this.socketSecretService.findSocketSecretOrFail(request.user.id);
+    return request.user;
   }
 
   /** Updates details of the user. */
@@ -86,12 +82,9 @@ export class UsersController {
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async putUsersMe(
     @Body() dto: UpdateUserDto,
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    const user = await this.usersService.findOneByUsernameOrFail(
-      request.gamevaultuser.username,
-    );
-    return this.usersService.update(user.id, dto, false);
+    return this.usersService.update(request.user.id, dto, false);
   }
 
   /** Deletes your own user. */
@@ -104,10 +97,7 @@ export class UsersController {
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteUsersMe(@Request() request): Promise<GamevaultUser> {
-    const user = await this.usersService.findOneByUsernameOrFail(
-      request.gamevaultuser.username,
-    );
-    return this.usersService.delete(user.id);
+    return this.usersService.delete(request.user.id);
   }
 
   @Post("me/bookmark/:game_id")
@@ -117,11 +107,11 @@ export class UsersController {
   })
   @MinimumRole(Role.GUEST)
   async postUsersMeBookmark(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Param() params: GameIdDto,
   ): Promise<GamevaultUser> {
     const user = await this.usersService.findOneByUsernameOrFail(
-      request.gamevaultuser.username,
+      request.user.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
     return this.usersService.bookmarkGame(user.id, Number(params.game_id));
@@ -134,11 +124,11 @@ export class UsersController {
   })
   @MinimumRole(Role.GUEST)
   async deleteUsersMeBookmark(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Param() params: GameIdDto,
   ): Promise<GamevaultUser> {
     const user = await this.usersService.findOneByUsernameOrFail(
-      request.gamevaultuser.username,
+      request.user.username,
       { loadDeletedEntities: false, loadRelations: ["bookmarked_games"] },
     );
     return this.usersService.unbookmarkGame(user.id, Number(params.game_id));
@@ -196,32 +186,5 @@ export class UsersController {
     @Param() params: UserIdDto,
   ): Promise<GamevaultUser> {
     return this.usersService.recover(Number(params.user_id));
-  }
-
-  /** Register a new user. */
-  @Post("register")
-  @ApiOperation({
-    summary: "register a new user",
-    description:
-      "The user may may has to be activated afterwards to be active. This endpoint only works if registration is enabled",
-    operationId: "postUserRegister",
-  })
-  @ApiOkResponse({ type: () => GamevaultUser })
-  @ApiBody({ type: () => RegisterUserDto })
-  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  @ConditionalRegistration
-  async postUserRegister(
-    @Body() dto: RegisterUserDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
-  ): Promise<GamevaultUser> {
-    if (
-      configuration.SERVER.REGISTRATION_DISABLED &&
-      (req.gamevaultuser?.role ?? 0) < Role.ADMIN
-    ) {
-      throw new MethodNotAllowedException(
-        "Registration is disabled on this server.",
-      );
-    }
-    return this.usersService.register(dto);
   }
 }
