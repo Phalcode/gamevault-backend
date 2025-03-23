@@ -20,16 +20,16 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
     if (
       !configuration.AUTH.OAUTH2.AUTH_URL ||
       !configuration.AUTH.OAUTH2.TOKEN_URL ||
+      !configuration.AUTH.OAUTH2.CALLBACK_URL ||
       !configuration.AUTH.OAUTH2.CLIENT_ID ||
-      !configuration.AUTH.OAUTH2.CLIENT_SECRET ||
-      !configuration.AUTH.OAUTH2.CALLBACK_URL
+      !configuration.AUTH.OAUTH2.CLIENT_SECRET
     ) {
       throw new BadRequestException(
-        "Failed to initialize OAuth2Strategy. Please configure all necessary options.",
+        "Failed to initialize OAuth2Strategy. Please configure all necessary options: " +
+          "AUTH_OAUTH2_AUTH_URL, AUTH_OAUTH2_TOKEN_URL, AUTH_OAUTH2_CALLBACK_URL, AUTH_OAUTH2_CLIENT_ID, AUTH_OAUTH2_CLIENT_SECRET",
       );
     }
 
-    // TODO: should be loaded depending on configuration
     super({
       passReqToCallback: true,
       authorizationURL: configuration.AUTH.OAUTH2.AUTH_URL,
