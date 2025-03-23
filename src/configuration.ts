@@ -238,6 +238,11 @@ const configuration = {
     } as const,
     OAUTH2: {
       ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH2_ENABLED),
+      SCOPES: parseList(process.env.AUTH_OAUTH2_SCOPES, [
+        "openid",
+        "email",
+        "profile",
+      ]),
       AUTH_URL: process.env.AUTH_OAUTH2_AUTH_URL || undefined,
       TOKEN_URL: process.env.AUTH_OAUTH2_TOKEN_URL || undefined,
       CALLBACK_URL: process.env.AUTH_OAUTH2_CALLBACK_URL || undefined,

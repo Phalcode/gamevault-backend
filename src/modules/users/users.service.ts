@@ -203,12 +203,14 @@ export class UsersService implements OnApplicationBootstrap {
   /** Logs in a user with the provided username and password. */
   public async findUserByUsernameForAuthOrFail(
     username: string,
+    email = "PLACEHOLDER",
   ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
-        where: { username: ILike(username) },
+        where: [{ username: ILike(username) }, { email: ILike(email) }],
         select: [
           "username",
+          "email",
           "password",
           "socket_secret",
           "activated",
@@ -555,7 +557,7 @@ export class UsersService implements OnApplicationBootstrap {
           ? "username"
           : "email";
       throw new ForbiddenException(
-        `A user with this ${duplicateField} already exists. Please note, that usernames are case-insensitive.`,
+        `A user with this ${duplicateField} already exists. Please note, that they are case-insensitive.`,
       );
     }
   }
