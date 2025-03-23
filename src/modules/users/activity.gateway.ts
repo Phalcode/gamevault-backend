@@ -14,10 +14,10 @@ import { Server, Socket } from "socket.io";
 
 import configuration from "../../configuration";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
-import { SocketSecretGuard } from "../auth/guards/socket-secret.guard";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { ActivityState } from "./models/activity-state.enum";
 import { Activity } from "./models/activity.dto";
+import { SocketSecretGuard } from "./socket-secret.guard";
 import { UsersService } from "./users.service";
 
 // Conditionally decorate the WebSocket gateway class.

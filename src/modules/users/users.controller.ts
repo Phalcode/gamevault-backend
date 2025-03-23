@@ -64,7 +64,6 @@ export class UsersController {
   async getUsersMe(
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    this.logger.log(request);
     request.user.socket_secret =
       await this.socketSecretService.findSocketSecretOrFail(request.user.id);
     return request.user;

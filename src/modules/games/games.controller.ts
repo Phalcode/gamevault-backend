@@ -292,9 +292,7 @@ export class GamesController {
       Number(params.game_id),
       Number(speedlimit),
       range,
-      await this.usersService.findUserAgeByUsername(
-        request.user.username,
-      ),
+      await this.usersService.findUserAgeByUsername(request.user.username),
     );
   }
 

@@ -1,14 +1,15 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import configuration from "../../configuration";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { RegisterUserDto } from "../users/models/register-user.dto";
 import { UsersService } from "../users/users.service";
 import { GamevaultJwt } from "./models/gamevault-jwt.interface";
-import LoginDto from "./models/login.dto";
+import { LoginDto } from "./models/login.dto";
 
 @Injectable()
 export class AuthenticationService {
+  private readonly logger = new Logger(this.constructor.name);
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -55,5 +56,7 @@ export class AuthenticationService {
     return this.usersService.register(dto);
   }
 
-  async logout() {}
+  async logout() {
+    /* TODO Implement logout */
+  }
 }

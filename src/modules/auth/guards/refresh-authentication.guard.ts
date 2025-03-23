@@ -10,12 +10,12 @@ export class RefreshAuthenticationGuard extends AuthGuard("refresh-auth") {
   }
 
   canActivate(context: ExecutionContext) {
-    const disabledFor = this.reflector.getAllAndOverride<string[]>(
-      "disable-auth",
+    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
+      "skip-guards",
       [context.getHandler(), context.getClass()],
     );
 
-    if (disabledFor?.includes(this.constructor.name)) {
+    if (skippedGuards?.includes(this.constructor.name)) {
       return true;
     }
 

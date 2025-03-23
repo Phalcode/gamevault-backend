@@ -4,16 +4,29 @@ import {
   Injectable,
   Logger,
 } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { Socket } from "socket.io";
-import { SocketSecretService } from "../../users/socket-secret.service";
+import { SocketSecretService } from "./socket-secret.service";
 
 @Injectable()
 export class SocketSecretGuard implements CanActivate {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private readonly socketSecretService: SocketSecretService) {}
+  constructor(
+    private readonly socketSecretService: SocketSecretService,
+    private readonly reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
+      "skip-guards",
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (skippedGuards?.includes(this.constructor.name)) {
+      return true;
+    }
+
     const client = context.switchToWs().getClient<Socket>();
     const socketSecret = client.handshake.headers["x-socket-secret"];
 

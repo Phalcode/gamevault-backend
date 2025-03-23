@@ -39,7 +39,7 @@ import { RefreshAuthenticationStrategy } from "./strategies/refresh-authenticati
       useClass: AuthorizationGuard,
     },
     BasicAuthenticationStrategy,
-    OAuth2Strategy, // TODO: should be loaded depending on configuration
+    OAuth2Strategy,
   ],
   exports: [AuthenticationService],
 })

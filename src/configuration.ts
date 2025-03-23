@@ -221,18 +221,19 @@ const configuration = {
   AUTH: {
     JWT: {
       ACCESS_TOKEN: {
-        SECRET:
-          process.env.AUTH_JWT_ACCESS_TOKEN_SECRET ||
-          "DEFAULT5TXZFADJJPFO9SMYDYMA25LGOCVORAHHL1QS24Q0LFBLK310F1VPF8G8U", //Used to create session tokens. You need to change this, since the default secret is well known. Any string will do.
+        get SECRET() {
+          return createHash("sha256")
+            .update(configuration.DB.PASSWORD)
+            .digest("hex");
+        },
         EXPIRES_IN: process.env.AUTH_JWT_ACCESS_TOKEN_EXPIRES_IN || "1h",
       } as const,
       REFRESH_TOKEN: {
-        SECRET: createHash("sha256")
-          .update(
-            process.env.AUTH_JWT_ACCESS_TOKEN_SECRET ||
-              "DEFAULT5TXZFADJJPFO9SMYDYMA25LGOCVORAHHL1QS24Q0LFBLK310F1VPF8G8U",
-          )
-          .digest("hex"),
+        get SECRET() {
+          return createHash("sha256")
+            .update(configuration.AUTH.JWT.ACCESS_TOKEN.SECRET)
+            .digest("hex");
+        },
         EXPIRES_IN: process.env.AUTH_JWT_REFRESH_TOKEN_EXPIRES_IN || "30d",
       } as const,
     } as const,

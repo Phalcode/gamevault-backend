@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   MethodNotAllowedException,
   Post,
   Request,
@@ -11,27 +12,35 @@ import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import configuration from "../../../configuration";
 import { ConditionalRegistrationAccessibility } from "../../../decorators/conditional-public-registration.decorator";
 import { DisableApiIf } from "../../../decorators/disable-api-if.decorator";
-import { DisableAuthenticationGuard } from "../../../decorators/disable-authentication-guard";
+import { SkipGuards } from "../../../decorators/disable-authentication-guard";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { RegisterUserDto } from "../../users/models/register-user.dto";
 import { Role } from "../../users/models/role.enum";
 import { AuthenticationService } from "../authentication.service";
 import { BasicAuthGuard } from "../guards/basic-auth.guard";
+import { LoginDto } from "../models/login.dto";
 
 @Controller("auth/basic")
 @ApiTags("auth")
 @UseGuards(BasicAuthGuard)
 export class BasicAuthController {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(private readonly authenticationService: AuthenticationService) {}
   @Get("login")
-  @DisableAuthenticationGuard()
-  /* TODO: API DESC
-  @ApiOkResponse({ type: () => Health })
+  @SkipGuards()
   @ApiOperation({
-    summary: "returns the news.md file from the config directory.",
-    operationId: "getNews",
-  })*/
-  async login(@Request() request: { user: GamevaultUser }) {
+    summary: "Performs a basic auth login using the provided user credentials",
+    description:
+      "Initiates a login process by validating the user and issuing a bearer token.",
+    operationId: "getAuthBasicLogin",
+  })
+  @ApiOkResponse({ type: () => LoginDto })
+  async getAuthBasicLogin(@Request() request: { user: GamevaultUser }) {
+    this.logger.log({
+      message: "User logged in via basic auth.",
+      user: request.user,
+    });
     return this.authenticationService.login(request.user);
   }
 
@@ -47,7 +56,7 @@ export class BasicAuthController {
   @ApiBody({ type: () => RegisterUserDto })
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   @ConditionalRegistrationAccessibility
-  async postUserRegister(
+  async postAuthBasicRegister(
     @Body() dto: RegisterUserDto,
     @Request() req: { user: GamevaultUser },
   ): Promise<GamevaultUser> {

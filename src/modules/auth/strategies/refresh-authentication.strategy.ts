@@ -1,10 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import configuration from "../../../configuration";
 import { UsersService } from "../../users/users.service";
-import LoginDto from "../models/login.dto";
+import { LoginDto } from "../models/login.dto";
 @Injectable()
 export class RefreshAuthenticationStrategy extends PassportStrategy(
   Strategy,
@@ -14,7 +13,6 @@ export class RefreshAuthenticationStrategy extends PassportStrategy(
 
   constructor(
     private readonly userService: UsersService,
-    private readonly jwtService: JwtService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

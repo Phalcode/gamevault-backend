@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { randomBytes } from "crypto";
@@ -16,6 +16,18 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
   ) {
+    if (
+      !configuration.AUTH.OAUTH.AUTH_URL ||
+      !configuration.AUTH.OAUTH.TOKEN_URL ||
+      !configuration.AUTH.OAUTH.CLIENT_ID ||
+      !configuration.AUTH.OAUTH.CLIENT_SECRET ||
+      !configuration.AUTH.OAUTH.CALLBACK_URL
+    ) {
+      throw new BadRequestException(
+        "Failed to initialize OAuth2Strategy. Please configure all necessary options.",
+      );
+    }
+
     // TODO: should be loaded depending on configuration
     super({
       passReqToCallback: true,

@@ -10,11 +10,15 @@ import { Reflector } from "@nestjs/core";
 import configuration from "../../../configuration";
 import { MINIMUM_ROLE_KEY } from "../../../decorators/minimum-role.decorator";
 import { Role } from "../../users/models/role.enum";
+import { UsersService } from "../../users/users.service";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   private readonly logger = new Logger(this.constructor.name);
-  constructor(private readonly reflector: Reflector) {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly usersService: UsersService,
+  ) {
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
       this.logger.warn({
         message: "Skipping Authorization Checks.",
@@ -24,17 +28,25 @@ export class AuthorizationGuard implements CanActivate {
   }
 
   /** Determines whether the route can be activated. */
-  canActivate(context: ExecutionContext): boolean {
-    const disabledFor = this.reflector.getAllAndOverride<string[]>(
-      "disable-auth",
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
+      "skip-guards",
       [context.getHandler(), context.getClass()],
     );
+    const request = context.switchToHttp().getRequest();
 
-    if (disabledFor?.includes(this.constructor.name)) {
+    if (skippedGuards?.includes(this.constructor.name)) {
       return true;
     }
 
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
+      const user = (await this.usersService.find())[0];
+      this.logger.debug({
+        message: "Skipping Authorization Checks and using first user.",
+        reason: "TESTING_AUTHENTICATION_DISABLED is set to true.",
+        username: user.username,
+      });
+      request.user = user;
       return true;
     }
 
@@ -47,8 +59,7 @@ export class AuthorizationGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const userRole: Role = request.gamevaultuser.role;
+    const userRole: Role = request.user.role;
 
     if (userRole < requiredRole) {
       throw new ForbiddenException(

@@ -148,12 +148,14 @@ export class UsersService implements OnApplicationBootstrap {
     return this.filterDeletedProgresses(user);
   }
 
-  public async find(includeHidden: boolean = false): Promise<GamevaultUser[]> {
+  public async find(
+    includeHiddenAndDeleted: boolean = false,
+  ): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
-      withDeleted: includeHidden,
+      withDeleted: includeHiddenAndDeleted,
       relationLoadStrategy: "query",
-      where: includeHidden
+      where: includeHiddenAndDeleted
         ? undefined
         : { activated: true, username: Not(ILike("gvbot_%")) },
     };
