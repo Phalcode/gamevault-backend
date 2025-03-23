@@ -12,7 +12,14 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { hashSync } from "bcrypt";
 import { randomBytes } from "crypto";
-import { EntityNotFoundError, FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
+import {
+  EntityNotFoundError,
+  FindManyOptions,
+  ILike,
+  IsNull,
+  Not,
+  Repository,
+} from "typeorm";
 
 import { toLower } from "lodash";
 import configuration from "../../configuration";
@@ -194,7 +201,9 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Logs in a user with the provided username and password. */
-  public async findUserByUsernameForAuthOrFail(username: string): Promise<GamevaultUser> {
+  public async findUserByUsernameForAuthOrFail(
+    username: string,
+  ): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { username: ILike(username) },

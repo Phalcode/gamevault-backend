@@ -3,7 +3,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 
 import { createReadStream, existsSync } from "fs";

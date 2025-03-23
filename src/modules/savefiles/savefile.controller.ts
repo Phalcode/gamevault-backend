@@ -21,7 +21,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 
 import { FileInterceptor } from "@nestjs/platform-express";

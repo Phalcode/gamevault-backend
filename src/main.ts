@@ -108,15 +108,13 @@ async function bootstrap(): Promise<void> {
             "Backend for GameVault, the self-hosted gaming platform for drm-free games",
           )
           .setVersion(configuration.SERVER.VERSION)
-          .addBearerAuth(
-            {
-              type: "http",
-              scheme: "bearer",
-              bearerFormat: "JWT",
-              description:
-                "Access token obtained from /api/auth/*/login endpoint.",
-            },
-          )
+          .addBearerAuth({
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+            description:
+              "Access token obtained from /api/auth/*/login endpoint.",
+          })
           .addServer(
             `http://localhost:${configuration.SERVER.PORT}`,
             "Local GameVault Server",

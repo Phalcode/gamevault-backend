@@ -20,7 +20,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";

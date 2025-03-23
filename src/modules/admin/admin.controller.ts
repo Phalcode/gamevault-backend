@@ -12,7 +12,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
-  ApiTags
+  ApiTags,
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
