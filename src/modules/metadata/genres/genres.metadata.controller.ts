@@ -1,12 +1,12 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -18,7 +18,7 @@ import { GenreMetadata } from "./genre.metadata.entity";
 
 @Controller("genres")
 @ApiTags("genres")
-@ApiBasicAuth()
+@ApiBearerAuth()
 export class GenreController {
   constructor(
     @InjectRepository(GenreMetadata)

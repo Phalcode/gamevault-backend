@@ -1,12 +1,15 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   Logger,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Socket } from "socket.io";
 import { SKIP_GUARDS_KEY } from "../../decorators/skip-guards.decorator";
+import { Role } from "./models/role.enum";
 import { SocketSecretService } from "./socket-secret.service";
 
 @Injectable()
@@ -50,6 +53,18 @@ export class SocketSecretGuard implements CanActivate {
       const user = await this.socketSecretService.findUserBySocketSecretOrFail(
         socketSecret.toString(),
       );
+
+      if (user.deleted_at) {
+        throw new UnauthorizedException(
+          "Authentication Failed: User has been deleted. Contact an Administrator to recover the User.",
+        );
+      }
+      if (!user.activated && user.role !== Role.ADMIN) {
+        throw new ForbiddenException(
+          "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
+        );
+      }
+
       this.logger.debug({
         message: `Websocket-Client successfully authenticated.`,
         client: client.id,

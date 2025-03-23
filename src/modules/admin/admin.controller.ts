@@ -8,11 +8,11 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
@@ -21,7 +21,7 @@ import { HealthService } from "../health/health.service";
 import { Health } from "../health/models/health.model";
 import { Role } from "../users/models/role.enum";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
 @Controller("admin")
 @ApiTags("admin")
 export class AdminController {

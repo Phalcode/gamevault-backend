@@ -1,9 +1,9 @@
 import { Controller, Get, StreamableFile } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 
 import { createReadStream, existsSync } from "fs";
@@ -12,7 +12,7 @@ import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Health } from "../health/models/health.model";
 import { Role } from "../users/models/role.enum";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
 @Controller("config")
 @ApiTags("config")
 export class ConfigController {

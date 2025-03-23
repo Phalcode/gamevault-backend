@@ -14,7 +14,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private readonly userService: UsersService,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {
     if (
@@ -98,28 +98,29 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
 
     if (!this.validateProfile(profile, done)) return;
 
-    req.user = await this.userService
-      .findOneByUsernameOrFail(profile.username)
+    let cleanedUser = await this.usersService
+      .findUserByUsernameForAuthOrFail(profile.username)
+      .then((user) => this.usersService.findOneByUsernameOrFail(user.username))
       .catch(() => null);
-
-    if (!req.user) {
+    if (cleanedUser) {
+      this.logger.debug({
+        message: "OAuth2 User was found in database.",
+        profile,
+      });
+    } else {
       this.logger.debug({
         message: "OAuth2 User not found in database. Registering new...",
         profile,
       });
-      req.user = await this.userService.register({
+      cleanedUser = await this.usersService.register({
         username: profile.username,
         email: profile.email,
         first_name: profile.first_name,
         last_name: profile.last_name,
         password: randomBytes(24).toString("base64").slice(0, 32),
       });
-    } else {
-      this.logger.debug({
-        message: "OAuth2 User was found in database.",
-        profile,
-      });
     }
+    req.user = cleanedUser;
     done(null, req.user);
   }
 }

@@ -15,13 +15,13 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -36,7 +36,7 @@ import { SavefileService } from "./savefile.service";
 
 @Controller("savefiles")
 @ApiTags("savefile")
-@ApiBasicAuth()
+@ApiBearerAuth()
 export class SavefileController {
   private readonly logger = new Logger(this.constructor.name);
 

@@ -1,5 +1,5 @@
 import { Controller, Get, Logger, Request, UseGuards } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOAuth2, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
@@ -8,6 +8,7 @@ import { Oauth2Guard } from "../guards/oauth2.guard";
 @Controller("auth/oauth2")
 @ApiTags("auth")
 @UseGuards(Oauth2Guard)
+@ApiOAuth2([])
 export class OAuth2Controller {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly authenticationService: AuthenticationService) {}

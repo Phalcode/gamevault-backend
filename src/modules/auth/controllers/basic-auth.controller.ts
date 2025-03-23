@@ -8,7 +8,13 @@ import {
   Request,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import configuration from "../../../configuration";
 import { ConditionalRegistration } from "../../../decorators/conditional-registration.decorator";
 import { DisableApiIf } from "../../../decorators/disable-api-if.decorator";
@@ -23,6 +29,7 @@ import { LoginDto } from "../models/login.dto";
 @Controller("auth/basic")
 @ApiTags("auth")
 @UseGuards(BasicAuthGuard)
+@ApiBasicAuth()
 export class BasicAuthController {
   private readonly logger = new Logger(this.constructor.name);
 

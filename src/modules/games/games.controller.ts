@@ -12,12 +12,12 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Response } from "express";
@@ -46,7 +46,7 @@ import { GamevaultGame } from "./gamevault-game.entity";
 import { GameIdDto } from "./models/game-id.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
 @ApiTags("game")
 @Controller("games")
 export class GamesController {

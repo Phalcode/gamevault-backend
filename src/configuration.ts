@@ -111,7 +111,8 @@ const configuration = {
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
     STACK_TRACE_LIMIT: parseNumber(
-      process.env.CONFIGURATION_STACK_TRACE_LIMIT,
+      process.env.CONFIGURATION_STACK_TRACE_LIMIT || //TODO: remove in v16
+        process.env.SERVER_STACK_TRACE_LIMIT,
       10,
     ),
   } as const,
@@ -174,7 +175,7 @@ const configuration = {
       globals.SUPPORTED_FILE_FORMATS,
     ),
     SEARCH_RECURSIVE: parseBooleanEnvVariable(
-      process.env.SEARCH_RECURSIVE,
+      process.env.GAMES_SEARCH_RECURSIVE || process.env.SEARCH_RECURSIVE, //TODO: remove in v16
       true,
     ),
     DEFAULT_ARCHIVE_PASSWORD:

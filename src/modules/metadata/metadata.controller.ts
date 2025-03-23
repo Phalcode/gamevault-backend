@@ -1,10 +1,10 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
@@ -16,7 +16,7 @@ import { ProviderSlugDto } from "./providers/models/provider-slug.dto";
 
 @Controller("metadata")
 @ApiTags("metadata")
-@ApiBasicAuth()
+@ApiBearerAuth()
 export class MetadataController {
   constructor(private readonly metadataService: MetadataService) {}
 

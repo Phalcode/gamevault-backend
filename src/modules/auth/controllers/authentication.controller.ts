@@ -1,5 +1,5 @@
 import { Controller, Logger, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
@@ -7,6 +7,7 @@ import { RefreshTokenGuard } from "../guards/refresh-token.guard";
 import { LoginDto } from "../models/login.dto";
 
 @Controller("auth")
+@ApiBearerAuth()
 export class GamevaultJwtController {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly authService: AuthenticationService) {}

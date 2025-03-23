@@ -1,12 +1,12 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiBasicAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  paginate,
-  Paginated,
   PaginateQuery,
+  Paginated,
   PaginationType,
+  paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
@@ -18,7 +18,7 @@ import { TagMetadata } from "./tag.metadata.entity";
 
 @Controller("tags")
 @ApiTags("tags")
-@ApiBasicAuth()
+@ApiBearerAuth()
 export class TagsController {
   constructor(
     @InjectRepository(TagMetadata)

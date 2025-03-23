@@ -14,13 +14,13 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";
@@ -36,7 +36,7 @@ import { MediaService } from "./media.service";
 
 @ApiTags("media")
 @Controller("media")
-@ApiBasicAuth()
+@ApiBearerAuth()
 export class MediaController {
   private readonly logger = new Logger(this.constructor.name);
 

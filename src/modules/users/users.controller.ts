@@ -10,7 +10,7 @@ import {
   Request,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
   ApiOperation,
@@ -28,7 +28,7 @@ import { UserIdDto } from "./models/user-id.dto";
 import { SocketSecretService } from "./socket-secret.service";
 import { UsersService } from "./users.service";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
 @ApiTags("user")
 @Controller("users")
 export class UsersController {

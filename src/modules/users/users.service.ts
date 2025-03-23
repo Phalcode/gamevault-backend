@@ -12,7 +12,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { hashSync } from "bcrypt";
 import { randomBytes } from "crypto";
-import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
+import { EntityNotFoundError, FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
 
 import { toLower } from "lodash";
 import configuration from "../../configuration";
@@ -194,7 +194,7 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Logs in a user with the provided username and password. */
-  public async findUserForAuthOrFail(username: string): Promise<GamevaultUser> {
+  public async findUserByUsernameForAuthOrFail(username: string): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
         where: { username: ILike(username) },
@@ -210,9 +210,9 @@ export class UsersService implements OnApplicationBootstrap {
         loadEagerRelations: false,
       })
       .catch((error) => {
-        if (error instanceof NotFoundException) {
+        if (error instanceof EntityNotFoundError) {
           throw new UnauthorizedException(
-            `Authentication Failed: User "${username}" not found. If you are a new user, please register first.`,
+            `Authentication Failed: User '${username}' not found. If you are a new user, please register first.`,
           );
         }
         throw new UnauthorizedException(
@@ -229,7 +229,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
     if (!user.activated && user.role !== Role.ADMIN) {
       throw new ForbiddenException(
-        "Authentication Failed: User is not activated. Contact an Administrator to activate the User.",
+        "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
       );
     }
     return user;

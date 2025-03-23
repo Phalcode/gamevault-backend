@@ -1,5 +1,21 @@
 # GameVault Backend Server Changelog
 
+## 15.0.0
+
+### Breaking Changes & Migration
+
+- Completely Overhauled Authentication System -> **Update your GameVault Client Application. Clients older than 1.17.0.0 will no longer work with this version. If you use the API, make sure to consult the documentation to learn how to authenticate with this release.**
+
+- Renamed some environment variables -> **Update your environment variables if you rely on them.**
+
+  - `SEARCH_RECURSIVE` to `GAMES_SEARCH_RECURSIVE`
+  - `CONFIGURATION_STACK_TRACE_LIMIT` to `SERVER_STACK_TRACE_LIMIT`
+
+  The deprecated variables will be removed in **v16.0.0**.
+
+- [#6](https://github.com/Phalcode/gamevault-backend/issues/6) **Added support for OAuth 2.0.**
+- **Removed deprecated APIs**.
+
 ## 14.1.2
 
 ### Changes

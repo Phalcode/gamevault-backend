@@ -8,7 +8,7 @@ import { LoginDto } from "../models/login.dto";
 export class AuthenticationStrategy extends PassportStrategy(Strategy, "auth") {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private readonly userService: UsersService) {
+  constructor(private readonly usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configuration.AUTH.ACCESS_TOKEN.SECRET,
@@ -17,8 +17,12 @@ export class AuthenticationStrategy extends PassportStrategy(Strategy, "auth") {
   }
 
   async validate(dto: LoginDto) {
-    return await this.userService.findOneByUserIdOrFail(
-      Number(dto.payload.sub),
+    return await this.usersService.findOneByUsernameOrFail(
+      (
+        await this.usersService.findUserByUsernameForAuthOrFail(
+          dto.payload?.preferred_username,
+        )
+      ).username,
     );
   }
 }
