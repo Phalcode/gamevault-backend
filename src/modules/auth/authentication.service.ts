@@ -22,13 +22,13 @@ export class AuthenticationService {
 
     const payload: GamevaultJwt = {
       sub: user.id.toString(),
-      name: `${user.first_name} ${user.last_name}`,
+      name: [user.first_name, user.last_name].filter(Boolean).join(" ") || null,
       given_name: user.first_name,
       family_name: user.last_name,
       preferred_username: user.username,
       email: user.email,
       role: user.role.toString(),
-      birthdate: user.birth_date,
+      birthdate: user.birth_date?.toISOString(),
     };
 
     const loginDto: LoginDto = {
@@ -37,16 +37,22 @@ export class AuthenticationService {
       refresh_token: this.jwtService.sign(
         { payload },
         {
-          secret: configuration.AUTH.JWT.REFRESH_TOKEN.SECRET,
-          expiresIn: configuration.AUTH.JWT.REFRESH_TOKEN.EXPIRES_IN,
+          secret: configuration.AUTH.REFRESH_TOKEN.SECRET,
+          expiresIn: configuration.AUTH.REFRESH_TOKEN.EXPIRES_IN,
         },
       ),
     };
 
+    this.logger.debug({
+      message: `Issued token for user ${requestUser.username}`,
+      token_payload: payload,
+      token_expires_in: configuration.AUTH.ACCESS_TOKEN.EXPIRES_IN,
+    });
     return loginDto;
   }
 
   async refresh(user: GamevaultUser): Promise<LoginDto> {
+    this.logger.debug(`Refreshing token for user ${user.username}`);
     const loginDto = await this.login(user);
     delete loginDto.refresh_token;
     return loginDto;

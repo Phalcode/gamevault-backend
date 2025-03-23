@@ -5,18 +5,16 @@ import configuration from "../../../configuration";
 import { UsersService } from "../../users/users.service";
 import { LoginDto } from "../models/login.dto";
 @Injectable()
-export class RefreshAuthenticationStrategy extends PassportStrategy(
+export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
-  "refresh-auth",
+  "refresh-token",
 ) {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(
-    private readonly userService: UsersService,
-  ) {
+  constructor(private readonly userService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configuration.AUTH.JWT.REFRESH_TOKEN.SECRET,
+      secretOrKey: configuration.AUTH.REFRESH_TOKEN.SECRET,
       ignoreExpiration: false,
     });
   }

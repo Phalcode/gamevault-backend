@@ -5,6 +5,6 @@ export interface GamevaultJwt {
   family_name: string;
   preferred_username: string;
   email: string;
-  birthdate: any;
+  birthdate: string;
   role: string;
 }

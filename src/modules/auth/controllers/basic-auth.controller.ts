@@ -10,9 +10,9 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import configuration from "../../../configuration";
-import { ConditionalRegistrationAccessibility } from "../../../decorators/conditional-public-registration.decorator";
+import { ConditionalRegistration } from "../../../decorators/conditional-registration.decorator";
 import { DisableApiIf } from "../../../decorators/disable-api-if.decorator";
-import { SkipGuards } from "../../../decorators/disable-authentication-guard";
+import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { RegisterUserDto } from "../../users/models/register-user.dto";
 import { Role } from "../../users/models/role.enum";
@@ -55,7 +55,7 @@ export class BasicAuthController {
   @ApiOkResponse({ type: () => GamevaultUser })
   @ApiBody({ type: () => RegisterUserDto })
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  @ConditionalRegistrationAccessibility
+  @ConditionalRegistration
   async postAuthBasicRegister(
     @Body() dto: RegisterUserDto,
     @Request() req: { user: GamevaultUser },

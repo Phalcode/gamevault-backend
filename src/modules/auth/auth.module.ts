@@ -10,25 +10,30 @@ import { OAuth2Controller } from "./controllers/oauth2.controller";
 import { AuthenticationGuard } from "./guards/authentication.guard";
 import { AuthorizationGuard } from "./guards/authorization.guard";
 import { AuthenticationStrategy } from "./strategies/authentication.strategy";
-import { BasicAuthenticationStrategy } from "./strategies/basic-auth.strategy";
+import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy";
 import { OAuth2Strategy } from "./strategies/oauth2.strategy";
-import { RefreshAuthenticationStrategy } from "./strategies/refresh-authentication.strategy";
+import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 
 @Module({
   imports: [
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: configuration.AUTH.JWT.ACCESS_TOKEN.SECRET,
+      secret: configuration.AUTH.ACCESS_TOKEN.SECRET,
       signOptions: {
-        expiresIn: configuration.AUTH.JWT.ACCESS_TOKEN.EXPIRES_IN,
+        expiresIn: configuration.AUTH.ACCESS_TOKEN.EXPIRES_IN,
       },
     }),
   ],
-  controllers: [BasicAuthController, OAuth2Controller, GamevaultJwtController],
+  controllers: [
+    BasicAuthController,
+    GamevaultJwtController,
+    ...(configuration.AUTH.BASIC_AUTH.ENABLED ? [BasicAuthController] : []),
+    ...(configuration.AUTH.OAUTH2.ENABLED ? [OAuth2Controller] : []),
+  ],
   providers: [
     AuthenticationStrategy,
-    RefreshAuthenticationStrategy,
+    RefreshTokenStrategy,
     AuthenticationService,
     {
       provide: APP_GUARD,
@@ -38,8 +43,8 @@ import { RefreshAuthenticationStrategy } from "./strategies/refresh-authenticati
       provide: APP_GUARD,
       useClass: AuthorizationGuard,
     },
-    BasicAuthenticationStrategy,
-    OAuth2Strategy,
+    ...(configuration.AUTH.BASIC_AUTH.ENABLED ? [BasicAuthStrategy] : []),
+    ...(configuration.AUTH.OAUTH2.ENABLED ? [OAuth2Strategy] : []),
   ],
   exports: [AuthenticationService],
 })

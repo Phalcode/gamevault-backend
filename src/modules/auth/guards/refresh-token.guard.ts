@@ -4,7 +4,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
 
 @Injectable()
-export class Oauth2Guard extends AuthGuard("oauth2") {
+export class RefreshTokenGuard extends AuthGuard("refresh-token") {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly reflector: Reflector) {
     super();
@@ -19,7 +19,7 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
         ?.includes(this.constructor.name)
     ) {
       this.logger.debug({
-        message: "Skipping Refresh Authentication Checks.",
+        message: "Skipping Refresh Token Checks.",
         reason: "skip-guards is set to true for this route.",
         route: context.getHandler(),
       });

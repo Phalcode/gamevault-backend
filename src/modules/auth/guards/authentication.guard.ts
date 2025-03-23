@@ -2,6 +2,7 @@ import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import configuration from "../../../configuration";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
 
 @Injectable()
 export class AuthenticationGuard extends AuthGuard("auth") {
@@ -17,12 +18,18 @@ export class AuthenticationGuard extends AuthGuard("auth") {
   }
 
   canActivate(context: ExecutionContext) {
-    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
-      "skip-guards",
-      [context.getHandler(), context.getClass()],
-    );
-
-    if (skippedGuards?.includes(this.constructor.name)) {
+    if (
+      this.reflector
+        .getAllAndOverride<
+          string[]
+        >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
+        ?.includes(this.constructor.name)
+    ) {
+      this.logger.debug({
+        message: "Skipping Refresh Authentication Checks.",
+        reason: "skip-guards is set to true for this route.",
+        route: context.getHandler(),
+      });
       return true;
     }
 

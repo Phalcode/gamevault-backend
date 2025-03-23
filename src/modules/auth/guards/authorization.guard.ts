@@ -9,6 +9,7 @@ import { Reflector } from "@nestjs/core";
 
 import configuration from "../../../configuration";
 import { MINIMUM_ROLE_KEY } from "../../../decorators/minimum-role.decorator";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
 import { Role } from "../../users/models/role.enum";
 import { UsersService } from "../../users/users.service";
 
@@ -29,16 +30,22 @@ export class AuthorizationGuard implements CanActivate {
 
   /** Determines whether the route can be activated. */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
-      "skip-guards",
-      [context.getHandler(), context.getClass()],
-    );
-    const request = context.switchToHttp().getRequest();
-
-    if (skippedGuards?.includes(this.constructor.name)) {
+    if (
+      this.reflector
+        .getAllAndOverride<
+          string[]
+        >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
+        ?.includes(this.constructor.name)
+    ) {
+      this.logger.debug({
+        message: "Skipping Refresh Authentication Checks.",
+        reason: "skip-guards is set to true for this route.",
+        route: context.getHandler(),
+      });
       return true;
     }
 
+    const request = context.switchToHttp().getRequest();
     if (configuration.TESTING.AUTHENTICATION_DISABLED) {
       const user = (await this.usersService.find())[0];
       this.logger.debug({

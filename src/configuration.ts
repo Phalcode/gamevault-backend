@@ -219,31 +219,35 @@ const configuration = {
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
   AUTH: {
-    JWT: {
-      ACCESS_TOKEN: {
-        get SECRET() {
-          return createHash("sha256")
-            .update(configuration.DB.PASSWORD)
-            .digest("hex");
-        },
-        EXPIRES_IN: process.env.AUTH_JWT_ACCESS_TOKEN_EXPIRES_IN || "1h",
-      } as const,
-      REFRESH_TOKEN: {
-        get SECRET() {
-          return createHash("sha256")
-            .update(configuration.AUTH.JWT.ACCESS_TOKEN.SECRET)
-            .digest("hex");
-        },
-        EXPIRES_IN: process.env.AUTH_JWT_REFRESH_TOKEN_EXPIRES_IN || "30d",
-      } as const,
+    ACCESS_TOKEN: {
+      get SECRET() {
+        return createHash("sha256")
+          .update(configuration.DB.PASSWORD)
+          .digest("hex");
+      },
+      EXPIRES_IN: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN || "1h",
     } as const,
-    OAUTH: {
-      ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH_ENABLED),
-      CLIENT_ID: process.env.AUTH_OAUTH_CLIENT_ID || undefined,
-      CLIENT_SECRET: process.env.AUTH_OAUTH_CLIENT_SECRET || undefined,
-      AUTH_URL: process.env.AUTH_OAUTH_AUTH_URL || undefined,
-      TOKEN_URL: process.env.AUTH_OAUTH_TOKEN_URL || undefined,
-      CALLBACK_URL: process.env.AUTH_OAUTH_CALLBACK_URL || undefined,
+    REFRESH_TOKEN: {
+      get SECRET() {
+        return createHash("sha256")
+          .update(configuration.AUTH.ACCESS_TOKEN.SECRET)
+          .digest("hex");
+      },
+      EXPIRES_IN: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN || "30d",
+    } as const,
+    OAUTH2: {
+      ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH2_ENABLED),
+      CLIENT_ID: process.env.AUTH_OAUTH2_CLIENT_ID || undefined,
+      CLIENT_SECRET: process.env.AUTH_OAUTH2_CLIENT_SECRET || undefined,
+      AUTH_URL: process.env.AUTH_OAUTH2_AUTH_URL || undefined,
+      TOKEN_URL: process.env.AUTH_OAUTH2_TOKEN_URL || undefined,
+      CALLBACK_URL: process.env.AUTH_OAUTH2_CALLBACK_URL || undefined,
+    } as const,
+    BASIC_AUTH: {
+      ENABLED: parseBooleanEnvVariable(
+        process.env.AUTH_BASIC_AUTH_ENABLED,
+        true,
+      ),
     } as const,
   } as const,
 } as const;

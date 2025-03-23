@@ -6,6 +6,7 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Socket } from "socket.io";
+import { SKIP_GUARDS_KEY } from "../../decorators/skip-guards.decorator";
 import { SocketSecretService } from "./socket-secret.service";
 
 @Injectable()
@@ -18,12 +19,18 @@ export class SocketSecretGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const skippedGuards = this.reflector.getAllAndOverride<string[]>(
-      "skip-guards",
-      [context.getHandler(), context.getClass()],
-    );
-
-    if (skippedGuards?.includes(this.constructor.name)) {
+    if (
+      this.reflector
+        .getAllAndOverride<
+          string[]
+        >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
+        ?.includes(this.constructor.name)
+    ) {
+      this.logger.debug({
+        message: "Skipping Refresh Authentication Checks.",
+        reason: "skip-guards is set to true for this route.",
+        route: context.getHandler(),
+      });
       return true;
     }
 

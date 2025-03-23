@@ -1,7 +1,7 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { SkipGuards } from "../../decorators/disable-authentication-guard";
+import { SkipGuards } from "../../decorators/skip-guards.decorator";
 import { HealthService } from "./health.service";
 import { Health } from "./models/health.model";
 

@@ -7,6 +7,7 @@ import configuration from "../../../configuration";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { UsersService } from "../../users/users.service";
 import OAuth2UserProfile from "../models/oauth2-user-profile.interface";
+import PassportUserProfile from "../models/passport-user-profile.interface";
 
 @Injectable()
 export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
@@ -17,11 +18,11 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
     private readonly jwtService: JwtService,
   ) {
     if (
-      !configuration.AUTH.OAUTH.AUTH_URL ||
-      !configuration.AUTH.OAUTH.TOKEN_URL ||
-      !configuration.AUTH.OAUTH.CLIENT_ID ||
-      !configuration.AUTH.OAUTH.CLIENT_SECRET ||
-      !configuration.AUTH.OAUTH.CALLBACK_URL
+      !configuration.AUTH.OAUTH2.AUTH_URL ||
+      !configuration.AUTH.OAUTH2.TOKEN_URL ||
+      !configuration.AUTH.OAUTH2.CLIENT_ID ||
+      !configuration.AUTH.OAUTH2.CLIENT_SECRET ||
+      !configuration.AUTH.OAUTH2.CALLBACK_URL
     ) {
       throw new BadRequestException(
         "Failed to initialize OAuth2Strategy. Please configure all necessary options.",
@@ -31,26 +32,27 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
     // TODO: should be loaded depending on configuration
     super({
       passReqToCallback: true,
-      authorizationURL: configuration.AUTH.OAUTH.AUTH_URL,
-      tokenURL: configuration.AUTH.OAUTH.TOKEN_URL,
-      clientID: configuration.AUTH.OAUTH.CLIENT_ID,
-      clientSecret: configuration.AUTH.OAUTH.CLIENT_SECRET,
-      callbackURL: configuration.AUTH.OAUTH.CALLBACK_URL,
+      authorizationURL: configuration.AUTH.OAUTH2.AUTH_URL,
+      tokenURL: configuration.AUTH.OAUTH2.TOKEN_URL,
+      clientID: configuration.AUTH.OAUTH2.CLIENT_ID,
+      clientSecret: configuration.AUTH.OAUTH2.CLIENT_SECRET,
+      callbackURL: configuration.AUTH.OAUTH2.CALLBACK_URL,
       scope: ["openid", "email", "profile"],
     });
   }
 
   private extractProfile(
     accessToken: string,
-    passportProfile: any,
+    passportProfile: PassportUserProfile,
   ): OAuth2UserProfile {
     const token = this.jwtService.decode(accessToken);
     return {
       id: passportProfile.id || token["sub"],
       username:
-        passportProfile.username ||
+        passportProfile.displayName ||
         token["nickname"] ||
-        token["preferred_username"],
+        token["preferred_username"] ||
+        `GameVaultUser${Math.floor(1000 + Math.random() * 9000)}`,
       email: passportProfile.emails?.[0]?.value || token["email"],
       first_name: passportProfile.name?.givenName || token["given_name"],
       last_name: passportProfile.name?.familyName || token["family_name"],
@@ -88,6 +90,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
     req: { user: GamevaultUser },
     accessToken: string,
     refreshToken: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     passportProfile: any,
     done: VerifyCallback,
   ) {
@@ -100,12 +103,21 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2") {
       .catch(() => null);
 
     if (!req.user) {
+      this.logger.debug({
+        message: "OAuth2 User not found in database. Registering new...",
+        profile,
+      });
       req.user = await this.userService.register({
         username: profile.username,
         email: profile.email,
         first_name: profile.first_name,
         last_name: profile.last_name,
         password: randomBytes(24).toString("base64").slice(0, 32),
+      });
+    } else {
+      this.logger.debug({
+        message: "OAuth2 User was found in database.",
+        profile,
       });
     }
     done(null, req.user);

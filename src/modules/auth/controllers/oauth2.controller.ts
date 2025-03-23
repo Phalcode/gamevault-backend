@@ -1,8 +1,6 @@
 import { Controller, Get, Logger, Request, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import configuration from "../../../configuration";
-import { DisableApiIf } from "../../../decorators/disable-api-if.decorator";
-import { SkipGuards } from "../../../decorators/disable-authentication-guard";
+import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
 import { Oauth2Guard } from "../guards/oauth2.guard";
@@ -15,7 +13,6 @@ export class OAuth2Controller {
   constructor(private readonly authenticationService: AuthenticationService) {}
   @Get("login")
   @SkipGuards()
-  @DisableApiIf(!configuration.AUTH.OAUTH.ENABLED)
   @ApiOperation({
     summary: "Performs an oauth2 login using the configured identity provider.",
     description:

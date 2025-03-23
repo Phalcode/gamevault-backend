@@ -1,17 +1,18 @@
-import { Controller, Post, Request, UseGuards } from "@nestjs/common";
+import { Controller, Logger, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation } from "@nestjs/swagger";
-import { SkipGuards } from "../../../decorators/disable-authentication-guard";
+import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
-import { RefreshAuthenticationGuard } from "../guards/refresh-authentication.guard";
+import { RefreshTokenGuard } from "../guards/refresh-token.guard";
 import { LoginDto } from "../models/login.dto";
 
 @Controller("auth")
 export class GamevaultJwtController {
+  private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly authService: AuthenticationService) {}
 
   @Post("refresh")
-  @UseGuards(RefreshAuthenticationGuard)
+  @UseGuards(RefreshTokenGuard)
   @SkipGuards()
   @ApiOperation({
     summary: "refreshes the access token of the user",
