@@ -1,5 +1,5 @@
 import { Controller, Logger, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
@@ -7,6 +7,7 @@ import { RefreshTokenGuard } from "../guards/refresh-token.guard";
 import { LoginDto } from "../models/login.dto";
 
 @Controller("auth")
+@ApiTags("auth")
 @ApiBearerAuth()
 export class GamevaultJwtController {
   private readonly logger = new Logger(this.constructor.name);
@@ -28,5 +29,5 @@ export class GamevaultJwtController {
     return this.authService.refresh(req.user);
   }
 
-  // TODO: implement revoke 
+  // TODO: implement revoke
 }
