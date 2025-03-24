@@ -1,5 +1,5 @@
 import bytes from "bytes";
-import { createHash } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
@@ -220,10 +220,17 @@ const configuration = {
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
   } as const,
   AUTH: {
+    SEED:
+      process.env.AUTH_SEED ||
+      process.env.DB_PASSWORD ||
+      process.env.SERVER_ADMIN_PASSWORD ||
+      process.env.AUTH_OAUTH2_CLIENT_SECRET ||
+      process.env.METADATA_IGDB_CLIENT_SECRET ||
+      randomBytes(32).toString("hex"),
     ACCESS_TOKEN: {
       get SECRET() {
         return createHash("sha256")
-          .update(configuration.DB.PASSWORD)
+          .update(configuration.AUTH.SEED)
           .digest("hex");
       },
       EXPIRES_IN: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN || "1h",

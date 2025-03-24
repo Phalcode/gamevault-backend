@@ -130,7 +130,6 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
       this.extractProfile(accessToken, profile),
     );
 
-
     //TODO: This should look for token.sub instead of username/email as these are not guaranteed to not change
     let cleanedUser = await this.usersService
       .findUserByUsernameForAuthOrFail(

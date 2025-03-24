@@ -27,4 +27,6 @@ export class GamevaultJwtController {
   ): Promise<LoginDto> {
     return this.authService.refresh(req.user);
   }
+
+  // TODO: implement revoke 
 }
