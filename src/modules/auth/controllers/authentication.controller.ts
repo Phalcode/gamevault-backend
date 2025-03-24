@@ -1,5 +1,10 @@
 import { Controller, Logger, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { AuthenticationService } from "../authentication.service";
