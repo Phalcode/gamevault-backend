@@ -205,7 +205,7 @@ const configuration = {
       PRIORITY: parseNumber(process.env.METADATA_IGDB_PRIORITY, 10),
       REQUEST_INTERVAL_MS: parseNumber(
         process.env.METADATA_IGDB_REQUEST_INTERVAL_MS,
-        250,
+        500,
       ),
       CLIENT_ID: process.env.METADATA_IGDB_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.METADATA_IGDB_CLIENT_SECRET || undefined,
