@@ -29,7 +29,6 @@ export class SocketSecretGuard implements CanActivate {
         >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
         ?.includes(this.constructor.name)
     ) {
-
       return true;
     }
 

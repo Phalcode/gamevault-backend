@@ -64,6 +64,7 @@ export class AuthenticationService {
   async revoke(dto: RefreshTokenDto) {
     //TODO: Implement token revocation
     throw new NotImplementedException(
+      dto,
       "Revoking tokens is not implemented yet.",
     );
   }

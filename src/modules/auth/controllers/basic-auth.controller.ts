@@ -1,19 +1,19 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Logger,
-    MethodNotAllowedException,
-    Post,
-    Request,
-    UseGuards,
+  Body,
+  Controller,
+  Get,
+  Logger,
+  MethodNotAllowedException,
+  Post,
+  Request,
+  UseGuards,
 } from "@nestjs/common";
 import {
-    ApiBasicAuth,
-    ApiBody,
-    ApiOkResponse,
-    ApiOperation,
-    ApiTags,
+  ApiBasicAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from "@nestjs/swagger";
 import configuration from "../../../configuration";
 import { ConditionalRegistration } from "../../../decorators/conditional-registration.decorator";

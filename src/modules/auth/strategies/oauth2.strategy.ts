@@ -129,7 +129,9 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     req: { user: GamevaultUser },
     accessToken: string,
     refreshToken: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     profile: any,
     done: VerifiedCallback,
   ) {
