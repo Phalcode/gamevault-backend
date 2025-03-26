@@ -29,11 +29,7 @@ export class SocketSecretGuard implements CanActivate {
         >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
         ?.includes(this.constructor.name)
     ) {
-      this.logger.debug({
-        message: "Skipping Refresh Authentication Checks.",
-        reason: "skip-guards is set to true for this route.",
-        route: context.getHandler(),
-      });
+
       return true;
     }
 

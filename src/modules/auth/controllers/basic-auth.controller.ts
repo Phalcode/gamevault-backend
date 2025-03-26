@@ -1,19 +1,19 @@
 import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  MethodNotAllowedException,
-  Post,
-  Request,
-  UseGuards,
+    Body,
+    Controller,
+    Get,
+    Logger,
+    MethodNotAllowedException,
+    Post,
+    Request,
+    UseGuards,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
-  ApiBody,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
+    ApiBasicAuth,
+    ApiBody,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
 } from "@nestjs/swagger";
 import configuration from "../../../configuration";
 import { ConditionalRegistration } from "../../../decorators/conditional-registration.decorator";
@@ -24,7 +24,7 @@ import { RegisterUserDto } from "../../users/models/register-user.dto";
 import { Role } from "../../users/models/role.enum";
 import { AuthenticationService } from "../authentication.service";
 import { BasicAuthGuard } from "../guards/basic-auth.guard";
-import { LoginDto } from "../models/login.dto";
+import { TokenPairDto } from "../models/token-pair.dto";
 
 @Controller("auth/basic")
 @ApiTags("auth")
@@ -42,7 +42,7 @@ export class BasicAuthController {
       "Initiates a login process by validating the user and issuing a bearer token.",
     operationId: "getAuthBasicLogin",
   })
-  @ApiOkResponse({ type: () => LoginDto })
+  @ApiOkResponse({ type: () => TokenPairDto })
   async getAuthBasicLogin(@Request() request: { user: GamevaultUser }) {
     this.logger.log({
       message: "User logged in via basic auth.",

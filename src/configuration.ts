@@ -253,6 +253,7 @@ const configuration = {
       AUTH_URL: process.env.AUTH_OAUTH2_AUTH_URL || undefined,
       TOKEN_URL: process.env.AUTH_OAUTH2_TOKEN_URL || undefined,
       CALLBACK_URL: process.env.AUTH_OAUTH2_CALLBACK_URL || undefined,
+      USERINFO_URL: process.env.AUTH_OAUTH2_USERINFO_URL || undefined,
       CLIENT_ID: process.env.AUTH_OAUTH2_CLIENT_ID || undefined,
       CLIENT_SECRET: process.env.AUTH_OAUTH2_CLIENT_SECRET || undefined,
     } as const,

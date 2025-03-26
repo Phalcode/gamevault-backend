@@ -201,13 +201,19 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Logs in a user with the provided username and password. */
-  public async findUserByUsernameForAuthOrFail(
-    username: string,
-    email = "PLACEHOLDER",
-  ): Promise<GamevaultUser> {
+  public async findUserForAuthOrFail(searchBy: {
+    id?: number;
+    username?: string;
+    email?: string;
+    idp_id?: string; // TODO: Implementsearch for idp_id
+  }): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
-        where: [{ username: ILike(username) }, { email: ILike(email) }],
+        where: [
+          { id: searchBy.id },
+          { username: ILike(searchBy.username) },
+          { email: ILike(searchBy.email) },
+        ],
         select: [
           "username",
           "email",
@@ -223,7 +229,7 @@ export class UsersService implements OnApplicationBootstrap {
       .catch((error) => {
         if (error instanceof EntityNotFoundError) {
           throw new UnauthorizedException(
-            `Authentication Failed: User '${username}' not found. If you are a new user, please register first.`,
+            `Authentication Failed: User not found. If you are a new user, please register first.`,
           );
         }
         throw new UnauthorizedException(

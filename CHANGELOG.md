@@ -16,6 +16,10 @@
 - [#6](https://github.com/Phalcode/gamevault-backend/issues/6) **Added support for OAuth 2.0.**
 - **Removed deprecated APIs**.
 
+### Changes
+
+- Users can now also login via email and password using the basic-auth login.
+
 ## 14.1.2
 
 ### Changes

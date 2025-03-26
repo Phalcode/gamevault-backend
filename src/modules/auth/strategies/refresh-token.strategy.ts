@@ -3,7 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import configuration from "../../../configuration";
 import { UsersService } from "../../users/users.service";
-import { LoginDto } from "../models/login.dto";
+import { GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface";
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
@@ -11,7 +11,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 ) {
   private readonly logger = new Logger(this.constructor.name);
 
-  constructor(private readonly userService: UsersService) {
+  constructor(private readonly usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: configuration.AUTH.REFRESH_TOKEN.SECRET,
@@ -19,9 +19,15 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(dto: LoginDto) {
-    return await this.userService.findOneByUserIdOrFail(
-      Number(dto.payload.sub),
+  async validate(dto: { payload: GamevaultJwtPayload }) {
+    return await this.usersService.findOneByUsernameOrFail(
+      (
+        await this.usersService.findUserForAuthOrFail({
+          id: Number(dto.payload?.sub),
+          username: dto.payload?.preferred_username,
+          email: dto.payload?.email,
+        })
+      ).username,
     );
   }
 }

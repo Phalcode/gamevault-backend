@@ -24,8 +24,10 @@ export class BasicAuthenticationStrategy extends PassportStrategy(
     username: string,
     password: string,
   ) {
-    const user =
-      await this.usersService.findUserByUsernameForAuthOrFail(username);
+    const user = await this.usersService.findUserForAuthOrFail({
+      username,
+      email: username,
+    });
     const cleanedUser = await this.usersService.findOneByUsernameOrFail(
       user.username,
     );

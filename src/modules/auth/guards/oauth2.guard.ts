@@ -18,11 +18,6 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
         >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
         ?.includes(this.constructor.name)
     ) {
-      this.logger.debug({
-        message: "Skipping Refresh Authentication Checks.",
-        reason: "skip-guards is set to true for this route.",
-        route: context.getHandler(),
-      });
       return true;
     }
 

@@ -1,4 +1,4 @@
-export interface GamevaultJwt {
+export interface GamevaultJwtPayload {
   sub: string;
   name: string;
   given_name: string;
