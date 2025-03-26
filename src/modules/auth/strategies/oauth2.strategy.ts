@@ -82,12 +82,10 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
   private convertOidcUserInfoToPassportProfile(
     oidcUserInfo: OidcUserInfo,
   ): Partial<PassportUserProfile> {
+    if (!oidcUserInfo) return {};
     return {
       id: oidcUserInfo.sub,
-      displayName:
-        oidcUserInfo.preferred_username ||
-        oidcUserInfo.nickname ||
-        oidcUserInfo.name,
+      displayName: oidcUserInfo.preferred_username,
       emails: oidcUserInfo.email ? [{ value: oidcUserInfo.email }] : undefined,
       name: {
         givenName: oidcUserInfo.given_name,
