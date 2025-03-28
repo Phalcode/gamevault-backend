@@ -1,13 +1,12 @@
 import { Injectable } from "@nestjs/common";
 
-import configuration from "../../configuration";
 import { HealthStatus } from "./models/health-status.enum";
 import { Health, HealthProtocolEntry } from "./models/health.model";
 
 @Injectable()
 export class HealthService {
   private readonly epoch: Date = new Date();
-  private currentHealth: Health = new Health();
+  private currentHealth: Health = new Health(this.epoch, []);
 
   constructor() {
     this.set(HealthStatus.HEALTHY, "Server started successfully");
@@ -15,15 +14,10 @@ export class HealthService {
   }
 
   getExtensive(): Health {
-    const newHealth = new Health();
-    newHealth.version = configuration.SERVER.VERSION;
-    newHealth.uptime = Math.floor(
-      (new Date().getTime() - this.epoch.getTime()) / 1000,
-    );
-    newHealth.status = this.currentHealth.status;
-    newHealth.protocol = [...this.currentHealth.protocol];
-    this.currentHealth = newHealth;
-    return newHealth;
+    this.currentHealth = new Health(this.epoch, [
+      ...this.currentHealth.protocol,
+    ]);
+    return this.currentHealth;
   }
 
   get(): Health {
