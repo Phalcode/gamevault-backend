@@ -15,10 +15,12 @@
 
 - [#6](https://github.com/Phalcode/gamevault-backend/issues/6) **Added support for OAuth 2.0.**
 - **Removed deprecated APIs**.
+- Moved `/api/health` to `/api/status` -> **Health API will be removed in v16.0.0.**
 
 ### Changes
 
 - Users can now also login via email and password using the basic-auth login.
+- Added more information about registrations to the server in the `/api/status` endpoint.
 
 ## 14.1.2
 

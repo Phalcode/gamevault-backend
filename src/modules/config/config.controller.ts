@@ -9,7 +9,7 @@ import {
 import { createReadStream, existsSync } from "fs";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Health } from "../health/models/health.model";
+import { Status } from "../status/models/status.model";
 import { Role } from "../users/models/role.enum";
 
 @ApiBearerAuth()
@@ -17,7 +17,7 @@ import { Role } from "../users/models/role.enum";
 @ApiTags("config")
 export class ConfigController {
   @Get("news")
-  @ApiOkResponse({ type: () => Health })
+  @ApiOkResponse({ type: () => Status })
   @ApiOperation({
     summary: "returns the news.md file from the config directory.",
     operationId: "getNews",

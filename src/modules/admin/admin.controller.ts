@@ -10,15 +10,13 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import {
   ApiBearerAuth,
   ApiHeader,
-  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { DatabaseService } from "../database/database.service";
-import { HealthService } from "../health/health.service";
-import { Health } from "../health/models/health.model";
+import { StatusService } from "../status/status.service";
 import { Role } from "../users/models/role.enum";
 
 @ApiBearerAuth()
@@ -26,21 +24,9 @@ import { Role } from "../users/models/role.enum";
 @ApiTags("admin")
 export class AdminController {
   constructor(
-    private readonly healthService: HealthService,
+    private readonly statusService: StatusService,
     private readonly databaseService: DatabaseService,
   ) {}
-
-  @Get("health")
-  @ApiOkResponse({ type: () => Health })
-  @ApiOperation({
-    summary:
-      "returns lifesign and additional server metrics for administrators",
-    operationId: "getAdminHealth",
-  })
-  @MinimumRole(Role.ADMIN)
-  async getAdminHealth(): Promise<Health> {
-    return this.healthService.getExtensive();
-  }
 
   @Get("database/backup")
   @ApiOperation({

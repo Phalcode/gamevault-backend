@@ -70,7 +70,7 @@ RUN chown -R node:node /app/dist /files /media /logs /db /plugins /savefiles \
 EXPOSE ${SERVER_PORT}/tcp
 
 # Add a health check for the service
-HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/health || exit 1
+HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/status || exit 1
 
 # Set entrypoint and default command
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

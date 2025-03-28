@@ -11,6 +11,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
+import { Response } from "express";
 import { AppModule } from "./app.module";
 import configuration, {
   getCensoredConfiguration,
@@ -70,11 +71,11 @@ async function bootstrap(): Promise<void> {
   // Support Legacy Routes
   app.use(new LegacyRoutesMiddleware().use);
 
-  // Skips logs for /health calls
+  // Skips logs for /status and /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
       stream,
-      skip: (req) => req.url.includes("/health"),
+      skip: (req) => req.url.includes("/status") || req.url.includes("/health"),
     }),
   );
 
@@ -158,6 +159,11 @@ async function bootstrap(): Promise<void> {
     //  ),
     //);
   }
+
+  // TODO: Remove in 16.0.0
+  app.use("/health", (_req, res: Response) => {
+    res.redirect(308, "/status");
+  });
 
   if (configuration.SERVER.LANDING_PAGE_ENABLED) {
     app
