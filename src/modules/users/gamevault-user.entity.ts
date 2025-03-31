@@ -10,6 +10,7 @@ import {
   OneToOne,
 } from "typeorm";
 
+import { Session } from "../auth/session.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
@@ -124,6 +125,14 @@ export class GamevaultUser extends DatabaseEntity {
     isArray: true,
   })
   uploaded_media?: Media[];
+
+  @OneToMany(() => Session, (session) => session.user)
+  @ApiPropertyOptional({
+    description: "sessions of the user",
+    type: () => Session,
+    isArray: true,
+  })
+  sessions?: Session[];
 
   @ManyToMany(() => GamevaultGame, (game) => game.bookmarked_users)
   @JoinTable({ name: "bookmark" })

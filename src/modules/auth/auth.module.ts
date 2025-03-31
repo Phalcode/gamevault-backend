@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import configuration from "../../configuration";
 import { UsersModule } from "../users/users.module";
 import { AuthenticationService } from "./authentication.service";
@@ -9,6 +10,7 @@ import { BasicAuthController } from "./controllers/basic-auth.controller";
 import { OAuth2Controller } from "./controllers/oauth2.controller";
 import { AuthenticationGuard } from "./guards/authentication.guard";
 import { AuthorizationGuard } from "./guards/authorization.guard";
+import { Session } from "./session.entity";
 import { AuthenticationStrategy } from "./strategies/authentication.strategy";
 import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy";
 import { OAuth2Strategy } from "./strategies/oauth2.strategy";
@@ -17,6 +19,7 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 @Module({
   imports: [
     UsersModule,
+    TypeOrmModule.forFeature([Session]),
     JwtModule.register({
       global: true,
       secret: configuration.AUTH.ACCESS_TOKEN.SECRET,

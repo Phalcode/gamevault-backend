@@ -43,12 +43,23 @@ export class BasicAuthController {
     operationId: "getAuthBasicLogin",
   })
   @ApiOkResponse({ type: () => TokenPairDto })
-  async getAuthBasicLogin(@Request() request: { user: GamevaultUser }) {
+  async getAuthBasicLogin(
+    @Request()
+    request: {
+      user: GamevaultUser;
+      ip: string;
+      headers: { [key: string]: string };
+    },
+  ) {
     this.logger.log({
       message: "User logged in via basic auth.",
       user: request.user,
     });
-    return this.authenticationService.login(request.user);
+    return this.authenticationService.login(
+      request.user,
+      request.ip,
+      request.headers["user-agent"] || "unknown",
+    );
   }
 
   /** Register a new user. */

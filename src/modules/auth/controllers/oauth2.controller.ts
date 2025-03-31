@@ -21,11 +21,22 @@ export class OAuth2Controller {
       "Initiates a login process by redirecting to the identity provider for validating the user and issuing a bearer token.",
     operationId: "getAuthOauth2Login",
   })
-  async getAuthOauth2Login(@Request() request: { user: GamevaultUser }) {
+  async getAuthOauth2Login(
+    @Request()
+    request: {
+      user: GamevaultUser;
+      ip: string;
+      headers: { [key: string]: string };
+    },
+  ) {
     this.logger.log({
       message: "User logged in via oauth2.",
       user: request.user,
     });
-    return this.authenticationService.login(request.user);
+    return this.authenticationService.login(
+      request.user,
+      request.ip,
+      request.headers["user-agent"] || "unknown",
+    );
   }
 }
