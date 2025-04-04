@@ -547,8 +547,8 @@ export class MetadataService {
         });
       }
 
-      await this.merge(gameId);
-      return await this.gamesService.save(game);
+      await this.gamesService.save(game);
+      return await this.merge(gameId);
     } catch (error) {
       this.logger.error({
         message: "Error mapping game to provider.",
