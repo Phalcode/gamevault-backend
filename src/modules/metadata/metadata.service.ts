@@ -24,7 +24,8 @@ import { ProviderNotFoundException } from "./providers/models/provider-not-found
 @Injectable()
 export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly metadataJobs = new Map<number, GamevaultGame>();
+  private readonly metadataJobs: Map<number, GamevaultGame> = new Map();
+  private isProcessingQueue = false;
   providers: MetadataProvider[] = [];
 
   constructor(
@@ -114,18 +115,33 @@ export class MetadataService {
     }
 
     this.metadataJobs.set(game.id, game);
+    this.processQueue();
+  }
 
-    try {
-      await this.updateMetadata(game.id);
-    } catch (error) {
-      this.logger.warn({
-        message: "Error updating metadata for game.",
-        game: logGamevaultGame(game),
-        error,
-      });
-    } finally {
-      this.metadataJobs.delete(game.id);
+  /**
+   * Processes the queue sequentially
+   */
+  private async processQueue(): Promise<void> {
+    if (this.isProcessingQueue) return;
+    this.isProcessingQueue = true;
+
+    while (this.metadataJobs.size > 0) {
+      const [gameId, game] = this.metadataJobs.entries().next().value;
+
+      try {
+        await this.updateMetadata(game);
+      } catch (error) {
+        this.logger.warn({
+          message: "Error updating metadata for game.",
+          game: logGamevaultGame(game),
+          error,
+        });
+      } finally {
+        this.metadataJobs.delete(gameId);
+      }
     }
+
+    this.isProcessingQueue = false;
   }
 
   /**
@@ -137,14 +153,13 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async updateMetadata(gameId: number): Promise<void> {
-    const game = this.metadataJobs.get(gameId);
+  private async updateMetadata(game: GamevaultGame): Promise<void> {
     if (!game) {
       this.logger.error({
-        message: "Corresponing metadata-job was not found",
-        game: { id: gameId },
+        message: "Corresponding metadata-job was not found",
+        game: { id: game.id },
       });
-      throw new NotFoundException("Corresponing metadata-job was not found");
+      throw new NotFoundException("Corresponding metadata-job was not found");
     }
 
     this.logger.log({

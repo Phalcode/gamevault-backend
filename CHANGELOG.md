@@ -21,6 +21,7 @@
 
 - Users can now also login via email and password using the basic-auth login.
 - Added more information about registrations to the server in the `/api/status` endpoint.
+- Fixed IGDB Integration thriwubg 429s for servers with lots of games
 
 ## 14.1.2
 

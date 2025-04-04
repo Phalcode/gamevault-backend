@@ -233,7 +233,7 @@ const configuration = {
           .update(configuration.AUTH.SEED)
           .digest("hex");
       },
-      EXPIRES_IN: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN || "1h",
+      EXPIRES_IN: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN || "5m",
     } as const,
     REFRESH_TOKEN: {
       get SECRET() {
