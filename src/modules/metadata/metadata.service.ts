@@ -514,16 +514,41 @@ export class MetadataService {
         metadata.provider_priority = providerPriority;
       }
 
-      const savedNewMetadata = await this.gameMetadataService.save(metadata);
-      const game = await this.unmap(gameId, providerSlug);
-      game.provider_metadata.push(savedNewMetadata);
-      const mappedGame = await this.gamesService.save(game);
-      this.logger.log({
-        message: "Mapped metadata provider to a game.",
-        game: logGamevaultGame(game),
-        providerSlug,
+      // Find the game by gameId.
+      const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+        loadDeletedEntities: false,
       });
-      return mappedGame;
+
+      // Check if the metadata for the provider already exists
+      const existingMetadataIndex = game.provider_metadata.findIndex(
+        (m) =>
+          m.provider_slug === providerSlug &&
+          m.provider_data_id === providerGameId,
+      );
+
+      if (existingMetadataIndex === -1) {
+        // Add new metadata if it doesn't exist
+        game.provider_metadata.push(metadata);
+        this.logger.log({
+          message: "Mapped new metadata provider to a game.",
+          game: logGamevaultGame(game),
+          providerSlug,
+        });
+      } else {
+        // Update the existing metadata
+        game.provider_metadata[existingMetadataIndex] = {
+          ...game.provider_metadata[existingMetadataIndex],
+          ...metadata,
+        };
+        this.logger.log({
+          message: "Updated existing metadata provider for a game.",
+          game: logGamevaultGame(game),
+          providerSlug,
+        });
+      }
+
+      await this.merge(gameId);
+      return await this.gamesService.save(game);
     } catch (error) {
       this.logger.error({
         message: "Error mapping game to provider.",
