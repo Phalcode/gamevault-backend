@@ -528,7 +528,9 @@ export class MetadataService {
 
       if (existingMetadataIndex === -1) {
         // Add new metadata if it doesn't exist
-        game.provider_metadata.push(metadata);
+        game.provider_metadata.push(
+          await this.gameMetadataService.save(metadata),
+        );
         this.logger.log({
           message: "Mapped new metadata provider to a game.",
           game: logGamevaultGame(game),
