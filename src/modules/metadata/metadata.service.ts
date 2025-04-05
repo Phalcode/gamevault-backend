@@ -493,7 +493,7 @@ export class MetadataService {
     }
 
     await this.gamesService.save(game);
-    return await this.merge(gameId);
+    return game;
   }
 
   /**
@@ -550,7 +550,7 @@ export class MetadataService {
       }
 
       await this.gamesService.save(game);
-      return await this.merge(gameId);
+      return game;
     } catch (error) {
       this.logger.error({
         message: "Error mapping game to provider.",
