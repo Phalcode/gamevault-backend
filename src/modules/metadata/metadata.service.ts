@@ -448,7 +448,6 @@ export class MetadataService {
 
   /**
    * Removes metadata from the game. Does not remove user provided metadata.
-
    */
   async unmap(gameId: number, providerSlug: string) {
     // Find the game by gameId.
@@ -493,7 +492,8 @@ export class MetadataService {
       });
     }
 
-    return this.gamesService.save(game);
+    await this.gamesService.save(game);
+    return await this.merge(gameId);
   }
 
   /**
@@ -536,10 +536,12 @@ export class MetadataService {
         });
       } else {
         // Update the existing metadata
-        game.provider_metadata[existingMetadataIndex] = {
+        const updatedMetadata = {
           ...game.provider_metadata[existingMetadataIndex],
           ...metadata,
         };
+        game.provider_metadata[existingMetadataIndex] =
+          await this.gameMetadataService.save(updatedMetadata);
         this.logger.log({
           message: "Updated existing metadata provider for a game.",
           game: logGamevaultGame(game),
