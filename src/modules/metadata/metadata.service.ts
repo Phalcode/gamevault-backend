@@ -504,14 +504,14 @@ export class MetadataService {
     gameId: number,
     providerSlug: string,
     providerGameId: string,
-    providerPriority: number,
+    providerPriorityOverride?: number,
   ) {
     const provider = this.getProviderBySlugOrFail(providerSlug);
     try {
       const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
 
-      if (providerPriority != null) {
-        metadata.provider_priority = providerPriority;
+      if (providerPriorityOverride != null) {
+        metadata.provider_priority = providerPriorityOverride;
       }
 
       // Find the game by gameId.
