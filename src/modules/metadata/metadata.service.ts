@@ -24,7 +24,7 @@ import { ProviderNotFoundException } from "./providers/models/provider-not-found
 @Injectable()
 export class MetadataService {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly metadataJobs: Map<number, GamevaultGame> = new Map();
+  private readonly metadataJobs = new Map<number, GamevaultGame>();
   private isProcessingQueue = false;
   providers: MetadataProvider[] = [];
 
@@ -492,77 +492,70 @@ export class MetadataService {
       });
     }
 
-    await this.gamesService.save(game);
-    return game;
+    return this.gamesService.save(game);
   }
 
   /**
-   * Maps the metadata of a game provider to a game, overwriting the existing one if necessary.
-   * Metadata usually needs to be merged after to be effective.
+   * Maps a game to a metadata provider by fetching and saving the metadata.
+   *
+   * @param gameId - The ID of the game to map metadata to
+   * @param providerSlug - The slug of the metadata provider (e.g., 'igdb', 'rawg')
+   * @param providerGameId - The unique identifier of the game in the provider's system
+   * @param providerPriorityOverride - Optional priority override for the metadata provider
    */
   async map(
     gameId: number,
     providerSlug: string,
     providerGameId: string,
     providerPriorityOverride?: number,
-  ) {
+  ): Promise<GamevaultGame> {
     const provider = this.getProviderBySlugOrFail(providerSlug);
-    try {
-      const metadata = await provider.getByProviderDataIdOrFail(providerGameId);
 
+    try {
+      // Fetch metadata from provider
+      const fetchedMetadata =
+        await provider.getByProviderDataIdOrFail(providerGameId);
+
+      // Apply priority override if provided
       if (providerPriorityOverride != null) {
-        metadata.provider_priority = providerPriorityOverride;
+        fetchedMetadata.provider_priority = providerPriorityOverride;
       }
 
-      // Find the game by gameId.
+      // Save the metadata
+      const gameMetadata = await this.gameMetadataService.save(fetchedMetadata);
+
+      // Get the game and update its metadata
       const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: false,
       });
 
-      // Check if the metadata for the provider already exists
-      const existingMetadataIndex = game.provider_metadata.findIndex(
-        (m) =>
-          m.provider_slug === providerSlug &&
-          m.provider_data_id === providerGameId,
-      );
-
-      if (existingMetadataIndex === -1) {
-        // Add new metadata if it doesn't exist
-        game.provider_metadata.push(
-          await this.gameMetadataService.save(metadata),
-        );
-        this.logger.log({
-          message: "Mapped new metadata provider to a game.",
-          game: logGamevaultGame(game),
-          providerSlug,
-        });
-      } else {
-        // Update the existing metadata
-        const updatedMetadata = {
-          ...game.provider_metadata[existingMetadataIndex],
-          ...metadata,
-        };
-        game.provider_metadata[existingMetadataIndex] =
-          await this.gameMetadataService.save(updatedMetadata);
-        this.logger.log({
-          message: "Updated existing metadata provider for a game.",
-          game: logGamevaultGame(game),
-          providerSlug,
-        });
+      // Only add the metadata if it's not already associated with the game
+      if (!game.provider_metadata.some((m) => m.id === gameMetadata.id)) {
+        game.provider_metadata.push(gameMetadata);
+        await this.gamesService.save(game);
       }
 
-      await this.gamesService.save(game);
+      // Log successful mapping
+      this.logger.log({
+        message: "Successfully mapped metadata provider to game",
+        game: logGamevaultGame(game),
+        providerSlug,
+      });
+
       return game;
     } catch (error) {
+      // Log the error with detailed context
       this.logger.error({
-        message: "Error mapping game to provider.",
+        message: "Failed to map game to metadata provider",
         provider: logMetadataProvider(provider),
         game: logGamevaultGame({ id: gameId } as GamevaultGame),
         error,
       });
+
+      // Re-throw with appropriate error message
       throw new InternalServerErrorException(
         error,
-        "Error mapping game to provider. Please check the server logs for details.",
+        "Failed to map game to metadata provider. Please check the server logs for details.",
       );
     }
   }
