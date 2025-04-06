@@ -219,7 +219,6 @@ export class MetadataService {
             game.id,
             provider.slug,
             existingProviderMetadata.provider_data_id,
-            undefined,
           );
         } else {
           // If the existing provider metadata is not found, find the metadata.
@@ -274,12 +273,7 @@ export class MetadataService {
     });
     try {
       const bestMatchingGame = await provider.getBestMatch(game);
-      await this.map(
-        game.id,
-        provider.slug,
-        bestMatchingGame.provider_data_id,
-        undefined,
-      );
+      await this.map(game.id, provider.slug, bestMatchingGame.provider_data_id);
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.debug({
@@ -333,6 +327,8 @@ export class MetadataService {
       this.logger.warn({
         message: "No metadata found to merge.",
         game: gameId,
+        provider_metadata: game.provider_metadata,
+        user_metadata: game.user_metadata,
       });
       return game;
     }
@@ -531,6 +527,12 @@ export class MetadataService {
 
       // Only add the metadata if it's not already associated with the game
       if (!game.provider_metadata.some((m) => m.id === gameMetadata.id)) {
+        this.logger.debug({
+          message: "Adding new metadata provider mapping to game",
+          game: logGamevaultGame(game),
+          provider_metadata: game.provider_metadata,
+          new_provider_metadata: gameMetadata,
+        });
         game.provider_metadata.push(gameMetadata);
         await this.gamesService.save(game);
       }
