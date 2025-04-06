@@ -321,6 +321,7 @@ export class MetadataService {
   async merge(gameId: number): Promise<GamevaultGame> {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
+      loadRelations: ["metadata", "provider_metadata", "user_metadata"],
     });
 
     if (!game.provider_metadata.length && !game.user_metadata) {
@@ -523,6 +524,7 @@ export class MetadataService {
       // Get the game and update its metadata
       const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: false,
+        loadRelations: ["provider_metadata"],
       });
 
       // Only add the metadata if it's not already associated with the game
