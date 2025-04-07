@@ -123,6 +123,7 @@ export class GameMetadataService {
         provider_slug: game.provider_slug,
         provider_data_id: game.provider_data_id,
       },
+      relations: ["gamevault_games"],
       relationLoadStrategy: "query",
     });
 
@@ -153,7 +154,8 @@ export class GameMetadataService {
       launch_parameters: game.launch_parameters,
       launch_executable: game.launch_executable,
       installer_executable: game.installer_executable,
-      gamevault_games: undefined,
+      gamevault_games:
+        game.gamevault_games || existingGame?.gamevault_games || [],
       publishers: null,
       developers: null,
       tags: null,

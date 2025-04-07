@@ -505,7 +505,7 @@ export class MetadataService {
     providerSlug: string,
     providerGameId: string,
     providerPriorityOverride?: number,
-  ): Promise<GamevaultGame> {
+  ) {
     const provider = this.getProviderBySlugOrFail(providerSlug);
 
     try {
@@ -518,26 +518,16 @@ export class MetadataService {
         fetchedMetadata.provider_priority = providerPriorityOverride;
       }
 
-      // Save the metadata
-      const gameMetadata = await this.gameMetadataService.save(fetchedMetadata);
-
       // Get the game and update its metadata
       const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: false,
-        loadRelations: ["provider_metadata"],
+        loadRelations: false,
       });
 
-      // Only add the metadata if it's not already associated with the game
-      if (!game.provider_metadata.some((m) => m.id === gameMetadata.id)) {
-        this.logger.debug({
-          message: "Adding new metadata provider mapping to game",
-          game: logGamevaultGame(game),
-          provider_metadata: game.provider_metadata,
-          new_provider_metadata: gameMetadata,
-        });
-        game.provider_metadata.push(gameMetadata);
-        await this.gamesService.save(game);
-      }
+      fetchedMetadata.gamevault_games = [game];
+
+      // Save the metadata
+      await this.gameMetadataService.save(fetchedMetadata);
 
       // Log successful mapping
       this.logger.log({
@@ -545,8 +535,6 @@ export class MetadataService {
         game: logGamevaultGame(game),
         providerSlug,
       });
-
-      return game;
     } catch (error) {
       // Log the error with detailed context
       this.logger.error({
