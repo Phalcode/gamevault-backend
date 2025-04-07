@@ -135,7 +135,17 @@ export class GamevaultUser extends DatabaseEntity {
   sessions?: Session[];
 
   @ManyToMany(() => GamevaultGame, (game) => game.bookmarked_users)
-  @JoinTable({ name: "bookmark" })
+  @JoinTable({
+    name: "bookmark",
+    joinColumn: {
+      name: "gamevault_user_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "gamevault_game_id",
+      referencedColumnName: "id",
+    },
+  })
   @ApiProperty({
     description: "games bookmarked by this user",
     type: () => GamevaultGame,

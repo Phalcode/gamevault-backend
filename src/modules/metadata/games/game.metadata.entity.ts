@@ -26,8 +26,17 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity implements Metadata {
-  @JoinTable()
-  @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
+  @JoinTable({
+    name: "gamevault_game_provider_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "gamevault_game_id",
+      referencedColumnName: "id",
+    },
+  })
   @ApiPropertyOptional({
     description: "games the metadata belongs to",
     type: () => GamevaultGame,
@@ -213,7 +222,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   installer_executable?: string;
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_publisher_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "publisher_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,
   })
@@ -224,7 +243,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   publishers?: PublisherMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_developer_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "developer_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
     eager: true,
   })
@@ -235,7 +264,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   developers?: DeveloperMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_tag_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "tag_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => TagMetadata, (tag) => tag.games, {
     eager: true,
   })
@@ -246,7 +285,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   tags?: TagMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_genre_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "genre_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
     eager: true,
   })

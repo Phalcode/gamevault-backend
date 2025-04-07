@@ -109,7 +109,17 @@ export class GamevaultGame extends DatabaseEntity {
   })
   type: GameType;
 
-  @JoinTable()
+  @JoinTable({
+    name: "gamevault_game_provider_metadata",
+    joinColumn: {
+      name: "gamevault_game_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => GameMetadata, (metadata) => metadata.gamevault_games)
   @ApiPropertyOptional({
     description: "metadata of various providers associated to the game",
