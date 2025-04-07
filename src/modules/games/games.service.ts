@@ -201,8 +201,6 @@ export class GamesService {
         updatedUserMetadata.updated_at || undefined;
       updatedUserMetadata.entity_version =
         updatedUserMetadata.entity_version || undefined;
-      updatedUserMetadata.gamevault_games =
-        game.metadata?.gamevault_games || undefined;
 
       if (dto.user_metadata.age_rating != null) {
         updatedUserMetadata.age_rating = dto.user_metadata.age_rating;

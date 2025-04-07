@@ -13,7 +13,6 @@ import {
 import globals from "../../../globals";
 import { MediaValidator } from "../../../validators/media.validator";
 import { DatabaseEntity } from "../../database/database.entity";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { Media } from "../../media/media.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
@@ -26,24 +25,6 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity implements Metadata {
-  @JoinTable({
-    name: "gamevault_game_provider_metadata",
-    joinColumn: {
-      name: "game_metadata_id",
-      referencedColumnName: "id",
-    },
-    inverseJoinColumn: {
-      name: "gamevault_game_id",
-      referencedColumnName: "id",
-    },
-  })
-  @ApiPropertyOptional({
-    description: "games the metadata belongs to",
-    type: () => GamevaultGame,
-    isArray: true,
-  })
-  gamevault_games?: GamevaultGame[];
-
   //#region Provider Metadata Properties
   @Column({ nullable: true })
   @Index()
@@ -223,7 +204,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   installer_executable?: string;
 
   @JoinTable({
-    name: "game_metadata_publisher_metadata",
+    name: "game_metadata_publishers_publisher_metadata",
     joinColumn: {
       name: "game_metadata_id",
       referencedColumnName: "id",
@@ -244,7 +225,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   publishers?: PublisherMetadata[];
 
   @JoinTable({
-    name: "game_metadata_developer_metadata",
+    name: "game_metadata_developers_developer_metadata",
     joinColumn: {
       name: "game_metadata_id",
       referencedColumnName: "id",
@@ -265,7 +246,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   developers?: DeveloperMetadata[];
 
   @JoinTable({
-    name: "game_metadata_tag_metadata",
+    name: "game_metadata_tags_tag_metadata",
     joinColumn: {
       name: "game_metadata_id",
       referencedColumnName: "id",
@@ -286,7 +267,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   tags?: TagMetadata[];
 
   @JoinTable({
-    name: "game_metadata_genre_metadata",
+    name: "game_metadata_genres_genre_metadata",
     joinColumn: {
       name: "game_metadata_id",
       referencedColumnName: "id",
