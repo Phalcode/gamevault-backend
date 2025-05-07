@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ForbiddenException,
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
@@ -245,8 +247,9 @@ export class UsersService implements OnApplicationBootstrap {
       );
     }
     if (!user.activated && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(
+      throw new HttpException(
         "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
+        HttpStatus.NO_CONTENT,
       );
     }
     return user;

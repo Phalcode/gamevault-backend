@@ -1,7 +1,8 @@
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -55,8 +56,9 @@ export class SocketSecretGuard implements CanActivate {
         );
       }
       if (!user.activated && user.role !== Role.ADMIN) {
-        throw new ForbiddenException(
+        throw new HttpException(
           "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
+          HttpStatus.NO_CONTENT,
         );
       }
 
