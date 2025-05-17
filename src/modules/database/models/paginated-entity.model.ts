@@ -18,11 +18,11 @@ export class Metadata<T> {
     type: () => String,
     isArray: true,
   })
-  searchBy?: Column<T>[];
+  searchBy: Column<T>[];
   @ApiPropertyOptional({ description: "search query" })
-  search?: string;
+  search: string;
   @ApiPropertyOptional({ description: "select string" })
-  select?: string[];
+  select: string[];
   @ApiPropertyOptional({
     description: "filters that were applied by the query",
   })

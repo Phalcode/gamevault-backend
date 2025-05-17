@@ -74,7 +74,10 @@ export class GamevaultUser extends DatabaseEntity {
   email: string;
 
   @Column({ nullable: true })
-  @ApiPropertyOptional({ example: "John", description: "first name of the user" })
+  @ApiPropertyOptional({
+    example: "John",
+    description: "first name of the user",
+  })
   first_name?: string;
 
   @Column({ nullable: true })
