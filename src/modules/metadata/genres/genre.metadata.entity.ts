@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotIn, Matches } from "class-validator";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
@@ -45,10 +45,10 @@ export class GenreMetadata extends DatabaseEntity implements Metadata {
   name: string;
 
   @ManyToMany(() => GameMetadata, (game) => game.genres)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "games of the genre",
     type: () => GameMetadata,
     isArray: true,
   })
-  games: GameMetadata[];
+  games?: GameMetadata[];
 }

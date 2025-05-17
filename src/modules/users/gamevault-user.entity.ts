@@ -33,12 +33,12 @@ export class GamevaultUser extends DatabaseEntity {
 
   @Index({ unique: true })
   @Column({ select: false, unique: true, length: 64 })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "the user's socket secret is used for authentication with the server over the websocket protocol.",
     example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
   })
-  socket_secret: string;
+  socket_secret?: string;
 
   @OneToOne(() => Media, {
     nullable: true,
@@ -74,12 +74,12 @@ export class GamevaultUser extends DatabaseEntity {
   email: string;
 
   @Column({ nullable: true })
-  @ApiProperty({ example: "John", description: "first name of the user" })
-  first_name: string;
+  @ApiPropertyOptional({ example: "John", description: "first name of the user" })
+  first_name?: string;
 
   @Column({ nullable: true })
-  @ApiProperty({ example: "Doe", description: "last name of the user" })
-  last_name: string;
+  @ApiPropertyOptional({ example: "Doe", description: "last name of the user" })
+  last_name?: string;
 
   @Index()
   @Column({ nullable: true })
@@ -146,7 +146,7 @@ export class GamevaultUser extends DatabaseEntity {
       referencedColumnName: "id",
     },
   })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "games bookmarked by this user",
     type: () => GamevaultGame,
     isArray: true,

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotIn, Matches } from "class-validator";
 import { Column, Entity, Index, ManyToMany } from "typeorm";
 
@@ -46,10 +46,10 @@ export class TagMetadata extends DatabaseEntity implements Metadata {
   name: string;
 
   @ManyToMany(() => GameMetadata, (game) => game.tags)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "games tagged with the tag",
     type: () => GameMetadata,
     isArray: true,
   })
-  games: GameMetadata[];
+  games?: GameMetadata[];
 }

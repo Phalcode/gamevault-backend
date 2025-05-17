@@ -142,6 +142,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted screenshots of the game",
+    type: () => String,
     isArray: true,
   })
   url_screenshots?: string[];
@@ -149,6 +150,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted trailer videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_trailers?: string[];
@@ -156,6 +158,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted gameplay videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_gameplays?: string[];
@@ -164,6 +167,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @ApiPropertyOptional({
     description: "URLs of websites of the game",
     example: "https://escapefromtarkov.com",
+    type: () => String,
     isArray: true,
   })
   url_websites?: string[];

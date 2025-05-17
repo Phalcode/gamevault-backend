@@ -13,12 +13,16 @@ export class Metadata<T> {
   totalPages: number;
   @ApiProperty({ description: "sorting that was applied by the query" })
   sortBy: SortBy<T>;
-  @ApiProperty({ description: "searches that were applied by the query" })
-  searchBy: Column<T>[];
-  @ApiProperty({ description: "search query" })
-  search: string;
-  @ApiProperty({ description: "select string" })
-  select: string[];
+  @ApiPropertyOptional({
+    description: "searches that were applied by the query",
+    type: () => String,
+    isArray: true,
+  })
+  searchBy?: Column<T>[];
+  @ApiPropertyOptional({ description: "search query" })
+  search?: string;
+  @ApiPropertyOptional({ description: "select string" })
+  select?: string[];
   @ApiPropertyOptional({
     description: "filters that were applied by the query",
   })

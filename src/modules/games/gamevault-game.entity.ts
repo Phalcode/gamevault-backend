@@ -21,12 +21,12 @@ import { GameType } from "./models/game-type.enum";
 export class GamevaultGame extends DatabaseEntity {
   @Index({ unique: true })
   @Column({ unique: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "file path to the game or the game manifest (relative to root)",
     example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
-  file_path: string;
+  file_path?: string;
 
   @Column({
     type: "bigint",
@@ -39,12 +39,12 @@ export class GamevaultGame extends DatabaseEntity {
       },
     },
   })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "size of the game file in bytes",
     example: "1234567890",
     type: () => String,
   })
-  size: bigint;
+  size?: bigint;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -78,16 +78,16 @@ export class GamevaultGame extends DatabaseEntity {
   release_date?: Date;
 
   @Column({ default: false })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "indicates if the game is an early access title (extracted from filename e.g. '(EA)')",
     example: true,
     default: false,
   })
-  early_access: boolean = false;
+  early_access?: boolean = false;
 
   @Column({ default: 0 })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "Indicates how many times the game has been downloaded on this server.",
     example: 10,
@@ -100,7 +100,7 @@ export class GamevaultGame extends DatabaseEntity {
     enum: GameType,
     default: GameType.UNDETECTABLE,
   })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "type of the game, see https://gamevau.lt/docs/server-docs/game-types for all possible values",
     type: "string",
@@ -164,7 +164,7 @@ export class GamevaultGame extends DatabaseEntity {
   progresses?: Progress[];
 
   @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "users that bookmarked this game",
     type: () => GamevaultGame,
     isArray: true,
