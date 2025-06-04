@@ -1,4 +1,4 @@
-import { cp, readdir } from "fs/promises";
+import { copy, readdir } from "fs-extra";
 import path, { join, resolve } from "path";
 import configuration from "./configuration";
 import { GameVaultPluginModule } from "./globals";
@@ -27,7 +27,7 @@ export default async function loadPlugins() {
         pluginDir,
         injectDir,
       });
-      await cp(pluginDir, injectDir, { recursive: true });
+      await copy(pluginDir, injectDir);
     }
 
     const pluginModuleFiles = (

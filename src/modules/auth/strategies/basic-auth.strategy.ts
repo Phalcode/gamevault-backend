@@ -2,7 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { BasicStrategy } from "passport-http";
 
-import { compareSync } from "bcrypt";
+import { compare } from "bcrypt";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
 import { UsersService } from "../../users/users.service";
 
@@ -33,7 +33,7 @@ export class BasicAuthenticationStrategy extends PassportStrategy(
     );
     request.user = cleanedUser;
 
-    if (!compareSync(password, user.password)) {
+    if (!(await compare(password, user.password))) {
       throw new UnauthorizedException(
         "Authentication Failed: Incorrect Password",
       );

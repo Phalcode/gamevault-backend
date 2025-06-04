@@ -24,7 +24,7 @@ import {
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";
-import fs from "fs";
+import { createReadStream } from "fs-extra";
 
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
@@ -60,7 +60,7 @@ export class MediaController {
   ): Promise<void> {
     const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
-    fs.createReadStream(media.file_path).pipe(res);
+    createReadStream(media.file_path).pipe(res);
   }
 
   @Post()

@@ -6,7 +6,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { createReadStream, existsSync } from "fs";
+import { createReadStream, pathExists } from "fs-extra";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { Status } from "../status/models/status.model";
@@ -24,11 +24,10 @@ export class ConfigController {
   })
   @MinimumRole(Role.GUEST)
   async getNews(): Promise<StreamableFile> {
-    if (!existsSync(`${configuration.VOLUMES.CONFIG}/news.md`)) {
-      return;
+    if (await pathExists(`${configuration.VOLUMES.CONFIG}/news.md`)) {
+      return new StreamableFile(
+        createReadStream(`${configuration.VOLUMES.CONFIG}/news.md`),
+      );
     }
-    return new StreamableFile(
-      createReadStream(`${configuration.VOLUMES.CONFIG}/news.md`),
-    );
   }
 }

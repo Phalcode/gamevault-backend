@@ -23,6 +23,7 @@
 - Added more information about registrations to the server in the `/api/status` endpoint.
 - Fixed IGDB Integration throwing 429s for servers with lots of games
 - Fixed some wrong data in the OpenAPI Specification
+- Optimized some synchronous tasks
 
 ## 14.1.2
 

@@ -7,8 +7,7 @@ import {
 } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { Response } from "express";
-import { Stats, createReadStream, existsSync, statSync } from "fs";
-import { readdir, stat } from "fs/promises";
+import { Stats, createReadStream, pathExists, readdir, stat } from "fs-extra";
 import { debounce, toLower } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
@@ -462,7 +461,7 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   private async archive(output: string, sourcePath: string): Promise<void> {
-    if (!existsSync(sourcePath)) {
+    if (!(await pathExists(sourcePath))) {
       throw new NotFoundException(
         `The game file "${sourcePath}" could not be found.`,
       );
@@ -557,30 +556,25 @@ export class FilesService implements OnApplicationBootstrap {
    */
   private async readAllFiles(): Promise<File[]> {
     try {
-      if (configuration.TESTING.MOCK_FILES) {
-        return mock;
-      }
+      if (configuration.TESTING.MOCK_FILES) return mock;
 
-      return (
-        await readdir(configuration.VOLUMES.FILES, {
-          encoding: "utf8",
-          recursive: configuration.GAMES.SEARCH_RECURSIVE,
-          withFileTypes: true,
-        })
-      )
-        .filter((file) => file.isFile() && this.isValidFilePath(file.name))
-        .map(
-          (file) =>
-            ({
-              path: join(file.path, file.name),
-              size: BigInt(statSync(join(file.path, file.name)).size),
-            }) as File,
-        );
-    } catch (error) {
-      this.logger.error({
-        message: `Error reading files.`,
-        error,
+      const entries = await readdir(configuration.VOLUMES.FILES, {
+        encoding: "utf8",
+        recursive: configuration.GAMES.SEARCH_RECURSIVE,
+        withFileTypes: true,
       });
+
+      return Promise.all(
+        entries
+          .filter((e) => e.isFile() && this.isValidFilePath(e.name))
+          .map(async (e) => {
+            const path = join(e.path, e.name);
+            const { size } = await stat(path);
+            return { path, size: BigInt(size) };
+          }),
+      );
+    } catch (error) {
+      this.logger.error({ message: "Error reading files.", error });
       return [];
     }
   }
@@ -633,13 +627,13 @@ export class FilesService implements OnApplicationBootstrap {
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
       // If the archive file does not exist, create it.
-      if (!existsSync(fileDownloadPath)) {
+      if (!(await pathExists(fileDownloadPath))) {
         await this.archive(fileDownloadPath, game.file_path);
       }
     }
 
     // If the file does not exist, throw an exception.
-    if (!existsSync(fileDownloadPath)) {
+    if (!(await pathExists(fileDownloadPath))) {
       throw new NotFoundException(
         `The game file "${fileDownloadPath}" could not be found.`,
       );

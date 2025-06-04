@@ -7,8 +7,13 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { exec } from "child_process";
-import { createReadStream, existsSync, statSync } from "fs";
-import { copyFile, writeFile } from "fs/promises";
+import {
+  copyFile,
+  createReadStream,
+  pathExists,
+  stat,
+  writeFile,
+} from "fs-extra";
 import mime from "mime";
 import path from "path";
 import filenameSanitizer from "sanitize-filename";
@@ -166,7 +171,7 @@ export class DatabaseService {
         error,
       });
 
-      if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
+      if (await pathExists("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         try {
           await this.execPromise(
@@ -205,7 +210,9 @@ export class DatabaseService {
       size: file.size,
     });
     try {
-      if (existsSync(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)) {
+      if (
+        await pathExists(`${configuration.VOLUMES.SQLITEDB}/database.sqlite`)
+      ) {
         this.backupSqlite("/tmp/gamevault_database_pre_restore.db");
       }
       await writeFile(
@@ -214,7 +221,7 @@ export class DatabaseService {
       );
     } catch (error) {
       this.logger.error({ message: "Error restoring SQLITE database", error });
-      if (existsSync("/tmp/gamevault_database_pre_restore.db")) {
+      if (await pathExists("/tmp/gamevault_database_pre_restore.db")) {
         this.logger.log("Restoring pre-restore database.");
         await copyFile(
           "/tmp/gamevault_database_pre_restore.db",
@@ -239,9 +246,11 @@ export class DatabaseService {
     return `/tmp/gamevault_${configuration.SERVER.VERSION}_database_backup_${timestamp}.db`;
   }
 
-  private createStreamableFile(filePath: string): StreamableFile {
+  private async createStreamableFile(
+    filePath: string,
+  ): Promise<StreamableFile> {
     const file = createReadStream(filePath);
-    const length = statSync(filePath).size;
+    const length = (await stat(filePath)).size;
     const type = mime.getType(filePath);
     const filename = filenameSanitizer(unidecode(path.basename(filePath)));
 

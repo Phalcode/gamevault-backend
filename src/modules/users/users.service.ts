@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { hashSync } from "bcrypt";
+import { hash } from "bcrypt";
 import { randomBytes } from "crypto";
 import {
   EntityNotFoundError,
@@ -183,7 +183,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     const user = new GamevaultUser();
     user.username = dto.username;
-    user.password = hashSync(dto.password, 10);
+    user.password = await hash(dto.password, 10);
     user.socket_secret = randomBytes(32).toString("hex");
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
@@ -322,7 +322,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (dto.password != null) {
       logUpdate("password", user.password, "**REDACTED**");
-      user.password = hashSync(dto.password, 10);
+      user.password = await hash(dto.password, 10);
     }
 
     if (dto.avatar_id != null) {

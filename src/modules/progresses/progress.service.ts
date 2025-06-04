@@ -7,7 +7,7 @@ import {
   OnApplicationBootstrap,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { readFile } from "fs/promises";
+import { readFile } from "fs-extra";
 import path from "path";
 import { FindOneOptions, IsNull, LessThanOrEqual, Repository } from "typeorm";
 
