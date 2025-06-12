@@ -1,0 +1,47 @@
+// ...existing imports
+import { Column } from "typeorm";
+
+@Entity()
+export class GamevaultUser extends DatabaseEntity {
+  // ...existing fields
+
+  @Column({ type: "decimal", default: 0 })
+  balance: number;
+
+  @Column({ type: "varchar", default: "beginner" })
+  difficulty: string;
+
+  // ...rest of the entity
+}import { hashSync } from "bcryptjs";
+import { getRepository } from "typeorm";
+import { GamevaultUser } from "../src/modules/users/gamevault-user.entity";
+
+async function createUser() {
+  const userRepository = getRepository(GamevaultUser);
+
+  // Check if user already exists
+  const exists = await userRepository.findOne({ where: { username: "og1prime" } });
+  if (exists) {
+    console.log("User already exists.");
+    return;
+  }
+
+  const user = userRepository.create({
+    username: "og1prime",
+    password: hashSync("112233", 10),
+    balance: 50,
+    difficulty: "beginner",
+    activated: true,
+    // add any other required fields here (email, first_name, etc.)
+  });
+
+  await userRepository.save(user);
+  console.log("User created:", user.username);
+}
+
+createUser()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
