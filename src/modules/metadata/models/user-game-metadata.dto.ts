@@ -148,10 +148,39 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty()
   @IsString()
   @ApiPropertyOptional({
+    description:
+      "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
+    example: '/DIR="%INSTALLDIR%" /SILENT',
+  })
+  installer_parameters?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
     description: "Predefined installer executable for the game.",
     example: "setup.exe",
   })
   installer_executable?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      "Predefined uninstaller parameters for the game.",
+    example: '/SILENT',
+  })
+  uninstaller_parameters?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller executable for the game.",
+    example: "uninst.exe",
+  })
+  uninstaller_executable?: string;
 
   @IsArray()
   @IsOptional()

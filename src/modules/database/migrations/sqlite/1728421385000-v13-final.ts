@@ -4369,6 +4369,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     // Fetch all games
     const games = await gameRepository.find({
       withDeleted: true,
+      loadEagerRelations: false,
       select: ["id", "title"],
     });
 

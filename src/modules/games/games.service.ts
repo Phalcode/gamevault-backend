@@ -264,9 +264,24 @@ export class GamesService {
           dto.user_metadata.launch_executable;
       }
 
+      if (dto.user_metadata.installer_parameters != null) {
+        updatedUserMetadata.installer_parameters =
+          dto.user_metadata.installer_parameters;
+      }
+
       if (dto.user_metadata.installer_executable != null) {
         updatedUserMetadata.installer_executable =
           dto.user_metadata.installer_executable;
+      }
+
+      if (dto.user_metadata.uninstaller_parameters != null) {
+        updatedUserMetadata.uninstaller_parameters =
+          dto.user_metadata.uninstaller_parameters;
+      }
+
+      if (dto.user_metadata.uninstaller_executable != null) {
+        updatedUserMetadata.uninstaller_executable =
+          dto.user_metadata.uninstaller_executable;
       }
 
       if (dto.user_metadata.url_screenshots != null) {

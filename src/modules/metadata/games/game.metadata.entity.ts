@@ -202,10 +202,33 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
+    description:
+      "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
+    example: '/DIR="%INSTALLDIR%" /SILENT',
+  })
+  installer_parameters?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
     description: "Predefined installer executable for the game.",
     example: "setup.exe",
   })
   installer_executable?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description:
+      "Predefined uninstaller parameters for the game.",
+    example: '/SILENT',
+  })
+  uninstaller_parameters?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller executable for the game.",
+    example: "uninst.exe",
+  })
+  uninstaller_executable?: string;
 
   @JoinTable({
     name: "game_metadata_publishers_publisher_metadata",

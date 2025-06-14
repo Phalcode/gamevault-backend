@@ -24,6 +24,8 @@
 - Fixed IGDB Integration throwing 429s for servers with lots of games
 - Fixed some wrong data in the OpenAPI Specification
 - Optimized some synchronous tasks
+- [#500](https://github.com/Phalcode/gamevault-backend/issues/500) Implemented `installer_parameters`, `uninstaller_parameters`, and `uninstaller_executable` fields in game metadata.
+- [#502](https://github.com/Phalcode/gamevault-backend/issues/502) & [#344](https://github.com/Phalcode/gamevault-backend/issues/344) Implemented Default Innosetup Installer Params for IGDB Provider
 
 ## 14.1.2
 

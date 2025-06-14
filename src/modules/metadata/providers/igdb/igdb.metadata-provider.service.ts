@@ -237,6 +237,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         "t_thumb",
         "t_1080p_2x",
       ),
+      installer_parameters: '/DIR="%INSTALLDIR%" /SILENT',
     } as GameMetadata;
   }
 
