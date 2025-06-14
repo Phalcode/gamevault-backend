@@ -167,9 +167,8 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty()
   @IsString()
   @ApiPropertyOptional({
-    description:
-      "Predefined uninstaller parameters for the game.",
-    example: '/SILENT',
+    description: "Predefined uninstaller parameters for the game.",
+    example: "/SILENT",
   })
   uninstaller_parameters?: string;
 

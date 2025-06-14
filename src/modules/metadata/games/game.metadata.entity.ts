@@ -217,9 +217,8 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
-    description:
-      "Predefined uninstaller parameters for the game.",
-    example: '/SILENT',
+    description: "Predefined uninstaller parameters for the game.",
+    example: "/SILENT",
   })
   uninstaller_parameters?: string;
 

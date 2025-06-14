@@ -1,35 +1,35 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class InstallerParam1749920390990 implements MigrationInterface {
-    name = 'InstallerParam1749920390990'
+  name = "InstallerParam1749920390990";
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
           ALTER TABLE game_metadata
           ADD COLUMN installer_parameters varchar;
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
           ALTER TABLE game_metadata
           ADD COLUMN uninstaller_executable varchar;
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
           ALTER TABLE game_metadata
           ADD COLUMN uninstaller_parameters varchar;
         `);
-      }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             DROP INDEX "IDX_8602b8a76c7952d1155118933f"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0b9f583ebc16b0bb8cbfaf00f8"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "gamevault_game_provider_metadata_game_metadata"
                 RENAME TO "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "gamevault_game_provider_metadata_game_metadata" (
                 "gamevault_game_id" integer NOT NULL,
                 "game_metadata_id" integer NOT NULL,
@@ -37,44 +37,44 @@ export class InstallerParam1749920390990 implements MigrationInterface {
                 PRIMARY KEY ("gamevault_game_id", "game_metadata_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "gamevault_game_provider_metadata_game_metadata"("gamevault_game_id", "game_metadata_id")
             SELECT "gamevault_game_id",
                 "game_metadata_id"
             FROM "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_8602b8a76c7952d1155118933f" ON "gamevault_game_provider_metadata_game_metadata" ("gamevault_game_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0b9f583ebc16b0bb8cbfaf00f8" ON "gamevault_game_provider_metadata_game_metadata" ("game_metadata_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_7af272a017b850a4ce7a6c2886"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_e9a00e38e7969570d9ab66dd27"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_4f0b69ca308a906932c84ea0d5"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_21c321551d9c772d56e07b2a1a"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_47070ef56d911fa9824f3277e2"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "UQ_GAME_METADATA"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "game_metadata"
                 RENAME TO "temporary_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "game_metadata" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
                 "created_at" datetime NOT NULL DEFAULT (datetime('now')),
@@ -106,7 +106,7 @@ export class InstallerParam1749920390990 implements MigrationInterface {
                 CONSTRAINT "FK_9aefd37a55b610cea5ea583cdf6" FOREIGN KEY ("cover_id") REFERENCES "media" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "game_metadata"(
                     "id",
                     "created_at",
@@ -163,47 +163,47 @@ export class InstallerParam1749920390990 implements MigrationInterface {
                 "background_id"
             FROM "temporary_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_7af272a017b850a4ce7a6c2886" ON "game_metadata" ("id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_e9a00e38e7969570d9ab66dd27" ON "game_metadata" ("provider_slug")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_4f0b69ca308a906932c84ea0d5" ON "game_metadata" ("provider_data_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_21c321551d9c772d56e07b2a1a" ON "game_metadata" ("title")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_47070ef56d911fa9824f3277e2" ON "game_metadata" ("release_date")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE UNIQUE INDEX "UQ_GAME_METADATA" ON "game_metadata" ("provider_slug", "provider_data_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_30e98e8746699fb9af235410af" ON "session" ("user_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_40ec9e3de37043686fc51ca39e" ON "session" ("revoked")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_2223e981900a413ce4ce6386f9" ON "session" ("expires_at")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_8602b8a76c7952d1155118933f"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP INDEX "IDX_0b9f583ebc16b0bb8cbfaf00f8"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             ALTER TABLE "gamevault_game_provider_metadata_game_metadata"
                 RENAME TO "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "gamevault_game_provider_metadata_game_metadata" (
                 "gamevault_game_id" integer NOT NULL,
                 "game_metadata_id" integer NOT NULL,
@@ -212,21 +212,20 @@ export class InstallerParam1749920390990 implements MigrationInterface {
                 PRIMARY KEY ("gamevault_game_id", "game_metadata_id")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO "gamevault_game_provider_metadata_game_metadata"("gamevault_game_id", "game_metadata_id")
             SELECT "gamevault_game_id",
                 "game_metadata_id"
             FROM "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             DROP TABLE "temporary_gamevault_game_provider_metadata_game_metadata"
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_8602b8a76c7952d1155118933f" ON "gamevault_game_provider_metadata_game_metadata" ("gamevault_game_id")
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE INDEX "IDX_0b9f583ebc16b0bb8cbfaf00f8" ON "gamevault_game_provider_metadata_game_metadata" ("game_metadata_id")
         `);
-    }
-
+  }
 }
