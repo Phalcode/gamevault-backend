@@ -1,10 +1,9 @@
 import {
   CanActivate,
   ExecutionContext,
-  HttpException,
-  HttpStatus,
   Injectable,
   Logger,
+  NotAcceptableException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -56,9 +55,8 @@ export class SocketSecretGuard implements CanActivate {
         );
       }
       if (!user.activated && user.role !== Role.ADMIN) {
-        throw new HttpException(
+        throw new NotAcceptableException(
           "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
-          HttpStatus.NO_CONTENT,
         );
       }
 

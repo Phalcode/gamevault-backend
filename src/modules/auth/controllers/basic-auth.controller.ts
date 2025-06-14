@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Logger,
   MethodNotAllowedException,
   Post,
@@ -13,6 +14,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 import configuration from "../../../configuration";
@@ -43,6 +45,11 @@ export class BasicAuthController {
     operationId: "getAuthBasicLogin",
   })
   @ApiOkResponse({ type: () => TokenPairDto })
+  @ApiResponse({
+    status: HttpStatus.NOT_ACCEPTABLE,
+    description:
+      "User is not activated. Contact an Administrator to activate the User.",
+  })
   async getAuthBasicLogin(
     @Request()
     request: {
