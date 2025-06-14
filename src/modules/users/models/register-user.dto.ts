@@ -44,7 +44,7 @@ export class RegisterUserDto {
 
   @IsOptionalIf(configuration.USERS.REQUIRE_FIRST_NAME === false)
   @IsAlpha("de-DE")
-  @IsNotEmpty()
+  @MinLength(1)
   @ApiProperty({
     example: "John",
     description: "first name of the user",
@@ -54,7 +54,7 @@ export class RegisterUserDto {
 
   @IsOptionalIf(configuration.USERS.REQUIRE_LAST_NAME === false)
   @IsAlpha("de-DE")
-  @IsNotEmpty()
+  @MinLength(1)
   @ApiProperty({
     example: "Doe",
     description: "last name of the user",

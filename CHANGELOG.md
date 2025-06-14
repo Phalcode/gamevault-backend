@@ -26,6 +26,7 @@
 - Optimized some synchronous tasks
 - [#500](https://github.com/Phalcode/gamevault-backend/issues/500) Implemented `installer_parameters`, `uninstaller_parameters`, and `uninstaller_executable` fields in game metadata.
 - [#502](https://github.com/Phalcode/gamevault-backend/issues/502) & [#344](https://github.com/Phalcode/gamevault-backend/issues/344) Implemented Default Innosetup Installer Params for IGDB Provider
+- [#488](https://github.com/Phalcode/gamevault-app/issues/488) Fixed bug where users could not be registered without first and last name.
 
 ## 14.1.2
 
