@@ -188,6 +188,7 @@ export class GamesController {
         "metadata.tags.name": true,
         "metadata.developers.name": true,
         "metadata.publishers.name": true,
+        "metadata.early_access": true,
         "metadata.age_rating": true,
         "progresses.state": [
           FilterOperator.EQ,
