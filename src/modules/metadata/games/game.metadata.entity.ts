@@ -204,7 +204,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @ApiPropertyOptional({
     description:
       "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
-    example: '/DIR="%INSTALLDIR%" /SILENT',
+    example: '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENTT',
   })
   installer_parameters?: string;
 

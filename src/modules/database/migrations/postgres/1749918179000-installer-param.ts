@@ -16,6 +16,11 @@ export class InstallerParam1749918179000 implements MigrationInterface {
       ALTER TABLE game_metadata
       ADD COLUMN uninstaller_parameters character varying;
     `);
+    await queryRunner.query(`
+    UPDATE game_metadata
+    SET installer_parameters = '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT'
+    WHERE provider_slug = 'igdb';
+  `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

@@ -150,7 +150,7 @@ export class UpdateGameUserMetadataDto {
   @ApiPropertyOptional({
     description:
       "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
-    example: '/DIR="%INSTALLDIR%" /SILENT',
+    example: '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT',
   })
   installer_parameters?: string;
 
