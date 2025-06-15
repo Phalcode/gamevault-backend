@@ -228,8 +228,8 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
         first_name: validatedProfile.name?.givenName,
         last_name: validatedProfile.name?.familyName,
         password: randomBytes(24).toString("base64").slice(0, 32),
-        // TODO: Use birth_date from profile
-        // TODO: Use idp_id from profile
+        birth_date: new Date(validatedProfile.birthdate).toISOString(),
+        // TODO: We could also store the idp_id in the database to make it possible to find users if they changed their email address.
       });
     }
 

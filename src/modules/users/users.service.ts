@@ -206,7 +206,7 @@ export class UsersService implements OnApplicationBootstrap {
     id?: number;
     username?: string;
     email?: string;
-    idp_id?: string; // TODO: Implementsearch for idp_id
+    idp_id?: string; // TODO: Could Implement search for idp_id
   }): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
