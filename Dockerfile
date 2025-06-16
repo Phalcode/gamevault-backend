@@ -18,7 +18,7 @@ RUN mkdir -p /files /media /logs /db /plugins /savefiles \
     && sed -i -e 's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     # Update package list and install necessary dependencies
     && apt update \
-    && apt install -y --no-install-recommendscurl p7zip-full p7zip-rar postgresql-common sudo \
+    && apt install -y --no-install-recommendscurl p7zip-full p7zip-rar postgresql-common python sudo \
     # Install PostgreSQL client from the PostgreSQL Global Development Group (PGDG)
     && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh \
     && apt install -y --no-install-recommends postgresql-client \
