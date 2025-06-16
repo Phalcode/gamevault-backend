@@ -116,6 +116,14 @@ async function bootstrap(): Promise<void> {
             description:
               "Access token obtained from /api/auth/*/login endpoint.",
           })
+          .addBasicAuth(
+            {
+              type: "http",
+              scheme: "basic",
+              description: "Basic Authentication",
+            },
+            "basic",
+          )
           .addServer(
             `http://localhost:${configuration.SERVER.PORT}`,
             "Local GameVault Server",

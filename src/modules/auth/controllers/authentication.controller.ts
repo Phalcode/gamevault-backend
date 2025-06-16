@@ -82,7 +82,7 @@ export class GamevaultJwtController {
       "Returns a list of all active sessions for the authenticated user. A session is considered active if it is not revoked and not expired. Each session includes information about the device (IP address and user agent) where it was created.",
     operationId: "getAuthSessions",
   })
-  @ApiOkResponse({ type: () => [Session] })
+  @ApiOkResponse({ type: () => Session, isArray: true })
   async getAuthSessions(
     @Request() req: { user: GamevaultUser },
   ): Promise<Session[]> {

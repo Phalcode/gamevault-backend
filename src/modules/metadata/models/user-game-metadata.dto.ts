@@ -236,6 +236,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "publishers of the game",
+    type: () => String,
     isArray: true,
   })
   publishers?: string[];
@@ -246,6 +247,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "developers of the game",
+    type: () => String,
     isArray: true,
   })
   developers?: string[];
@@ -256,6 +258,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "tags of the game",
+    type: () => String,
     isArray: true,
   })
   tags?: string[];
@@ -266,6 +269,7 @@ export class UpdateGameUserMetadataDto {
   @IsOptional()
   @ApiPropertyOptional({
     description: "genres of the game",
+    type: () => String,
     isArray: true,
   })
   genres?: string[];
