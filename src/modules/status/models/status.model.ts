@@ -65,7 +65,7 @@ export class Status {
     description: "List of available authentication methods",
     type: "string",
     enum: AuthenticationMethod,
-    example: [AuthenticationMethod.BASIC_AUTH, AuthenticationMethod.OAUTH2],
+    example: [AuthenticationMethod.BASIC, AuthenticationMethod.SSO],
     isArray: true,
   })
   available_authentication_methods?: AuthenticationMethod[];
@@ -103,9 +103,9 @@ export class Status {
 
     this.available_authentication_methods = [
       configuration.AUTH.BASIC_AUTH.ENABLED
-        ? AuthenticationMethod.BASIC_AUTH
+        ? AuthenticationMethod.BASIC
         : null,
-      configuration.AUTH.OAUTH2.ENABLED ? AuthenticationMethod.OAUTH2 : null,
+      configuration.AUTH.OAUTH2.ENABLED ? AuthenticationMethod.SSO : null,
     ].filter(Boolean);
 
     this.uptime = Math.floor((Date.now() - epoch.getTime()) / 1000);

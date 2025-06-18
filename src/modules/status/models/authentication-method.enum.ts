@@ -1,4 +1,4 @@
 export enum AuthenticationMethod {
-  BASIC_AUTH = "basic",
-  OAUTH2 = "oauth2",
+  BASIC = "basic",
+  SSO = "sso",
 }
