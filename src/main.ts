@@ -168,7 +168,7 @@ async function bootstrap(): Promise<void> {
     //);
   }
 
-  // Redirect /health to /status 
+  // Redirect /health to /status
   app.use("/health", (_req, res: Response) => {
     res.redirect(308, "/status");
   });

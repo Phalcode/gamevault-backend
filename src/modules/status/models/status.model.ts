@@ -102,9 +102,7 @@ export class Status {
     ].filter(Boolean);
 
     this.available_authentication_methods = [
-      configuration.AUTH.BASIC_AUTH.ENABLED
-        ? AuthenticationMethod.BASIC
-        : null,
+      configuration.AUTH.BASIC_AUTH.ENABLED ? AuthenticationMethod.BASIC : null,
       configuration.AUTH.OAUTH2.ENABLED ? AuthenticationMethod.SSO : null,
     ].filter(Boolean);
 
