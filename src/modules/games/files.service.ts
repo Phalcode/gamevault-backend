@@ -60,6 +60,7 @@ export class FilesService implements OnApplicationBootstrap {
       followSymlinks: true,
       alwaysStat: true,
       awaitWriteFinish: true,
+      usePolling: configuration.GAMES.INDEX_USE_POLLING,
     })
       .on("add", (path, stats) => this.index(path, stats))
       .on("change", (path, stats) => this.index(path, stats))

@@ -166,6 +166,9 @@ const configuration = {
     AGE_OF_MAJORITY: parseNumber(process.env.PARENTAL_AGE_OF_MAJORITY, 18),
   } as const,
   GAMES: {
+    INDEX_USE_POLLING: parseBooleanEnvVariable(
+      process.env.GAMES_INDEX_USE_POLLING,
+    ),
     INDEX_INTERVAL_IN_MINUTES: parseNumber(
       process.env.GAMES_INDEX_INTERVAL_IN_MINUTES,
       60,
