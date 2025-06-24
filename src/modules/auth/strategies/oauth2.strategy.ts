@@ -222,13 +222,18 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
         message: "OAuth2 user not found in database. Registering new user...",
         profile: validatedProfile,
       });
+
+      const birth_date = validatedProfile.birthdate
+        ? new Date(validatedProfile.birthdate)?.toISOString()
+        : null;
+
       user = await this.usersService.register({
         username: validatedProfile.preferred_username,
         email: validatedProfile.emails[0]?.value,
         first_name: validatedProfile.name?.givenName,
         last_name: validatedProfile.name?.familyName,
         password: randomBytes(24).toString("base64").slice(0, 32),
-        birth_date: new Date(validatedProfile.birthdate).toISOString(),
+        birth_date,
         // TODO: We could also store the idp_id in the database to make it possible to find users if they changed their email address.
       });
     }
