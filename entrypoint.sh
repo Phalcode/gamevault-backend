@@ -16,16 +16,16 @@ echo "Effective UID: $(id -u), GID: $(id -g)"
 # If running as root, adjust the "node" user to match PUID/PGID,
 # change ownership on directories, and drop privileges.
 if [ "$(id -u)" = "0" ]; then
+    # Adjust ownership and ensure permissions are open.
+    chown -R "${PUID}:${PGID}" /app/dist /files /media /logs /db /plugins /savefiles
+    chmod -R 775 /app/dist /files /media /logs /db /plugins /savefiles
+    
     # Only update the node user's UID/GID if different from defaults.
     if [ "${PUID}" != "1000" ] || [ "${PGID}" != "1000" ]; then
         echo "Updating 'node' user to PUID: ${PUID} and PGID: ${PGID}"
         groupmod -o -g "${PGID}" node
         usermod -o -u "${PUID}" node
     fi
-    
-    # Adjust ownership and ensure permissions are open.
-    chown -R "${PUID}:${PGID}" /app/dist /files /media /logs /db /plugins /savefiles
-    chmod -R 777 /app/dist /files /media /logs /db /plugins /savefiles
     
     # Drop privileges and run the command.
     exec sudo -u "#${PUID}" -g "#${PGID}" -E node "$@"
