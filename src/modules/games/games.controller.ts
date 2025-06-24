@@ -32,11 +32,11 @@ import {
 import { Repository } from "typeorm";
 
 import { isArray } from "lodash";
-import { FilterSuffix } from "nestjs-paginate/lib/filter";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
+import { State } from "../progresses/models/state.enum";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
@@ -108,28 +108,25 @@ export class GamesController {
     }
 
     const progressStateFilter = query.filter?.["progresses.state"];
+    if (progressStateFilter) {
+      relations.push("progresses");
+    }
+
     const progressUserFilter = query.filter?.["progresses.user.id"];
-    if (progressStateFilter || progressUserFilter) {
-      // Support for virtual UNPLAYED state.
-      if (progressStateFilter?.includes("UNPLAYED")) {
-        if (progressStateFilter && !isArray(progressStateFilter)) {
-          const rawFilterValue = progressStateFilter.split(":").pop();
-          query.filter["progresses.state"] = [
-            "$null",
-            `$or:$eq:${rawFilterValue}`,
-          ];
-        }
-
-        if (progressUserFilter && !isArray(progressUserFilter)) {
-          const rawFilterValue = progressUserFilter.split(":").pop();
-          query.filter["progresses.user.id"] = [
-            "$null",
-            `$or:$not:${rawFilterValue}`,
-          ];
-        }
-      }
-
+    if (progressUserFilter) {
       relations.push("progresses", "progresses.user");
+    }
+
+    if (
+      progressStateFilter &&
+      progressUserFilter &&
+      progressStateFilter?.includes(State.UNPLAYED) &&
+      !isArray(progressStateFilter) &&
+      !isArray(progressUserFilter)
+    ) {
+      const userId = progressUserFilter?.split(":").pop();
+      query.filter["progresses.state"] = ["$null", `$or:$eq:${State.UNPLAYED}`];
+      query.filter["progresses.user.id"] = ["$null", `$or:$not:${userId}`];
     }
 
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
@@ -190,16 +187,8 @@ export class GamesController {
         "metadata.publishers.name": true,
         "metadata.early_access": true,
         "metadata.age_rating": true,
-        "progresses.state": [
-          FilterOperator.EQ,
-          FilterOperator.NULL,
-          FilterSuffix.NOT,
-        ],
-        "progresses.user.id": [
-          FilterOperator.EQ,
-          FilterOperator.NULL,
-          FilterSuffix.NOT,
-        ],
+        "progresses.state": [FilterOperator.EQ],
+        "progresses.user.id": [FilterOperator.EQ],
       },
       withDeleted: false,
     });
