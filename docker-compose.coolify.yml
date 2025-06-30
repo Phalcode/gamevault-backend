@@ -12,6 +12,31 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+    volumes:
+      - type: bind
+        source: files
+        target: /files
+        is_directory: true
+      - type: bind
+        source: media
+        target: /media
+        is_directory: true
+      - type: bind
+        source: logs
+        target: /logs
+        is_directory: true
+      - type: bind
+        source: config
+        target: /config
+        is_directory: true
+      - type: bind
+        source: plugins
+        target: /plugins
+        is_directory: true
+      - type: bind
+        source: savefiles
+        target: /savefiles
+        is_directory: true
 
   db:
     image: postgres:16
@@ -20,3 +45,8 @@ services:
       POSTGRES_USER: gamevault
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: gamevault
+    volumes:
+      - type: bind
+        source: databae
+        target: /var/lib/postgresql/data
+        is_directory: true
