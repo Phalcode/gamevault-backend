@@ -85,13 +85,14 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     if (!oidcUserInfo) return {};
     return {
       id: oidcUserInfo.sub,
+      birthdate: oidcUserInfo.birthdate,
+      preferred_username: oidcUserInfo.preferred_username,
       displayName: oidcUserInfo.preferred_username,
-      emails: oidcUserInfo.email ? [{ value: oidcUserInfo.email }] : undefined,
       name: {
         givenName: oidcUserInfo.given_name,
         familyName: oidcUserInfo.family_name,
       },
-      birthdate: oidcUserInfo.birthdate,
+      emails: oidcUserInfo.email ? [{ value: oidcUserInfo.email }] : undefined,
     };
   }
 
@@ -169,32 +170,45 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     const profileFromUserInfoEndpoint: Partial<PassportUserProfile> =
       await this.fetchUserInfo(accessToken);
 
-    // 2) Merge the Passport profile with the additional user info.
+    // 2) Merge the Passport profile with additional identity data from trusted sources.
+    // Priority order (low → high):
+    // 1. profile (lowest priority fallback)
+    // 2. profileFromAccessToken (API-level claims, not ideal for identity)
+    // 3. profileFromUserInfoEndpoint (fresh but unsigned)
+    // 4. profileFromIdToken (signed, trusted, OIDC-compliant)
+
     const mergedProfile: PassportUserProfile = {
+      // This username is a fallback default and can be overwritten by later spreads
       preferred_username: `GameVaultUser${Math.floor(1000 + Math.random() * 9000)}`,
-      ...profileFromAccessToken,
-      ...profileFromUserInfoEndpoint,
-      ...profileFromIdToken,
-      ...profile,
+
+      // Merge in order of increasing trust — later sources override earlier ones
+      ...profile, // Least trusted
+      ...profileFromAccessToken, // Semi-trusted
+      ...profileFromUserInfoEndpoint, // Fresh, but not signed
+      ...profileFromIdToken, // Most trusted (signed token)
+
+      // Prioritize email explicitly using nullish coalescing
       emails:
-        profile.emails ||
-        profileFromIdToken.emails ||
-        profileFromUserInfoEndpoint.emails ||
-        profileFromAccessToken.emails,
+        profileFromIdToken.emails ??
+        profileFromUserInfoEndpoint.emails ??
+        profileFromAccessToken.emails ??
+        profile.emails,
+
+      // Merge nested `name` field in the same priority order
       name: {
+        ...profile.name,
         ...profileFromAccessToken.name,
         ...profileFromUserInfoEndpoint.name,
         ...profileFromIdToken.name,
-        ...profile.name,
       },
     };
 
     this.logger.debug({
       message: "Merged all available profile information.",
-      "1_from_access_token": profileFromAccessToken,
-      "2_from_user_info_endpoint": profileFromUserInfoEndpoint,
-      "3_from_id_token": profileFromIdToken,
-      "4_from_passport_profile": profile,
+      "1_profile": profile,
+      "2_from_access_token": profileFromAccessToken,
+      "3_from_user_info_endpoint": profileFromUserInfoEndpoint,
+      "4_from_id_token": profileFromIdToken,
       mergedProfile,
     });
 
