@@ -32,7 +32,7 @@ import { UsersService } from "./users.service";
 @ApiBearerAuth()
 @ApiTags("user")
 @Controller("users")
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,

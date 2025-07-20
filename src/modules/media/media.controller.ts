@@ -38,7 +38,7 @@ import { MediaService } from "./media.service";
 @ApiTags("media")
 @Controller("media")
 @ApiBearerAuth()
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class MediaController {
   private readonly logger = new Logger(this.constructor.name);
 

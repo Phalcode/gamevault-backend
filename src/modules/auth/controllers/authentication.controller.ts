@@ -27,7 +27,7 @@ import { Session } from "../session.entity";
 @Controller("auth")
 @ApiTags("auth")
 @ApiBearerAuth()
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class GamevaultJwtController {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly authService: AuthenticationService) {}

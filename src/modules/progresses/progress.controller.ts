@@ -43,7 +43,7 @@ import { ProgressService } from "./progress.service";
 @Controller("progresses")
 @ApiTags("progress")
 @ApiBearerAuth()
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class ProgressController {
   private readonly logger = new Logger(this.constructor.name);
 

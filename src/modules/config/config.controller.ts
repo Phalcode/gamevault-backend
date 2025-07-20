@@ -16,7 +16,7 @@ import { Role } from "../users/models/role.enum";
 @ApiBearerAuth()
 @Controller("config")
 @ApiTags("config")
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class ConfigController {
   @Get("news")
   @ApiOkResponse({ type: () => Status })

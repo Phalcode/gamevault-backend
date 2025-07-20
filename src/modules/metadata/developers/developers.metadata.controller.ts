@@ -1,5 +1,10 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiSecurity,
+  ApiTags,
+} from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
@@ -19,7 +24,7 @@ import { DeveloperMetadata } from "./developer.metadata.entity";
 @Controller("developers")
 @ApiTags("developers")
 @ApiBearerAuth()
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class DeveloperController {
   constructor(
     @InjectRepository(DeveloperMetadata)

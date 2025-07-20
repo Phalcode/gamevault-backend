@@ -21,7 +21,7 @@ import { StatusService } from "../status/status.service";
 import { Role } from "../users/models/role.enum";
 
 @ApiBearerAuth()
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 @Controller("admin")
 @ApiTags("admin")
 export class AdminController {

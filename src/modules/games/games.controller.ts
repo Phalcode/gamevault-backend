@@ -50,7 +50,7 @@ import { UpdateGameDto } from "./models/update-game.dto";
 @ApiBearerAuth()
 @ApiTags("game")
 @Controller("games")
-@ApiSecurity('apikey')
+@ApiSecurity("apikey")
 export class GamesController {
   private readonly logger = new Logger(this.constructor.name);
 
