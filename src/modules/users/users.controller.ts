@@ -25,7 +25,7 @@ import { GamevaultUser } from "./gamevault-user.entity";
 import { Role } from "./models/role.enum";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { UserIdDto } from "./models/user-id.dto";
-import { SocketSecretService } from "./socket-secret.service";
+import { ApiKeyService } from "./socket-secret.service";
 import { UsersService } from "./users.service";
 
 @ApiBearerAuth()
@@ -34,7 +34,7 @@ import { UsersService } from "./users.service";
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly socketSecretService: SocketSecretService,
+    private readonly apiKeyService: ApiKeyService,
   ) {}
   private readonly logger = new Logger(this.constructor.name);
 
@@ -64,8 +64,8 @@ export class UsersController {
   async getUsersMe(
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    request.user.socket_secret =
-      await this.socketSecretService.findSocketSecretOrFail(request.user.id);
+    request.user.api_key =
+      await this.apiKeyService.findApiKeyOrFail(request.user.id);
     return request.user;
   }
 

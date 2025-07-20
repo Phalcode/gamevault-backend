@@ -5,8 +5,8 @@ import { GamesModule } from "../games/games.module";
 import { MediaModule } from "../media/media.module";
 import { ActivityGateway } from "./activity.gateway";
 import { GamevaultUser } from "./gamevault-user.entity";
-import { SocketSecretGuard } from "./socket-secret.guard";
-import { SocketSecretService } from "./socket-secret.service";
+import { ApiKeyGuard } from "./socket-secret.guard";
+import { ApiKeyService } from "./socket-secret.service";
 import { UsersController } from "./users.controller";
 import { UsersService } from "./users.service";
 
@@ -19,8 +19,8 @@ import { UsersService } from "./users.service";
   controllers: [UsersController],
   providers: [
     UsersService,
-    SocketSecretService,
-    SocketSecretGuard,
+    ApiKeyService,
+    ApiKeyGuard,
     ActivityGateway,
   ],
   exports: [UsersService],

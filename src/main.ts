@@ -145,7 +145,7 @@ async function bootstrap(): Promise<void> {
     //    new AsyncApiDocumentBuilder()
     //      .setTitle("GameVault Backend Server")
     //      .setDescription(
-    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Api-Key Header during the handshake. You can get this secret by using the /users/me REST API.",
     //      )
     //      .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
     //      .setExternalDoc("Documentation", "https://gamevau.lt")

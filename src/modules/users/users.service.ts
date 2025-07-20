@@ -183,7 +183,7 @@ export class UsersService implements OnApplicationBootstrap {
     const user = new GamevaultUser();
     user.username = dto.username;
     user.password = await hash(dto.password, 10);
-    user.socket_secret = randomBytes(32).toString("hex");
+    user.api_key = randomBytes(32).toString("hex");
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
     user.email = dto.email || undefined;
@@ -193,7 +193,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     const registeredUser = await this.userRepository.save(user);
     registeredUser.password = "**REDACTED**";
-    registeredUser.socket_secret = "**REDACTED**";
+    registeredUser.api_key = "**REDACTED**";
     this.logger.log({
       message: `User has been registered.`,
       user: registeredUser,
@@ -219,7 +219,7 @@ export class UsersService implements OnApplicationBootstrap {
           "username",
           "email",
           "password",
-          "socket_secret",
+          "api_key",
           "activated",
           "role",
           "deleted_at",
@@ -255,7 +255,7 @@ export class UsersService implements OnApplicationBootstrap {
 
   public cleanConfidentialUser(user: GamevaultUser): GamevaultUser {
     delete user.password;
-    delete user.socket_secret;
+    delete user.api_key;
     return user;
   }
 

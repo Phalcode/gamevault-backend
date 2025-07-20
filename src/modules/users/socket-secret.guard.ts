@@ -10,14 +10,14 @@ import { Reflector } from "@nestjs/core";
 import { Socket } from "socket.io";
 import { SKIP_GUARDS_KEY } from "../../decorators/skip-guards.decorator";
 import { Role } from "./models/role.enum";
-import { SocketSecretService } from "./socket-secret.service";
+import { ApiKeyService } from "./socket-secret.service";
 
 @Injectable()
-export class SocketSecretGuard implements CanActivate {
+export class ApiKeyGuard implements CanActivate {
   private readonly logger = new Logger(this.constructor.name);
 
   constructor(
-    private readonly socketSecretService: SocketSecretService,
+    private readonly apiKeyService: ApiKeyService,
     private readonly reflector: Reflector,
   ) {}
 
@@ -33,20 +33,20 @@ export class SocketSecretGuard implements CanActivate {
     }
 
     const client = context.switchToWs().getClient<Socket>();
-    const socketSecret = client.handshake.headers["x-socket-secret"];
+    const apiKey = client.handshake.headers["x-api-key"];
 
-    if (!socketSecret) {
-      this.logger.warn("Missing X-Socket-Secret Header.");
+    if (!apiKey) {
+      this.logger.warn("Missing X-Api-Key Header.");
       client.emit("exception", {
         status: "error",
-        message: "Missing X-Socket-Secret Header.",
+        message: "Missing X-Api-Key Header.",
       });
       return false;
     }
 
     try {
-      const user = await this.socketSecretService.findUserBySocketSecretOrFail(
-        socketSecret.toString(),
+      const user = await this.apiKeyService.findUserByApiKeyOrFail(
+        apiKey.toString(),
       );
 
       if (user.deleted_at) {

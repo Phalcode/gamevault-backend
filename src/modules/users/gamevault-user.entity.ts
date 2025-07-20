@@ -35,10 +35,10 @@ export class GamevaultUser extends DatabaseEntity {
   @Column({ select: false, unique: true, length: 64 })
   @ApiPropertyOptional({
     description:
-      "the user's socket secret is used for authentication with the server over the websocket protocol.",
+      "the user's api_key can be used for authentication with the server (e.g. api-key auth / websocket protocol).",
     example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
   })
-  socket_secret?: string;
+  api_key?: string;
 
   @OneToOne(() => Media, {
     nullable: true,
