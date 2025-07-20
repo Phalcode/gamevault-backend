@@ -8,6 +8,7 @@ import { AuthenticationService } from "./authentication.service";
 import { GamevaultJwtController } from "./controllers/authentication.controller";
 import { BasicAuthController } from "./controllers/basic-auth.controller";
 import { OAuth2Controller } from "./controllers/oauth2.controller";
+import { ApiKeyGuard } from "./guards/api-key.guard";
 import { AuthenticationGuard } from "./guards/authentication.guard";
 import { AuthorizationGuard } from "./guards/authorization.guard";
 import { Session } from "./session.entity";
@@ -38,6 +39,16 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
     AuthenticationStrategy,
     RefreshTokenStrategy,
     AuthenticationService,
+
+    ...(configuration.AUTH.API_KEY.ENABLED
+      ? [
+          {
+            provide: APP_GUARD,
+            useClass: ApiKeyGuard,
+          },
+        ]
+      : []),
+
     {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,

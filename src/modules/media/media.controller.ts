@@ -20,6 +20,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 import bytes from "bytes";
@@ -37,6 +38,7 @@ import { MediaService } from "./media.service";
 @ApiTags("media")
 @Controller("media")
 @ApiBearerAuth()
+@ApiSecurity('apikey')
 export class MediaController {
   private readonly logger = new Logger(this.constructor.name);
 

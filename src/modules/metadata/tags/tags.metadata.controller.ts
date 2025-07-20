@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
@@ -19,6 +19,7 @@ import { TagMetadata } from "./tag.metadata.entity";
 @Controller("tags")
 @ApiTags("tags")
 @ApiBearerAuth()
+@ApiSecurity('apikey')
 export class TagsController {
   constructor(
     @InjectRepository(TagMetadata)

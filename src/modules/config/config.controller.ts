@@ -3,6 +3,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -15,6 +16,7 @@ import { Role } from "../users/models/role.enum";
 @ApiBearerAuth()
 @Controller("config")
 @ApiTags("config")
+@ApiSecurity('apikey')
 export class ConfigController {
   @Get("news")
   @ApiOkResponse({ type: () => Status })

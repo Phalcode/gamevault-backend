@@ -36,6 +36,14 @@ export class AuthenticationGuard extends AuthGuard("auth") {
       return true;
     }
 
+    if (context.switchToHttp().getRequest().user) {
+      this.logger.debug({
+        message: "Skipping Authentication Checks.",
+        reason: "User is already authenticated.",
+      });
+      return true;
+    }
+
     return super.canActivate(context);
   }
 }

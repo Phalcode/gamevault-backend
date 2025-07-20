@@ -29,6 +29,11 @@
 - [#488](https://github.com/Phalcode/gamevault-app/issues/488) Fixed bug where users could not be registered without first and last name.
 - [#496](https://github.com/Phalcode/gamevault-app/issues/496) Fixed bug where manually edited early access games would not show up in the early access list.
 - Added `GAMES_INDEX_USE_POLLING` env var to enable filewatching of remote networks or docker for windows containers.
+- [#359](https://github.com/Phalcode/gamevault-app/issues/359) Implemented API-Key Authentication
+
+### Thanks
+
+- @Toylerrr
 
 ## 14.1.2
 

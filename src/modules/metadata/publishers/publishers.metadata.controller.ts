@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
@@ -19,6 +19,7 @@ import { PublisherMetadata } from "./publisher.metadata.entity";
 @Controller("publishers")
 @ApiTags("publishers")
 @ApiBearerAuth()
+@ApiSecurity('apikey')
 export class PublisherController {
   constructor(
     @InjectRepository(PublisherMetadata)

@@ -21,6 +21,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -37,6 +38,7 @@ import { SavefileService } from "./savefile.service";
 @Controller("savefiles")
 @ApiTags("savefile")
 @ApiBearerAuth()
+@ApiSecurity('apikey')
 export class SavefileController {
   private readonly logger = new Logger(this.constructor.name);
 

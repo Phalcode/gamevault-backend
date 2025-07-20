@@ -14,6 +14,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -21,16 +22,17 @@ import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { GameIdDto } from "../games/models/game-id.dto";
+import { ApiKeyService } from "./api-key.service";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { Role } from "./models/role.enum";
 import { UpdateUserDto } from "./models/update-user.dto";
 import { UserIdDto } from "./models/user-id.dto";
-import { ApiKeyService } from "./socket-secret.service";
 import { UsersService } from "./users.service";
 
 @ApiBearerAuth()
 @ApiTags("user")
 @Controller("users")
+@ApiSecurity('apikey')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,

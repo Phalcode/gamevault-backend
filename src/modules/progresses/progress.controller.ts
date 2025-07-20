@@ -13,6 +13,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -42,6 +43,7 @@ import { ProgressService } from "./progress.service";
 @Controller("progresses")
 @ApiTags("progress")
 @ApiBearerAuth()
+@ApiSecurity('apikey')
 export class ProgressController {
   private readonly logger = new Logger(this.constructor.name);
 

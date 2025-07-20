@@ -246,6 +246,9 @@ const configuration = {
       },
       EXPIRES_IN: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN || "30d",
     } as const,
+    API_KEY: {
+      ENABLED: parseBooleanEnvVariable(process.env.AUTH_API_KEY_ENABLED),
+    } as const,
     OAUTH2: {
       ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH2_ENABLED),
       SCOPES: parseList(process.env.AUTH_OAUTH2_SCOPES, [
