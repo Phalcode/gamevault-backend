@@ -64,8 +64,9 @@ export class UsersController {
   async getUsersMe(
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    request.user.api_key =
-      await this.apiKeyService.findApiKeyOrFail(request.user.id);
+    request.user.api_key = await this.apiKeyService.findApiKeyOrFail(
+      request.user.id,
+    );
     return request.user;
   }
 

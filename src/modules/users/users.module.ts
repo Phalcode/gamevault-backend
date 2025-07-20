@@ -17,12 +17,7 @@ import { UsersService } from "./users.service";
     forwardRef(() => GamesModule),
   ],
   controllers: [UsersController],
-  providers: [
-    UsersService,
-    ApiKeyService,
-    ApiKeyGuard,
-    ActivityGateway,
-  ],
+  providers: [UsersService, ApiKeyService, ApiKeyGuard, ActivityGateway],
   exports: [UsersService],
 })
 export class UsersModule {}
