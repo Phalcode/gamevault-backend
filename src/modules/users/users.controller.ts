@@ -51,11 +51,13 @@ export class UsersController {
   async getUsers(
     @Request() req: { user: GamevaultUser },
   ): Promise<GamevaultUser[]> {
-    const includeHidden = req.user.role >= Role.ADMIN;
-    return this.usersService.find(includeHidden);
+    const includeHiddenUsers = req.user.role >= Role.ADMIN;
+    return this.usersService.find(includeHiddenUsers);
   }
 
-  /** Retrieve user information based on the provided request object. */
+  //#region Redirects
+
+  /** Retrieve own user information. */
   @Get("me")
   @ApiOperation({
     summary: "get details of your user",
@@ -66,10 +68,7 @@ export class UsersController {
   async getUsersMe(
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    request.user.api_key = await this.apiKeyService.findApiKeyOrFail(
-      request.user.id,
-    );
-    return request.user;
+    return this.getUserByUserId({ user_id: request.user.id }, request);
   }
 
   /** Updates details of the user. */
@@ -86,7 +85,7 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return this.usersService.update(request.user.id, dto, false);
+    return this.putUserByUserId(false, { user_id: request.user.id }, dto);
   }
 
   /** Deletes your own user. */
@@ -99,8 +98,10 @@ export class UsersController {
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteUsersMe(@Request() request): Promise<GamevaultUser> {
-    return this.usersService.delete(request.user.id);
+    return this.deleteUserByUserId(request.user.id);
   }
+
+  //#endregion
 
   @Post("me/bookmark/:game_id")
   @ApiOperation({
@@ -144,8 +145,18 @@ export class UsersController {
   })
   @MinimumRole(Role.GUEST)
   @ApiOkResponse({ type: () => GamevaultUser })
-  async getUserByUserId(@Param() params: UserIdDto): Promise<GamevaultUser> {
-    return this.usersService.findOneByUserIdOrFail(Number(params.user_id));
+  async getUserByUserId(
+    @Param() params: UserIdDto,
+    @Request() request: { user: GamevaultUser },
+  ): Promise<GamevaultUser> {
+    const user = await this.usersService.findOneByUserIdOrFail(
+      Number(params.user_id),
+    );
+    if (user.id === request.user.id) {
+      // If the user is requesting their own details, ensure the API key is loaded.
+      user.api_key = await this.apiKeyService.findApiKeyOrFail(request.user.id);
+    }
+    return user;
   }
 
   /** Updates details of any user. */
@@ -158,10 +169,11 @@ export class UsersController {
   @MinimumRole(Role.ADMIN)
   @ApiOkResponse({ type: () => GamevaultUser })
   async putUserByUserId(
+    isAdmin = true,
     @Param() params: UserIdDto,
     @Body() dto: UpdateUserDto,
   ): Promise<GamevaultUser> {
-    return this.usersService.update(Number(params.user_id), dto, true);
+    return this.usersService.update(Number(params.user_id), dto, isAdmin);
   }
 
   /** Deletes any user with the specified ID. */

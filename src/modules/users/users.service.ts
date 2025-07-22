@@ -263,7 +263,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async update(
     id: number,
     dto: UpdateUserDto,
-    admin = false,
+    isAdmin = false,
   ): Promise<GamevaultUser> {
     const user = await this.findOneByUserIdOrFail(id, { loadRelations: false });
     const logUpdate = (property: string, from: string, to: string) => {
@@ -276,12 +276,12 @@ export class UsersService implements OnApplicationBootstrap {
       });
     };
 
-    if (admin && dto.role != null) {
+    if (isAdmin && dto.role != null) {
       logUpdate("role", user.role.toString(), dto.role.toString());
       user.role = dto.role;
     }
 
-    if (admin && dto.activated != null) {
+    if (isAdmin && dto.activated != null) {
       logUpdate(
         "activated",
         user.activated.toString(),
