@@ -7,7 +7,14 @@ import {
 } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { Response } from "express";
-import { Stats, createReadStream, pathExists, readdir, stat } from "fs-extra";
+import {
+  Stats,
+  createReadStream,
+  pathExists,
+  readdir,
+  rm,
+  stat,
+} from "fs-extra";
 import { debounce, toLower } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
@@ -469,13 +476,14 @@ export class FilesService implements OnApplicationBootstrap {
     }
     return new Promise<void>((resolve, reject) => {
       const archiveStream = add(output, sourcePath);
-      archiveStream.on("error", (error) => {
+      archiveStream.on("error", async (error) => {
         this.logger.error({
-          message: `Error archiving game.`,
+          message: `Error archiving game. Deleting potentially corrupted output file.`,
           input: sourcePath,
           output,
           error,
         });
+        await rm(output);
         reject(error);
       });
 

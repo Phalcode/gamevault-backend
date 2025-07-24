@@ -85,7 +85,12 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return this.putUserByUserId(false, { user_id: request.user.id }, dto);
+    return this.putUserByUserId(
+      false,
+      { user_id: request.user.id },
+      dto,
+      request,
+    );
   }
 
   /** Deletes your own user. */
@@ -172,8 +177,18 @@ export class UsersController {
     isAdmin = true,
     @Param() params: UserIdDto,
     @Body() dto: UpdateUserDto,
+    @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
-    return this.usersService.update(Number(params.user_id), dto, isAdmin);
+    const user = await this.usersService.update(
+      Number(params.user_id),
+      dto,
+      isAdmin,
+    );
+    if (user.id === request.user.id) {
+      // If the user is editing their own details, ensure the API key is loaded.
+      user.api_key = await this.apiKeyService.findApiKeyOrFail(request.user.id);
+    }
+    return user;
   }
 
   /** Deletes any user with the specified ID. */
