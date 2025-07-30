@@ -178,9 +178,6 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     // 4. profileFromIdToken (signed, trusted, OIDC-compliant)
 
     const mergedProfile: PassportUserProfile = {
-      // This username is a fallback default and can be overwritten by later spreads
-      preferred_username: `GameVaultUser${Math.floor(1000 + Math.random() * 9000)}`,
-
       // Merge in order of increasing trust — later sources override earlier ones
       ...profile, // Least trusted
       ...profileFromAccessToken, // Semi-trusted
@@ -202,6 +199,16 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
         ...profileFromIdToken.name,
       },
     };
+
+    if (!mergedProfile.preferred_username) {
+      // This username is a fallback default and can be overwritten by later spreads
+      mergedProfile.preferred_username = `GameVaultUser${Math.floor(1000 + Math.random() * 9000)}`;
+      this.logger.warn({
+        message:
+          "Generated a random username for the user, because none was provided by the identity provider.",
+        username: mergedProfile.preferred_username,
+      });
+    }
 
     this.logger.debug({
       message: "Merged all available profile information.",
