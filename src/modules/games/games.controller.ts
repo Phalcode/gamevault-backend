@@ -134,7 +134,10 @@ export class GamesController {
       relations.push("progresses", "progresses.user");
     }
 
-    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED && request.user.role !== Role.ADMIN) {
+    if (
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
+      request.user.role !== Role.ADMIN
+    ) {
       query.filter ??= {};
       query.filter["metadata.age_rating"] = [
         `$null`,

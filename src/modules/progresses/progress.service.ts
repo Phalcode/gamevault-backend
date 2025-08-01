@@ -9,7 +9,13 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { readFile } from "fs-extra";
 import path from "path";
-import { FindOneOptions, IsNull, LessThanOrEqual, Or, Repository } from "typeorm";
+import {
+  FindOneOptions,
+  IsNull,
+  LessThanOrEqual,
+  Or,
+  Repository,
+} from "typeorm";
 
 import { FindOptions } from "../../globals";
 import { logProgress } from "../../logging";
@@ -76,7 +82,9 @@ export class ProgressService implements OnApplicationBootstrap {
         findParameters.where = {
           id,
           game: {
-            metadata: { age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()) },
+            metadata: {
+              age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
+            },
           },
         };
       }
@@ -167,7 +175,9 @@ export class ProgressService implements OnApplicationBootstrap {
           user: { id: userId },
           game: {
             id: gameId,
-            metadata: { age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()) },
+            metadata: {
+              age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
+            },
           },
         };
       }
