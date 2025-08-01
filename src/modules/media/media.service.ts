@@ -10,8 +10,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { existsSync } from "fs";
-import { unlink, writeFile } from "fs/promises";
+import { pathExists, remove, writeFile } from "fs-extra";
 import { Repository } from "typeorm";
 
 import configuration from "../../configuration";
@@ -45,7 +44,12 @@ export class MediaService {
   public async findOneByMediaIdOrFail(id: number): Promise<Media> {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
-      if (!existsSync(media.file_path) || configuration.TESTING.MOCK_FILES) {
+      if (
+        !(
+          (await pathExists(media.file_path)) ||
+          configuration.TESTING.MOCK_FILES
+        )
+      ) {
         await this.delete(media);
         throw new NotFoundException("Media not found on filesystem.");
       }
@@ -154,7 +158,7 @@ export class MediaService {
     }
     try {
       await this.mediaRepository.remove(media);
-      await unlink(media.file_path);
+      await remove(media.file_path);
       this.logger.debug({
         message: "Media successfully deleted from filesystem and database.",
         media,

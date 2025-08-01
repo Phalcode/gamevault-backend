@@ -8,39 +8,27 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiHeader,
-  ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { DatabaseService } from "../database/database.service";
-import { HealthService } from "../health/health.service";
-import { Health } from "../health/models/health.model";
+import { StatusService } from "../status/status.service";
 import { Role } from "../users/models/role.enum";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
+@ApiSecurity("apikey")
 @Controller("admin")
 @ApiTags("admin")
 export class AdminController {
   constructor(
-    private readonly healthService: HealthService,
+    private readonly statusService: StatusService,
     private readonly databaseService: DatabaseService,
   ) {}
-
-  @Get("health")
-  @ApiOkResponse({ type: () => Health })
-  @ApiOperation({
-    summary:
-      "returns lifesign and additional server metrics for administrators",
-    operationId: "getAdminHealth",
-  })
-  @MinimumRole(Role.ADMIN)
-  async getAdminHealth(): Promise<Health> {
-    return this.healthService.getExtensive();
-  }
 
   @Get("database/backup")
   @ApiOperation({

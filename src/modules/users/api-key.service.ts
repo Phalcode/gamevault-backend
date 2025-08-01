@@ -5,28 +5,28 @@ import { Repository } from "typeorm";
 import { GamevaultUser } from "./gamevault-user.entity";
 
 @Injectable()
-export class SocketSecretService {
+export class ApiKeyService {
   constructor(
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
   ) {}
 
-  async findUserBySocketSecretOrFail(socketSecret: string) {
+  async findUserByApiKeyOrFail(api_key: string) {
     return this.userRepository.findOneOrFail({
       where: {
-        socket_secret: socketSecret,
+        api_key,
       },
       relationLoadStrategy: "query",
     });
   }
 
-  async findSocketSecretOrFail(userId: number): Promise<string> {
+  async findApiKeyOrFail(userId: number): Promise<string> {
     const user = await this.userRepository.findOneOrFail({
-      select: ["id", "socket_secret"],
+      select: ["id", "api_key"],
       where: { id: userId },
       relationLoadStrategy: "query",
     });
 
-    return user.socket_secret;
+    return user.api_key;
   }
 }

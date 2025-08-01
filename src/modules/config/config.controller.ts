@@ -1,34 +1,35 @@
 import { Controller, Get, StreamableFile } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
-import { createReadStream, existsSync } from "fs";
+import { createReadStream, pathExists } from "fs-extra";
 import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Health } from "../health/models/health.model";
+import { Status } from "../status/models/status.model";
 import { Role } from "../users/models/role.enum";
 
-@ApiBasicAuth()
+@ApiBearerAuth()
 @Controller("config")
 @ApiTags("config")
+@ApiSecurity("apikey")
 export class ConfigController {
   @Get("news")
-  @ApiOkResponse({ type: () => Health })
+  @ApiOkResponse({ type: () => Status })
   @ApiOperation({
     summary: "returns the news.md file from the config directory.",
     operationId: "getNews",
   })
   @MinimumRole(Role.GUEST)
   async getNews(): Promise<StreamableFile> {
-    if (!existsSync(`${configuration.VOLUMES.CONFIG}/news.md`)) {
-      return;
+    if (await pathExists(`${configuration.VOLUMES.CONFIG}/news.md`)) {
+      return new StreamableFile(
+        createReadStream(`${configuration.VOLUMES.CONFIG}/news.md`),
+      );
     }
-    return new StreamableFile(
-      createReadStream(`${configuration.VOLUMES.CONFIG}/news.md`),
-    );
   }
 }

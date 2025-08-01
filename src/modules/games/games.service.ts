@@ -201,8 +201,6 @@ export class GamesService {
         updatedUserMetadata.updated_at || undefined;
       updatedUserMetadata.entity_version =
         updatedUserMetadata.entity_version || undefined;
-      updatedUserMetadata.gamevault_games =
-        game.metadata?.gamevault_games || undefined;
 
       if (dto.user_metadata.age_rating != null) {
         updatedUserMetadata.age_rating = dto.user_metadata.age_rating;
@@ -266,9 +264,24 @@ export class GamesService {
           dto.user_metadata.launch_executable;
       }
 
+      if (dto.user_metadata.installer_parameters != null) {
+        updatedUserMetadata.installer_parameters =
+          dto.user_metadata.installer_parameters;
+      }
+
       if (dto.user_metadata.installer_executable != null) {
         updatedUserMetadata.installer_executable =
           dto.user_metadata.installer_executable;
+      }
+
+      if (dto.user_metadata.uninstaller_parameters != null) {
+        updatedUserMetadata.uninstaller_parameters =
+          dto.user_metadata.uninstaller_parameters;
+      }
+
+      if (dto.user_metadata.uninstaller_executable != null) {
+        updatedUserMetadata.uninstaller_executable =
+          dto.user_metadata.uninstaller_executable;
       }
 
       if (dto.user_metadata.url_screenshots != null) {

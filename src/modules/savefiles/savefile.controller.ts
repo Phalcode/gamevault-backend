@@ -15,12 +15,13 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 
@@ -36,7 +37,8 @@ import { SavefileService } from "./savefile.service";
 
 @Controller("savefiles")
 @ApiTags("savefile")
-@ApiBasicAuth()
+@ApiBearerAuth()
+@ApiSecurity("apikey")
 export class SavefileController {
   private readonly logger = new Logger(this.constructor.name);
 
@@ -74,7 +76,7 @@ export class SavefileController {
   )
   postSavefileByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
     @Headers("X-Installation-Id") installationId: string,
     @UploadedFile(
       new ParseFilePipe({
@@ -99,7 +101,7 @@ export class SavefileController {
       Number(params.user_id),
       Number(params.game_id),
       file,
-      req.gamevaultuser.username,
+      req.user.username,
       installationId,
     );
   }
@@ -122,12 +124,12 @@ export class SavefileController {
   @MinimumRole(Role.USER)
   async getSaveFileByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<StreamableFile> {
     return await this.savefileService.download(
       Number(params.user_id),
       Number(params.game_id),
-      req.gamevaultuser.username,
+      req.user.username,
     );
   }
 

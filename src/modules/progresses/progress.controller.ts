@@ -9,10 +9,11 @@ import {
   Request,
 } from "@nestjs/common";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -34,7 +35,6 @@ import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
 import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
-import { ProgressIdDto } from "./models/progress-id.dto";
 import { UpdateProgressDto } from "./models/update-progress.dto";
 import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
 import { Progress } from "./progress.entity";
@@ -42,7 +42,8 @@ import { ProgressService } from "./progress.service";
 
 @Controller("progresses")
 @ApiTags("progress")
-@ApiBasicAuth()
+@ApiBearerAuth()
+@ApiSecurity("apikey")
 export class ProgressController {
   private readonly logger = new Logger(this.constructor.name);
 
@@ -75,7 +76,7 @@ export class ProgressController {
   })
   @MinimumRole(Role.GUEST)
   async findProgresses(
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<Progress>> {
     const relations = ["user", "game"];
@@ -83,7 +84,7 @@ export class ProgressController {
     if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
       query.filter ??= {};
       query.filter["game.metadata.age_rating"] =
-        `$lte:${await this.usersService.findUserAgeByUsername(request.gamevaultuser.username)}`;
+        `$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`;
     }
 
     return paginate(query, this.progressRepository, {
@@ -108,54 +109,6 @@ export class ProgressController {
     });
   }
 
-  /** Retrieves a specific progress by its ID. */
-  @Get(":progress_id")
-  @ApiOperation({
-    summary:
-      "get a specific progress by progress id. DEPRECATED: Use GET /user/:user_id/game/:game_id instead.",
-    operationId: "getProgressByProgressId",
-    deprecated: true,
-  })
-  @MinimumRole(Role.GUEST)
-  @ApiOkResponse({ type: () => Progress, isArray: true })
-  async getProgressByProgressId(
-    @Param() params: ProgressIdDto,
-    @Request() request: { gamevaultuser: GamevaultUser },
-  ): Promise<Progress> {
-    return this.progressService.findOneByProgressId(
-      Number(params.progress_id),
-      {
-        loadDeletedEntities: true,
-        loadRelations: true,
-        filterByAge: await this.usersService.findUserAgeByUsername(
-          request.gamevaultuser.username,
-        ),
-      },
-    );
-  }
-
-  /** Deletes a progress by its ID. */
-  @Delete(":progress_id")
-  @ApiOperation({
-    summary: "delete a progress by progress id.",
-    description:
-      "Only admins or the user who is associated to the progress can delete it. DEPRECATED: Use DELETE /user/:user_id/game/:game_id instead.",
-    operationId: "deleteProgressByProgressId",
-    deprecated: true,
-  })
-  @ApiOkResponse({ type: () => Progress })
-  @MinimumRole(Role.USER)
-  @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  async deleteProgressByProgressId(
-    @Param() params: ProgressIdDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
-  ): Promise<Progress> {
-    return this.progressService.deleteByProgressId(
-      Number(params.progress_id),
-      req.gamevaultuser.username,
-    );
-  }
-
   /** Get the progress of a specific game for a user. */
   @Get("/user/:user_id/game/:game_id")
   @ApiOperation({
@@ -166,7 +119,7 @@ export class ProgressController {
   @ApiOkResponse({ type: () => Progress })
   async getProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
-    @Request() request: { gamevaultuser: GamevaultUser },
+    @Request() request: { user: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.findOneByUserIdAndGameIdOrReturnEmptyProgress(
       Number(params.user_id),
@@ -175,7 +128,7 @@ export class ProgressController {
         loadDeletedEntities: true,
         loadRelations: true,
         filterByAge: await this.usersService.findUserAgeByUsername(
-          request.gamevaultuser.username,
+          request.user.username,
         ),
       },
     );
@@ -194,12 +147,12 @@ export class ProgressController {
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.deleteByUserIdAndGameId(
       Number(params.user_id),
       Number(params.game_id),
-      req.gamevaultuser.username,
+      req.user.username,
     );
   }
 
@@ -215,13 +168,13 @@ export class ProgressController {
   async putProgressByUserIdAndGameId(
     @Param() params: UserIdGameIdDto,
     @Body() progress: UpdateProgressDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.set(
       Number(params.user_id),
       Number(params.game_id),
       progress,
-      req.gamevaultuser.username,
+      req.user.username,
     );
   }
 
@@ -238,12 +191,12 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async putProgressByUserIdAndGameIdIncrementByOne(
     @Param() params: UserIdGameIdDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.increment(
       Number(params.user_id),
       Number(params.game_id),
-      req.gamevaultuser.username,
+      req.user.username,
     );
   }
 
@@ -260,12 +213,12 @@ export class ProgressController {
   @MinimumRole(Role.USER)
   async putProgressByUserIdAndGameIdIncrementByMinutes(
     @Param() params: IncrementProgressByMinutesDto,
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
   ): Promise<Progress> {
     return this.progressService.increment(
       Number(params.user_id),
       Number(params.game_id),
-      req.gamevaultuser.username,
+      req.user.username,
       Number(params.minutes),
     );
   }

@@ -5,14 +5,22 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotAcceptableException,
   NotFoundException,
   OnApplicationBootstrap,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { compareSync, hashSync } from "bcrypt";
+import { hash } from "bcrypt";
 import { randomBytes } from "crypto";
-import { FindManyOptions, ILike, IsNull, Not, Repository } from "typeorm";
+import {
+  EntityNotFoundError,
+  FindManyOptions,
+  ILike,
+  IsNull,
+  Not,
+  Repository,
+} from "typeorm";
 
 import { toLower } from "lodash";
 import configuration from "../../configuration";
@@ -148,12 +156,14 @@ export class UsersService implements OnApplicationBootstrap {
     return this.filterDeletedProgresses(user);
   }
 
-  public async find(includeHidden: boolean = false): Promise<GamevaultUser[]> {
+  public async find(
+    includeHiddenAndDeleted: boolean = false,
+  ): Promise<GamevaultUser[]> {
     const query: FindManyOptions<GamevaultUser> = {
       order: { id: "ASC" },
-      withDeleted: includeHidden,
+      withDeleted: includeHiddenAndDeleted,
       relationLoadStrategy: "query",
-      where: includeHidden
+      where: includeHiddenAndDeleted
         ? undefined
         : { activated: true, username: Not(ILike("gvbot_%")) },
     };
@@ -172,8 +182,8 @@ export class UsersService implements OnApplicationBootstrap {
 
     const user = new GamevaultUser();
     user.username = dto.username;
-    user.password = hashSync(dto.password, 10);
-    user.socket_secret = randomBytes(32).toString("hex");
+    user.password = await hash(dto.password, 10);
+    user.api_key = randomBytes(32).toString("hex");
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
     user.email = dto.email || undefined;
@@ -183,7 +193,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     const registeredUser = await this.userRepository.save(user);
     registeredUser.password = "**REDACTED**";
-    registeredUser.socket_secret = "**REDACTED**";
+    registeredUser.api_key = "**REDACTED**";
     this.logger.log({
       message: `User has been registered.`,
       user: registeredUser,
@@ -192,43 +202,60 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /** Logs in a user with the provided username and password. */
-  public async login(
-    username: string,
-    password: string,
-  ): Promise<GamevaultUser> {
+  public async findUserForAuthOrFail(searchBy: {
+    id?: number;
+    username?: string;
+    email?: string;
+    idp_id?: string; // TODO: Could Implement search for idp_id
+  }): Promise<GamevaultUser> {
     const user = await this.userRepository
       .findOneOrFail({
-        where: { username: ILike(username) },
-        select: ["username", "password", "activated", "role", "deleted_at"],
+        where: [
+          { id: searchBy.id },
+          { username: ILike(searchBy.username) },
+          { email: ILike(searchBy.email) },
+        ],
+        select: [
+          "username",
+          "email",
+          "password",
+          "api_key",
+          "activated",
+          "role",
+          "deleted_at",
+        ],
         withDeleted: true,
         loadEagerRelations: false,
       })
       .catch((error) => {
+        if (error instanceof EntityNotFoundError) {
+          throw new UnauthorizedException(
+            `Authentication Failed: User not found. If you are a new user, please register first.`,
+          );
+        }
         throw new UnauthorizedException(
-          `Login Failed: User "${username}" not found.`,
+          "Authentication Failed: Contact an Administrator to check the server logs for more information.",
           {
             cause: error,
           },
         );
       });
-
-    if (configuration.TESTING.AUTHENTICATION_DISABLED) {
-      delete user.password;
-      return user;
-    }
-
-    if (!compareSync(password, user.password)) {
-      throw new UnauthorizedException("Login Failed: Incorrect Password");
-    }
-    delete user.password;
     if (user.deleted_at) {
-      throw new NotFoundException("Login Failed: User has been deleted");
-    }
-    if (!user.activated && user.role !== Role.ADMIN) {
-      throw new ForbiddenException(
-        "Login Failed: User is not activated. Contact an Administrator to activate the User.",
+      throw new UnauthorizedException(
+        "Authentication Failed: User has been deleted. Contact an Administrator to recover the User.",
       );
     }
+    if (!user.activated && user.role !== Role.ADMIN) {
+      throw new NotAcceptableException(
+        "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
+      );
+    }
+    return user;
+  }
+
+  public cleanConfidentialUser(user: GamevaultUser): GamevaultUser {
+    delete user.password;
+    delete user.api_key;
     return user;
   }
 
@@ -236,7 +263,7 @@ export class UsersService implements OnApplicationBootstrap {
   public async update(
     id: number,
     dto: UpdateUserDto,
-    admin = false,
+    isAdmin = false,
   ): Promise<GamevaultUser> {
     const user = await this.findOneByUserIdOrFail(id, { loadRelations: false });
     const logUpdate = (property: string, from: string, to: string) => {
@@ -249,12 +276,12 @@ export class UsersService implements OnApplicationBootstrap {
       });
     };
 
-    if (admin && dto.role != null) {
+    if (isAdmin && dto.role != null) {
       logUpdate("role", user.role.toString(), dto.role.toString());
       user.role = dto.role;
     }
 
-    if (admin && dto.activated != null) {
+    if (isAdmin && dto.activated != null) {
       logUpdate(
         "activated",
         user.activated.toString(),
@@ -293,7 +320,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (dto.password != null) {
       logUpdate("password", user.password, "**REDACTED**");
-      user.password = hashSync(dto.password, 10);
+      user.password = await hash(dto.password, 10);
     }
 
     if (dto.avatar_id != null) {
@@ -537,7 +564,7 @@ export class UsersService implements OnApplicationBootstrap {
           ? "username"
           : "email";
       throw new ForbiddenException(
-        `A user with this ${duplicateField} already exists. (case-insensitive)`,
+        `A user with this ${duplicateField} already exists. Please note, that they are case-insensitive.`,
       );
     }
   }

@@ -1,5 +1,46 @@
 # GameVault Backend Server Changelog
 
+## 15.0.0
+
+### Breaking Changes & Migration
+
+- Completely Overhauled Authentication System -> **Update your GameVault Client Application. Clients older than 1.17.0.0 will no longer work with this version. If you use the API, make sure to consult the documentation to learn how to authenticate with this release.**
+- Renamed some environment variables -> **Update your environment variables if you rely on them.**
+  - `SEARCH_RECURSIVE` to `GAMES_SEARCH_RECURSIVE`
+  - `CONFIGURATION_STACK_TRACE_LIMIT` to `SERVER_STACK_TRACE_LIMIT`
+  The deprecated variables will be removed in **v16.0.0**.
+- [#6](https://github.com/Phalcode/gamevault-backend/issues/6) **Added support for OAuth 2.0 and SSO Logins.**
+- Moved `/api/health` to `/api/status` -> **Health API will be removed in v16.0.0.**
+- **Removed deprecated APIs**.
+
+### Changes
+
+- Users can now also login via email and password using the basic-auth login.
+- Added more information about registrations to the server in the `/api/status` endpoint.
+- Fixed IGDB Integration throwing 429s for servers with lots of games
+- Fixed some wrong data in the OpenAPI Specification
+- Optimized some synchronous tasks
+- [#500](https://github.com/Phalcode/gamevault-backend/issues/500) Implemented `installer_parameters`, `uninstaller_parameters`, and `uninstaller_executable` fields in game metadata.
+- [#502](https://github.com/Phalcode/gamevault-backend/issues/502) & [#344](https://github.com/Phalcode/gamevault-backend/issues/344) Implemented Default Innosetup & NSIS Installer Params for IGDB Provider
+- [#488](https://github.com/Phalcode/gamevault-app/issues/488) Fixed bug where users could not be registered without first and last name.
+- [#496](https://github.com/Phalcode/gamevault-app/issues/496) Fixed bug where manually edited early access games would not show up in the early access list.
+- Added `GAMES_INDEX_USE_POLLING` env var to enable filewatching of remote networks or docker for windows containers.
+- [#359](https://github.com/Phalcode/gamevault-app/issues/359) Implemented API-Key Authentication
+
+### Thanks
+
+- @Toylerrr
+
+## 14.1.2
+
+### Changes
+
+- Loosened some container internal permissions so non-root users can use plugins
+
+### Thanks
+
+- @HiImaWalrus
+
 ## 14.1.1
 
 ### Changes
@@ -581,18 +622,15 @@ Recommended Gamevault App Version: `v1.6.1.0`
 ### Breaking Changes & Migration
 
 - Case Insensitivity for Usernames and Emails:
-
   - Usernames and user emails are now treated as case-insensitive.
   - During the update to v7.0.0, a new database migration will check for users with conflicting usernames or emails caused by differences in letter casing.
   - If such conflicts are found, the migration will halt and report an error. This prevents the update to v7.0.0 until these conflicts are resolved.
   - Administrators are advised to revert to the previous GameVault version to address these conflicts and ensure a smooth transition to v7.0.0.
 
 - Performance Enhancement: Removal of Progress Details and Filters from /games API:
-
   - To further enhance performance, the /games API no longer includes progress details and filters.
 
 - Improved User Progress Handling:
-
   - User-related calls now include deleted game details in their progress information.
   - This enhancement allows for the correct display of progress even after a game has been deleted, ensuring a more comprehensive user experience.
 

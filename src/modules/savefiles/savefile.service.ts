@@ -8,8 +8,14 @@ import {
 import { isUUID } from "class-validator";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { createReadStream } from "fs";
-import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
+import {
+  createReadStream,
+  ensureDir,
+  readdir,
+  remove,
+  stat,
+  writeFile,
+} from "fs-extra";
 import mime from "mime";
 import path, { basename, dirname } from "path";
 import configuration from "../../configuration";
@@ -126,9 +132,9 @@ export class SavefileService {
       );
       if (last) {
         const toDelete = paths.slice(-last);
-        await Promise.all(toDelete.map((p) => unlink(p)));
+        await Promise.all(toDelete.map((p) => remove(p)));
       } else {
-        await Promise.all(paths.map((p) => unlink(p)));
+        await Promise.all(paths.map((p) => remove(p)));
       }
       this.logger.log("Savefile(s) successfully deleted from filesystem.", {
         userId,
@@ -208,7 +214,7 @@ export class SavefileService {
       });
       return;
     }
-    await mkdir(dirname(path), { recursive: true });
+    await ensureDir(dirname(path));
     await writeFile(path, savefileBuffer);
     this.logger.debug({
       message: "Savefile successfully saved to filesystem.",

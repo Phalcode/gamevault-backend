@@ -10,6 +10,7 @@ import {
   OneToOne,
 } from "typeorm";
 
+import { Session } from "../auth/session.entity";
 import { DatabaseEntity } from "../database/database.entity";
 import { GamevaultGame } from "../games/gamevault-game.entity";
 import { Media } from "../media/media.entity";
@@ -32,12 +33,12 @@ export class GamevaultUser extends DatabaseEntity {
 
   @Index({ unique: true })
   @Column({ select: false, unique: true, length: 64 })
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
-      "the user's socket secret is used for authentication with the server over the websocket protocol.",
+      "the user's api_key can be used for authentication with the server (e.g. api-key auth / websocket protocol).",
     example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
   })
-  socket_secret: string;
+  api_key?: string;
 
   @OneToOne(() => Media, {
     nullable: true,
@@ -73,12 +74,15 @@ export class GamevaultUser extends DatabaseEntity {
   email: string;
 
   @Column({ nullable: true })
-  @ApiProperty({ example: "John", description: "first name of the user" })
-  first_name: string;
+  @ApiPropertyOptional({
+    example: "John",
+    description: "first name of the user",
+  })
+  first_name?: string;
 
   @Column({ nullable: true })
-  @ApiProperty({ example: "Doe", description: "last name of the user" })
-  last_name: string;
+  @ApiPropertyOptional({ example: "Doe", description: "last name of the user" })
+  last_name?: string;
 
   @Index()
   @Column({ nullable: true })
@@ -125,9 +129,27 @@ export class GamevaultUser extends DatabaseEntity {
   })
   uploaded_media?: Media[];
 
+  @OneToMany(() => Session, (session) => session.user)
+  @ApiPropertyOptional({
+    description: "sessions of the user",
+    type: () => Session,
+    isArray: true,
+  })
+  sessions?: Session[];
+
   @ManyToMany(() => GamevaultGame, (game) => game.bookmarked_users)
-  @JoinTable({ name: "bookmark" })
-  @ApiProperty({
+  @JoinTable({
+    name: "bookmark",
+    joinColumn: {
+      name: "gamevault_user_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "gamevault_game_id",
+      referencedColumnName: "id",
+    },
+  })
+  @ApiPropertyOptional({
     description: "games bookmarked by this user",
     type: () => GamevaultGame,
     isArray: true,

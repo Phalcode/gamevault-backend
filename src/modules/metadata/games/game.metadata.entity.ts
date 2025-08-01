@@ -13,7 +13,6 @@ import {
 import globals from "../../../globals";
 import { MediaValidator } from "../../../validators/media.validator";
 import { DatabaseEntity } from "../../database/database.entity";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
 import { Media } from "../../media/media.entity";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { GenreMetadata } from "../genres/genre.metadata.entity";
@@ -26,15 +25,6 @@ import { TagMetadata } from "../tags/tag.metadata.entity";
   unique: true,
 })
 export class GameMetadata extends DatabaseEntity implements Metadata {
-  @JoinTable()
-  @ManyToMany(() => GamevaultGame, (game) => game.provider_metadata)
-  @ApiPropertyOptional({
-    description: "games the metadata belongs to",
-    type: () => GamevaultGame,
-    isArray: true,
-  })
-  gamevault_games?: GamevaultGame[];
-
   //#region Provider Metadata Properties
   @Column({ nullable: true })
   @Index()
@@ -152,6 +142,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted screenshots of the game",
+    type: () => String,
     isArray: true,
   })
   url_screenshots?: string[];
@@ -159,6 +150,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted trailer videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_trailers?: string[];
@@ -166,6 +158,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted gameplay videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_gameplays?: string[];
@@ -174,6 +167,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   @ApiPropertyOptional({
     description: "URLs of websites of the game",
     example: "https://escapefromtarkov.com",
+    type: () => String,
     isArray: true,
   })
   url_websites?: string[];
@@ -208,12 +202,44 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
+    description:
+      "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
+    example: '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT',
+  })
+  installer_parameters?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
     description: "Predefined installer executable for the game.",
     example: "setup.exe",
   })
   installer_executable?: string;
 
-  @JoinTable()
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller parameters for the game.",
+    example: "/SILENT",
+  })
+  uninstaller_parameters?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller executable for the game.",
+    example: "uninst.exe",
+  })
+  uninstaller_executable?: string;
+
+  @JoinTable({
+    name: "game_metadata_publishers_publisher_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "publisher_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => PublisherMetadata, (publisher) => publisher.games, {
     eager: true,
   })
@@ -224,7 +250,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   publishers?: PublisherMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_developers_developer_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "developer_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => DeveloperMetadata, (developer) => developer.games, {
     eager: true,
   })
@@ -235,7 +271,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   developers?: DeveloperMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_tags_tag_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "tag_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => TagMetadata, (tag) => tag.games, {
     eager: true,
   })
@@ -246,7 +292,17 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   tags?: TagMetadata[];
 
-  @JoinTable()
+  @JoinTable({
+    name: "game_metadata_genres_genre_metadata",
+    joinColumn: {
+      name: "game_metadata_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "genre_metadata_id",
+      referencedColumnName: "id",
+    },
+  })
   @ManyToMany(() => GenreMetadata, (genre) => genre.games, {
     eager: true,
   })

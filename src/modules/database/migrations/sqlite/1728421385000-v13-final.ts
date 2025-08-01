@@ -1,6 +1,6 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
-import { existsSync } from "fs";
+import { pathExists } from "fs-extra";
 import { toLower, uniqBy } from "lodash";
 import { In, MigrationInterface, QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity";
@@ -699,7 +699,7 @@ export class V13Final1728421385000 implements MigrationInterface {
   }
 
   private async part1_rename_tables(queryRunner: QueryRunner) {
-    if (existsSync("/images")) {
+    if (await pathExists("/images")) {
       throw new Error(
         "Oof... Your media volume mount point is still pointing to /images. This is deprecated since v13.0.0. From now on, mount your images to /media instead of /images. Did you even bother to read the migration instructions? 🥲",
       );
@@ -4369,6 +4369,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     // Fetch all games
     const games = await gameRepository.find({
       withDeleted: true,
+      loadEagerRelations: false,
       select: ["id", "title"],
     });
 

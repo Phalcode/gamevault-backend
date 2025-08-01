@@ -148,10 +148,38 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty()
   @IsString()
   @ApiPropertyOptional({
+    description:
+      "Predefined installer parameters for the game. You can use %INSTALLDIR% as a placeholder for the installation directory.",
+    example: '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT',
+  })
+  installer_parameters?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
     description: "Predefined installer executable for the game.",
     example: "setup.exe",
   })
   installer_executable?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller parameters for the game.",
+    example: "/SILENT",
+  })
+  uninstaller_parameters?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Predefined uninstaller executable for the game.",
+    example: "uninst.exe",
+  })
+  uninstaller_executable?: string;
 
   @IsArray()
   @IsOptional()
@@ -160,6 +188,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted screenshots of the game",
+    type: () => String,
     isArray: true,
   })
   url_screenshots?: string[];
@@ -171,6 +200,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted trailer videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_trailers?: string[];
@@ -182,6 +212,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "URLs of externally hosted gameplay videos of the game",
+    type: () => String,
     isArray: true,
   })
   url_gameplays?: string[];
@@ -194,6 +225,7 @@ export class UpdateGameUserMetadataDto {
   @ApiPropertyOptional({
     description: "URLs of websites of the game",
     example: "https://www.escapefromtarkov.com/",
+    type: () => String,
     isArray: true,
   })
   url_websites?: string[];
@@ -204,6 +236,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "publishers of the game",
+    type: () => String,
     isArray: true,
   })
   publishers?: string[];
@@ -214,6 +247,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "developers of the game",
+    type: () => String,
     isArray: true,
   })
   developers?: string[];
@@ -224,6 +258,7 @@ export class UpdateGameUserMetadataDto {
   @IsNotEmpty({ each: true })
   @ApiPropertyOptional({
     description: "tags of the game",
+    type: () => String,
     isArray: true,
   })
   tags?: string[];
@@ -234,6 +269,7 @@ export class UpdateGameUserMetadataDto {
   @IsOptional()
   @ApiPropertyOptional({
     description: "genres of the game",
+    type: () => String,
     isArray: true,
   })
   genres?: string[];

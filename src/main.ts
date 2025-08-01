@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 import { ValidationPipe } from "@nestjs/common";
-import { NestFactory, Reflector } from "@nestjs/core";
+import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
@@ -11,6 +11,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
+import { Response } from "express";
 import { AppModule } from "./app.module";
 import configuration, {
   getCensoredConfiguration,
@@ -19,8 +20,6 @@ import configuration, {
 import { LoggingExceptionFilter } from "./filters/http-exception.filter";
 import { default as logger, stream, default as winston } from "./logging";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
-import { AuthenticationGuard } from "./modules/guards/authentication.guard";
-import { AuthorizationGuard } from "./modules/guards/authorization.guard";
 import loadPlugins from "./plugin";
 
 async function bootstrap(): Promise<void> {
@@ -72,11 +71,11 @@ async function bootstrap(): Promise<void> {
   // Support Legacy Routes
   app.use(new LegacyRoutesMiddleware().use);
 
-  // Skips logs for /health calls
+  // Skips logs for /status and /health calls
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
       stream,
-      skip: (req) => req.url.includes("/health"),
+      skip: (req) => req.url.includes("/status") || req.url.includes("/health"),
     }),
   );
 
@@ -91,16 +90,9 @@ async function bootstrap(): Promise<void> {
 
   // Basepath
   app.setGlobalPrefix("api");
-  const reflector = app.get(Reflector);
 
   // Enable automatic HTTP Error Response Logging
   app.useGlobalFilters(new LoggingExceptionFilter());
-
-  // Enable Authentication and Authorization
-  app.useGlobalGuards(
-    new AuthenticationGuard(reflector),
-    new AuthorizationGuard(reflector),
-  );
 
   // Provide API Specification
   if (configuration.SERVER.API_DOCS_ENABLED) {
@@ -117,7 +109,33 @@ async function bootstrap(): Promise<void> {
             "Backend for GameVault, the self-hosted gaming platform for drm-free games",
           )
           .setVersion(configuration.SERVER.VERSION)
-          .addBasicAuth()
+          .addBearerAuth(
+            {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+              description:
+                "Access token obtained from /api/auth/*/login endpoint.",
+            },
+            "bearer",
+          )
+          .addBasicAuth(
+            {
+              type: "http",
+              scheme: "basic",
+              description: "Basic Authentication",
+            },
+            "basic",
+          )
+          .addApiKey(
+            {
+              type: "apiKey",
+              name: "X-Api-Key",
+              in: "header",
+              description: "API-Key Authentication",
+            },
+            "apikey",
+          )
           .addServer(
             `http://localhost:${configuration.SERVER.PORT}`,
             "Local GameVault Server",
@@ -139,7 +157,7 @@ async function bootstrap(): Promise<void> {
     //    new AsyncApiDocumentBuilder()
     //      .setTitle("GameVault Backend Server")
     //      .setDescription(
-    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Socket-Secret Header during the handshake. You can get this secret by using the /users/me REST API.",
+    //        "Asynchronous Socket.IO Backend for GameVault, the self-hosted gaming platform for drm-free games. To make a request, you need to authenticate with the X-Api-Key Header during the handshake. You can get this secret by using the /users/me REST API.",
     //      )
     //      .setContact("Phalcode", "https://phalco.de", "contact@phalco.de")
     //      .setExternalDoc("Documentation", "https://gamevau.lt")
@@ -161,6 +179,11 @@ async function bootstrap(): Promise<void> {
     //  ),
     //);
   }
+
+  // Redirect /health to /status
+  app.use("/api/health", (_req, res: Response) => {
+    res.redirect(308, "/api/status");
+  });
 
   if (configuration.SERVER.LANDING_PAGE_ENABLED) {
     app

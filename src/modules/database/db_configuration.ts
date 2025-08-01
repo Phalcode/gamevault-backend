@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { readFileSync } from "fs";
+import { readFileSync } from "fs-extra";
 import pg from "pg";
 import { TlsOptions } from "tls";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";

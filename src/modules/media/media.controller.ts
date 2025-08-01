@@ -14,17 +14,18 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
-  ApiBasicAuth,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiProduces,
+  ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";
-import fs from "fs";
+import { createReadStream } from "fs-extra";
 
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
@@ -36,7 +37,8 @@ import { MediaService } from "./media.service";
 
 @ApiTags("media")
 @Controller("media")
-@ApiBasicAuth()
+@ApiBearerAuth()
+@ApiSecurity("apikey")
 export class MediaController {
   private readonly logger = new Logger(this.constructor.name);
 
@@ -60,7 +62,7 @@ export class MediaController {
   ): Promise<void> {
     const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
-    fs.createReadStream(media.file_path).pipe(res);
+    createReadStream(media.file_path).pipe(res);
   }
 
   @Post()
@@ -90,7 +92,7 @@ export class MediaController {
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   postMedia(
-    @Request() req: { gamevaultuser: GamevaultUser },
+    @Request() req: { user: GamevaultUser },
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -104,6 +106,6 @@ export class MediaController {
     )
     file: Express.Multer.File,
   ) {
-    return this.mediaService.upload(file, req.gamevaultuser.username);
+    return this.mediaService.upload(file, req.user.username);
   }
 }

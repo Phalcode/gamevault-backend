@@ -1,4 +1,4 @@
-import { cp, readdir } from "fs/promises";
+import { copy, readdir } from "fs-extra";
 import path, { join, resolve } from "path";
 import configuration from "./configuration";
 import { GameVaultPluginModule } from "./globals";
@@ -27,7 +27,7 @@ export default async function loadPlugins() {
         pluginDir,
         injectDir,
       });
-      await cp(pluginDir, injectDir, { recursive: true });
+      await copy(pluginDir, injectDir);
     }
 
     const pluginModuleFiles = (
@@ -45,6 +45,11 @@ export default async function loadPlugins() {
         (file) => import(resolve(join(file.path, file.name))),
       ),
     );
+
+    logger.log({
+      context: "PluginLoader",
+      message: `Found ${pluginModuleFiles.length} plugins to load.`,
+    });
 
     for (const plugin of plugins) {
       const instance: GameVaultPluginModule = new plugin.default();

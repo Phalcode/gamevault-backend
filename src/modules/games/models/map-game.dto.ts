@@ -35,7 +35,7 @@ export class MapGameDto {
   provider_data_id?: string;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({
     type: Number,
     description:

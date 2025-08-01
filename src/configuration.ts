@@ -1,4 +1,5 @@
 import bytes from "bytes";
+import { createHash, randomBytes } from "crypto";
 import { toLower } from "lodash";
 import packageJson from "../package.json";
 import globals from "./globals";
@@ -110,7 +111,8 @@ const configuration = {
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
     STACK_TRACE_LIMIT: parseNumber(
-      process.env.CONFIGURATION_STACK_TRACE_LIMIT,
+      process.env.CONFIGURATION_STACK_TRACE_LIMIT || //TODO: remove in v16
+        process.env.SERVER_STACK_TRACE_LIMIT,
       10,
     ),
   } as const,
@@ -164,6 +166,9 @@ const configuration = {
     AGE_OF_MAJORITY: parseNumber(process.env.PARENTAL_AGE_OF_MAJORITY, 18),
   } as const,
   GAMES: {
+    INDEX_USE_POLLING: parseBooleanEnvVariable(
+      process.env.GAMES_INDEX_USE_POLLING,
+    ),
     INDEX_INTERVAL_IN_MINUTES: parseNumber(
       process.env.GAMES_INDEX_INTERVAL_IN_MINUTES,
       60,
@@ -173,7 +178,7 @@ const configuration = {
       globals.SUPPORTED_FILE_FORMATS,
     ),
     SEARCH_RECURSIVE: parseBooleanEnvVariable(
-      process.env.SEARCH_RECURSIVE,
+      process.env.GAMES_SEARCH_RECURSIVE || process.env.SEARCH_RECURSIVE, //TODO: remove in v16
       true,
     ),
     DEFAULT_ARCHIVE_PASSWORD:
@@ -216,6 +221,54 @@ const configuration = {
     MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
+  } as const,
+  AUTH: {
+    SEED:
+      process.env.AUTH_SEED ||
+      process.env.DB_PASSWORD ||
+      process.env.SERVER_ADMIN_PASSWORD ||
+      process.env.AUTH_OAUTH2_CLIENT_SECRET ||
+      process.env.METADATA_IGDB_CLIENT_SECRET ||
+      randomBytes(32).toString("hex"),
+    ACCESS_TOKEN: {
+      get SECRET() {
+        return createHash("sha256")
+          .update(configuration.AUTH.SEED)
+          .digest("hex");
+      },
+      EXPIRES_IN: process.env.AUTH_ACCESS_TOKEN_EXPIRES_IN || "5m",
+    } as const,
+    REFRESH_TOKEN: {
+      get SECRET() {
+        return createHash("sha256")
+          .update(configuration.AUTH.ACCESS_TOKEN.SECRET)
+          .digest("hex");
+      },
+      EXPIRES_IN: process.env.AUTH_REFRESH_TOKEN_EXPIRES_IN || "30d",
+    } as const,
+    API_KEY: {
+      ENABLED: parseBooleanEnvVariable(process.env.AUTH_API_KEY_ENABLED),
+    } as const,
+    OAUTH2: {
+      ENABLED: parseBooleanEnvVariable(process.env.AUTH_OAUTH2_ENABLED),
+      SCOPES: parseList(process.env.AUTH_OAUTH2_SCOPES, [
+        "openid",
+        "email",
+        "profile",
+      ]),
+      AUTH_URL: process.env.AUTH_OAUTH2_AUTH_URL || undefined,
+      TOKEN_URL: process.env.AUTH_OAUTH2_TOKEN_URL || undefined,
+      CALLBACK_URL: process.env.AUTH_OAUTH2_CALLBACK_URL || undefined,
+      USERINFO_URL: process.env.AUTH_OAUTH2_USERINFO_URL || undefined,
+      CLIENT_ID: process.env.AUTH_OAUTH2_CLIENT_ID || undefined,
+      CLIENT_SECRET: process.env.AUTH_OAUTH2_CLIENT_SECRET || undefined,
+    } as const,
+    BASIC_AUTH: {
+      ENABLED: parseBooleanEnvVariable(
+        process.env.AUTH_BASIC_AUTH_ENABLED,
+        true,
+      ),
+    } as const,
   } as const,
 } as const;
 

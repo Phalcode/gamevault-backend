@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { Repository } from "typeorm";
 
 import { FindOptions } from "../../../globals";
 import logger from "../../../logging";
@@ -39,37 +39,6 @@ export class GameMetadataService {
     }
     return this.gameMetadataRepository.find({
       where: { provider_slug },
-      relations,
-      withDeleted: options.loadDeletedEntities,
-      relationLoadStrategy: "query",
-    });
-  }
-
-  async findByGameId(
-    gameId: number,
-    options: FindOptions = { loadDeletedEntities: false, loadRelations: true },
-  ): Promise<GameMetadata[]> {
-    let relations = [];
-    if (options.loadRelations) {
-      if (options.loadRelations === true) {
-        relations = [
-          "gamevault_games",
-          "developers",
-          "publishers",
-          "genres",
-          "tags",
-        ];
-      } else if (Array.isArray(options.loadRelations)) {
-        relations = options.loadRelations;
-      }
-    }
-
-    return this.gameMetadataRepository.find({
-      where: {
-        gamevault_games: {
-          id: In([gameId]),
-        },
-      },
       relations,
       withDeleted: options.loadDeletedEntities,
       relationLoadStrategy: "query",
@@ -152,8 +121,10 @@ export class GameMetadataService {
       early_access: game.early_access,
       launch_parameters: game.launch_parameters,
       launch_executable: game.launch_executable,
+      installer_parameters: game.installer_parameters,
       installer_executable: game.installer_executable,
-      gamevault_games: undefined,
+      uninstaller_parameters: game.uninstaller_parameters,
+      uninstaller_executable: game.uninstaller_executable,
       publishers: null,
       developers: null,
       tags: null,

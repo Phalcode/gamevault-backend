@@ -2,7 +2,7 @@ import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
-import { readdir, unlink } from "fs/promises";
+import { readdir, remove } from "fs-extra";
 import { join } from "path";
 import { Repository } from "typeorm";
 
@@ -239,7 +239,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     const unlinkPromises = allMediaFilePaths.map((path) => {
       // If the file path is not in the usedMediaPaths set, delete the file
       if (!usedMediaPaths.includes(path)) {
-        return unlink(path)
+        return remove(path)
           .then(() => {
             this.logger.debug({
               message: "Garbage collected unused media.",

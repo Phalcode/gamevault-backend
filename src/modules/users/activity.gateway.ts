@@ -14,7 +14,7 @@ import { Server, Socket } from "socket.io";
 
 import configuration from "../../configuration";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
-import { SocketSecretGuard } from "../guards/socket-secret.guard";
+import { ApiKeyGuard } from "../auth/guards/api-key.guard";
 import { GamevaultUser } from "./gamevault-user.entity";
 import { ActivityState } from "./models/activity-state.enum";
 import { Activity } from "./models/activity.dto";
@@ -26,7 +26,7 @@ const ConditionalWebSocketGateway = configuration.SERVER
   ? () => {}
   : WebSocketGateway({ cors: true });
 
-@UseGuards(SocketSecretGuard)
+@UseGuards(ApiKeyGuard)
 @ApiBasicAuth()
 @ConditionalWebSocketGateway
 @UseFilters(WebsocketExceptionsFilter)
@@ -69,10 +69,10 @@ export class ActivityGateway
     @MessageBody() dto: Activity,
   ) {
     const requestingUser = client as unknown as {
-      gamevaultuser: GamevaultUser;
+      user: GamevaultUser;
     };
     const user = await this.usersService.findOneByUserIdOrFail(
-      requestingUser.gamevaultuser.id,
+      requestingUser.user.id,
     );
     dto.user_id = user.id;
     dto.socket_id = client.id;

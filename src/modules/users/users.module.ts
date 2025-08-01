@@ -2,11 +2,10 @@ import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { GamesModule } from "../games/games.module";
-import { SocketSecretGuard } from "../guards/socket-secret.guard";
 import { MediaModule } from "../media/media.module";
 import { ActivityGateway } from "./activity.gateway";
+import { ApiKeyService } from "./api-key.service";
 import { GamevaultUser } from "./gamevault-user.entity";
-import { SocketSecretService } from "./socket-secret.service";
 import { UsersController } from "./users.controller";
 import { UsersService } from "./users.service";
 
@@ -17,12 +16,7 @@ import { UsersService } from "./users.service";
     forwardRef(() => GamesModule),
   ],
   controllers: [UsersController],
-  providers: [
-    UsersService,
-    SocketSecretService,
-    SocketSecretGuard,
-    ActivityGateway,
-  ],
-  exports: [UsersService],
+  providers: [UsersService, ApiKeyService, ActivityGateway],
+  exports: [UsersService, ApiKeyService],
 })
 export class UsersModule {}

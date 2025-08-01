@@ -6,6 +6,7 @@ import {
   search,
   twitchAccessToken,
   where,
+  whereIn,
 } from "@phalcode/ts-igdb-client";
 
 import { isNumberString } from "class-validator";
@@ -42,6 +43,19 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     "websites.*",
   ];
 
+  readonly categoriesToInclude = [
+    0, // Main Game
+    3, // Bundle
+    4, // Standalone Expansion
+    6, // Episode
+    7, // Season
+    8, // Remake
+    9, // Remaster
+    10, // Expanded Game
+    11, // Port
+    12, // Fork
+  ];
+
   override async onModuleInit(): Promise<void> {
     if (
       !configuration.METADATA.IGDB.CLIENT_ID ||
@@ -76,6 +90,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           "cover.*",
         ]),
         search(query),
+        whereIn("category", this.categoriesToInclude),
       )
       .execute();
 
@@ -222,6 +237,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         "t_thumb",
         "t_1080p_2x",
       ),
+      installer_parameters:
+        '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT /COMPONENTS=text',
     } as GameMetadata;
   }
 
