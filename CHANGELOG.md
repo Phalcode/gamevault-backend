@@ -1,14 +1,12 @@
 # GameVault Backend Server Changelog
 
-## 16.0.0
+## 15.0.1
 
-### Breaking Changes (mostly API changes)
+### Changes
 
 - [#364](https://github.com/Phalcode/gamevault-backend/issues/364) Parental Control
   - Games without any age rating set, are now shown in the game list for all users. -> **If you use parental control, apply an age rating to your games, if you don't want to show them to everyone.**
   - Admins can now see all games, regardless of their age rating.
-
-### Changes
 
 - [#362](https://github.com/Phalcode/gamevault-backend/issues/362) Gracefully handle chown/chmod failures on NFS-mounted volumes
 - [#363](https://github.com/Phalcode/gamevault-backend/issues/363) IGDB ID Search Results now always return as first result.
