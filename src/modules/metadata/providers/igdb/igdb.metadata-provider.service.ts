@@ -78,24 +78,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
     const found_games = [];
 
-    const searchByName = await client
-      .request("games")
-      .pipe(
-        fields([
-          "id",
-          "name",
-          "summary",
-          "storyline",
-          "first_release_date",
-          "cover.*",
-        ]),
-        search(query),
-        whereIn("category", this.categoriesToInclude),
-      )
-      .execute();
-
-    found_games.push(...searchByName.data);
-
     if (isNumberString(query)) {
       const searchById = await client
         .request("games")
@@ -113,6 +95,24 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         .execute();
       found_games.push(...searchById.data);
     }
+
+    const searchByName = await client
+      .request("games")
+      .pipe(
+        fields([
+          "id",
+          "name",
+          "summary",
+          "storyline",
+          "first_release_date",
+          "cover.*",
+        ]),
+        search(query),
+        whereIn("category", this.categoriesToInclude),
+      )
+      .execute();
+
+    found_games.push(...searchByName.data);
 
     this.logger.debug({
       message: `Found ${found_games.length} games on IGDB`,
