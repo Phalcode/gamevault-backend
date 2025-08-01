@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 15.0.1
+
+### Changes
+
+- [#362](https://github.com/Phalcode/gamevault-backend/issues/362) Gracefully handle chown/chmod failures on NFS-mounted volumes
+
+### Thanks
+
+- @Elekam
+
 ## 15.0.0
 
 ### Breaking Changes & Migration
@@ -8,7 +18,7 @@
 - Renamed some environment variables -> **Update your environment variables if you rely on them.**
   - `SEARCH_RECURSIVE` to `GAMES_SEARCH_RECURSIVE`
   - `CONFIGURATION_STACK_TRACE_LIMIT` to `SERVER_STACK_TRACE_LIMIT`
-  The deprecated variables will be removed in **v16.0.0**.
+    The deprecated variables will be removed in **v16.0.0**.
 - [#6](https://github.com/Phalcode/gamevault-backend/issues/6) **Added support for OAuth 2.0 and SSO Logins.**
 - Moved `/api/health` to `/api/status` -> **Health API will be removed in v16.0.0.**
 - **Removed deprecated APIs**.
