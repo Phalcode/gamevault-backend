@@ -81,10 +81,15 @@ export class ProgressController {
   ): Promise<Paginated<Progress>> {
     const relations = ["user", "game"];
 
-    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+    if (
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
+      request.user.role !== Role.ADMIN
+    ) {
       query.filter ??= {};
-      query.filter["game.metadata.age_rating"] =
-        `$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`;
+      query.filter["game.metadata.age_rating"] = [
+        `$null`,
+        `$or:$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`,
+      ];
     }
 
     return paginate(query, this.progressRepository, {

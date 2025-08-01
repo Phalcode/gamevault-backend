@@ -1,6 +1,12 @@
 # GameVault Backend Server Changelog
 
-## 15.0.1
+## 16.0.0
+
+### Breaking Changes
+
+- [#364](https://github.com/Phalcode/gamevault-backend/issues/364) Parental Control
+  - Games without any age rating set, are now shown in the game list for all users. -> **If you use parental control, apply an age rating to your games, if you don't want to show them to everyone.**
+  - Admins can now see all games, regardless of their age rating.
 
 ### Changes
 
