@@ -109,6 +109,12 @@ export class GamesController {
       relations.push("metadata.publishers");
     }
 
+    // Redirect "early_access" to "metadata.early_access"
+    if (query.filter?.["early_access"]) {
+      query.filter["metadata.early_access"] = query.filter["early_access"];
+      delete query.filter["early_access"];
+    }
+
     const progressStateFilter = query.filter?.["progresses.state"];
     const progressUserFilter = query.filter?.["progresses.user.id"];
     if (progressStateFilter || progressUserFilter) {
@@ -187,7 +193,6 @@ export class GamesController {
         size: true,
         metacritic_rating: true,
         average_playtime: true,
-        early_access: true,
         type: true,
         download_count: true,
         "bookmarked_users.id": true,

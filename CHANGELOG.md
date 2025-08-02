@@ -10,11 +10,13 @@
 
 - [#362](https://github.com/Phalcode/gamevault-backend/issues/362) Gracefully handle chown/chmod failures on NFS-mounted volumes
 - [#363](https://github.com/Phalcode/gamevault-backend/issues/363) IGDB ID Search Results now always return as first result.
+- [#365](https://github.com/Phalcode/gamevault-backend/issues/365) Fixed Early Access Games not showing up in the Early Access List, depending on the filename. -> **Recache games, that still show issues**
 
 ### Thanks
 
 - @jbonadiman
 - @Elekam
+- @strese
 
 ## 15.0.0
 

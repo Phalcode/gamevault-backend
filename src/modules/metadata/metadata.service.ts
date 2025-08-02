@@ -350,6 +350,9 @@ export class MetadataService {
 
     let mergedMetadata = new GameMetadata();
 
+    // Fallback release date from file
+    mergedMetadata.release_date = game.release_date;
+
     // Create New Effective Metadata by applying the priorotized metadata one by one
     for (const metadata of providerMetadata) {
       // Delete all empty fields of provider so only delta is overwritten
@@ -367,6 +370,9 @@ export class MetadataService {
         ...metadata,
       } as GameMetadata;
     }
+
+    // Apply file metadata on top (EA)
+    mergedMetadata.early_access = game.early_access;
 
     // Apply the users changes on top
     if (userMetadata) {
