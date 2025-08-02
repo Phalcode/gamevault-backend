@@ -63,6 +63,13 @@ function parseKibibytesToBytes(
   return bytes;
 }
 
+function safeHash(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  return createHash("sha256").update(value).digest("hex");
+}
+
 export function getMaxBodySizeInBytes() {
   return Math.max(
     bytes("10mb"),
@@ -224,11 +231,11 @@ const configuration = {
   } as const,
   AUTH: {
     SEED:
-      process.env.AUTH_SEED ||
-      process.env.DB_PASSWORD ||
-      process.env.SERVER_ADMIN_PASSWORD ||
-      process.env.AUTH_OAUTH2_CLIENT_SECRET ||
-      process.env.METADATA_IGDB_CLIENT_SECRET ||
+      safeHash(process.env.AUTH_SEED) ||
+      safeHash(process.env.DB_PASSWORD) ||
+      safeHash(process.env.SERVER_ADMIN_PASSWORD) ||
+      safeHash(process.env.AUTH_OAUTH2_CLIENT_SECRET) ||
+      safeHash(process.env.METADATA_IGDB_CLIENT_SECRET) ||
       randomBytes(32).toString("hex"),
     ACCESS_TOKEN: {
       get SECRET() {
@@ -290,6 +297,10 @@ export function getCensoredConfiguration() {
     .CLIENT_SECRET
     ? "**REDACTED**"
     : null;
+  censoredConfig.AUTH.SECRET = censoredConfig.AUTH.SECRET
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.AUTH.SEED = censoredConfig.AUTH.SEED ? "**REDACTED**" : null;
   return censoredConfig;
 }
 
