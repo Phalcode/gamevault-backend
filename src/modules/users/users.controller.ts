@@ -86,10 +86,10 @@ export class UsersController {
     @Request() request: { user: GamevaultUser },
   ): Promise<GamevaultUser> {
     return this.putUserByUserId(
-      false,
       { user_id: request.user.id },
       dto,
       request,
+      false,
     );
   }
 
@@ -174,10 +174,10 @@ export class UsersController {
   @MinimumRole(Role.ADMIN)
   @ApiOkResponse({ type: () => GamevaultUser })
   async putUserByUserId(
-    isAdmin = true,
     @Param() params: UserIdDto,
     @Body() dto: UpdateUserDto,
     @Request() request: { user: GamevaultUser },
+    isAdmin = true,
   ): Promise<GamevaultUser> {
     const user = await this.usersService.update(
       Number(params.user_id),
