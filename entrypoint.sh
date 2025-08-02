@@ -17,8 +17,16 @@ echo "Effective UID: $(id -u), GID: $(id -g)"
 # change ownership on directories, and drop privileges.
 if [ "$(id -u)" = "0" ]; then
     # Adjust ownership and ensure permissions are open.
-    chown -R "${PUID}:${PGID}" /app/dist /files /media /logs /db /plugins /savefiles
-    chmod -R 775 /app/dist /files /media /logs /db /plugins /savefiles
+    echo "Attempting to set ownership and permissions..."
+    for dir in /app/dist /files /media /logs /db /plugins /savefiles; do
+        if ! chown -R "${PUID}:${PGID}" "$dir" 2>/dev/null; then
+            echo "Warning: chown failed on $dir (possibly due to missing permissions)"
+        fi
+        if ! chmod -R 775 "$dir" 2>/dev/null; then
+            echo "Warning: chmod failed on $dir (possibly due to missing permissions)"
+        fi
+    done
+    
     
     # Only update the node user's UID/GID if different from defaults.
     if [ "${PUID}" != "1000" ] || [ "${PGID}" != "1000" ]; then

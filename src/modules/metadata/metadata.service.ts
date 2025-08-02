@@ -15,6 +15,7 @@ import configuration from "../../configuration";
 import { logGamevaultGame, logMetadataProvider } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
+import { GameType } from "../games/models/game-type.enum";
 import { GameMetadata } from "./games/game.metadata.entity";
 import { GameMetadataService } from "./games/game.metadata.service";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
@@ -350,6 +351,13 @@ export class MetadataService {
 
     let mergedMetadata = new GameMetadata();
 
+    // Set fallback data
+    mergedMetadata.release_date = game.release_date;
+    if (game.type === GameType.WINDOWS_SETUP) {
+      mergedMetadata.installer_parameters =
+        '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT /COMPONENTS=text';
+    }
+
     // Create New Effective Metadata by applying the priorotized metadata one by one
     for (const metadata of providerMetadata) {
       // Delete all empty fields of provider so only delta is overwritten
@@ -367,6 +375,9 @@ export class MetadataService {
         ...metadata,
       } as GameMetadata;
     }
+
+    // Apply file metadata on top (EA)
+    mergedMetadata.early_access = game.early_access;
 
     // Apply the users changes on top
     if (userMetadata) {

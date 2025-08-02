@@ -109,6 +109,8 @@ export class GamesController {
       relations.push("metadata.publishers");
     }
 
+    query = this.redirectLegacyQueries(query);
+
     const progressStateFilter = query.filter?.["progresses.state"];
     const progressUserFilter = query.filter?.["progresses.user.id"];
     if (progressStateFilter || progressUserFilter) {
@@ -134,10 +136,15 @@ export class GamesController {
       relations.push("progresses", "progresses.user");
     }
 
-    if (configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+    if (
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
+      request.user.role !== Role.ADMIN
+    ) {
       query.filter ??= {};
-      query.filter["metadata.age_rating"] =
-        `$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`;
+      query.filter["metadata.age_rating"] = [
+        `$null`,
+        `$or:$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`,
+      ];
     }
 
     return paginate(query, this.gamesRepository, {
@@ -151,10 +158,8 @@ export class GamesController {
         "id",
         "title",
         "sort_title",
-        "release_date",
         "created_at",
         "size",
-        "early_access",
         "type",
         "download_count",
         "bookmarked_users.id",
@@ -162,6 +167,7 @@ export class GamesController {
         "metadata.early_access",
         "metadata.release_date",
         "metadata.average_playtime",
+        "metadata.age_rating",
         "metadata.rating",
       ],
       loadEagerRelations: false,
@@ -176,13 +182,11 @@ export class GamesController {
         id: true,
         title: true,
         file_path: true,
-        release_date: true,
         created_at: true,
         updated_at: true,
         size: true,
         metacritic_rating: true,
         average_playtime: true,
-        early_access: true,
         type: true,
         download_count: true,
         "bookmarked_users.id": true,
@@ -190,6 +194,7 @@ export class GamesController {
         "metadata.tags.name": true,
         "metadata.developers.name": true,
         "metadata.publishers.name": true,
+        "metadata.release_date": true,
         "metadata.early_access": true,
         "metadata.age_rating": true,
         "progresses.state": [
@@ -311,5 +316,61 @@ export class GamesController {
     @Body() dto: UpdateGameDto,
   ): Promise<GamevaultGame> {
     return this.gamesService.update(Number(params.game_id), dto);
+  }
+
+  private redirectLegacyQueries(query: PaginateQuery) {
+    // Early Access
+    if (query.filter?.["early_access"]) {
+      this.logger.debug({
+        message:
+          'Redirecting legacy filter key "early_access" to "metadata.early_access"',
+        oldValue: query.filter["early_access"],
+      });
+
+      query.filter["metadata.early_access"] = query.filter["early_access"];
+      delete query.filter["early_access"];
+    }
+
+    const sortByEarlyAccess = query.sortBy?.find(
+      (x) => x[0] === "early_access",
+    );
+    if (sortByEarlyAccess) {
+      this.logger.debug({
+        message:
+          'Redirecting legacy sort key "early_access" to "metadata.early_access"',
+        direction: sortByEarlyAccess[1],
+      });
+
+      query.sortBy.push(["metadata.early_access", sortByEarlyAccess[1]]);
+      delete query.sortBy[query.sortBy.indexOf(sortByEarlyAccess)];
+    }
+
+    // Release Date
+    if (query.filter?.["release_date"]) {
+      this.logger.debug({
+        message:
+          'Redirecting legacy filter key "release_date" to "metadata.release_date"',
+        oldValue: query.filter["release_date"],
+      });
+
+      query.filter["metadata.release_date"] = query.filter["release_date"];
+      delete query.filter["release_date"];
+    }
+
+    const sortByReleaseDate = query.sortBy?.find(
+      (x) => x[0] === "release_date",
+    );
+    if (sortByReleaseDate) {
+      this.logger.debug({
+        message:
+          'Redirecting legacy sort key "release_date" to "metadata.release_date"',
+        direction: sortByReleaseDate[1],
+      });
+
+      query.sortBy.push(["metadata.release_date", sortByReleaseDate[1]]);
+      delete query.sortBy[query.sortBy.indexOf(sortByReleaseDate)];
+    }
+
+    return query;
   }
 }

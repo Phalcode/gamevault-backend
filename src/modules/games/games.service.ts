@@ -11,7 +11,9 @@ import {
   FindManyOptions,
   FindOneOptions,
   FindOptionsSelect,
+  IsNull,
   LessThanOrEqual,
+  Or,
   Repository,
 } from "typeorm";
 
@@ -69,7 +71,9 @@ export class GamesService {
       if (options.filterByAge) {
         findParameters.where = {
           id,
-          metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+          metadata: {
+            age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
+          },
         };
       }
 
@@ -109,7 +113,9 @@ export class GamesService {
         findParameters.relations = ["metadata"];
       }
       findParameters.where = {
-        metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+        metadata: {
+          age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
+        },
       };
     }
 
@@ -130,7 +136,9 @@ export class GamesService {
     if (options.filterByAge) {
       findParameters.relations = ["metadata"];
       findParameters.where = {
-        metadata: { age_rating: LessThanOrEqual(options.filterByAge) },
+        metadata: {
+          age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
+        },
       };
     }
 
