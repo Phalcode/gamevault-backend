@@ -331,7 +331,7 @@ export class GamesController {
       delete query.filter["early_access"];
     }
 
-    const sortByEarlyAccess = query.sortBy.find((x) => x[0] === "early_access");
+    const sortByEarlyAccess = query.sortBy?.find((x) => x[0] === "early_access");
     if (sortByEarlyAccess) {
       this.logger.debug({
         message:
@@ -355,7 +355,7 @@ export class GamesController {
       delete query.filter["release_date"];
     }
 
-    const sortByReleaseDate = query.sortBy.find((x) => x[0] === "release_date");
+    const sortByReleaseDate = query.sortBy?.find((x) => x[0] === "release_date");
     if (sortByReleaseDate) {
       this.logger.debug({
         message:
