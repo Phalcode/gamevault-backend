@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 15.0.2
+
+### Changes
+
+- Security fix regarding logging and auth seed generation.
+
 ## 15.0.1
 
 ### Changes
