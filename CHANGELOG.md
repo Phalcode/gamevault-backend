@@ -7,11 +7,11 @@
 - [#364](https://github.com/Phalcode/gamevault-backend/issues/364) Parental Control
   - Games without any age rating set, are now shown in the game list for all users. -> **If you use parental control, apply an age rating to your games, if you don't want to show them to everyone.**
   - Admins can now see all games, regardless of their age rating.
-
 - [#362](https://github.com/Phalcode/gamevault-backend/issues/362) Gracefully handle chown/chmod failures on NFS-mounted volumes
 - [#363](https://github.com/Phalcode/gamevault-backend/issues/363) IGDB ID Search Results now always return as first result.
 - [#365](https://github.com/Phalcode/gamevault-backend/issues/365) Fixed Early Access Games not showing up in the Early Access List, depending on the filename. -> **Recache games, that still show issues**
 - Redirected early access and release date sorting & filtering to the respective metadata fields.
+- [#354](https://github.com/Phalcode/gamevault-backend/issues/354) Moved setting the default install parameters from IGDB Provider to fallback in metadata merge process and only set them if its a Windows Setup Game.
 
 ### Thanks
 
