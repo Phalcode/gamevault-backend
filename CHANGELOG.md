@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 15.0.3
+
+### Changes
+
+- Fixes for breaking IGDB API changes and dependency updates.  
+
 ## 15.0.2
 
 ### Changes
