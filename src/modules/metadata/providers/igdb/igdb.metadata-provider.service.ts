@@ -43,7 +43,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     "websites.*",
   ];
 
-  readonly categoriesToInclude = [
+  readonly gameTypesToInclude = [
     0, // Main Game
     3, // Bundle
     4, // Standalone Expansion
@@ -108,7 +108,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
           "cover.*",
         ]),
         search(query),
-        whereIn("category", this.categoriesToInclude),
+        whereIn("game_type", this.gameTypesToInclude),
       )
       .execute();
 
