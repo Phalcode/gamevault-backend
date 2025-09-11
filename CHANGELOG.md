@@ -1,10 +1,20 @@
 # GameVault Backend Server Changelog
 
+## 15.0.4
+
+### Changes
+
+- [#367](https://github.com/Phalcode/gamevault-backend/issues/367) Fixed admins not being able to update underage users.
+
+### Thanks
+
+- @strese
+
 ## 15.0.3
 
 ### Changes
 
-- Fixes for breaking IGDB API changes and dependency updates.  
+- Fixes for breaking IGDB API changes and dependency updates.
 
 ## 15.0.2
 
