@@ -22,6 +22,18 @@ import { default as logger, stream, default as winston } from "./logging";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
 import loadPlugins from "./plugin";
 
+const customHeaders = [
+  "Accept-Ranges",
+  "Content-Length",
+  "Content-Disposition",
+  "Range",
+  "X-Api-Key",
+  "X-Database-Password",
+  "X-Download-Size",
+  "X-Download-Speed-Limit",
+  "X-Installation-Id",
+];
+
 async function bootstrap(): Promise<void> {
   // Load Modules & Plugins
   const builtinModules = Reflect.getOwnMetadata("imports", AppModule);
@@ -45,8 +57,8 @@ async function bootstrap(): Promise<void> {
       : "*",
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    exposedHeaders: "*",
-    allowedHeaders: "*",
+    exposedHeaders: customHeaders,
+    allowedHeaders: customHeaders,
   });
   // GZIP
   app.use(compression());
