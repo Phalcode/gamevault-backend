@@ -56,7 +56,7 @@ async function bootstrap(): Promise<void> {
     origin: configuration.SERVER.CORS_ALLOWED_ORIGINS.length
       ? configuration.SERVER.CORS_ALLOWED_ORIGINS
       : "*",
-    credentials: true,
+    credentials: !!configuration.SERVER.CORS_ALLOWED_ORIGINS.length,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     exposedHeaders: customHeaders,
     allowedHeaders: customHeaders,
