@@ -39,16 +39,15 @@ async function bootstrap(): Promise<void> {
   // Fancy JSON Responses
   app.set("json spaces", 2);
   // CORS Configuration
-  if (configuration.SERVER.CORS_ALLOWED_ORIGINS.length) {
-    app.enableCors({
-      origin: configuration.SERVER.CORS_ALLOWED_ORIGINS,
-      credentials: true,
-      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-      exposedHeaders: "*",
-    });
-  } else {
-    app.enableCors();
-  }
+  app.enableCors({
+    origin: configuration.SERVER.CORS_ALLOWED_ORIGINS.length
+      ? configuration.SERVER.CORS_ALLOWED_ORIGINS
+      : "*",
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    exposedHeaders: "*",
+    allowedHeaders: "*",
+  });
   // GZIP
   app.use(compression());
 
