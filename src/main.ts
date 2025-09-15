@@ -23,6 +23,7 @@ import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
 import loadPlugins from "./plugin";
 
 const customHeaders = [
+  "Authorization",
   "Accept-Ranges",
   "Content-Length",
   "Content-Disposition",
