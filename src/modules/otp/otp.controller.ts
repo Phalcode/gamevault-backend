@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Headers,
-  Param,
+  Query,
   Res,
   StreamableFile,
 } from "@nestjs/common";
@@ -36,7 +36,7 @@ export class OtpController {
   })
   @SkipGuards()
   async getOtpGame(
-    @Param("otp") otp: string,
+    @Query("otp") otp: string,
     @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
   ): Promise<StreamableFile> {
