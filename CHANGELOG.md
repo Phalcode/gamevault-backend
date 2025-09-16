@@ -5,6 +5,8 @@
 ### Changes
 
 - [#367](https://github.com/Phalcode/gamevault-backend/issues/367) Fixed admins not being able to update underage users.
+- Implemented OTP API for unauthenticated Downloads
+- Fixed a bug where birthdays were not being required in status service, when Parental Control was enabled.
 
 ### Thanks
 
