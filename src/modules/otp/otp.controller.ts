@@ -1,16 +1,16 @@
 import {
-    Controller,
-    Get,
-    Headers,
-    Param,
-    Res,
-    StreamableFile,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Res,
+  StreamableFile,
 } from "@nestjs/common";
 import {
-    ApiHeader,
-    ApiOkResponse,
-    ApiOperation,
-    ApiTags,
+  ApiHeader,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
 } from "@nestjs/swagger";
 import { Response } from "express";
 import { SkipGuards } from "../../decorators/skip-guards.decorator";
