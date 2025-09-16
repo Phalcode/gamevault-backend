@@ -1,8 +1,8 @@
 import {
-    Injectable,
-    Logger,
-    StreamableFile,
-    UnauthorizedException,
+  Injectable,
+  Logger,
+  StreamableFile,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
 import { randomBytes } from "crypto";
