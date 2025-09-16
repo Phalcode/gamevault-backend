@@ -11,6 +11,7 @@ import { GamesModule } from "./modules/games/games.module";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
 import { MediaModule } from "./modules/media/media.module";
 import { MetadataModule } from "./modules/metadata/metadata.module";
+import { OtpModule } from "./modules/otp/otp.module";
 import { ProgressModule } from "./modules/progresses/progress.module";
 import { SavefileModule } from "./modules/savefiles/savefile.module";
 import { StatusModule } from "./modules/status/status.module";
@@ -18,6 +19,7 @@ import { UsersModule } from "./modules/users/users.module";
 
 @Module({
   imports: [
+    OtpModule,
     ConfigModule,
     AuthModule,
     DatabaseModule,

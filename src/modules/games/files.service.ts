@@ -588,15 +588,6 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
-  /**
-   * Downloads a game file by ID and returns it as a StreamableFile object.
-   *
-   * @param gameId - The ID of the game to download.
-   * @param speedlimitHeader - The maximum download speed limit in KBps (optional).
-   * @param rangeHeader - The range header (optional).
-   * @returns A Promise that resolves to a StreamableFile object.
-   * @throws NotFoundException if the game file could not be found.
-   */
   public async download(
     response: Response,
     gameId: number,

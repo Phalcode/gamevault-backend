@@ -3,6 +3,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 
 import { MediaModule } from "../media/media.module";
 import { MetadataModule } from "../metadata/metadata.module";
+import { OtpModule } from "../otp/otp.module";
 import { ProgressModule } from "../progresses/progress.module";
 import { UsersModule } from "../users/users.module";
 import { FilesService } from "./files.service";
@@ -16,6 +17,7 @@ import { GamevaultGame } from "./gamevault-game.entity";
     MediaModule,
     MetadataModule,
     ProgressModule,
+    forwardRef(() => OtpModule),
     forwardRef(() => UsersModule),
   ],
   controllers: [GamesController],
