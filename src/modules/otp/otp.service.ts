@@ -1,8 +1,8 @@
 import {
-  Injectable,
-  Logger,
-  StreamableFile,
-  UnauthorizedException,
+    Injectable,
+    Logger,
+    StreamableFile,
+    UnauthorizedException,
 } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
 import { randomBytes } from "crypto";
@@ -41,12 +41,11 @@ export class OtpService {
     speedlimit?: string,
   ): Promise<StreamableFile> {
     const existingOtp = this.otps.get(otp);
-    if (
-      !existingOtp ||
-      existingOtp.otp !== otp ||
-      existingOtp.expiresAt < new Date(Date.now())
-    ) {
+    if (!existingOtp) {
       throw new UnauthorizedException("Invalid OTP");
+    }
+    if (existingOtp.expiresAt < new Date(Date.now())) {
+      throw new UnauthorizedException("Expired OTP");
     }
     this.logger.log("OTP Validated.", existingOtp.getLoggableData());
     this.otps.delete(otp);
