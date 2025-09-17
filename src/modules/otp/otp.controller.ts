@@ -22,13 +22,6 @@ export class OtpController {
   constructor(private readonly otpService: OtpService) {}
 
   @Get("game")
-  @ApiHeader({
-    name: "X-Download-Speed-Limit",
-    required: false,
-    description:
-      "This header lets you set the maximum download speed limit in kibibytes per second (kiB/s) for your request.  If the header is not present the download speed limit will be unlimited.",
-    example: "1024",
-  })
   @ApiOkResponse({ type: () => StreamableFile })
   @ApiOperation({
     summary: "returns a game download for the otp",
@@ -38,8 +31,7 @@ export class OtpController {
   async getOtpGame(
     @Query("otp") otp: string,
     @Res({ passthrough: true }) response: Response,
-    @Headers("X-Download-Speed-Limit") speedlimit?: string,
   ): Promise<StreamableFile> {
-    return this.otpService.get(otp, response, speedlimit);
+    return this.otpService.get(otp, response);
   }
 }

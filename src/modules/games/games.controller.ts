@@ -299,7 +299,11 @@ export class GamesController {
   ): Promise<StreamableFile> {
     response.setHeader(
       "X-Otp",
-      this.otpService.create(request.user.username, Number(params.game_id)),
+      this.otpService.create(
+        request.user.username,
+        Number(params.game_id),
+        Number(speedlimit),
+      ),
     );
     return this.filesService.download(
       response,

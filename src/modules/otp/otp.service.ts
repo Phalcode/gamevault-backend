@@ -27,19 +27,19 @@ export class OtpService {
     });
   }
 
-  public create(username: string, gameId?: number): string {
+  public create(
+    username: string,
+    gameId?: number,
+    xDownloadSpeedLimit?: number,
+  ): string {
     const randomOtp = randomBytes(64).toString("hex");
-    const otp = new Otp(randomOtp, username, gameId);
+    const otp = new Otp(randomOtp, username, gameId, xDownloadSpeedLimit);
     this.otps.set(randomOtp, otp);
     this.logger.log("OTP Created.", otp.getLoggableData());
     return randomOtp;
   }
 
-  async get(
-    otp: string,
-    response: Response,
-    speedlimit?: string,
-  ): Promise<StreamableFile> {
+  async get(otp: string, response: Response): Promise<StreamableFile> {
     const existingOtp = this.otps.get(otp);
     if (!existingOtp) {
       throw new UnauthorizedException("Invalid OTP");
@@ -52,7 +52,7 @@ export class OtpService {
     return this.filesService.download(
       response,
       existingOtp.gameId,
-      Number(speedlimit),
+      existingOtp.xDownloadSpeedLimit,
     );
   }
 }
