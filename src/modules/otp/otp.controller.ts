@@ -1,17 +1,5 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Query,
-  Res,
-  StreamableFile,
-} from "@nestjs/common";
-import {
-  ApiHeader,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from "@nestjs/swagger";
+import { Controller, Get, Query, Res, StreamableFile } from "@nestjs/common";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Response } from "express";
 import { SkipGuards } from "../../decorators/skip-guards.decorator";
 import { OtpService } from "./otp.service";
