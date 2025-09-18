@@ -1,5 +1,15 @@
 # GameVault Backend Server Changelog
 
+## 16.0.1
+
+### Changes
+
+- [#373](https://github.com/Phalcode/gamevault-backend/issues/373) Fixed server not starting when WebUI is disabled. But who disables this awesome new feature anyway?
+
+### Thanks
+
+- @Elekam
+
 ## 16.0.0
 
 ### Changes

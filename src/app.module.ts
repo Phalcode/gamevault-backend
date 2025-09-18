@@ -37,10 +37,13 @@ import { UsersModule } from "./modules/users/users.module";
     EventEmitterModule.forRoot(),
     GarbageCollectionModule,
     StatusModule,
-    configuration.SERVER.WEB_UI_ENABLED &&
-      ServeStaticModule.forRoot({
-        rootPath: join(__dirname, "..", "assets/frontend"),
-      }),
+    ...(configuration.SERVER.WEB_UI_ENABLED
+      ? [
+          ServeStaticModule.forRoot({
+            rootPath: join(__dirname, "..", "assets/frontend"),
+          }),
+        ]
+      : []),
   ],
   providers: [
     {
