@@ -38,6 +38,7 @@ import configuration from "../../configuration";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated } from "../../globals";
+import { OtpService } from "../otp/otp.service";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
@@ -60,6 +61,7 @@ export class GamesController {
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
     private readonly usersService: UsersService,
+    private readonly otpService: OtpService,
   ) {}
 
   @Put("reindex")
@@ -295,6 +297,14 @@ export class GamesController {
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
   ): Promise<StreamableFile> {
+    response.setHeader(
+      "X-Otp",
+      this.otpService.create(
+        request.user.username,
+        Number(params.game_id),
+        Number(speedlimit),
+      ),
+    );
     return this.filesService.download(
       response,
       Number(params.game_id),

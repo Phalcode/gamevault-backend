@@ -315,7 +315,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (dto.birth_date != null) {
       logUpdate("birth_date", user.birth_date?.toISOString(), dto.birth_date);
-      await this.updateBirthDate(dto, user);
+      await this.updateBirthDate(dto, user, isAdmin);
     }
 
     if (dto.password != null) {
@@ -369,13 +369,15 @@ export class UsersService implements OnApplicationBootstrap {
   private async updateBirthDate(
     dto: UpdateUserDto,
     user: GamevaultUser,
+    isAdmin: boolean,
   ): Promise<void> {
     if (
       user.birth_date &&
       configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
       this.calculateAge(user.birth_date) <
         configuration.PARENTAL.AGE_OF_MAJORITY &&
-      user.role !== Role.ADMIN
+      user.role !== Role.ADMIN &&
+      !isAdmin
     ) {
       throw new ForbiddenException(
         "You are too young to update your birth date. Contact an Administrator to update your birth date.",

@@ -107,8 +107,9 @@ const configuration = {
     API_DOCS_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_API_DOCS_ENABLED,
     ),
-    LANDING_PAGE_ENABLED: parseBooleanEnvVariable(
-      process.env.SERVER_LANDING_PAGE_ENABLED,
+    WEB_UI_ENABLED: parseBooleanEnvVariable(
+      process.env.SERVER_WEB_UI_ENABLED ||
+        process.env.SERVER_LANDING_PAGE_ENABLED,
       true,
     ),
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(

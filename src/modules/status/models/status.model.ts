@@ -89,7 +89,8 @@ export class Status {
     this.registration_enabled = !configuration.SERVER.REGISTRATION_DISABLED;
 
     this.required_registration_fields = [
-      configuration.USERS.REQUIRE_BIRTH_DATE
+      configuration.USERS.REQUIRE_BIRTH_DATE ||
+      configuration.PARENTAL.AGE_RESTRICTION_ENABLED
         ? RegistrationFields.BIRTH_DATE
         : null,
       configuration.USERS.REQUIRE_EMAIL ? RegistrationFields.EMAIL : null,
