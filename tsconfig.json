@@ -22,5 +22,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true
+  },
+  "watchOptions": {
+    "excludeDirectories": ["**/node_modules", ".local"]
   }
 }

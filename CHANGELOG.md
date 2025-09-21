@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 16.1.0
+
+### Changes
+
+- Implemented Dynamic WebUI Downloader that automatically fetches the latest Web-UI version.
+
 ## 16.0.1
 
 ### Changes
