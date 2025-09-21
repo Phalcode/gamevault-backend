@@ -17,8 +17,8 @@ import {
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { DatabaseService } from "../database/database.service";
-import { StatusService } from "../status/status.service";
 import { Role } from "../users/models/role.enum";
+import { WebUIService } from "../web-ui/web-ui.service";
 
 @ApiBearerAuth()
 @ApiSecurity("apikey")
@@ -26,8 +26,8 @@ import { Role } from "../users/models/role.enum";
 @ApiTags("admin")
 export class AdminController {
   constructor(
-    private readonly statusService: StatusService,
     private readonly databaseService: DatabaseService,
+    private readonly webUIService: WebUIService,
   ) {}
 
   @Get("database/backup")
@@ -71,5 +71,17 @@ export class AdminController {
     @Headers("X-Database-Password") password: string,
   ) {
     return this.databaseService.restore(file, password);
+  }
+
+  @Post("web-ui/restart")
+  @ApiOperation({
+    summary:
+      "Completely restarts the Web User Interface. The current instance will be stopped, cached data deleted, the Web UI will be re-downloaded according to the config, and then restarted.",
+    operationId: "postAdminWebUIRestart",
+  })
+  @MinimumRole(Role.ADMIN)
+  async postAdminWebUIRestart() {
+    await this.webUIService.cleanCacheExceptZip();
+    await this.webUIService.prepareFrontend();
   }
 }

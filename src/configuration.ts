@@ -107,22 +107,22 @@ const configuration = {
     API_DOCS_ENABLED: parseBooleanEnvVariable(
       process.env.SERVER_API_DOCS_ENABLED,
     ),
-    WEB_UI_ENABLED: parseBooleanEnvVariable(
-      process.env.SERVER_WEB_UI_ENABLED ||
-        process.env.SERVER_LANDING_PAGE_ENABLED,
-      true,
-    ),
     MAX_DOWNLOAD_BANDWIDTH_IN_KBPS: parseKibibytesToBytes(
       process.env.SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
     ),
     ONLINE_ACTIVITIES_DISABLED: parseBooleanEnvVariable(
       process.env.SERVER_ONLINE_ACTIVITIES_DISABLED,
     ),
-    STACK_TRACE_LIMIT: parseNumber(
-      process.env.CONFIGURATION_STACK_TRACE_LIMIT || //TODO: remove in v16
-        process.env.SERVER_STACK_TRACE_LIMIT,
-      10,
+    STACK_TRACE_LIMIT: parseNumber(process.env.SERVER_STACK_TRACE_LIMIT, 10),
+  } as const,
+  WEB_UI: {
+    ENABLED: parseBooleanEnvVariable(
+      process.env.WEB_UI_ENABLED ||
+        process.env.SERVER_WEB_UI_ENABLED ||
+        process.env.SERVER_LANDING_PAGE_ENABLED,
+      true,
     ),
+    VERSION: process.env.WEB_UI_VERSION || undefined,
   } as const,
   VOLUMES: {
     CONFIG: parsePath(process.env.VOLUMES_CONFIG, "/config"),

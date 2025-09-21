@@ -8,7 +8,6 @@ import { AdminModule } from "./modules/admin/admin.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ConfigModule } from "./modules/config/config.module";
 import { DatabaseModule } from "./modules/database/database.module";
-import { FrontendModule } from "./modules/frontend/frontend.module";
 import { GamesModule } from "./modules/games/games.module";
 import { GarbageCollectionModule } from "./modules/garbage-collection/garbage-collection.module";
 import { MediaModule } from "./modules/media/media.module";
@@ -18,10 +17,10 @@ import { ProgressModule } from "./modules/progresses/progress.module";
 import { SavefileModule } from "./modules/savefiles/savefile.module";
 import { StatusModule } from "./modules/status/status.module";
 import { UsersModule } from "./modules/users/users.module";
+import { WebUIModule } from "./modules/web-ui/web-ui.module";
 
 @Module({
   imports: [
-    FrontendModule,
     OtpModule,
     ConfigModule,
     AuthModule,
@@ -37,7 +36,7 @@ import { UsersModule } from "./modules/users/users.module";
     EventEmitterModule.forRoot(),
     GarbageCollectionModule,
     StatusModule,
-    ...(configuration.SERVER.WEB_UI_ENABLED ? [FrontendModule] : []),
+    ...(configuration.WEB_UI.ENABLED ? [WebUIModule] : []),
   ],
   providers: [
     {

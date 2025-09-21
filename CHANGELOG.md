@@ -5,6 +5,7 @@
 ### Changes
 
 - Implemented Dynamic WebUI Downloader that automatically fetches the latest Web-UI version.
+- Added some configuration variables for the WebUI.
 
 ## 16.0.1
 

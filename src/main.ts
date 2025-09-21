@@ -198,6 +198,6 @@ async function bootstrap(): Promise<void> {
 
 Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT;
 bootstrap().catch((error) => {
-  logger.fatal({ message: "A fatal error occured", error });
+  logger.error({ message: "A fatal error occured", error });
   throw error;
 });

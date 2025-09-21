@@ -21,8 +21,8 @@ interface GitHubRelease {
  * Service to handle fetching, caching, and serving the frontend bundle.
  */
 @Injectable()
-export class FrontendService {
-  private readonly logger = new Logger(FrontendService.name);
+export class WebUIService {
+  private readonly logger = new Logger(this.constructor.name);
   private readonly cachePath = join(configuration.VOLUMES.CONFIG, "frontend");
   private readonly githubApiUrl =
     "https://api.github.com/repos/Phalcode/gamevault-frontend/releases";
@@ -33,11 +33,14 @@ export class FrontendService {
    */
   async prepareFrontend(): Promise<void> {
     const serverVersion = configuration.SERVER.VERSION;
-    const unstableMode = configuration.TESTING?.WEB_UI_UNSTABLE;
+    const unstableMode = configuration.TESTING.WEB_UI_UNSTABLE;
+    const forcedVersion = configuration.WEB_UI.VERSION;
+
     this.logger.log({
       message: "Preparing frontend",
       serverVersion,
       unstableMode,
+      forcedVersion,
     });
 
     await fs.ensureDir(this.cachePath);
@@ -51,9 +54,28 @@ export class FrontendService {
         count: releases.length,
       });
 
-      const selectedRelease = unstableMode
-        ? this.getUnstableOrFallbackRelease(releases)
-        : this.getCompatibleOrFallbackRelease(serverVersion, releases);
+      let selectedRelease: GitHubRelease;
+
+      if (forcedVersion) {
+        // Use forced version if defined
+        const forcedRelease = releases.find(
+          (r) => r.tag_name === forcedVersion,
+        );
+        if (!forcedRelease) {
+          this.logger.warn(
+            `Forced version ${forcedVersion} not found in releases, falling back.`,
+          );
+        }
+        selectedRelease =
+          forcedRelease ??
+          (unstableMode
+            ? this.getUnstableOrFallbackRelease(releases)
+            : this.getCompatibleOrFallbackRelease(serverVersion, releases));
+      } else {
+        selectedRelease = unstableMode
+          ? this.getUnstableOrFallbackRelease(releases)
+          : this.getCompatibleOrFallbackRelease(serverVersion, releases);
+      }
 
       this.compatibleVersion = selectedRelease.tag_name;
 
@@ -240,7 +262,7 @@ export class FrontendService {
   /**
    * Cleans the cache directory by removing all files except the zip.
    */
-  private async cleanCacheExceptZip(): Promise<void> {
+  public async cleanCacheExceptZip(): Promise<void> {
     const cacheFiles = await fs.readdir(this.cachePath);
     for (const file of cacheFiles) {
       if (file !== "gamevault-frontend.zip") {
