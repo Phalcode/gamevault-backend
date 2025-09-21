@@ -186,7 +186,7 @@ const configuration = {
       globals.SUPPORTED_FILE_FORMATS,
     ),
     SEARCH_RECURSIVE: parseBooleanEnvVariable(
-      process.env.GAMES_SEARCH_RECURSIVE || process.env.SEARCH_RECURSIVE, //TODO: remove in v16
+      process.env.GAMES_SEARCH_RECURSIVE,
       true,
     ),
     DEFAULT_ARCHIVE_PASSWORD:
