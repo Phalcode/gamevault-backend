@@ -7,14 +7,8 @@ import * as semver from "semver";
 import { Readable } from "stream";
 import configuration from "../../configuration";
 
-interface GitHubAsset {
-  name: string;
-  browser_download_url: string;
-}
-
 interface GitHubRelease {
   tag_name: string;
-  assets: GitHubAsset[];
 }
 
 /**
@@ -33,71 +27,35 @@ export class WebUIService {
    */
   async prepareFrontend(): Promise<void> {
     const serverVersion = configuration.SERVER.VERSION;
-    const unstableMode = configuration.TESTING.WEB_UI_UNSTABLE;
     const forcedVersion = configuration.WEB_UI.VERSION;
 
     this.logger.log({
       message: "Preparing frontend",
       serverVersion,
-      unstableMode,
       forcedVersion,
     });
 
     await fs.ensureDir(this.cachePath);
 
     try {
-      const releases = await this.fetchReleases();
+      this.compatibleVersion = forcedVersion
+        ? forcedVersion
+        : this.getCompatibleOrFallbackRelease(
+            serverVersion,
+            await this.fetchReleases(),
+          ).tag_name;
 
-      this.logger.debug({
-        message: "Fetched releases from GitHub",
-        releases: releases.map((r) => r.tag_name),
-        count: releases.length,
-      });
-
-      let selectedRelease: GitHubRelease;
-
-      if (forcedVersion) {
-        // Use forced version if defined
-        const forcedRelease = releases.find(
-          (r) => r.tag_name === forcedVersion,
-        );
-        if (!forcedRelease) {
-          this.logger.warn(
-            `Forced version ${forcedVersion} not found in releases, falling back.`,
-          );
-        }
-        selectedRelease =
-          forcedRelease ??
-          (unstableMode
-            ? this.getUnstableOrFallbackRelease(releases)
-            : this.getCompatibleOrFallbackRelease(serverVersion, releases));
-      } else {
-        selectedRelease = unstableMode
-          ? this.getUnstableOrFallbackRelease(releases)
-          : this.getCompatibleOrFallbackRelease(serverVersion, releases);
-      }
-
-      this.compatibleVersion = selectedRelease.tag_name;
-
-      if (unstableMode) {
+      if (await this.isCached(this.compatibleVersion)) {
         this.logger.log({
-          message: "Unstable mode active - forcing redownload and extract",
+          message: "Using cached frontend version",
           version: this.compatibleVersion,
         });
-        await this.ensureFrontendCached(this.compatibleVersion, releases, true);
       } else {
-        if (await this.isCached(this.compatibleVersion)) {
-          this.logger.log({
-            message: "Using cached frontend version",
-            version: this.compatibleVersion,
-          });
-        } else {
-          this.logger.log({
-            message: "Cached frontend not found, downloading",
-            version: this.compatibleVersion,
-          });
-          await this.ensureFrontendCached(this.compatibleVersion, releases);
-        }
+        this.logger.log({
+          message: "Cached frontend not found, downloading",
+          version: this.compatibleVersion,
+        });
+        await this.ensureFrontendCached(this.compatibleVersion);
       }
 
       this.logger.log({
@@ -106,7 +64,7 @@ export class WebUIService {
       });
     } catch (error) {
       this.logger.error("Error fetching or preparing frontend", error);
-      throw error;
+      // TODO: Implement "Frontend Broken" Page
     }
   }
 
@@ -115,11 +73,19 @@ export class WebUIService {
    * then returns a sorted list with semver-valid releases first followed by non-semver releases.
    */
   private async fetchReleases(): Promise<GitHubRelease[]> {
+    const defaultReleases = [{ tag_name: "unstable" }];
     const response = await fetch(this.githubApiUrl, {
       headers: { "User-Agent": "GameVault-Backend" },
     });
-    if (!response.ok)
-      throw new Error(`GitHub API error: ${response.statusText}`);
+    if (!response.ok) {
+      this.logger.error({
+        message:
+          "Error fetching releases from GitHub. Falling back to unstable release.",
+        status: response.status,
+        statusText: response.statusText,
+      });
+      return defaultReleases;
+    }
 
     const rawReleases: GitHubRelease[] = await response.json();
 
@@ -140,25 +106,8 @@ export class WebUIService {
   }
 
   /**
-   * Finds the unstable release or falls back to the latest stable release.
-   */
-  private getUnstableOrFallbackRelease(
-    releases: GitHubRelease[],
-  ): GitHubRelease {
-    let release = releases.find((r) => r.tag_name === "unstable");
-    if (!release) {
-      this.logger.warn(
-        "Unstable release not found but unstable mode enabled. Using latest stable instead.",
-      );
-      release = releases.find((r) => r.tag_name !== "unstable");
-      if (!release) throw new Error("No stable release found");
-    }
-    return release;
-  }
-
-  /**
    * Selects the most compatible stable release for the given server version,
-   * or falls back to the latest stable release.
+   * or falls back to the latest unstable release.
    */
   private getCompatibleOrFallbackRelease(
     serverVersion: string,
@@ -167,10 +116,10 @@ export class WebUIService {
     const compatible = this.selectCompatibleRelease(serverVersion, releases);
     if (!compatible) {
       this.logger.warn(
-        "No compatible stable release found, falling back to latest stable",
+        "No compatible stable release found, falling back to latest unstable",
       );
-      const fallback = releases.find((r) => r.tag_name !== "unstable");
-      if (!fallback) throw new Error("No stable release found");
+      const fallback = releases.find((r) => r.tag_name === "unstable");
+      if (!fallback) throw new Error("No unstable release found");
       return fallback;
     }
     return compatible;
@@ -217,18 +166,9 @@ export class WebUIService {
    */
   private async ensureFrontendCached(
     version: string,
-    releases: GitHubRelease[],
     forceRedownload = false,
   ): Promise<void> {
-    const release = releases.find((r) => r.tag_name === version);
-    if (!release) throw new Error(`Release ${version} not found`);
-
-    const asset = release.assets.find(
-      (a) => a.name === "gamevault-frontend.zip",
-    );
-    if (!asset)
-      throw new Error("gamevault-frontend.zip not found in release assets");
-
+    const downloadUrl = `https://github.com/Phalcode/gamevault-frontend/releases/download/${version}/gamevault-frontend.zip`;
     const zipPath = join(this.cachePath, "gamevault-frontend.zip");
 
     if (!forceRedownload && (await this.isCached(version))) {
@@ -241,9 +181,9 @@ export class WebUIService {
 
     this.logger.log({
       message: "Downloading frontend zip",
-      url: asset.browser_download_url,
+      downloadUrl,
     });
-    await this.downloadFile(asset.browser_download_url, zipPath);
+    await this.downloadFile(downloadUrl, zipPath);
 
     await this.cleanCacheExceptZip();
 

@@ -105,6 +105,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-oauth2": "^1.8.0",
     "@types/pg": "^8.15.5",
+    "@types/semver": "^7.7.1",
     "@types/stream-throttle": "^0.1.4",
     "@types/string-similarity": "^4.0.2",
     "@types/unidecode": "^1.1.0",

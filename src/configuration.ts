@@ -223,9 +223,6 @@ const configuration = {
     } as const,
   } as const,
   TESTING: {
-    WEB_UI_UNSTABLE: parseBooleanEnvVariable(
-      process.env.TESTING_WEB_UI_UNSTABLE,
-    ),
     AUTHENTICATION_DISABLED: parseBooleanEnvVariable(
       process.env.TESTING_AUTHENTICATION_DISABLED,
     ),

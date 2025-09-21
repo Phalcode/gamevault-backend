@@ -243,6 +243,9 @@ importers:
       '@types/pg':
         specifier: ^8.15.5
         version: 8.15.5
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.7.1
       '@types/stream-throttle':
         specifier: ^0.1.4
         version: 0.1.4
@@ -1375,6 +1378,9 @@ packages:
 
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
+
+  '@types/semver@7.7.1':
+    resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
 
   '@types/send@0.17.4':
     resolution: {integrity: sha512-x2EM6TJOybec7c52BX0ZspPodMsQUd5L6PRwOunVyVUhXiBSKf3AezDL8Dgvgt5o0UfKNfuA0eMLr2wLT4AiBA==}
@@ -6101,6 +6107,8 @@ snapshots:
   '@types/qs@6.9.18': {}
 
   '@types/range-parser@1.2.7': {}
+
+  '@types/semver@7.7.1': {}
 
   '@types/send@0.17.4':
     dependencies:
