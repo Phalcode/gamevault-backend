@@ -532,6 +532,9 @@ export class MetadataService {
       // Save the metadata
       const gameMetadata = await this.gameMetadataService.save(fetchedMetadata);
 
+      // Unmap the game from older metadata
+      await this.unmap(gameId, providerSlug);
+
       // Get the game and update its metadata
       const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
         loadDeletedEntities: false,

@@ -7,6 +7,7 @@
 - Implemented Dynamic WebUI Downloader that automatically fetches the latest Web-UI version.
 - Added some configuration variables for the WebUI.
 - Removed older configuration variables for Landing Page and API Documentation.
+- [#539](https://github.com/Phalcode/gamevault-app/issues/539) Fixed an issue were remaps were not working.
 
 ## 16.0.1
 
