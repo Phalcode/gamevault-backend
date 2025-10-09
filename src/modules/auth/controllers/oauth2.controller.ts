@@ -74,6 +74,7 @@ export class OAuth2Controller {
     <html lang="en">
     <head><title>GameVault Authentication Result</title></head>
     <body>
+      <p id="jsonData" style="color: transparent; user-select: text;">${jsonData}</p>
       <script>
         document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => {
