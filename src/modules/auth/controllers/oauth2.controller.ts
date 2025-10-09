@@ -70,26 +70,26 @@ export class OAuth2Controller {
 
     // HTML page that sends token data back to opener via postMessage and optionally closes the popup
     const htmlResponse = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head><title>Authentication Result</title></head>
-      <body>
-        <script>
-          (function() {
-            try {
-              const data = ${jsonData};
-              // Send data to the opener window
-              window.opener.postMessage({ type: 'auth-success', data: data }, window.origin);
-              // Optionally close the popup after sending data
-              window.close();
-            } catch (error) {
-              document.body.innerText = 'Authentication failed: ' + error;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><title>GameVault Authentication Result</title></head>
+    <body>
+      <p id="jsonData" style="color: transparent; user-select: text;">${jsonData}</p>
+    
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          setTimeout(() => {
+            const tokenData = ${jsonData};
+            if (tokenData.includes("access_token")) {
+              // Construct URL with query parameters properly encoded
+              const targetUrl = \`\${window.location.origin}?access_token=\${encodeURIComponent(tokenData.access_token)}&refresh_token=\${encodeURIComponent(tokenData.refresh_token)}\`;
+              window.location.href = targetUrl;
             }
-          })();
-        </script>
-        <noscript>Your browser does not support JavaScript!</noscript>
-      </body>
-      </html>
+          }, 100);
+        });
+      </script>
+    </body>
+    </html>
     `;
 
     res.status(HttpStatus.OK).contentType("text/html").send(htmlResponse);
