@@ -78,15 +78,15 @@ export class OAuth2Controller {
     setTimeout(() => {
       console.log("Starting token processing...");
 
-      const tokenData = ${JSON.stringify(jsonData)};
-      console.log(typeof tokenData);
+      const tokenData = JSON.parse(${JSON.stringify(jsonData)});
       console.log("Parsed tokenData:", tokenData);
+      console.log("typeof tokenData:", typeof tokenData);
 
       if (tokenData && tokenData.access_token) {
         console.log("Access token found. Preparing to redirect.");
 
         const origin = window.location.origin;
-        const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) + 
+        const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) +
                           "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
         console.log("Redirecting to:", targetUrl);
 
