@@ -80,8 +80,9 @@ export class OAuth2Controller {
     setTimeout(() => {
       console.log("Starting token processing...");
 
-      const tokenData = ${JSON.stringify(jsonData)};
-      console.log("Raw tokenData:", tokenData);
+      // Make sure we embed a JSON string and parse it to get a JS object
+      const tokenData = JSON.parse('${JSON.stringify(jsonData)}');
+      console.log("Parsed tokenData:", tokenData);
 
       if (tokenData.access_token) {
         console.log("Access token found. Preparing to redirect.");
