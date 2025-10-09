@@ -74,21 +74,19 @@ export class OAuth2Controller {
 <html lang="en">
 <head><title>GameVault Authentication Result</title></head>
 <body>
-  <p id="jsonData" style="color: transparent; user-select: text;">${jsonData}</p>
-
   <script>
     setTimeout(() => {
       console.log("Starting token processing...");
 
-      // Make sure we embed a JSON string and parse it to get a JS object
-      const tokenData = JSON.parse('${JSON.stringify(jsonData)}');
+      const tokenData = ${JSON.stringify(jsonData)};
       console.log("Parsed tokenData:", tokenData);
 
-      if (tokenData.access_token) {
+      if (tokenData && tokenData.access_token) {
         console.log("Access token found. Preparing to redirect.");
 
         const origin = window.location.origin;
-        const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) + "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
+        const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) + 
+                          "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
         console.log("Redirecting to:", targetUrl);
 
         window.location.href = targetUrl;
