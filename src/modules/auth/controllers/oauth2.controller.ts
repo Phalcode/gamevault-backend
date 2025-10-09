@@ -70,35 +70,37 @@ export class OAuth2Controller {
 
     // HTML page that sends token data back to opener via postMessage and optionally closes the popup
     const htmlResponse = `
-<!DOCTYPE html>
-<html lang="en">
-<head><title>GameVault Authentication Result</title></head>
-<body>
-  <script>
-    setTimeout(() => {
-      console.log("Starting token processing...");
-      const tokenString = ${JSON.stringify(jsonData)};
-      const tokenData = JSON.parse(tokenString);
-      console.log("Parsed tokenData:", tokenData);
-      console.log("typeof tokenData:", typeof tokenData);
-
-      if (tokenData && tokenData.access_token) {
-        console.log("Access token found. Preparing to redirect.");
-
-        const origin = window.location.origin;
-        const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) +
-                          "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
-        console.log("Redirecting to:", targetUrl);
-
-        window.location.href = targetUrl;
-      } else {
-        console.warn("Access token not found in tokenData.");
-      }
-    }, 100);
-  </script>
-</body>
-</html>
-`;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><title>GameVault Authentication Result</title></head>
+    <body>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            console.log("Starting token processing...");
+            const tokenString = ${JSON.stringify(jsonData)};
+            const tokenData = JSON.parse(tokenString);
+            console.log("Parsed tokenData:", tokenData);
+            console.log("typeof tokenData:", typeof tokenData);
+    
+            if (tokenData && tokenData.access_token) {
+              console.log("Access token found. Preparing to redirect.");
+    
+              const origin = window.location.origin;
+              const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) +
+                                "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
+              console.log("Redirecting to:", targetUrl);
+    
+              window.location.href = targetUrl;
+            } else {
+              console.warn("Access token not found in tokenData.");
+            }
+          }, 300);
+        });
+      </script>
+    </body>
+    </html>
+        `;
 
     res.status(HttpStatus.OK).contentType("text/html").send(htmlResponse);
   }
