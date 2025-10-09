@@ -77,8 +77,8 @@ export class OAuth2Controller {
   <script>
     setTimeout(() => {
       console.log("Starting token processing...");
-
-      const tokenData = JSON.parse(${JSON.stringify(jsonData)});
+      const tokenString = ${JSON.stringify(jsonData)};
+      const tokenData = JSON.parse(tokenString);
       console.log("Parsed tokenData:", tokenData);
       console.log("typeof tokenData:", typeof tokenData);
 
