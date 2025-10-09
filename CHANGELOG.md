@@ -8,6 +8,7 @@
 - Added some configuration variables for the WebUI.
 - Removed older configuration variables for Landing Page and API Documentation.
 - [#539](https://github.com/Phalcode/gamevault-app/issues/539) Fixed an issue were remaps were not working.
+- Fixed some API Spec inconsistencies
 
 ## 16.0.1
 

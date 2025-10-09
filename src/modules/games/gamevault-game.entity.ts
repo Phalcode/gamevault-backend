@@ -166,7 +166,7 @@ export class GamevaultGame extends DatabaseEntity {
   @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
   @ApiPropertyOptional({
     description: "users that bookmarked this game",
-    type: () => GamevaultGame,
+    type: () => GamevaultUser,
     isArray: true,
   })
   bookmarked_users?: GamevaultUser[];
