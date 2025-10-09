@@ -79,6 +79,7 @@ export class OAuth2Controller {
       console.log("Starting token processing...");
 
       const tokenData = ${JSON.stringify(jsonData)};
+      console.log(typeof tokenData);
       console.log("Parsed tokenData:", tokenData);
 
       if (tokenData && tokenData.access_token) {
