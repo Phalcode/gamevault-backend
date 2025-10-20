@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 16.1.1
+
+### Changes
+
+- Fix `/config` folder not being created in docker environments.
+
 ## 16.1.0
 
 ### Changes
