@@ -78,7 +78,7 @@ export class AuthenticationService implements OnModuleInit {
       { payload },
       {
         secret: configuration.AUTH.REFRESH_TOKEN.SECRET,
-        expiresIn: configuration.AUTH.REFRESH_TOKEN.EXPIRES_IN,
+        expiresIn: configuration.AUTH.REFRESH_TOKEN.EXPIRES_IN as StringValue,
       },
     );
 
@@ -150,7 +150,7 @@ export class AuthenticationService implements OnModuleInit {
       { payload },
       {
         secret: configuration.AUTH.REFRESH_TOKEN.SECRET,
-        expiresIn: configuration.AUTH.REFRESH_TOKEN.EXPIRES_IN,
+        expiresIn: configuration.AUTH.REFRESH_TOKEN.EXPIRES_IN as StringValue,
       },
     );
 

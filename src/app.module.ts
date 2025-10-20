@@ -2,8 +2,6 @@ import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
-import { ServeStaticModule } from "@nestjs/serve-static";
-import { join } from "path";
 import configuration from "./configuration";
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
 import { AdminModule } from "./modules/admin/admin.module";
@@ -19,6 +17,7 @@ import { ProgressModule } from "./modules/progresses/progress.module";
 import { SavefileModule } from "./modules/savefiles/savefile.module";
 import { StatusModule } from "./modules/status/status.module";
 import { UsersModule } from "./modules/users/users.module";
+import { WebUIModule } from "./modules/web-ui/web-ui.module";
 
 @Module({
   imports: [
@@ -37,13 +36,7 @@ import { UsersModule } from "./modules/users/users.module";
     EventEmitterModule.forRoot(),
     GarbageCollectionModule,
     StatusModule,
-    ...(configuration.SERVER.WEB_UI_ENABLED
-      ? [
-          ServeStaticModule.forRoot({
-            rootPath: join(__dirname, "..", "assets/frontend"),
-          }),
-        ]
-      : []),
+    ...(configuration.WEB_UI.ENABLED ? [WebUIModule] : []),
   ],
   providers: [
     {

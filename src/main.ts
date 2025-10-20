@@ -95,7 +95,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new LoggingExceptionFilter());
 
   // Provide API Specification
-  if (configuration.SERVER.API_DOCS_ENABLED) {
+  if (configuration.WEB_UI.ENABLED) {
     SwaggerModule.setup(
       "api/docs",
       app,
@@ -198,6 +198,6 @@ async function bootstrap(): Promise<void> {
 
 Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT;
 bootstrap().catch((error) => {
-  logger.fatal({ message: "A fatal error occured", error });
+  logger.error({ message: "A fatal error occured", error });
   throw error;
 });

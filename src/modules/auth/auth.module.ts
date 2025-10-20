@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { StringValue } from "ms";
 import configuration from "../../configuration";
 import { UsersModule } from "../users/users.module";
 import { AuthenticationService } from "./authentication.service";
@@ -25,7 +26,7 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
       global: true,
       secret: configuration.AUTH.ACCESS_TOKEN.SECRET,
       signOptions: {
-        expiresIn: configuration.AUTH.ACCESS_TOKEN.EXPIRES_IN,
+        expiresIn: configuration.AUTH.ACCESS_TOKEN.EXPIRES_IN as StringValue,
       },
     }),
   ],

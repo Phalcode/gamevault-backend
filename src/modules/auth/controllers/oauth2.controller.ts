@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Logger,
   Request,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -13,6 +14,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
+import { Response } from "express";
 import configuration from "../../../configuration";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator";
 import { GamevaultUser } from "../../users/gamevault-user.entity";
@@ -27,6 +29,7 @@ import { TokenPairDto } from "../models/token-pair.dto";
 export class OAuth2Controller {
   private readonly logger = new Logger(this.constructor.name);
   constructor(private readonly authenticationService: AuthenticationService) {}
+
   @Get("login")
   @SkipGuards()
   @ApiOperation({
@@ -48,15 +51,58 @@ export class OAuth2Controller {
       ip: string;
       headers: { [key: string]: string };
     },
+    @Res() res: Response, // Inject Express Response object to customize response
   ) {
     this.logger.log({
       message: "User logged in via oauth2.",
       user: request.user,
     });
-    return this.authenticationService.login(
+
+    // Get token data
+    const tokenData = await this.authenticationService.login(
       request.user,
       request.ip,
       request.headers["user-agent"] || "unknown",
     );
+
+    // Serialize token data as JSON string safely for embedding
+    const jsonData = JSON.stringify(tokenData);
+
+    // HTML page that sends token data back to opener via postMessage and optionally closes the popup
+    const htmlResponse = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head><title>GameVault Authentication Result</title></head>
+    <body>
+      <p id="jsonData" style="color: transparent; user-select: text;">${jsonData}</p>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            console.log("Starting token processing...");
+            const tokenString = ${JSON.stringify(jsonData)};
+            const tokenData = JSON.parse(tokenString);
+            console.log("Parsed tokenData:", tokenData);
+            console.log("typeof tokenData:", typeof tokenData);
+    
+            if (tokenData && tokenData.access_token) {
+              console.log("Access token found. Preparing to redirect.");
+    
+              const origin = window.location.origin;
+              const targetUrl = origin + "?access_token=" + encodeURIComponent(tokenData.access_token) +
+                                "&refresh_token=" + encodeURIComponent(tokenData.refresh_token);
+              console.log("Redirecting to:", targetUrl);
+    
+              window.location.href = targetUrl;
+            } else {
+              console.warn("Access token not found in tokenData.");
+            }
+          }, 300);
+        });
+      </script>
+    </body>
+    </html>
+        `;
+
+    res.status(HttpStatus.OK).contentType("text/html").send(htmlResponse);
   }
 }
