@@ -18,7 +18,7 @@ echo "Effective UID: $(id -u), GID: $(id -g)"
 if [ "$(id -u)" = "0" ]; then
     # Adjust ownership and ensure permissions are open.
     echo "Attempting to set ownership and permissions..."
-    for dir in /app/dist /files /media /logs /db /plugins /savefiles; do
+    for dir in /app/dist /config /files /media /logs /db /plugins /savefiles; do
         if ! chown -R "${PUID}:${PGID}" "$dir" 2>/dev/null; then
             echo "Warning: chown failed on $dir (possibly due to missing permissions)"
         fi

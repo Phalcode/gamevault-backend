@@ -13,7 +13,7 @@ ENV TZ="Etc/UTC" \
     PATH="/home/node/.npm-global/bin:/pnpm:$PATH"
 
 # Create necessary directories with appropriate permissions
-RUN mkdir -p /files /media /logs /db /plugins /savefiles \
+RUN mkdir -p /config /files /media /logs /db /plugins /savefiles \
     # Enable non-free and contrib repositories for Debian-based package installations
     && sed -i -e 's/ main/ main non-free non-free-firmware contrib/g' /etc/apt/sources.list.d/debian.sources \
     # Update package list and install necessary dependencies
@@ -72,8 +72,8 @@ COPY --from=build --chown=node:node /app/dist ./dist
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --chown=node:node  entrypoint.sh /usr/local/bin/
 
-RUN chown -R node:node /app/dist /files /media /logs /db /plugins /savefiles \
-    && chmod -R 777 /app/dist /files /media /logs /db /plugins /savefiles \
+RUN chown -R node:node /app/dist /config /files /media /logs /db /plugins /savefiles \
+    && chmod -R 777 /app/dist /config /files /media /logs /db /plugins /savefiles \
     && chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose the server port
