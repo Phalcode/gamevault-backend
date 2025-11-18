@@ -5,6 +5,7 @@
 ### Changes
 
 - Fix Age Rating Check being Applied to Admins for Game Downloads
+- Fix Covers/Metadata missing after metadata refreshes
 
 ## 16.1.1
 
