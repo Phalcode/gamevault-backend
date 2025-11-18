@@ -87,7 +87,7 @@ export class GameMetadataService {
    * metadata. Otherwise, it creates a new GameMetadata entity.
    */
   async save(game: GameMetadata): Promise<GameMetadata> {
-    const existingGame = await this.gameMetadataRepository.findOne({
+    const existingMetadata = await this.gameMetadataRepository.findOne({
       where: {
         provider_slug: game.provider_slug,
         provider_data_id: game.provider_data_id,
@@ -96,7 +96,7 @@ export class GameMetadataService {
     });
 
     const upsertedGame: Required<GameMetadata> = {
-      id: existingGame?.id,
+      id: existingMetadata?.id,
       created_at: undefined,
       updated_at: undefined,
       deleted_at: undefined,
@@ -236,7 +236,7 @@ export class GameMetadataService {
     logger.debug({
       message: `Saving game metadata`,
       game: upsertedGame,
-      already_exists: !!existingGame,
+      already_exists: !!existingMetadata,
     });
 
     return this.gameMetadataRepository.save(upsertedGame);

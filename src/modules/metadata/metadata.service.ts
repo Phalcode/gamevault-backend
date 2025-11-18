@@ -225,9 +225,6 @@ export class MetadataService {
           // If the existing provider metadata is not found, find the metadata.
           await this.findMetadata(game, provider);
         }
-
-        // Merge the metadata.
-        this.merge(game.id);
       } catch (error) {
         // If the metadata update fails, log the error and skip the update.
         this.logger.error({
