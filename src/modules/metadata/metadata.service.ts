@@ -235,29 +235,7 @@ export class MetadataService {
         });
       }
     }
-
-    // If no metadata changes were made, return the game without merging the metadata.
-    if (
-      !game.metadata ||
-      game.provider_metadata.some(
-        (provider_metadata) =>
-          provider_metadata?.updated_at > game.metadata?.updated_at,
-      ) ||
-      game.user_metadata?.updated_at > game.metadata?.updated_at
-    ) {
-      this.merge(game.id).catch((error) => {
-        this.logger.warn({
-          message: "Error merging metadata for game.",
-          game: logGamevaultGame(game),
-          error,
-        });
-      });
-    } else {
-      this.logger.debug({
-        message: "No metadata changes. Skipping merge.",
-        game: logGamevaultGame(game),
-      });
-    }
+    this.merge(game.id);
   }
 
   /**
@@ -325,9 +303,25 @@ export class MetadataService {
       loadRelations: ["metadata", "provider_metadata", "user_metadata"],
     });
 
+    // If metadata is fresh skip merge
+    if (
+      game.metadata &&
+      game.provider_metadata.every(
+        (provider_metadata) =>
+          provider_metadata?.updated_at <= game.metadata?.updated_at,
+      ) &&
+      game.user_metadata?.updated_at <= game.metadata?.updated_at
+    ) {
+      this.logger.debug({
+        message: "No metadata changes. Skipping merge.",
+        game: logGamevaultGame(game),
+      });
+      return game;
+    }
+
     if (!game.provider_metadata.length && !game.user_metadata) {
       this.logger.warn({
-        message: "No metadata found to merge.",
+        message: "No metadata found to merge. Skipping merge.",
         game: gameId,
         provider_metadata: game.provider_metadata,
         user_metadata: game.user_metadata,

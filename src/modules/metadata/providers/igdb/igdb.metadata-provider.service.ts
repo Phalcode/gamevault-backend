@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import {
   fields,
   igdb,
@@ -133,7 +133,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
   public override async getByProviderDataIdOrFail(
     provider_data_id: string,
   ): Promise<GameMetadata> {
-    const update = await (
+    const gameResult = await (
       await this.getClient()
     )
       .request("games")
@@ -143,7 +143,13 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         where("id", "=", Number(provider_data_id)),
       )
       .execute();
-    return this.mapGameMetadata(update.data[0] as igdbModels.IGame);
+
+    if (isEmpty(gameResult.data))
+      throw new NotFoundException(
+        `Game with id ${provider_data_id} not found on IGDB.`,
+      );
+
+    return this.mapGameMetadata(gameResult.data[0] as igdbModels.IGame);
   }
 
   private async mapGameMetadata(game: igdbModels.IGame): Promise<GameMetadata> {
