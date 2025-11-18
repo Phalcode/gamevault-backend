@@ -411,7 +411,10 @@ export class UsersService implements OnApplicationBootstrap {
   public async findUserAgeByUsername(
     username: string,
   ): Promise<number | undefined> {
-    if (!configuration.PARENTAL.AGE_RESTRICTION_ENABLED) {
+    if (
+      !configuration.PARENTAL.AGE_RESTRICTION_ENABLED ||
+      (await this.checkIfUsernameIsAtLeastRole(username, Role.ADMIN))
+    ) {
       return undefined;
     }
     const user = await this.findOneByUsernameOrFail(username, {

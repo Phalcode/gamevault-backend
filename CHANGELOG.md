@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 16.1.2
+
+### Changes
+
+- Fix Age Rating Check being Applied to Admins for Game Downloads
+
 ## 16.1.1
 
 ### Changes
