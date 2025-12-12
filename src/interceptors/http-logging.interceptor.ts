@@ -24,6 +24,14 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     const request = httpContext.getRequest<Request>();
     const response = httpContext.getResponse<Response>();
 
+    // Skip logging for /api/status route
+    if (
+      request.url.includes("/api/status") ||
+      request.url.includes("/api/health")
+    ) {
+      return next.handle();
+    }
+
     const requestLog = {
       context: "HTTP Traffic",
       direction: "incoming",
