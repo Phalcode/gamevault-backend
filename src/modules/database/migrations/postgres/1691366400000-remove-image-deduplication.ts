@@ -5,9 +5,7 @@ import {
   TableUnique,
 } from "typeorm";
 
-export class RemoveImageDeduplication1691366400000
-  implements MigrationInterface
-{
+export class RemoveImageDeduplication1691366400000 implements MigrationInterface {
   name = "RemoveImageDeduplication1691366400000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {

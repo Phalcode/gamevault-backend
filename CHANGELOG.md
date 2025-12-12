@@ -6,6 +6,8 @@
 
 - Fix Age Rating Check being Applied to Admins for Game Downloads
 - Fix Covers/Metadata missing after metadata refreshes
+- Added ``TESTING_LOG_HTTP_TRAFFIC_ENABLED`` parameter to help analyze network traffic
+
 
 ### Thanks
 
