@@ -4,7 +4,6 @@ import {
   NotFoundException,
   OnModuleInit,
 } from "@nestjs/common";
-import { ApiProperty } from "@nestjs/swagger";
 import {
   IsBoolean,
   IsInt,
@@ -32,9 +31,12 @@ import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
 import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
 import { TagMetadata } from "../tags/tag.metadata.entity";
 import { TagMetadataService } from "../tags/tag.metadata.service";
+import { MetadataProviderDto } from "./models/metadata-provider.dto";
 
 @Injectable()
-export abstract class MetadataProvider implements OnModuleInit {
+export abstract class MetadataProvider
+  implements OnModuleInit, MetadataProviderDto
+{
   protected readonly logger = new Logger(this.constructor.name);
   constructor(
     protected readonly metadataService: MetadataService,
@@ -59,45 +61,30 @@ export abstract class MetadataProvider implements OnModuleInit {
     message:
       "Invalid slug: The terms 'gamevault' and 'user' are reserved slugs.",
   })
-  @ApiProperty({
-    description:
-      "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
-    example: "igdb",
-  })
   public slug: string;
 
   @IsNotEmpty()
-  @ApiProperty({
-    description: "display name of the provider.",
-    example: "IGDB",
-  })
   public name: string;
 
   @IsInt()
   @IsNotEmpty()
-  @ApiProperty({
-    type: Number,
-    description:
-      "priority of usage for this provider. Lower priority providers are tried first, while higher priority providers fill in gaps.",
-  })
   public priority: number;
 
   @IsBoolean()
-  @ApiProperty({
-    type: Boolean,
-    description: "whether this provider is enabled or not.",
-    default: true,
-  })
   public enabled = true;
 
   @IsInt()
   @Min(0)
-  @ApiProperty({
-    type: Number,
-    description:
-      "the interval, in milliseconds, to wait between consecutive requests to prevent exceeding rate limits. this delay will be applied before each call to the provider.",
-  })
   public request_interval_ms = 0;
+
+  public getDto(): MetadataProviderDto {
+    return {
+      slug: this.slug,
+      name: this.name,
+      priority: this.priority,
+      enabled: this.enabled,
+    };
+  }
 
   /**
    * Searches for a game using the provider. Only returns the minimal info of a game.

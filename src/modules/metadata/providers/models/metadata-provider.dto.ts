@@ -26,6 +26,13 @@ export class MetadataProviderDto {
   })
   public slug: string;
 
+  @IsNotEmpty()
+  @ApiProperty({
+    description: "display name of the provider.",
+    example: "IGDB",
+  })
+  public name: string;
+
   @IsInt()
   @IsNotEmpty()
   @ApiProperty({

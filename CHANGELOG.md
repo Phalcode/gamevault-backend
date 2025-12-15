@@ -8,6 +8,7 @@
 - Fix Covers/Metadata missing after metadata refreshes
 - Added ``TESTING_LOG_HTTP_TRAFFIC_ENABLED`` parameter to help analyze network traffic
 - Fixed ``early_access`` being required in UpdateGameDto inconsistency in OpenAPI contract
+- Fixed ``name`` not being mentioned in MetadataProviderDto inconsistency in OpenAPI contract
 
 
 ### Thanks
