@@ -50,7 +50,7 @@ export class DeveloperController {
   ): Promise<Paginated<DeveloperMetadata>> {
     const queryBuilder = this.developerRepository
       .createQueryBuilder("developer")
-      .leftJoinAndSelect("developer.games", "games")
+      .leftJoinAndSelect("developer.games", "games", "games.deleted_at IS NULL")
       .where("developer.provider_slug = :provider_slug", {
         provider_slug: "gamevault",
       })

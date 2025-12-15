@@ -50,7 +50,7 @@ export class TagsController {
   ): Promise<Paginated<TagMetadata>> {
     const queryBuilder = this.tagRepository
       .createQueryBuilder("tag")
-      .leftJoinAndSelect("tag.games", "games")
+      .leftJoinAndSelect("tag.games", "games", "games.deleted_at IS NULL")
       .where("tag.provider_slug = :provider_slug", {
         provider_slug: "gamevault",
       })
