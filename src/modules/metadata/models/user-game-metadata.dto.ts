@@ -1,5 +1,5 @@
 import { Optional } from "@nestjs/common";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsArray,
   IsBoolean,
@@ -117,7 +117,7 @@ export class UpdateGameUserMetadataDto {
   @Max(100)
   rating?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "indicates if the game is in early access",
     example: true,
   })
