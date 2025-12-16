@@ -303,22 +303,7 @@ export class MetadataService {
       loadRelations: ["metadata", "provider_metadata", "user_metadata"],
     });
 
-    // If metadata is fresh skip merge
-    if (
-      game.metadata &&
-      game.provider_metadata.every(
-        (provider_metadata) =>
-          provider_metadata?.updated_at <= game.metadata?.updated_at,
-      ) &&
-      game.user_metadata?.updated_at <= game.metadata?.updated_at
-    ) {
-      this.logger.debug({
-        message: "No metadata changes. Skipping merge.",
-        game: logGamevaultGame(game),
-      });
-      return game;
-    }
-
+    // SAFEGUARD: If there is nothing to merge (no provider/user metadata), do not touch effective metadata.
     if (!game.provider_metadata.length && !game.user_metadata) {
       this.logger.warn({
         message: "No metadata found to merge. Skipping merge.",
@@ -327,6 +312,33 @@ export class MetadataService {
         user_metadata: game.user_metadata,
       });
       return game;
+    }
+
+    // SAFEGUARD: Only merge when provider/user metadata is newer-or-equal than the currently merged metadata.
+    // Timestamp selection is `updated_at` first and falls back to `created_at`.
+    const ts = (metadata?: GameMetadata | null): Date | null =>
+      metadata?.updated_at ?? metadata?.created_at ?? null;
+
+    const effectiveTs = ts(game.metadata);
+    if (effectiveTs) {
+      const providerIsNewerOrEqual = game.provider_metadata.some(
+        (provider_metadata) => {
+          const providerTs = ts(provider_metadata);
+          return providerTs != null && providerTs >= effectiveTs;
+        },
+      );
+
+      const userTs = ts(game.user_metadata);
+      const userIsNewerOrEqual = userTs != null && userTs >= effectiveTs;
+
+      if (!providerIsNewerOrEqual && !userIsNewerOrEqual) {
+        this.logger.debug({
+          message:
+            "No metadata changes (provider/user older than merged metadata). Skipping merge.",
+          game: logGamevaultGame(game),
+        });
+        return game;
+      }
     }
 
     // Sort the provider metadata by priority in ascending order
