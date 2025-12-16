@@ -321,17 +321,26 @@ export class MetadataService {
 
     const effectiveTs = ts(game.metadata);
     if (effectiveTs) {
-      const providerIsNewerOrEqual = game.provider_metadata.some(
-        (provider_metadata) => {
+      // Check if any provider metadata is newer-or-equal (only if providers exist)
+      const providerIsNewerOrEqual =
+        game.provider_metadata.length > 0 &&
+        game.provider_metadata.some((provider_metadata) => {
           const providerTs = ts(provider_metadata);
           return providerTs != null && providerTs >= effectiveTs;
-        },
-      );
+        });
 
+      // Check if user metadata is newer-or-equal
       const userTs = ts(game.user_metadata);
       const userIsNewerOrEqual = userTs != null && userTs >= effectiveTs;
 
-      if (!providerIsNewerOrEqual && !userIsNewerOrEqual) {
+      // Skip merge only if BOTH checks fail AND there is at least one source that could have been newer
+      // When no provider metadata exists, we only consider user metadata freshness
+      const hasProviderMetadata = game.provider_metadata.length > 0;
+      const skipMerge = hasProviderMetadata
+        ? !providerIsNewerOrEqual && !userIsNewerOrEqual
+        : !userIsNewerOrEqual;
+
+      if (skipMerge) {
         this.logger.debug({
           message:
             "No metadata changes (provider/user older than merged metadata). Skipping merge.",
