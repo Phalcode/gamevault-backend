@@ -297,176 +297,215 @@ export class MetadataService {
     }
   }
 
+  /**
+   * Merges provider and user metadata into a single effective metadata for a game.
+   *
+   * The merge follows this priority order (lowest to highest):
+   * 1. Game file defaults (release_date, installer_parameters for WINDOWS_SETUP)
+   * 2. Provider metadata (sorted by priority, lower priority applied first)
+   * 3. File-derived metadata (early_access flag)
+   * 4. User metadata (highest priority, user overrides everything)
+   *
+   * Safeguards:
+   * - Skips merge if no source metadata exists (no providers and no user metadata)
+   * - For provider-only updates, skips if no provider is newer than current merged metadata
+   * - Always merges when user_metadata exists (user explicitly requested changes)
+   */
   async merge(gameId: number): Promise<GamevaultGame> {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
       loadRelations: ["metadata", "provider_metadata", "user_metadata"],
     });
 
-    // SAFEGUARD: If there is nothing to merge (no provider/user metadata), do not touch effective metadata.
+    // SAFEGUARD: Nothing to merge
     if (!game.provider_metadata.length && !game.user_metadata) {
       this.logger.warn({
-        message: "No metadata found to merge. Skipping merge.",
-        game: gameId,
-        provider_metadata: game.provider_metadata,
-        user_metadata: game.user_metadata,
+        message: "No metadata sources available. Skipping merge.",
+        game: logGamevaultGame(game),
       });
       return game;
     }
 
-    // SAFEGUARD: Only merge when provider/user metadata is newer-or-equal than the currently merged metadata.
-    // Timestamp selection is `updated_at` first and falls back to `created_at`.
-    const ts = (metadata?: GameMetadata | null): Date | null =>
-      metadata?.updated_at ?? metadata?.created_at ?? null;
-
-    const effectiveTs = ts(game.metadata);
-    if (effectiveTs) {
-      // Check if any provider metadata is newer-or-equal (only if providers exist)
-      const providerIsNewerOrEqual =
-        game.provider_metadata.length > 0 &&
-        game.provider_metadata.some((provider_metadata) => {
-          const providerTs = ts(provider_metadata);
-          return providerTs != null && providerTs >= effectiveTs;
-        });
-
-      // Check if user metadata is newer-or-equal
-      const userTs = ts(game.user_metadata);
-      const userIsNewerOrEqual = userTs != null && userTs >= effectiveTs;
-
-      // Skip merge only if BOTH checks fail AND there is at least one source that could have been newer
-      // When no provider metadata exists, we only consider user metadata freshness
-      const hasProviderMetadata = game.provider_metadata.length > 0;
-      const skipMerge = hasProviderMetadata
-        ? !providerIsNewerOrEqual && !userIsNewerOrEqual
-        : !userIsNewerOrEqual;
-
-      if (skipMerge) {
-        this.logger.debug({
-          message:
-            "No metadata changes (provider/user older than merged metadata). Skipping merge.",
-          game: logGamevaultGame(game),
-        });
-        return game;
-      }
+    // SAFEGUARD: Skip merge for provider-only updates if nothing changed
+    // Note: Always merge when user_metadata exists since user explicitly requested changes
+    if (!game.user_metadata && this.isMetadataFresh(game)) {
+      this.logger.debug({
+        message: "Provider metadata unchanged. Skipping merge.",
+        game: logGamevaultGame(game),
+      });
+      return game;
     }
 
-    // Sort the provider metadata by priority in ascending order
-    const providerMetadata = game.provider_metadata.toSorted((a, b) => {
-      return (
-        (a.provider_priority ??
-          this.getProviderBySlugOrFail(a.provider_slug).priority) -
-        (b.provider_priority ??
-          this.getProviderBySlugOrFail(b.provider_slug).priority)
-      );
+    // Build merged metadata from all sources
+    let mergedMetadata = this.buildBaseMetadata(game);
+    mergedMetadata = this.applyProviderMetadata(mergedMetadata, game);
+    mergedMetadata = this.applyFileMetadata(mergedMetadata, game);
+    mergedMetadata = this.applyUserMetadata(mergedMetadata, game);
+    mergedMetadata = this.finalizeMetadata(mergedMetadata, game, gameId);
+
+    // Persist and return
+    game.metadata = await this.gameMetadataService.save(mergedMetadata);
+    const mergedGame = await this.gamesService.save(game);
+
+    this.logger.debug({
+      message: "Metadata merged successfully.",
+      game: logGamevaultGame(mergedGame),
     });
+
+    return mergedGame;
+  }
+
+  /**
+   * Checks if merged metadata is still fresh (no provider has newer data).
+   */
+  private isMetadataFresh(game: GamevaultGame): boolean {
+    const effectiveTs =
+      game.metadata?.updated_at ?? game.metadata?.created_at ?? null;
+    if (!effectiveTs) return false;
+
+    return !game.provider_metadata.some((provider) => {
+      const providerTs = provider.updated_at ?? provider.created_at ?? null;
+      return providerTs != null && providerTs > effectiveTs;
+    });
+  }
+
+  /**
+   * Creates base metadata with game file defaults.
+   */
+  private buildBaseMetadata(game: GamevaultGame): GameMetadata {
+    const metadata = new GameMetadata();
+    metadata.release_date = game.release_date;
+
+    if (game.type === GameType.WINDOWS_SETUP) {
+      metadata.installer_parameters =
+        '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT /COMPONENTS=text';
+    }
+
+    return metadata;
+  }
+
+  /**
+   * Applies provider metadata in priority order (lowest first).
+   */
+  private applyProviderMetadata(
+    base: GameMetadata,
+    game: GamevaultGame,
+  ): GameMetadata {
+    const sortedProviders = game.provider_metadata.toSorted((a, b) => {
+      const priorityA =
+        a.provider_priority ??
+        this.getProviderBySlugOrFail(a.provider_slug).priority;
+      const priorityB =
+        b.provider_priority ??
+        this.getProviderBySlugOrFail(b.provider_slug).priority;
+      return priorityA - priorityB;
+    });
+
+    let result = base;
+    for (const provider of sortedProviders) {
+      result = {
+        ...result,
+        ...this.stripEmptyFields(provider),
+      } as GameMetadata;
+    }
+
+    return result;
+  }
+
+  /**
+   * Applies file-derived metadata (early access flag).
+   */
+  private applyFileMetadata(
+    base: GameMetadata,
+    game: GamevaultGame,
+  ): GameMetadata {
+    return {
+      ...base,
+      early_access: game.early_access,
+    } as GameMetadata;
+  }
+
+  /**
+   * Applies user metadata (highest priority).
+   */
+  private applyUserMetadata(
+    base: GameMetadata,
+    game: GamevaultGame,
+  ): GameMetadata {
+    if (!game.user_metadata) return base;
 
     const userMetadata = JSON.parse(
       JSON.stringify(game.user_metadata),
     ) as GameMetadata;
 
-    let mergedMetadata = new GameMetadata();
+    return {
+      ...base,
+      ...this.stripEmptyFields(userMetadata),
+    } as GameMetadata;
+  }
 
-    // Set fallback data
-    mergedMetadata.release_date = game.release_date;
-    if (game.type === GameType.WINDOWS_SETUP) {
-      mergedMetadata.installer_parameters =
-        '/D="%INSTALLDIR%" /S /DIR="%INSTALLDIR%" /SILENT /COMPONENTS=text';
-    }
-
-    // Create New Effective Metadata by applying the priorotized metadata one by one
-    for (const metadata of providerMetadata) {
-      // Delete all empty fields of provider so only delta is overwritten
-      for (const key of Object.keys(metadata)) {
-        if (metadata[key] == null) {
-          delete metadata[key];
-        }
-        if (Array.isArray(metadata[key]) && metadata[key].length === 0) {
-          delete metadata[key];
-        }
-      }
-
-      mergedMetadata = {
-        ...mergedMetadata,
-        ...metadata,
-      } as GameMetadata;
-    }
-
-    // Apply file metadata on top (EA)
-    mergedMetadata.early_access = game.early_access;
-
-    // Apply the users changes on top
-    if (userMetadata) {
-      // Delete all empty fields of dto.user_metadata so only delta is overwritten
-      for (const key of Object.keys(userMetadata)) {
-        if (userMetadata[key] == null) {
-          delete userMetadata[key];
-        }
-        if (
-          Array.isArray(userMetadata[key]) &&
-          userMetadata[key].length === 0
-        ) {
-          delete userMetadata[key];
-        }
-      }
-
-      mergedMetadata = {
-        ...mergedMetadata,
-        ...userMetadata,
-      } as GameMetadata;
-    }
-
-    // Apply the merged metadata to the game
-    mergedMetadata = {
-      ...mergedMetadata,
-      ...{
-        id: game.metadata?.id || undefined,
-        provider_slug: "gamevault",
-        provider_data_id: gameId.toString(),
-        provider_priority: null,
-      },
+  /**
+   * Finalizes metadata with gamevault identifiers and normalizes relations.
+   */
+  private finalizeMetadata(
+    base: GameMetadata,
+    game: GamevaultGame,
+    gameId: number,
+  ): GameMetadata {
+    const result = {
+      ...base,
+      id: game.metadata?.id ?? undefined,
+      provider_slug: "gamevault",
+      provider_data_id: gameId.toString(),
+      provider_priority: null,
     } as GameMetadata;
 
-    if (mergedMetadata.genres?.length) {
-      for (const genre of mergedMetadata.genres) {
-        genre.id = undefined;
-        genre.provider_slug = "gamevault";
-        genre.provider_data_id = kebabCase(genre.name);
+    // Normalize relation entities to use gamevault as provider
+    this.normalizeRelations(result.genres, "gamevault");
+    this.normalizeRelations(result.tags, "gamevault");
+    this.normalizeRelations(result.developers, "gamevault");
+    this.normalizeRelations(result.publishers, "gamevault");
+
+    return result;
+  }
+
+  /**
+   * Removes null/undefined values and empty arrays from metadata.
+   */
+  private stripEmptyFields(obj: GameMetadata): Partial<GameMetadata> {
+    const result = { ...obj } as Record<string, unknown>;
+    for (const key of Object.keys(result)) {
+      const value = result[key];
+      if (value == null) {
+        delete result[key];
+      } else if (Array.isArray(value) && value.length === 0) {
+        delete result[key];
       }
     }
+    return result as Partial<GameMetadata>;
+  }
 
-    if (mergedMetadata.tags?.length) {
-      for (const tag of mergedMetadata.tags) {
-        tag.id = undefined;
-        tag.provider_slug = "gamevault";
-        tag.provider_data_id = kebabCase(tag.name);
-      }
+  /**
+   * Normalizes relation entities (genres, tags, etc.) to use consistent provider info.
+   */
+  private normalizeRelations(
+    items:
+      | Array<{
+          id?: number;
+          provider_slug?: string;
+          provider_data_id?: string;
+          name?: string;
+        }>
+      | undefined,
+    providerSlug: string,
+  ): void {
+    if (!items?.length) return;
+
+    for (const item of items) {
+      item.id = undefined;
+      item.provider_slug = providerSlug;
+      item.provider_data_id = kebabCase(item.name);
     }
-
-    if (mergedMetadata.developers?.length) {
-      for (const developer of mergedMetadata.developers) {
-        developer.id = undefined;
-        developer.provider_slug = "gamevault";
-        developer.provider_data_id = kebabCase(developer.name);
-      }
-    }
-
-    if (mergedMetadata.publishers?.length) {
-      for (const publisher of mergedMetadata.publishers) {
-        publisher.id = undefined;
-        publisher.provider_slug = "gamevault";
-        publisher.provider_data_id = kebabCase(publisher.name);
-      }
-    }
-
-    // Save the merged metadata
-    game.metadata = await this.gameMetadataService.save(mergedMetadata);
-    const mergedGame = await this.gamesService.save(game);
-    this.logger.debug({
-      message: "Merged metadata.",
-      game: logGamevaultGame(mergedGame),
-      details: mergedGame,
-    });
-    return mergedGame;
   }
 
   /**
