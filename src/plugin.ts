@@ -42,7 +42,7 @@ export default async function loadPlugins() {
 
     const plugins = await Promise.all(
       pluginModuleFiles.map(
-        (file) => import(resolve(join(file.path, file.name))),
+        (file) => import(resolve(join(file.parentPath, file.name))),
       ),
     );
 
