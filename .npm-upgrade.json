@@ -25,8 +25,8 @@
       "reason": "Remove when https://github.com/winstonjs/logform/issues/336 is fixed"
     },
     "@types/node": {
-      "versions": ">22.0.0",
-      "reason": "LTS is 22"
+      "versions": ">24.0.0",
+      "reason": "LTS is 24"
     }
   }
 }

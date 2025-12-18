@@ -1,9 +1,10 @@
 # GameVault Backend Server Changelog
 
-## 16.1.3
+## 16.2.0
 
 ### Changes
 
+- Fixed usage of deprecated Node 22 property
 - Fixed Session Cleanup Algorithm failing to work on large servers.
 
 ## 16.1.2
