@@ -226,6 +226,9 @@ const configuration = {
     MOCK_FILES: parseBooleanEnvVariable(process.env.TESTING_MOCK_FILES),
     IN_MEMORY_DB: parseBooleanEnvVariable(process.env.TESTING_IN_MEMORY_DB),
     MOCK_PROVIDERS: parseBooleanEnvVariable(process.env.TESTING_MOCK_PROVIDERS),
+    LOG_HTTP_TRAFFIC_ENABLED: parseBooleanEnvVariable(
+      process.env.TESTING_LOG_HTTP_TRAFFIC_ENABLED,
+    ),
   } as const,
   AUTH: {
     SEED:

@@ -50,7 +50,7 @@ export class GenreController {
   ): Promise<Paginated<GenreMetadata>> {
     const queryBuilder = this.genreRepository
       .createQueryBuilder("genre")
-      .leftJoinAndSelect("genre.games", "games")
+      .leftJoinAndSelect("genre.games", "games", "games.deleted_at IS NULL")
       .where("genre.provider_slug = :provider_slug", {
         provider_slug: "gamevault",
       })

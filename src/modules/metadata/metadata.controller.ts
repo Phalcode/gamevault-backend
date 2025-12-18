@@ -30,15 +30,7 @@ export class MetadataController {
   @MinimumRole(Role.EDITOR)
   @ApiOkResponse({ type: () => MetadataProviderDto, isArray: true })
   async getProviders(): Promise<MetadataProviderDto[]> {
-    return this.metadataService.providers.map(
-      (provider) =>
-        ({
-          slug: provider.slug,
-          name: provider.name,
-          priority: provider.priority,
-          enabled: provider.enabled,
-        }) as MetadataProviderDto,
-    );
+    return this.metadataService.providers.map((provider) => provider.getDto());
   }
 
   @Get("/providers/:provider_slug/search")

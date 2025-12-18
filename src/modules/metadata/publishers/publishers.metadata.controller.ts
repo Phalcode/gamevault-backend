@@ -50,7 +50,7 @@ export class PublisherController {
   ): Promise<Paginated<PublisherMetadata>> {
     const queryBuilder = this.publisherRepository
       .createQueryBuilder("publisher")
-      .leftJoinAndSelect("publisher.games", "games")
+      .leftJoinAndSelect("publisher.games", "games", "games.deleted_at IS NULL")
       .where("publisher.provider_slug = :provider_slug", {
         provider_slug: "gamevault",
       })

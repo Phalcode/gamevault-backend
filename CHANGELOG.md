@@ -1,5 +1,22 @@
 # GameVault Backend Server Changelog
 
+## 16.1.2
+
+### Changes
+
+- Fix Age Rating Check being Applied to Admins for Game Downloads
+- Fix Covers/Metadata missing after metadata refreshes
+- Added `TESTING_LOG_HTTP_TRAFFIC_ENABLED` parameter to help analyze network traffic
+- Fixed `early_access` being required in UpdateGameDto inconsistency in OpenAPI contract
+- Fixed `name` not being mentioned in MetadataProviderDto inconsistency in OpenAPI contract
+- Fixed metadata controllers returning tags, genres, publishers & developers for deleted games
+- Deleting and Restoring games now clears / remerges effective metadata
+- Fixed not being able to edit NC games.
+
+### Thanks
+
+- @always_sings_along
+
 ## 16.1.1
 
 ### Changes

@@ -4,6 +4,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import configuration from "./configuration";
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor";
+import { HttpLoggingInterceptor } from "./interceptors/http-logging.interceptor";
 import { AdminModule } from "./modules/admin/admin.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ConfigModule } from "./modules/config/config.module";
@@ -42,6 +43,10 @@ import { WebUIModule } from "./modules/web-ui/web-ui.module";
     {
       provide: APP_INTERCEPTOR,
       useClass: DisableApiIfInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
     },
   ],
 })

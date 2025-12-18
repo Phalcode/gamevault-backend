@@ -162,7 +162,10 @@ export class GamesService {
   }
 
   /** Soft delete a game from the database. */
-  public delete(id: number): Promise<GamevaultGame> {
+  public async delete(id: number): Promise<GamevaultGame> {
+    // Remove effective metadata
+    await this.metadataService.unmap(id, null);
+    // Soft remove the game
     return this.gamesRepository.softRemove({ id });
   }
 
@@ -368,6 +371,7 @@ export class GamesService {
   /** Restore a game that has been soft deleted. */
   public async restore(id: number): Promise<GamevaultGame> {
     await this.gamesRepository.recover({ id });
+    await this.metadataService.merge(id);
     return this.findOneByGameIdOrFail(id, {
       loadDeletedEntities: false,
     });
