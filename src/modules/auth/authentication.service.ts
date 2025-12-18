@@ -38,17 +38,13 @@ export class AuthenticationService implements OnModuleInit {
     );
     const cutoffDate = new Date(Date.now() - expiryTime * 3);
 
-    const result = await this.sessionRepository.remove(
-      await this.sessionRepository.find({
-        where: {
-          expires_at: LessThan(cutoffDate),
-        },
-      }),
-    );
+    const result = await this.sessionRepository.delete({
+      expires_at: LessThan(cutoffDate),
+    });
 
     this.logger.debug({
       message: "Cleaned up expired sessions",
-      deletedCount: result.length,
+      deletedCount: result.affected,
       cutoffDate,
       expiryTime,
     });

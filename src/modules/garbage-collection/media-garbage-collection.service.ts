@@ -231,7 +231,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
       })
     )
       .filter((file) => file.isFile() && isUUID(file.name.substring(0, 35), 4))
-      .map((file) => join(file.path, file.name));
+      .map((file) => join(file.parentPath, file.name));
 
     let removedCount = 0;
 
