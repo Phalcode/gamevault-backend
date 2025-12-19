@@ -7,24 +7,20 @@ import {
 } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import { Response } from "express";
-import {
-  Stats,
-  createReadStream,
-  pathExists,
-  readdir,
-  rm,
-  stat,
-} from "fs-extra";
+import { Stats, createReadStream, pathExists, rm, stat } from "fs-extra";
 import { debounce, toLower } from "lodash";
 import mime from "mime";
 import { add, list } from "node-7z";
-import path, { basename, join } from "path";
+import path, { basename } from "path";
+import { readdirp } from "readdirp";
+import { from, lastValueFrom } from "rxjs";
+import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
-import { Cron } from "@nestjs/schedule";
+import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import { watch } from "chokidar";
 import configuration from "../../configuration";
 import globals from "../../globals";
@@ -41,6 +37,9 @@ import { RangeHeader } from "./models/range-header.model";
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
   private readonly logger = new Logger(this.constructor.name);
+  private readonly supportedFormatsSet = new Set(
+    configuration.GAMES.SUPPORTED_FILE_FORMATS.map((f) => toLower(f)),
+  );
 
   private readonly runDebouncedIntegrityCheck = debounce(async () => {
     await this.checkIntegrity();
@@ -49,8 +48,10 @@ export class FilesService implements OnApplicationBootstrap {
   constructor(
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
 
+  /** Initializes the file watcher and starts the initial indexing. */
   onApplicationBootstrap() {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
@@ -86,12 +87,37 @@ export class FilesService implements OnApplicationBootstrap {
         configuration.TESTING.MOCK_FILES,
     },
   )
+  /** Scans the filesystem for all games and indexes them. */
   public async indexAllFiles() {
-    for (const file of await this.readAllFiles())
-      this.index(file.path, { size: Number(file.size) } as Stats);
+    const files = await this.readAllFiles();
+    this.logger.log({
+      message: "Starting full file index.",
+      count: files.length,
+    });
+
+    if (files.length > 0) {
+      await lastValueFrom(
+        from(files).pipe(
+          mergeMap(
+            (file) =>
+              this.index(file.path, { size: Number(file.size) } as Stats, true),
+            configuration.GAMES.INDEX_CONCURRENCY,
+          ),
+        ),
+      );
+    }
+
+    this.logger.log({
+      message: "Finished full file index.",
+      count: files.length,
+    });
+
+    this.runDebouncedIntegrityCheck.cancel();
+    await this.checkIntegrity(files);
   }
 
-  private async index(path: string, stats?: Stats) {
+  /** Indexes a single file and updates the database accordingly. */
+  private async index(path: string, stats?: Stats, skipIntegrityCheck = false) {
     const size = BigInt(stats?.size || 0);
     if (!size || !path || !this.isValidFilePath(path)) {
       return;
@@ -105,15 +131,16 @@ export class FilesService implements OnApplicationBootstrap {
     });
 
     const gameToIndex = new GamevaultGame();
+    const filename = basename(path);
     gameToIndex.size = size;
     gameToIndex.file_path = path;
-    gameToIndex.title = this.extractTitle(path);
+    gameToIndex.title = this.extractTitle(filename);
     gameToIndex.sort_title = this.gamesService.generateSortTitle(
       gameToIndex.title,
     );
-    gameToIndex.release_date = this.extractReleaseYear(path);
-    gameToIndex.version = this.extractVersion(path);
-    gameToIndex.early_access = this.extractEarlyAccessFlag(basename(path));
+    gameToIndex.release_date = this.extractReleaseYear(filename);
+    gameToIndex.version = this.extractVersion(filename);
+    gameToIndex.early_access = this.extractEarlyAccessFlag(filename);
 
     try {
       // Check if the game already exists in the database
@@ -180,7 +207,9 @@ export class FilesService implements OnApplicationBootstrap {
       });
     }
 
-    this.runDebouncedIntegrityCheck();
+    if (!skipIntegrityCheck) {
+      this.runDebouncedIntegrityCheck();
+    }
   }
 
   /** Updates the game information with the information provided by the file. */
@@ -211,15 +240,12 @@ export class FilesService implements OnApplicationBootstrap {
     return updatedGame;
   }
 
+  /** Checks if a given file path is valid and supported by the indexer. */
   private isValidFilePath(filename: string) {
     const invalidCharacters = /[/<>:"\\|?*]/;
     const actualFilename = basename(filename);
 
-    if (
-      !configuration.GAMES.SUPPORTED_FILE_FORMATS.includes(
-        toLower(path.extname(actualFilename)),
-      )
-    ) {
+    if (!this.supportedFormatsSet.has(toLower(path.extname(actualFilename)))) {
       this.logger.debug({
         message: `Indexer ignoring invalid filename.`,
         reason: "Unsupported file extension.",
@@ -241,7 +267,7 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method extracts the game title from a given file name string using a
+   * Extracts the game title from a given file name string using a
    * regular expression.
    */
   private extractTitle(filePath: string): string {
@@ -253,11 +279,11 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method extracts the game version from a given file path string using a
+   * Extracts the game version from a given file path string using a
    * regular expression.
    */
   private extractVersion(filePath: string): string | undefined {
-    const match = RegExp(/\((v[^)]+)\)/).exec(basename(filePath));
+    const match = RegExp(/\((v[^)]+)\)/).exec(filePath);
     if (match?.[1]) {
       return match[1];
     }
@@ -265,25 +291,26 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
-   * This method extracts the game release year from a given file path string
+   * Extracts the game release year from a given file path string
    * using a regular expression.
    */
   private extractReleaseYear(filePath: string): Date {
     try {
-      return new Date(RegExp(/\((\d{4})\)/).exec(basename(filePath))[1]);
+      return new Date(RegExp(/\((\d{4})\)/).exec(filePath)[1]);
     } catch {
       return undefined;
     }
   }
 
   /**
-   * This method extracts the early access flag from a given file path string
+   * Extracts the early access flag from a given file path string
    * using a regular expression.
    */
   private extractEarlyAccessFlag(filePath: string): boolean {
-    return /\(EA\)/.test(basename(filePath));
+    return /\(EA\)/.test(filePath);
   }
 
+  /** Detects if any of the given file paths match common Windows installer patterns. */
   private detectWindowsSetupExecutable(filepaths: string[]): boolean {
     const windowsInstallerPatterns: { regex: RegExp; description: string }[] = [
       { regex: /^setup\.exe$/i, description: "setup.exe" },
@@ -318,6 +345,7 @@ export class FilesService implements OnApplicationBootstrap {
     return detectedPatterns.length > 0;
   }
 
+  /** Detects the game type based on the file path and its contents. */
   private async detectType(path: string): Promise<GameType> {
     try {
       if (/\(W_P\)/.test(path)) {
@@ -377,38 +405,45 @@ export class FilesService implements OnApplicationBootstrap {
       }
 
       // Detect Windows Executables in Archive
-      const windowsExecutablesInArchive =
-        await this.findAllExecutablesInArchive(path, ["*.exe", "*.msi"]);
+      const executablesInArchive = await this.findAllExecutablesInArchive(
+        path,
+        ["*.exe", "*.msi", "*.sh"],
+      );
 
-      if (windowsExecutablesInArchive.length > 0) {
-        if (this.detectWindowsSetupExecutable(windowsExecutablesInArchive)) {
+      if (executablesInArchive.length > 0) {
+        const windowsExecutables = executablesInArchive.filter(
+          (f) => f.endsWith(".exe") || f.endsWith(".msi"),
+        );
+
+        if (windowsExecutables.length > 0) {
+          if (this.detectWindowsSetupExecutable(windowsExecutables)) {
+            this.logger.debug({
+              message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
+              reason:
+                "There are windows executables in the archive that look like installers.",
+              game: { id: undefined, path },
+            });
+            return GameType.WINDOWS_SETUP;
+          }
           this.logger.debug({
-            message: `Detected game type as ${GameType.WINDOWS_SETUP}.`,
-            reason:
-              "There are windows executables in the archive that look like installers.",
+            message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
+            reason: "There are windows executables in the archive.",
             game: { id: undefined, path },
           });
-          return GameType.WINDOWS_SETUP;
+          return GameType.WINDOWS_PORTABLE;
         }
-        this.logger.debug({
-          message: `Detected game type as ${GameType.WINDOWS_PORTABLE}.`,
-          reason: "There are windows executables in the archive.",
-          game: { id: undefined, path },
-        });
-        return GameType.WINDOWS_PORTABLE;
-      }
 
-      const linuxExecutablesInArchive = await this.findAllExecutablesInArchive(
-        path,
-        ["*.sh"],
-      );
-      if (linuxExecutablesInArchive.length > 0) {
-        this.logger.debug({
-          message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
-          reason: "There are .sh files in the archive.",
-          game: { id: undefined, path },
-        });
-        return GameType.WINDOWS_PORTABLE;
+        const linuxExecutables = executablesInArchive.filter((f) =>
+          f.endsWith(".sh"),
+        );
+        if (linuxExecutables.length > 0) {
+          this.logger.debug({
+            message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
+            reason: "There are .sh files in the archive.",
+            game: { id: undefined, path },
+          });
+          return GameType.LINUX_PORTABLE;
+        }
       }
 
       // More Platforms and Game Types can be added here.
@@ -427,6 +462,7 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
+  /** Finds all executable files within an archive matching the given patterns. */
   private async findAllExecutablesInArchive(
     path: string,
     matchers: string[],
@@ -468,6 +504,7 @@ export class FilesService implements OnApplicationBootstrap {
     });
   }
 
+  /** Creates a compressed archive of the source path. */
   private async archive(output: string, sourcePath: string): Promise<void> {
     if (!(await pathExists(sourcePath))) {
       throw new NotFoundException(
@@ -503,11 +540,14 @@ export class FilesService implements OnApplicationBootstrap {
    * system with the games in the database, marking the deleted games as deleted
    * in the database. Then returns the updated games in the database.
    */
-  private async checkIntegrity(): Promise<GamevaultGame[]> {
-    const gamesInFileSystem = await this.readAllFiles();
+  private async checkIntegrity(
+    filesInFileSystem?: File[],
+  ): Promise<GamevaultGame[]> {
+    const gamesInFileSystem = filesInFileSystem || (await this.readAllFiles());
     const gamesInDatabase = await this.gamesService.find({
       loadDeletedEntities: false,
-      loadRelations: true,
+      loadRelations: false,
+      select: ["id", "file_path"],
     });
 
     if (configuration.TESTING.MOCK_FILES) {
@@ -521,14 +561,13 @@ export class FilesService implements OnApplicationBootstrap {
       message: "Started Game Integrity Check.",
       count: gamesInDatabase.length,
     });
+
+    const fsPaths = new Set(gamesInFileSystem.map((f) => f.path));
     const checkedGames: GamevaultGame[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
-        const gameInFileSystem = gamesInFileSystem.find(
-          (file) => file.path === gameInDatabase.file_path,
-        );
         // If game is not in file system, mark it as deleted
-        if (!gameInFileSystem) {
+        if (!fsPaths.has(gameInDatabase.file_path)) {
           await this.gamesService.delete(gameInDatabase.id);
           this.logger.log({
             message: `Game marked as soft-deleted.`,
@@ -567,27 +606,59 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (configuration.TESTING.MOCK_FILES) return mock;
 
-      const entries = await readdir(configuration.VOLUMES.FILES, {
-        encoding: "utf8",
-        recursive: configuration.GAMES.SEARCH_RECURSIVE,
-        withFileTypes: true,
+      const entries = readdirp(configuration.VOLUMES.FILES, {
+        type: "files",
+        depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
+        fileFilter: (entry) => this.isValidFilePath(entry.basename),
       });
 
-      return Promise.all(
-        entries
-          .filter((e) => e.isFile() && this.isValidFilePath(e.name))
-          .map(async (e) => {
-            const path = join(e.parentPath, e.name);
-            const { size } = await stat(path);
-            return { path, size: BigInt(size) };
-          }),
-      );
+      const files: File[] = [];
+      for await (const entry of entries) {
+        files.push({
+          path: entry.fullPath,
+          size: BigInt(entry.stats.size),
+        });
+      }
+      return files;
     } catch (error) {
       this.logger.error({ message: "Error reading files.", error });
       return [];
     }
   }
 
+  /** Schedules the deletion of a temporary file after a fixed timeout. */
+  private scheduleTmpFileDeletion(gameId: number, filePath: string) {
+    const timeoutName = `delete-tmp-${gameId}`;
+
+    // If a deletion is already scheduled, remove it to reset the timer
+    if (this.schedulerRegistry.getTimeouts().includes(timeoutName)) {
+      this.schedulerRegistry.deleteTimeout(timeoutName);
+    }
+
+    const timeout = setTimeout(
+      async () => {
+        try {
+          if (await pathExists(filePath)) {
+            await rm(filePath);
+            this.logger.log(
+              `Deleted temporary archive after timeout: ${filePath}`,
+            );
+          }
+        } catch (error) {
+          this.logger.error({
+            message: "Error deleting scheduled tmp file.",
+            filePath,
+            error,
+          });
+        }
+      },
+      24 * 60 * 60 * 1000,
+    );
+
+    this.schedulerRegistry.addTimeout(timeoutName, timeout);
+  }
+
+  /** Handles the download request for a game, including on-the-fly archiving if needed. */
   public async download(
     response: Response,
     gameId: number,
@@ -630,6 +701,8 @@ export class FilesService implements OnApplicationBootstrap {
       if (!(await pathExists(fileDownloadPath))) {
         await this.archive(fileDownloadPath, game.file_path);
       }
+
+      this.scheduleTmpFileDeletion(gameId, fileDownloadPath);
     }
 
     // If the file does not exist, throw an exception.
@@ -666,9 +739,16 @@ export class FilesService implements OnApplicationBootstrap {
     game.download_count++;
     this.gamesService.save(game);
 
+    const originalFilename = path.basename(game.file_path);
+    const downloadFilename = globals.ARCHIVE_FORMATS.includes(
+      path.extname(originalFilename),
+    )
+      ? originalFilename
+      : `${path.basename(originalFilename, path.extname(originalFilename))}.tar`;
+
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filenameSanitizer(
-        unidecode(path.basename(fileDownloadPath)),
+        unidecode(downloadFilename),
       )}"`,
       length: range.size,
       type: mime.getType(fileDownloadPath),

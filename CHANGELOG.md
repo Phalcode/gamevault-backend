@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 16.3.0
+
+### Changes
+
+- Various File Indexing Optimizations
+
 ## 16.2.0
 
 ### Changes

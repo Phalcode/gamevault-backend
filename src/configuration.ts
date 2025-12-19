@@ -186,6 +186,7 @@ const configuration = {
       process.env.GAMES_SEARCH_RECURSIVE,
       true,
     ),
+    INDEX_CONCURRENCY: parseNumber(process.env.GAMES_INDEX_CONCURRENCY, 1),
     DEFAULT_ARCHIVE_PASSWORD:
       process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
   } as const,
