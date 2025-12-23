@@ -610,10 +610,19 @@ export class FilesService implements OnApplicationBootstrap {
         type: "files",
         depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
         fileFilter: (entry) => this.isValidFilePath(entry.basename),
+        alwaysStat: true, // ensure size is available for integrity checks
       });
 
       const files: File[] = [];
       for await (const entry of entries) {
+        if (!entry.stats) {
+          this.logger.warn({
+            message: "Skipping file without stats during indexing.",
+            path: entry.fullPath,
+          });
+          continue;
+        }
+
         files.push({
           path: entry.fullPath,
           size: BigInt(entry.stats.size),
