@@ -1,17 +1,5 @@
 {
   "ignore": {
-    "mime": {
-      "versions": ">3",
-      "reason": "ESM"
-    },
-    "readdirp": {
-      "versions": ">4",
-      "reason": "ESM"
-    },
-    "chokidar": {
-      "versions": ">4",
-      "reason": "ESM"
-    },
     "better-sqlite3": {
       "versions": ">9",
       "reason": "TypeORM compatibility"

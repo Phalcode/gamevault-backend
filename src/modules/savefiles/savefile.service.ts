@@ -16,7 +16,6 @@ import {
   stat,
   writeFile,
 } from "fs-extra";
-import mime from "mime";
 import path, { basename, dirname } from "path";
 import configuration from "../../configuration";
 import { UsersService } from "../users/users.service";
@@ -93,6 +92,7 @@ export class SavefileService {
       userId,
       gameId,
     });
+    const { default: mime } = await import("mime");
     return new StreamableFile(file, {
       disposition: `attachment; filename="${basename(path)}"`,
       length: (await stat(path)).size,

@@ -14,7 +14,6 @@ import {
   stat,
   writeFile,
 } from "fs-extra";
-import mime from "mime";
 import path from "path";
 import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
@@ -251,6 +250,7 @@ export class DatabaseService {
   ): Promise<StreamableFile> {
     const file = createReadStream(filePath);
     const length = (await stat(filePath)).size;
+    const { default: mime } = await import("mime");
     const type = mime.getType(filePath);
     const filename = filenameSanitizer(unidecode(path.basename(filePath)));
 

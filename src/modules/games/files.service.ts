@@ -9,10 +9,8 @@ import { randomBytes } from "crypto";
 import { Response } from "express";
 import { Stats, createReadStream, pathExists, rm, stat } from "fs-extra";
 import { debounce, toLower } from "lodash";
-import mime from "mime";
 import { add, list } from "node-7z";
 import path, { basename } from "path";
-import { readdirp } from "readdirp";
 import { from, lastValueFrom } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
@@ -21,7 +19,6 @@ import { Throttle } from "stream-throttle";
 import unidecode from "unidecode";
 
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
-import { watch } from "chokidar";
 import configuration from "../../configuration";
 import globals from "../../globals";
 import { logGamevaultGame } from "../../logging";
@@ -52,7 +49,7 @@ export class FilesService implements OnApplicationBootstrap {
   ) {}
 
   /** Initializes the file watcher and starts the initial indexing. */
-  onApplicationBootstrap() {
+  async onApplicationBootstrap() {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
         message: "Skipping File Indexer.",
@@ -60,6 +57,8 @@ export class FilesService implements OnApplicationBootstrap {
       });
       return;
     }
+
+    const { watch } = await import("chokidar");
 
     watch(configuration.VOLUMES.FILES, {
       depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
@@ -606,6 +605,8 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (configuration.TESTING.MOCK_FILES) return mock;
 
+      const { readdirp } = await import("readdirp");
+
       const entries = readdirp(configuration.VOLUMES.FILES, {
         type: "files",
         depth: configuration.GAMES.SEARCH_RECURSIVE ? undefined : 0,
@@ -754,6 +755,8 @@ export class FilesService implements OnApplicationBootstrap {
     )
       ? originalFilename
       : `${path.basename(originalFilename, path.extname(originalFilename))}.tar`;
+
+    const { default: mime } = await import("mime");
 
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filenameSanitizer(
