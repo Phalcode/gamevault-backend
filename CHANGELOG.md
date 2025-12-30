@@ -5,6 +5,7 @@
 ### Changes
 
 - Various File Indexing Optimizations
+- [#393](https://github.com/Phalcode/gamevault-backend/issues/393) Added .AppImage as supported Linux Portable File. 
 
 ## 16.2.0
 

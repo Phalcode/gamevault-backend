@@ -394,10 +394,13 @@ export class FilesService implements OnApplicationBootstrap {
         return GameType.WINDOWS_SETUP;
       }
 
-      if (toLower(path).endsWith(".sh")) {
+      if (
+        toLower(path).endsWith(".sh") ||
+        toLower(path).endsWith(".appimage")
+      ) {
         this.logger.debug({
           message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
-          reason: "Filename ends with .sh .",
+          reason: `Filename ends with ${toLower(path).endsWith(".sh") ? ".sh" : ".appimage"} .`,
           game: { id: undefined, path },
         });
         return GameType.LINUX_PORTABLE;
@@ -406,13 +409,14 @@ export class FilesService implements OnApplicationBootstrap {
       // Detect Windows Executables in Archive
       const executablesInArchive = await this.findAllExecutablesInArchive(
         path,
-        ["*.exe", "*.msi", "*.sh"],
+        ["*.exe", "*.msi", "*.sh", "*.appimage"],
       );
 
       if (executablesInArchive.length > 0) {
-        const windowsExecutables = executablesInArchive.filter(
-          (f) => f.endsWith(".exe") || f.endsWith(".msi"),
-        );
+        const windowsExecutables = executablesInArchive.filter((f) => {
+          const lowerFile = toLower(f);
+          return lowerFile.endsWith(".exe") || lowerFile.endsWith(".msi");
+        });
 
         if (windowsExecutables.length > 0) {
           if (this.detectWindowsSetupExecutable(windowsExecutables)) {
@@ -432,13 +436,14 @@ export class FilesService implements OnApplicationBootstrap {
           return GameType.WINDOWS_PORTABLE;
         }
 
-        const linuxExecutables = executablesInArchive.filter((f) =>
-          f.endsWith(".sh"),
-        );
+        const linuxExecutables = executablesInArchive.filter((f) => {
+          const lowerFile = toLower(f);
+          return lowerFile.endsWith(".sh") || lowerFile.endsWith(".appimage");
+        });
         if (linuxExecutables.length > 0) {
           this.logger.debug({
             message: `Detected game type as ${GameType.LINUX_PORTABLE}.`,
-            reason: "There are .sh files in the archive.",
+            reason: "There are linux executables in the archive.",
             game: { id: undefined, path },
           });
           return GameType.LINUX_PORTABLE;

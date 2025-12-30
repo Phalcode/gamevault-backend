@@ -74,7 +74,7 @@ export default {
     ".xar",
     ".z",
   ],
-  EXECUTABLE_FORMATS: [".exe", ".sh"],
+  EXECUTABLE_FORMATS: [".exe", ".sh", ".appimage"],
   SUPPORTED_MEDIA_FORMATS: [
     "audio/mpeg", // MP3
     "audio/wav", // WAV
