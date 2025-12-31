@@ -186,6 +186,12 @@ const configuration = {
       process.env.GAMES_SEARCH_RECURSIVE,
       true,
     ),
+    SEARCH_EXCLUDE_DIR_REGEX: process.env.GAMES_SEARCH_EXCLUDE_DIR_REGEX
+      ? RegExp(process.env.GAMES_SEARCH_EXCLUDE_DIR_REGEX)
+      : undefined,
+    SEARCH_EXCLUDE_FILE_REGEX: process.env.GAMES_SEARCH_EXCLUDE_FILE_REGEX
+      ? RegExp(process.env.GAMES_SEARCH_EXCLUDE_FILE_REGEX)
+      : undefined,
     DEFAULT_ARCHIVE_PASSWORD:
       process.env.GAMES_DEFAULT_ARCHIVE_PASSWORD || "Anything",
   } as const,

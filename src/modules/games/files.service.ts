@@ -8,6 +8,8 @@ import {
 import { randomBytes } from "crypto";
 import { Response } from "express";
 import {
+  Dirent,
+  PathLike,
   Stats,
   createReadStream,
   pathExists,
@@ -567,11 +569,10 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       if (configuration.TESTING.MOCK_FILES) return mock;
 
-      const entries = await readdir(configuration.VOLUMES.FILES, {
-        encoding: "utf8",
-        recursive: configuration.GAMES.SEARCH_RECURSIVE,
-        withFileTypes: true,
-      });
+      const entries = await this.readDescendantPaths(
+        configuration.VOLUMES.FILES,
+        configuration.GAMES.SEARCH_RECURSIVE,
+      );
 
       return Promise.all(
         entries
@@ -586,6 +587,69 @@ export class FilesService implements OnApplicationBootstrap {
       this.logger.error({ message: "Error reading files.", error });
       return [];
     }
+  }
+
+  /**
+   * This method (recursively) retrieves an array of directory entries
+   * in the file system starting at a given root path.
+   * Additionally files and/or directory subtrees are pruned during the walk
+   * if exclusion settings in the configuration are set.
+   */
+  private async readDescendantPaths(
+    path: PathLike,
+    recursive: boolean = false,
+  ): Promise<Dirent<string>[]> {
+    // Collect children.
+    let children = await readdir(path, {
+      encoding: "utf8",
+      withFileTypes: true,
+    });
+
+    // Filter children using exclusion checks.
+    children = children.filter((child) => {
+      let excludeChecks: boolean[] = [];
+      const childPath = join(child.parentPath, child.name);
+      if (child.isFile()) {
+        excludeChecks = [
+          configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX?.test(child.name) ??
+            false,
+          // ...
+        ];
+      } else {
+        excludeChecks = [
+          configuration.GAMES.SEARCH_EXCLUDE_DIR_REGEX?.test(child.name) ??
+            false,
+          // ...
+        ];
+      }
+      const exclude = excludeChecks.some(Boolean);
+      if (exclude) {
+        this.logger.debug({
+          message: "Indexer ignoring path.",
+          reason: "Excluded due to configuration settings.",
+          path: childPath,
+        });
+      }
+      return !exclude;
+    });
+
+    // Collect descendants.
+    let descendants: Dirent<string>[] = [];
+    if (recursive) {
+      descendants = await Promise.all(
+        children
+          .filter((child) => child.isDirectory())
+          .map((child) =>
+            this.readDescendantPaths(
+              join(child.parentPath, child.name),
+              recursive,
+            ),
+          ),
+      ).then((entries) => entries.flat());
+    }
+
+    // Return all gathered entries.
+    return children.concat(descendants);
   }
 
   public async download(
