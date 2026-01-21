@@ -11,7 +11,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
+import { createHash } from "crypto";
 import { Response } from "express";
+import session from "express-session";
 import { AppModule } from "./app.module";
 import configuration, {
   getCensoredConfiguration,
@@ -64,6 +66,15 @@ async function bootstrap(): Promise<void> {
 
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
+
+  // Sessions
+  app.use(
+    session({
+      secret: createHash("sha256")
+        .update(configuration.AUTH.SEED)
+        .digest("hex"),
+    }),
+  );
 
   // Cookies
   app.use(cookieparser());
