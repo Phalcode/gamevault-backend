@@ -43,6 +43,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
       clientSecret: AUTH.OAUTH2.CLIENT_SECRET,
       callbackURL: AUTH.OAUTH2.CALLBACK_URL,
       scope: AUTH.OAUTH2.SCOPES,
+      state: true,
     });
   }
 
