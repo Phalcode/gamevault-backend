@@ -26,6 +26,7 @@ import { toLower } from "lodash";
 import { AppConfiguration } from "../../configuration";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
 import { FindOptions } from "../../globals";
+import { logGamevaultGame } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { MediaService } from "../media/media.service";
 import { GamevaultUser } from "./gamevault-user.entity";
@@ -479,10 +480,7 @@ export class UsersService implements OnApplicationBootstrap {
     this.logger.log({
       message: "User bookmarked game.",
       user: user.username,
-      game: {
-        id: game.id,
-        file_path: game.file_path,
-      },
+      game: logGamevaultGame(game),
     });
     return user;
   }
@@ -514,10 +512,7 @@ export class UsersService implements OnApplicationBootstrap {
     this.logger.log({
       message: "User unbookmarked game.",
       user: user.username,
-      game: {
-        id: game.id,
-        file_path: game.file_path,
-      },
+      game: logGamevaultGame(game),
     });
 
     return user;

@@ -170,8 +170,16 @@ export class MetadataService {
       game: logGamevaultGame(game),
     });
 
-    // If the game's file path contains "(NC)", skip the metadata update.
-    if (game.file_path.includes("(NC)")) {
+    const versionPaths = (game.versions || [])
+      .map((version) => version.file_path)
+      .filter((path) => !!path);
+    const candidatePaths =
+      versionPaths.length > 0
+        ? versionPaths
+        : [game.file_path].filter((path) => !!path);
+
+    // If any known game path contains "(NC)", skip the metadata update.
+    if (candidatePaths.some((path) => path.includes("(NC)"))) {
       this.logger.debug({
         message: "Skipping metadata update for (NC) game.",
         game: logGamevaultGame(game),

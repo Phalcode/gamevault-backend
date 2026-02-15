@@ -94,8 +94,14 @@ describe("GamesController", () => {
   describe("deleteGame", () => {
     it("should delete a game file from disk", async () => {
       filesService.deleteGameFile.mockResolvedValue(undefined);
-      await controller.deleteGame({ game_id: 42 });
-      expect(filesService.deleteGameFile).toHaveBeenCalledWith(42);
+      await controller.deleteGame({ game_id: 42 }, undefined);
+      expect(filesService.deleteGameFile).toHaveBeenCalledWith(42, undefined);
+    });
+
+    it("should delete a specific game version when provided", async () => {
+      filesService.deleteGameFile.mockResolvedValue(undefined);
+      await controller.deleteGame({ game_id: 42 }, "v2.0.0");
+      expect(filesService.deleteGameFile).toHaveBeenCalledWith(42, "v2.0.0");
     });
   });
 

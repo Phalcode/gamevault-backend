@@ -27,6 +27,7 @@ import { GenreMetadata } from "../metadata/genres/genre.metadata.entity";
 import { MetadataService } from "../metadata/metadata.service";
 import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity";
 import { TagMetadata } from "../metadata/tags/tag.metadata.entity";
+import { GameVersionEntity } from "./game-version.entity";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
@@ -46,6 +47,8 @@ export class GamesService {
   constructor(
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
+    @InjectRepository(GameVersionEntity)
+    private readonly gameVersionRepository: Repository<GameVersionEntity>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     @Inject(forwardRef(() => GameMetadataService))
@@ -388,30 +391,52 @@ export class GamesService {
       );
     }
 
-    let foundGame = await this.gamesRepository.findOne({
+    const matchedVersionByPath = await this.gameVersionRepository.findOne({
       relationLoadStrategy: "query",
       where: { file_path: game.file_path },
-      relations: this.defaultRelations,
+      relations: ["game"],
       withDeleted: true,
     });
 
+    let foundGame = matchedVersionByPath?.game;
+
     if (foundGame) {
       this.logger.debug({
-        message: "Matched indexed game by exact file path.",
+        message: "Matched indexed game by exact version file path.",
         game: logGamevaultGame(game),
         existingGame: logGamevaultGame(foundGame),
       });
     }
 
     if (!foundGame) {
-      const titleCandidates = await this.gamesRepository.find({
+      foundGame = await this.gamesRepository.findOne({
         relationLoadStrategy: "query",
         where: {
-          title: game.title,
+          file_path: game.file_path,
         },
         relations: this.defaultRelations,
         withDeleted: true,
       });
+
+      if (foundGame) {
+        this.logger.debug({
+          message: "Matched indexed game by legacy game file path.",
+          game: logGamevaultGame(game),
+          existingGame: logGamevaultGame(foundGame),
+        });
+      }
+    }
+
+    if (!foundGame) {
+      const titleCandidates =
+        (await this.gamesRepository.find({
+          relationLoadStrategy: "query",
+          where: {
+            title: game.title,
+          },
+          relations: this.defaultRelations,
+          withDeleted: true,
+        })) || [];
 
       this.logger.debug({
         message: "Trying title-based duplicate matching.",
@@ -420,7 +445,7 @@ export class GamesService {
         hasReleaseYear: !!game.release_date,
       });
 
-      if (game.release_date) {
+      if (!foundGame && game.release_date) {
         // Year-tagged files must only merge with same title + same release year.
         foundGame = titleCandidates.find((candidate) =>
           this.hasSameReleaseYear(candidate.release_date, game.release_date),
@@ -434,7 +459,7 @@ export class GamesService {
             releaseYear: this.getReleaseYear(game.release_date),
           });
         }
-      } else {
+      } else if (!foundGame) {
         // Files without year tag merge into the unknown-year bucket first.
         foundGame = titleCandidates.find(
           (candidate) => !candidate.release_date,
@@ -475,29 +500,52 @@ export class GamesService {
       return [GameExistence.EXISTS_BUT_DELETED_IN_DATABASE, foundGame];
     }
 
+    const matchedVersion = (foundGame.versions || []).find(
+      (version) => version.file_path === game.file_path,
+    );
+    const hasNormalizedVersions = (foundGame.versions || []).length > 0;
+
     const differences: string[] = [];
 
-    if (foundGame.file_path != game.file_path) {
-      differences.push(`path: ${foundGame.file_path} -> ${game.file_path}`);
+    const comparisonFilePath = hasNormalizedVersions
+      ? matchedVersion?.file_path
+      : foundGame.file_path;
+    const comparisonVersion = hasNormalizedVersions
+      ? matchedVersion?.version
+      : foundGame.version;
+
+    if (comparisonFilePath != game.file_path) {
+      differences.push(
+        `path: ${comparisonFilePath || "none"} -> ${game.file_path}`,
+      );
     }
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if (foundGame.early_access != game.early_access) {
+    if ((matchedVersion?.early_access ?? foundGame.early_access) != game.early_access) {
       differences.push(
-        `early_access: ${foundGame.early_access} -> ${game.early_access}`,
+        `early_access: ${matchedVersion?.early_access ?? foundGame.early_access} -> ${game.early_access}`,
       );
     }
-    if (foundGame.version != game.version) {
-      differences.push(`version: ${foundGame.version} -> ${game.version}`);
-    }
-    if (!this.hasSameReleaseYear(foundGame.release_date, game.release_date)) {
+    if (comparisonVersion != game.version) {
       differences.push(
-        `release_year: ${this.getReleaseYear(foundGame.release_date) || "none"} -> ${this.getReleaseYear(game.release_date) || "none"}`,
+        `version: ${comparisonVersion || "none"} -> ${game.version}`,
       );
     }
-    if (foundGame.size.toString() != game.size.toString()) {
-      differences.push(`size: ${foundGame.size} -> ${game.size}`);
+    if (
+      !this.hasSameReleaseYear(
+        matchedVersion?.release_date ?? foundGame.release_date,
+        game.release_date,
+      )
+    ) {
+      differences.push(
+        `release_year: ${this.getReleaseYear(matchedVersion?.release_date ?? foundGame.release_date) || "none"} -> ${this.getReleaseYear(game.release_date) || "none"}`,
+      );
+    }
+    if ((matchedVersion?.size ?? foundGame.size).toString() != game.size.toString()) {
+      differences.push(
+        `size: ${(matchedVersion?.size ?? foundGame.size).toString()} -> ${game.size}`,
+      );
     }
 
     if (differences.length > 0) {
@@ -509,7 +557,7 @@ export class GamesService {
         },
         existingGame: {
           id: foundGame.id,
-          file_path: foundGame.file_path,
+          file_path: matchedVersion?.file_path,
         },
         differences,
       });

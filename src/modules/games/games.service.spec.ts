@@ -5,6 +5,7 @@ import {
 import { Repository } from "typeorm";
 import { GameMetadataService } from "../metadata/games/game.metadata.service";
 import { MetadataService } from "../metadata/metadata.service";
+import { GameVersionEntity } from "./game-version.entity";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
@@ -13,6 +14,7 @@ import { GameType } from "./models/game-type.enum";
 describe("GamesService", () => {
   let service: GamesService;
   let gamesRepository: jest.Mocked<Repository<GamevaultGame>>;
+  let gameVersionRepository: jest.Mocked<Repository<GameVersionEntity>>;
   let metadataService: jest.Mocked<MetadataService>;
   let gameMetadataService: jest.Mocked<GameMetadataService>;
 
@@ -55,8 +57,13 @@ describe("GamesService", () => {
       save: jest.fn(),
     } as any;
 
+    gameVersionRepository = {
+      findOne: jest.fn(),
+    } as any;
+
     service = new GamesService(
       gamesRepository,
+      gameVersionRepository,
       metadataService,
       gameMetadataService,
     );

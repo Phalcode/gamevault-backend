@@ -42,7 +42,9 @@ export class GamevaultGame extends DatabaseEntity {
     },
   })
   @ApiPropertyOptional({
-    description: "size of the game file in bytes",
+    description:
+      "legacy mirror of selected version size in bytes (use versions[] / versions endpoints)",
+    deprecated: true,
     example: "1234567890",
     type: () => String,
   })
@@ -85,7 +87,8 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
-      "release date of the game (extracted from filename e.g. '(2013)')",
+      "legacy mirror of selected version release date (use versions[] / versions endpoints)",
+    deprecated: true,
     example: "2013-01-01T00:00:00.000Z",
   })
   release_date?: Date;
@@ -93,7 +96,8 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ default: false })
   @ApiPropertyOptional({
     description:
-      "indicates if the game is an early access title (extracted from filename e.g. '(EA)')",
+      "legacy mirror of selected version early-access flag (use versions[] / versions endpoints)",
+    deprecated: true,
     example: true,
     default: false,
   })
@@ -115,7 +119,8 @@ export class GamevaultGame extends DatabaseEntity {
   })
   @ApiPropertyOptional({
     description:
-      "type of the game, see https://gamevau.lt/docs/server-docs/game-types for all possible values",
+      "legacy mirror of selected version type (use versions[] / versions endpoints)",
+    deprecated: true,
     type: "string",
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,

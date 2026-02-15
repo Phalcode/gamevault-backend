@@ -181,7 +181,7 @@ describe("FilesService", () => {
   });
 
   describe("deleteGameFile", () => {
-    it("should reject deletion when game has no file path", async () => {
+    it("should reject deletion when game has no available versions", async () => {
       gamesService.findOneByGameIdOrFail.mockResolvedValue({
         id: 1,
         file_path: null,
@@ -217,14 +217,118 @@ describe("FilesService", () => {
       );
     });
 
-    it("should remove game file from disk", async () => {
+    it("should remove all game version files from disk when no version is provided", async () => {
       const game = { id: 1, file_path: "/tmp/test-files/My Game.zip" } as any;
       gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+        {
+          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
+          version: "v2.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-02"),
+        },
+      ] as any);
+      fsExtra.pathExists.mockResolvedValue(true);
+
+      await service.deleteGameFile(1);
+
+      expect(fsExtra.rm).toHaveBeenCalledTimes(2);
+      expect(fsExtra.rm).toHaveBeenCalledWith(
+        "/tmp/test-files/My Game (v1.0.0).zip",
+      );
+      expect(fsExtra.rm).toHaveBeenCalledWith(
+        "/tmp/test-files/My Game (v2.0.0).zip",
+      );
+    });
+
+    it("should delete selected normalized version when legacy file path is missing", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: undefined,
+      } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
+          version: "v2.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-02"),
+        },
+      ] as any);
       fsExtra.pathExists.mockResolvedValueOnce(true);
 
       await service.deleteGameFile(1);
 
-      expect(fsExtra.rm).toHaveBeenCalledWith(game.file_path);
+      expect(fsExtra.rm).toHaveBeenCalledWith(
+        "/tmp/test-files/My Game (v2.0.0).zip",
+      );
+    });
+
+    it("should delete explicitly requested version", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+      } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+        {
+          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
+          version: "v2.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-02"),
+        },
+      ] as any);
+      fsExtra.pathExists.mockResolvedValueOnce(true);
+
+      await service.deleteGameFile(1, "v1.0.0");
+
+      expect(fsExtra.rm).toHaveBeenCalledWith(
+        "/tmp/test-files/My Game (v1.0.0).zip",
+      );
+    });
+
+    it("should reject deletion when requested version does not exist", async () => {
+      fsExtra.rm.mockClear();
+
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+      } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+      ] as any);
+
+      await expect(service.deleteGameFile(1, "v9.9.9")).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(fsExtra.rm).not.toHaveBeenCalled();
     });
   });
 

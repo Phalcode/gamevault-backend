@@ -100,10 +100,19 @@ export class GamesController {
       "Permanently deletes the physical game file from the filesystem. The file indexer will automatically detect the missing file and soft-delete the game from the database. Only administrators can use this endpoint. The server must have write permissions on the files volume.",
     operationId: "deleteGame",
   })
+  @ApiQuery({
+    name: "version",
+    required: false,
+    description:
+      "Optional game version string (e.g. v1.0.0). If omitted, all versions of the game are deleted.",
+  })
   @MinimumRole(Role.ADMIN)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
-  async deleteGame(@Param() params: GameIdDto): Promise<void> {
-    return this.filesService.deleteGameFile(Number(params.game_id));
+  async deleteGame(
+    @Param() params: GameIdDto,
+    @Query("version") version?: string,
+  ): Promise<void> {
+    return this.filesService.deleteGameFile(Number(params.game_id), version);
   }
 
   /** Upload a game file to the server. */

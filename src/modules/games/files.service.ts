@@ -140,20 +140,65 @@ export class FilesService implements OnApplicationBootstrap {
    * The file indexer will automatically soft-delete the game from the database
    * once it detects the file is missing.
    */
-  public async deleteGameFile(gameId: number): Promise<void> {
+  public async deleteGameFile(
+    gameId: number,
+    requestedVersion?: string,
+  ): Promise<void> {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
     });
 
-    if (!game.file_path) {
+    const availableVersions = sortGameVersions(
+      await this.listAvailableVersionsFromStorage(game),
+    );
+
+    if (availableVersions.length === 0) {
       throw new NotFoundException(
-        `Game with id ${gameId} has no file path associated.`,
+        `Game with id ${gameId} has no downloadable versions associated.`,
       );
     }
 
-    if (!(await pathExists(game.file_path))) {
+    let versionsToDelete: GameVersion[];
+    if (requestedVersion) {
+      const explicitVersion = availableVersions.find(
+        (version) => version.version === requestedVersion,
+      );
+
+      if (!explicitVersion) {
+        throw new NotFoundException(
+          `Version "${requestedVersion}" not found. Available versions: ${availableVersions
+            .map((v) => v.version || "(unversioned)")
+            .join(", ")}`,
+        );
+      }
+
+      versionsToDelete = [explicitVersion];
+    } else {
+      versionsToDelete = availableVersions;
+    }
+
+    if (versionsToDelete.some((version) => !version.file_path)) {
       throw new NotFoundException(
-        `Game file not found on disk at "${game.file_path}".`,
+        `Game with id ${gameId} has no valid version file path associated.`,
+      );
+    }
+
+    const existingVersionPaths: string[] = [];
+    for (const version of versionsToDelete) {
+      if (await pathExists(version.file_path)) {
+        existingVersionPaths.push(version.file_path);
+      }
+    }
+
+    if (existingVersionPaths.length === 0) {
+      if (requestedVersion) {
+        throw new NotFoundException(
+          `Game file not found on disk for requested version "${requestedVersion}".`,
+        );
+      }
+
+      throw new NotFoundException(
+        `No downloadable game files were found on disk for game id ${gameId}.`,
       );
     }
 
@@ -166,11 +211,16 @@ export class FilesService implements OnApplicationBootstrap {
       );
     }
 
-    await rm(game.file_path);
+    for (const filePath of existingVersionPaths) {
+      await rm(filePath);
+    }
+
     this.logger.log({
       message: "Game file deleted from disk.",
       gameId,
-      path: game.file_path,
+      version: requestedVersion || "all",
+      count: existingVersionPaths.length,
+      paths: existingVersionPaths,
     });
   }
 
@@ -344,10 +394,7 @@ export class FilesService implements OnApplicationBootstrap {
     const availableVersions =
       await this.listAvailableVersionsFromStorage(gameToUpdate);
 
-    const selectedVersion = selectDefaultGameVersion(
-      availableVersions,
-      gameToUpdate.file_path,
-    );
+    const selectedVersion = selectDefaultGameVersion(availableVersions);
 
     this.applyVersionToGame(gameToUpdate, selectedVersion);
     gameToUpdate.title = indexedGame.title;
@@ -860,10 +907,7 @@ export class FilesService implements OnApplicationBootstrap {
             },
           );
 
-          const selectedVersion = selectDefaultGameVersion(
-            existingVersions,
-            gameToUpdate.file_path,
-          );
+          const selectedVersion = selectDefaultGameVersion(existingVersions);
           this.applyVersionToGame(gameToUpdate, selectedVersion);
           await this.gamesService.save(gameToUpdate);
         }
@@ -1008,7 +1052,38 @@ export class FilesService implements OnApplicationBootstrap {
       return selectedVersion;
     }
 
-    return selectDefaultGameVersion(availableVersions, game.file_path);
+    const selectedVersion = selectDefaultGameVersion(availableVersions);
+
+    if (configuration.TESTING.MOCK_FILES) {
+      return selectedVersion;
+    }
+
+    if (await pathExists(selectedVersion.file_path)) {
+      return selectedVersion;
+    }
+
+    const existingFallbackVersion =
+      await this.findFirstExistingVersion(availableVersions);
+
+    if (existingFallbackVersion) {
+      return existingFallbackVersion;
+    }
+
+    throw new NotFoundException(
+      `The game has no downloadable version files available on disk.`,
+    );
+  }
+
+  private async findFirstExistingVersion(
+    versions: GameVersion[],
+  ): Promise<GameVersion | undefined> {
+    for (const version of versions) {
+      if (version.file_path && (await pathExists(version.file_path))) {
+        return version;
+      }
+    }
+
+    return undefined;
   }
 
   /** Schedules the deletion of a temporary file after a fixed timeout. */
