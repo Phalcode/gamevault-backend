@@ -15,6 +15,7 @@ import { DatabaseEntity } from "../database/database.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { GameVersionEntity } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
 
 @Entity()
@@ -24,6 +25,7 @@ export class GamevaultGame extends DatabaseEntity {
   @ApiPropertyOptional({
     description:
       "file path to the game or the game manifest (relative to root)",
+    deprecated: true,
     example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
   file_path?: string;
@@ -64,9 +66,20 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
+    deprecated: true,
     example: "v1.0.0",
   })
   version?: string;
+
+  @OneToMany(() => GameVersionEntity, (version) => version.game, {
+    eager: true,
+  })
+  @ApiPropertyOptional({
+    description: "all indexed versions for this game",
+    type: () => GameVersionEntity,
+    isArray: true,
+  })
+  versions?: GameVersionEntity[];
 
   @Index()
   @Column({ nullable: true })

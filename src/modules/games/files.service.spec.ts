@@ -54,6 +54,11 @@ describe("FilesService", () => {
   let gamesService: jest.Mocked<GamesService>;
   let metadataService: jest.Mocked<MetadataService>;
   let schedulerRegistry: jest.Mocked<SchedulerRegistry>;
+  let gameVersionRepository: {
+    find: jest.Mock;
+    findOne: jest.Mock;
+    save: jest.Mock;
+  };
   let fsExtra: {
     access: jest.Mock;
     pathExists: jest.Mock;
@@ -85,10 +90,17 @@ describe("FilesService", () => {
       deleteTimeout: jest.fn(),
     } as any;
 
+    gameVersionRepository = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
+
     service = new FilesService(
       gamesService,
       metadataService,
       schedulerRegistry,
+      gameVersionRepository as any,
     );
 
     fsExtra.access.mockResolvedValue(undefined);
@@ -239,6 +251,136 @@ describe("FilesService", () => {
         filterByAge: 18,
       });
       expect(gamesService.save).not.toHaveBeenCalled();
+    });
+
+    it("should reject download when requested version does not exist", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 42,
+        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+        version: "v1.0.0",
+        size: 1000n,
+        type: "WINDOWS_SETUP",
+        early_access: false,
+        download_count: 0,
+      } as any);
+
+      const response = { setHeader: jest.fn() } as any;
+
+      await expect(
+        service.download(response, 42, undefined, undefined, 18, "v9.9.9"),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("listAvailableVersions", () => {
+    it("should return sorted available versions", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+        version: "v1.0.0",
+        size: 1000n,
+        type: "WINDOWS_SETUP",
+        early_access: false,
+      } as any);
+      gameVersionRepository.find.mockResolvedValue([
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+        {
+          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
+          version: "v2.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-02"),
+        },
+      ] as any);
+
+      const result = await service.listAvailableVersions(1, 18);
+
+      expect(result.map((v) => v.version)).toEqual(["v2.0.0", "v1.0.0"]);
+      expect(gamesService.findOneByGameIdOrFail).toHaveBeenCalledWith(1, {
+        loadDeletedEntities: false,
+        filterByAge: 18,
+      });
+    });
+
+    it("should sort mixed non-semver versions with best-effort fallback", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: "/tmp/test-files/My Game (vBuild 15-01-2024).zip",
+        version: "vBuild 15-01-2024",
+        size: 1000n,
+        type: "WINDOWS_SETUP",
+        early_access: false,
+      } as any);
+      gameVersionRepository.find.mockResolvedValue([
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0.2).zip",
+          version: "v1.0.0.2",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+        {
+          file_path: "/tmp/test-files/My Game (v2025-04-27).zip",
+          version: "v2025-04-27",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-02"),
+        },
+        {
+          file_path: "/tmp/test-files/My Game (vBuild 15-01-2024).zip",
+          version: "vBuild 15-01-2024",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-03"),
+        },
+      ] as any);
+
+      const result = await service.listAvailableVersions(1, 18);
+
+      expect(result.map((v) => v.version)).toEqual([
+        "v1.0.0.2",
+        "v2025-04-27",
+        "vBuild 15-01-2024",
+      ]);
+    });
+  });
+
+  describe("getLatestVersion", () => {
+    it("should return the first sorted version", async () => {
+      jest.spyOn(service, "listAvailableVersions").mockResolvedValue([
+        {
+          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
+          version: "v2.0.0",
+        },
+        {
+          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
+          version: "v1.0.0",
+        },
+      ] as any);
+
+      const result = await service.getLatestVersion(1, 18);
+
+      expect(result.version).toBe("v2.0.0");
+      expect(service.listAvailableVersions).toHaveBeenCalledWith(1, 18);
+    });
+
+    it("should throw if no versions are available", async () => {
+      jest.spyOn(service, "listAvailableVersions").mockResolvedValue([] as any);
+
+      await expect(service.getLatestVersion(1, 18)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

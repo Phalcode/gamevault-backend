@@ -8,13 +8,14 @@ import { Progress } from "../progresses/progress.entity";
 import { ProgressModule } from "../progresses/progress.module";
 import { UsersModule } from "../users/users.module";
 import { FilesService } from "./files.service";
+import { GameVersionEntity } from "./game-version.entity";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GamevaultGame, Progress]),
+    TypeOrmModule.forFeature([GamevaultGame, GameVersionEntity, Progress]),
     MediaModule,
     MetadataModule,
     ProgressModule,

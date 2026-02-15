@@ -381,31 +381,93 @@ export class GamesService {
   public async checkIfExistsInDatabase(
     game: GamevaultGame,
   ): Promise<[GameExistence, GamevaultGame]> {
-    if (!game.file_path || (!game.title && !game.release_date)) {
+    if (!game.file_path || !game.title) {
       throw new InternalServerErrorException(
         game,
         "Dupe-Checking Data not available in indexed game!",
       );
     }
 
-    const foundGame =
-      (await this.gamesRepository.findOne({
-        relationLoadStrategy: "query",
-        where: { file_path: game.file_path },
-        relations: this.defaultRelations,
-        withDeleted: true,
-      })) ??
-      (await this.gamesRepository.findOne({
+    let foundGame = await this.gamesRepository.findOne({
+      relationLoadStrategy: "query",
+      where: { file_path: game.file_path },
+      relations: this.defaultRelations,
+      withDeleted: true,
+    });
+
+    if (foundGame) {
+      this.logger.debug({
+        message: "Matched indexed game by exact file path.",
+        game: logGamevaultGame(game),
+        existingGame: logGamevaultGame(foundGame),
+      });
+    }
+
+    if (!foundGame) {
+      const titleCandidates = await this.gamesRepository.find({
         relationLoadStrategy: "query",
         where: {
           title: game.title,
-          release_date: game.release_date,
         },
         relations: this.defaultRelations,
         withDeleted: true,
-      }));
+      });
+
+      this.logger.debug({
+        message: "Trying title-based duplicate matching.",
+        game: logGamevaultGame(game),
+        candidateCount: titleCandidates.length,
+        hasReleaseYear: !!game.release_date,
+      });
+
+      if (game.release_date) {
+        // Year-tagged files must only merge with same title + same release year.
+        foundGame = titleCandidates.find((candidate) =>
+          this.hasSameReleaseYear(candidate.release_date, game.release_date),
+        );
+
+        if (foundGame) {
+          this.logger.debug({
+            message: "Matched by title and release year.",
+            game: logGamevaultGame(game),
+            existingGame: logGamevaultGame(foundGame),
+            releaseYear: this.getReleaseYear(game.release_date),
+          });
+        }
+      } else {
+        // Files without year tag merge into the unknown-year bucket first.
+        foundGame = titleCandidates.find(
+          (candidate) => !candidate.release_date,
+        );
+
+        if (foundGame) {
+          this.logger.debug({
+            message: "Matched no-year game into no-year title bucket.",
+            game: logGamevaultGame(game),
+            existingGame: logGamevaultGame(foundGame),
+          });
+        }
+
+        // Legacy fallback: if no unknown-year bucket exists yet, merge by title.
+        if (!foundGame) {
+          foundGame = titleCandidates[0];
+
+          if (foundGame) {
+            this.logger.debug({
+              message: "Matched no-year game by legacy title fallback.",
+              game: logGamevaultGame(game),
+              existingGame: logGamevaultGame(foundGame),
+            });
+          }
+        }
+      }
+    }
 
     if (!foundGame) {
+      this.logger.debug({
+        message: "No duplicate game match found.",
+        game: logGamevaultGame(game),
+      });
       return [GameExistence.DOES_NOT_EXIST, undefined];
     }
 
@@ -429,6 +491,11 @@ export class GamesService {
     if (foundGame.version != game.version) {
       differences.push(`version: ${foundGame.version} -> ${game.version}`);
     }
+    if (!this.hasSameReleaseYear(foundGame.release_date, game.release_date)) {
+      differences.push(
+        `release_year: ${this.getReleaseYear(foundGame.release_date) || "none"} -> ${this.getReleaseYear(game.release_date) || "none"}`,
+      );
+    }
     if (foundGame.size.toString() != game.size.toString()) {
       differences.push(`size: ${foundGame.size} -> ${game.size}`);
     }
@@ -450,6 +517,26 @@ export class GamesService {
     }
 
     return [GameExistence.EXISTS, foundGame];
+  }
+
+  private getReleaseYear(date?: Date): number | undefined {
+    if (!date) {
+      return undefined;
+    }
+
+    const year = new Date(date).getUTCFullYear();
+    return Number.isNaN(year) ? undefined : year;
+  }
+
+  private hasSameReleaseYear(first?: Date, second?: Date): boolean {
+    const firstYear = this.getReleaseYear(first);
+    const secondYear = this.getReleaseYear(second);
+
+    if (firstYear == null && secondYear == null) {
+      return true;
+    }
+
+    return firstYear != null && secondYear != null && firstYear === secondYear;
   }
 
   public generateSortTitle(title: string): string {

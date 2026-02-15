@@ -6,6 +6,7 @@ import {
   OnApplicationBootstrap,
   StreamableFile,
 } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
 import { randomBytes } from "crypto";
 import { Response } from "express";
 import {
@@ -26,6 +27,7 @@ import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
+import { Repository } from "typeorm";
 import unidecode from "unidecode";
 
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
@@ -33,13 +35,19 @@ import configuration from "../../configuration";
 import globals from "../../globals";
 import { logGamevaultGame } from "../../logging";
 import { MetadataService } from "../metadata/metadata.service";
+import { GameVersionEntity } from "./game-version.entity";
 import mock from "./games.mock";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { File } from "./models/file.model";
 import { GameExistence } from "./models/game-existence.enum";
 import { GameType } from "./models/game-type.enum";
+import { GameVersion } from "./models/game-version.model";
 import { RangeHeader } from "./models/range-header.model";
+import {
+  selectDefaultGameVersion,
+  sortGameVersions,
+} from "./version-selection.util";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {
@@ -56,6 +64,8 @@ export class FilesService implements OnApplicationBootstrap {
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
     private readonly schedulerRegistry: SchedulerRegistry,
+    @InjectRepository(GameVersionEntity)
+    private readonly gameVersionRepository: Repository<GameVersionEntity>,
   ) {}
 
   /** Initializes the file watcher and starts the initial indexing. */
@@ -269,36 +279,41 @@ export class FilesService implements OnApplicationBootstrap {
       // Handle different cases of game existence
       switch (existingGameTuple[0]) {
         case GameExistence.EXISTS: {
-          // If it exists, just update the metadata
-          this.metadataService.addUpdateMetadataJob(existingGame);
+          // Keep legacy rows normalized while preserving current default file path.
+          gameToIndex.type = await this.detectType(gameToIndex.file_path);
+          this.metadataService.addUpdateMetadataJob(
+            await this.upsertIndexedVersion(existingGame.id, gameToIndex),
+          );
           break;
         }
 
         case GameExistence.DOES_NOT_EXIST: {
           // If it doesn't exist, detect the type and save it
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
+          const savedGame = await this.gamesService.save(gameToIndex);
           this.metadataService.addUpdateMetadataJob(
-            await this.gamesService.save(gameToIndex),
+            await this.upsertIndexedVersion(savedGame.id, gameToIndex),
           );
           break;
         }
 
         case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
-          // Restore soft-deleted game and update its information
+          // Restore soft-deleted game and add/update the indexed version
           const restoredGame = await this.gamesService.restore(existingGame.id);
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
-            await this.updateFileInfo(restoredGame.id, gameToIndex),
+            await this.upsertIndexedVersion(restoredGame.id, gameToIndex),
           );
           break;
         }
 
         case GameExistence.EXISTS_BUT_ALTERED: {
-          // Update the information for an altered duplicate
+          // Update or add a version for an altered duplicate
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
-            await this.updateFileInfo(existingGame.id, gameToIndex),
+            await this.upsertIndexedVersion(existingGame.id, gameToIndex),
           );
+          break;
         }
       }
     } catch (error) {
@@ -315,32 +330,121 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
-  /** Updates the game information with the information provided by the file. */
-  private async updateFileInfo(
+  /** Upserts one indexed file as an available version of the game. */
+  private async upsertIndexedVersion(
     id: number,
-    updatesToApply: GamevaultGame,
+    indexedGame: GamevaultGame,
   ): Promise<GamevaultGame> {
     const gameToUpdate = await this.gamesService.findOneByGameIdOrFail(id, {
       loadDeletedEntities: false,
     });
 
-    gameToUpdate.file_path = updatesToApply.file_path;
-    gameToUpdate.title = updatesToApply.title;
-    gameToUpdate.sort_title = this.gamesService.generateSortTitle(
-      updatesToApply.title,
+    await this.upsertReleaseRecord(id, indexedGame);
+
+    const availableVersions =
+      await this.listAvailableVersionsFromStorage(gameToUpdate);
+
+    const selectedVersion = selectDefaultGameVersion(
+      availableVersions,
+      gameToUpdate.file_path,
     );
-    gameToUpdate.release_date = updatesToApply.release_date;
-    gameToUpdate.size = updatesToApply.size;
-    gameToUpdate.version = updatesToApply.version;
-    gameToUpdate.early_access = updatesToApply.early_access;
-    gameToUpdate.type = updatesToApply.type;
+
+    this.applyVersionToGame(gameToUpdate, selectedVersion);
+    gameToUpdate.title = indexedGame.title;
+    gameToUpdate.sort_title = this.gamesService.generateSortTitle(
+      indexedGame.title,
+    );
 
     const updatedGame = await this.gamesService.save(gameToUpdate);
     this.logger.log({
-      message: `Updated new Game Information based on file changes.`,
+      message: `Updated game versions based on file changes.`,
       game: logGamevaultGame(gameToUpdate),
     });
     return updatedGame;
+  }
+
+  /** Upserts one normalized release row for a game and indexed file. */
+  private async upsertReleaseRecord(
+    gameId: number,
+    indexedGame: GamevaultGame,
+  ): Promise<void> {
+    const existingVersion = await this.gameVersionRepository.findOne({
+      where: {
+        game: { id: gameId },
+        file_path: indexedGame.file_path,
+      },
+      relationLoadStrategy: "query",
+      relations: ["game"],
+    });
+
+    const version = existingVersion || new GameVersionEntity();
+    version.game = { id: gameId } as GamevaultGame;
+    version.file_path = indexedGame.file_path;
+    version.version = indexedGame.version;
+    version.size = indexedGame.size;
+    version.release_date = indexedGame.release_date;
+    version.early_access = indexedGame.early_access;
+    version.type = indexedGame.type;
+    version.indexed_at = new Date();
+    await this.gameVersionRepository.save(version);
+  }
+
+  /** Returns all versions from normalized storage, falling back to legacy columns. */
+  private async listAvailableVersionsFromStorage(
+    game: GamevaultGame,
+  ): Promise<GameVersion[]> {
+    const versions = await this.gameVersionRepository.find({
+      where: {
+        game: { id: game.id },
+      },
+      relationLoadStrategy: "query",
+      relations: ["game"],
+      withDeleted: false,
+    });
+
+    if (versions.length > 0) {
+      return versions.map((version) => ({
+        file_path: version.file_path,
+        version: version.version,
+        size: version.size?.toString() || "0",
+        release_date: version.release_date,
+        early_access: !!version.early_access,
+        type: version.type || GameType.UNDETECTABLE,
+        indexed_at: version.indexed_at || version.updated_at || new Date(),
+      }));
+    }
+
+    return this.normalizeVersions(game);
+  }
+
+  /** Converts legacy single-file games into a normalized versions structure. */
+  private normalizeVersions(game: GamevaultGame): GameVersion[] {
+    if (!game.file_path) {
+      return [];
+    }
+    return [
+      {
+        file_path: game.file_path,
+        version: game.version,
+        size: game.size?.toString() || "0",
+        release_date: game.release_date,
+        early_access: !!game.early_access,
+        type: game.type || GameType.UNDETECTABLE,
+        indexed_at: game.updated_at || game.created_at || new Date(),
+      },
+    ];
+  }
+
+  /** Applies one version to legacy top-level game fields. */
+  private applyVersionToGame(game: GamevaultGame, version: GameVersion): void {
+    game.file_path = version.file_path;
+    game.version = version.version;
+    game.size = BigInt(version.size || "0");
+    game.release_date = version.release_date
+      ? new Date(version.release_date)
+      : undefined;
+    game.early_access = !!version.early_access;
+    game.type = version.type || GameType.UNDETECTABLE;
   }
 
   /** Checks if a given file path is valid and supported by the indexer. */
@@ -673,7 +777,15 @@ export class FilesService implements OnApplicationBootstrap {
     const gamesInDatabase = await this.gamesService.find({
       loadDeletedEntities: false,
       loadRelations: false,
-      select: ["id", "file_path"],
+      select: [
+        "id",
+        "file_path",
+        "version",
+        "size",
+        "release_date",
+        "early_access",
+        "type",
+      ],
     });
 
     if (configuration.TESTING.MOCK_FILES) {
@@ -692,12 +804,35 @@ export class FilesService implements OnApplicationBootstrap {
     const checkedGames: GamevaultGame[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
-        // If game is not in file system, mark it as deleted
-        if (!fsPaths.has(gameInDatabase.file_path)) {
+        const persistedVersions = await this.gameVersionRepository.find({
+          where: { game: { id: gameInDatabase.id } },
+          relationLoadStrategy: "query",
+          relations: ["game"],
+          withDeleted: false,
+        });
+        const availablePersistedVersions =
+          persistedVersions.length > 0
+            ? persistedVersions.map((version) => ({
+                file_path: version.file_path,
+                version: version.version,
+                size: version.size?.toString() || "0",
+                release_date: version.release_date,
+                early_access: !!version.early_access,
+                type: version.type || GameType.UNDETECTABLE,
+                indexed_at:
+                  version.indexed_at || version.updated_at || new Date(),
+              }))
+            : this.normalizeVersions(gameInDatabase);
+        const existingVersions = availablePersistedVersions.filter((version) =>
+          fsPaths.has(version.file_path),
+        );
+
+        // If none of the versions are available anymore, mark game as deleted.
+        if (existingVersions.length === 0) {
           await this.gamesService.delete(gameInDatabase.id);
           this.logger.log({
             message: `Game marked as soft-deleted.`,
-            reason: "Game file not found in filesystem.",
+            reason: "No game version file found in filesystem.",
             game: {
               id: gameInDatabase.id,
               path: gameInDatabase.file_path,
@@ -705,6 +840,34 @@ export class FilesService implements OnApplicationBootstrap {
           });
           continue;
         }
+
+        const versionsChanged =
+          existingVersions.length !== availablePersistedVersions.length;
+
+        if (versionsChanged) {
+          const staleVersionIds = persistedVersions
+            .filter((version) => !fsPaths.has(version.file_path))
+            .map((version) => version.id);
+
+          if (staleVersionIds.length > 0) {
+            await this.gameVersionRepository.softDelete(staleVersionIds);
+          }
+
+          const gameToUpdate = await this.gamesService.findOneByGameIdOrFail(
+            gameInDatabase.id,
+            {
+              loadDeletedEntities: false,
+            },
+          );
+
+          const selectedVersion = selectDefaultGameVersion(
+            existingVersions,
+            gameToUpdate.file_path,
+          );
+          this.applyVersionToGame(gameToUpdate, selectedVersion);
+          await this.gamesService.save(gameToUpdate);
+        }
+
         checkedGames.push(gameInDatabase);
       } catch (error) {
         this.logger.error({
@@ -787,6 +950,67 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
+  /** Returns all available versions for the given game. */
+  public async listAvailableVersions(
+    gameId: number,
+    filterByAge?: number,
+  ): Promise<GameVersion[]> {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+      filterByAge,
+    });
+
+    return sortGameVersions(await this.listAvailableVersionsFromStorage(game));
+  }
+
+  /** Returns the latest available version for the given game. */
+  public async getLatestVersion(
+    gameId: number,
+    filterByAge?: number,
+  ): Promise<GameVersion> {
+    const versions = await this.listAvailableVersions(gameId, filterByAge);
+    if (versions.length === 0) {
+      throw new NotFoundException(
+        `The game has no downloadable versions available.`,
+      );
+    }
+
+    return versions[0];
+  }
+
+  /** Resolves a concrete version to download for this game. */
+  private async resolveDownloadVersion(
+    game: GamevaultGame,
+    requestedVersion?: string,
+  ): Promise<GameVersion> {
+    const availableVersions = sortGameVersions(
+      await this.listAvailableVersionsFromStorage(game),
+    );
+    if (availableVersions.length === 0) {
+      throw new NotFoundException(
+        `The game has no downloadable versions available.`,
+      );
+    }
+
+    if (requestedVersion) {
+      const selectedVersion = availableVersions.find(
+        (version) => version.version === requestedVersion,
+      );
+
+      if (!selectedVersion) {
+        throw new NotFoundException(
+          `Version "${requestedVersion}" not found. Available versions: ${availableVersions
+            .map((v) => v.version || "(unversioned)")
+            .join(", ")}`,
+        );
+      }
+
+      return selectedVersion;
+    }
+
+    return selectDefaultGameVersion(availableVersions, game.file_path);
+  }
+
   /** Schedules the deletion of a temporary file after a fixed timeout. */
   private scheduleTmpFileDeletion(gameId: number, filePath: string) {
     const timeoutName = `delete-tmp-${gameId}`;
@@ -826,6 +1050,7 @@ export class FilesService implements OnApplicationBootstrap {
     speedlimitHeader?: number,
     rangeHeader?: string,
     filterByAge?: number,
+    requestedVersion?: string,
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
     speedlimitHeader =
@@ -837,7 +1062,11 @@ export class FilesService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       filterByAge,
     });
-    let fileDownloadPath = game.file_path;
+    const selectedVersion = await this.resolveDownloadVersion(
+      game,
+      requestedVersion,
+    );
+    let fileDownloadPath = selectedVersion.file_path;
 
     // If mocking files for testing, return a StreamableFile with random bytes.
     if (configuration.TESTING.MOCK_FILES) {
@@ -855,12 +1084,13 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     // If the file format is not supported, create an archive and use it for download.
-    if (!globals.ARCHIVE_FORMATS.includes(path.extname(game.file_path))) {
+    if (!globals.ARCHIVE_FORMATS.includes(path.extname(fileDownloadPath))) {
+      const sourcePath = fileDownloadPath;
       fileDownloadPath = `/tmp/${gameId}.tar`;
 
       // If the archive file does not exist, create it.
       if (!(await pathExists(fileDownloadPath))) {
-        await this.archive(fileDownloadPath, game.file_path);
+        await this.archive(fileDownloadPath, sourcePath);
       }
 
       this.scheduleTmpFileDeletion(gameId, fileDownloadPath);
@@ -900,7 +1130,7 @@ export class FilesService implements OnApplicationBootstrap {
     game.download_count++;
     this.gamesService.save(game);
 
-    const originalFilename = path.basename(game.file_path);
+    const originalFilename = path.basename(fileDownloadPath);
     const downloadFilename = globals.ARCHIVE_FORMATS.includes(
       path.extname(originalFilename),
     )

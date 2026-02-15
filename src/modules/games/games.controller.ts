@@ -11,6 +11,7 @@ import {
   ParseFilePipe,
   Post,
   Put,
+  Query,
   Request,
   Res,
   StreamableFile,
@@ -24,6 +25,7 @@ import {
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
@@ -58,6 +60,7 @@ import { FilesService } from "./files.service";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameIdDto } from "./models/game-id.dto";
+import { GameVersion } from "./models/game-version.model";
 import { UpdateGameDto } from "./models/update-game.dto";
 
 @ApiBearerAuth()
@@ -356,6 +359,42 @@ export class GamesController {
     });
   }
 
+  /** Retrieves all available downloadable versions for one game. */
+  @Get(":game_id/versions")
+  @ApiOperation({
+    summary: "get all downloadable versions of a game",
+    operationId: "getGameVersions",
+  })
+  @ApiOkResponse({ type: () => GameVersion, isArray: true })
+  @MinimumRole(Role.GUEST)
+  async getGameVersions(
+    @Request() request: { user: GamevaultUser },
+    @Param() params: GameIdDto,
+  ): Promise<GameVersion[]> {
+    return this.filesService.listAvailableVersions(
+      Number(params.game_id),
+      await this.usersService.findUserAgeByUsername(request.user.username),
+    );
+  }
+
+  /** Retrieves the latest downloadable version for one game. */
+  @Get(":game_id/versions/latest")
+  @ApiOperation({
+    summary: "get latest downloadable version of a game",
+    operationId: "getGameLatestVersion",
+  })
+  @ApiOkResponse({ type: () => GameVersion })
+  @MinimumRole(Role.GUEST)
+  async getGameLatestVersion(
+    @Request() request: { user: GamevaultUser },
+    @Param() params: GameIdDto,
+  ): Promise<GameVersion> {
+    return this.filesService.getLatestVersion(
+      Number(params.game_id),
+      await this.usersService.findUserAgeByUsername(request.user.username),
+    );
+  }
+
   /** Download a game by its ID. */
   @Get(":game_id/download")
   @ApiHeader({
@@ -389,6 +428,12 @@ export class GamesController {
     summary: "download a game",
     operationId: "getGameDownload",
   })
+  @ApiQuery({
+    name: "version",
+    required: false,
+    description:
+      "Optional game version string (e.g. v1.0.0). If omitted, the server default version is downloaded.",
+  })
   @MinimumRole(Role.USER)
   @ApiOkResponse({ type: () => StreamableFile })
   @Header("Accept-Ranges", "bytes")
@@ -398,6 +443,7 @@ export class GamesController {
     @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
+    @Query("version") version?: string,
   ): Promise<StreamableFile> {
     response.setHeader(
       "X-Otp",
@@ -413,6 +459,7 @@ export class GamesController {
       Number(speedlimit),
       range,
       await this.usersService.findUserAgeByUsername(request.user.username),
+      version,
     );
   }
 
