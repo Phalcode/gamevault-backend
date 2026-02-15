@@ -123,6 +123,19 @@ export class WebUIService {
   ): GitHubRelease {
     const compatible = this.selectCompatibleRelease(serverVersion, releases);
     if (!compatible) {
+      const nearestNewer = this.selectNearestNewerRelease(
+        serverVersion,
+        releases,
+      );
+      if (nearestNewer) {
+        this.logger.warn({
+          message:
+            "No compatible stable release found, falling back to nearest newer stable release",
+          release: nearestNewer.tag_name,
+        });
+        return nearestNewer;
+      }
+
       this.logger.warn(
         "No compatible stable release found, falling back to latest unstable",
       );
@@ -134,7 +147,25 @@ export class WebUIService {
   }
 
   /**
-   * Finds the most compatible stable release based on major and minor version.
+   * Finds the most compatible stable release based on major, minor, and patch version.
+   *
+   * Selection matrix (when `WEB_UI.VERSION` is not forced):
+   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
+   * | Case                         | Server | Frontend releases (desc)            | Selected | Why                                           |
+   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
+   * | Same minor latest patch      | 2.4.0  | 3.0.0, 2.5.0, 2.4.7, unstable       | 2.4.7    | Same major+minor picks the latest patch.      |
+   * | Only newer stable releases   | 2.4.0  | 3.0.0, 2.5.0, unstable              | 2.5.0    | No compatible stable; nearest newer is used.  |
+   * | Lower minor compatibility    | 2.4.0  | 2.3.9, 2.3.1, unstable              | 2.3.9    | Lower minor is compatible; first match wins.  |
+   * | No stable releases available | 2.4.0  | unstable                            | unstable | No stable candidate exists, so unstable wins. |
+   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
+   *
+   * Rule summary:
+   * - `WEB_UI.VERSION` set: always use forced version directly (no compatibility check).
+   * - Auto mode: pick first stable release where major matches and
+   *   `release.minor <= server.minor`.
+   * - Because releases are sorted descending, same major+minor always picks the
+   *   latest available patch.
+   * - If no compatible stable match is found, use the nearest newer stable release.
    */
   private selectCompatibleRelease(
     serverVersion: string,
@@ -153,9 +184,7 @@ export class WebUIService {
       if (!parsedRelease) continue;
 
       const isCompatibleMajor = parsedRelease.major === parsedServer.major;
-      const isCompatibleVersion =
-        semver.lte(parsedRelease, parsedServer) ||
-        parsedRelease.minor <= parsedServer.minor;
+      const isCompatibleVersion = parsedRelease.minor <= parsedServer.minor;
 
       if (isCompatibleMajor && isCompatibleVersion) {
         this.logger.debug({
@@ -167,6 +196,24 @@ export class WebUIService {
     }
     this.logger.warn("No compatible frontend release found");
     return null;
+  }
+
+  /**
+   * Finds the nearest newer stable release (smallest semver greater than server).
+   */
+  private selectNearestNewerRelease(
+    serverVersion: string,
+    releases: GitHubRelease[],
+  ): GitHubRelease | null {
+    const parsedServer = semver.parse(serverVersion);
+    if (!parsedServer) return null;
+
+    const newerStableReleases = releases
+      .filter((release) => semver.valid(release.tag_name) !== null)
+      .filter((release) => semver.gt(release.tag_name, parsedServer.version))
+      .sort((a, b) => semver.compare(a.tag_name, b.tag_name));
+
+    return newerStableReleases[0] ?? null;
   }
 
   /**

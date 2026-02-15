@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 16.3.1
+
+### Changes
+
+- Updated automatic Web UI version selection: if no compatible stable release is found, the backend now falls back to the nearest newer stable release before falling back to `unstable`.
+
 ## 16.3.0
 
 ### Changes
