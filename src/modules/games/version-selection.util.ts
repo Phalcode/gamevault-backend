@@ -1,6 +1,10 @@
 import semver from "semver";
 
-import { GameVersion } from "./models/game-version.model";
+export interface VersionLike {
+  file_path: string;
+  version?: string;
+  indexed_at?: Date;
+}
 
 interface VersionSignals {
   strictSemver?: string;
@@ -22,7 +26,7 @@ interface VersionSignals {
  * 6) indexed_at recency
  * 7) version string lexical fallback
  */
-export function sortGameVersions(versions: GameVersion[]): GameVersion[] {
+export function sortGameVersions<T extends VersionLike>(versions: T[]): T[] {
   // Keep only one entry per file path to avoid duplicate records skewing ranking.
   const uniqueVersions = Array.from(
     new Map(versions.map((version) => [version.file_path, version])).values(),
@@ -82,10 +86,10 @@ export function sortGameVersions(versions: GameVersion[]): GameVersion[] {
  * When no version string is comparable, prefers the legacy file path anchor to
  * preserve stable behavior for unversioned collections.
  */
-export function selectDefaultGameVersion(
-  versions: GameVersion[],
+export function selectDefaultGameVersion<T extends VersionLike>(
+  versions: T[],
   preferredFilePath?: string,
-): GameVersion {
+): T {
   const sortedVersions = sortGameVersions(versions);
   const hasComparableVersions = sortedVersions.some(
     (version) => extractVersionSignals(version.version).comparabilityScore > 0,

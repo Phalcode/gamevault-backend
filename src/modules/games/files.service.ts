@@ -42,7 +42,6 @@ import { GamevaultGame } from "./gamevault-game.entity";
 import { File } from "./models/file.model";
 import { GameExistence } from "./models/game-existence.enum";
 import { GameType } from "./models/game-type.enum";
-import { GameVersion } from "./models/game-version.model";
 import { RangeHeader } from "./models/range-header.model";
 import {
   selectDefaultGameVersion,
@@ -142,7 +141,7 @@ export class FilesService implements OnApplicationBootstrap {
    */
   public async deleteGameFile(
     gameId: number,
-    requestedVersion?: string,
+    requestedVersionId: number,
   ): Promise<void> {
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
       loadDeletedEntities: false,
@@ -158,24 +157,17 @@ export class FilesService implements OnApplicationBootstrap {
       );
     }
 
-    let versionsToDelete: GameVersion[];
-    if (requestedVersion) {
-      const explicitVersion = availableVersions.find(
-        (version) => version.version === requestedVersion,
+    const explicitVersion = availableVersions.find(
+      (version) => version.id === requestedVersionId,
+    );
+
+    if (!explicitVersion) {
+      throw new NotFoundException(
+        `Version with id "${requestedVersionId}" not found for game id ${gameId}.`,
       );
-
-      if (!explicitVersion) {
-        throw new NotFoundException(
-          `Version "${requestedVersion}" not found. Available versions: ${availableVersions
-            .map((v) => v.version || "(unversioned)")
-            .join(", ")}`,
-        );
-      }
-
-      versionsToDelete = [explicitVersion];
-    } else {
-      versionsToDelete = availableVersions;
     }
+
+    const versionsToDelete = [explicitVersion];
 
     if (versionsToDelete.some((version) => !version.file_path)) {
       throw new NotFoundException(
@@ -191,14 +183,8 @@ export class FilesService implements OnApplicationBootstrap {
     }
 
     if (existingVersionPaths.length === 0) {
-      if (requestedVersion) {
-        throw new NotFoundException(
-          `Game file not found on disk for requested version "${requestedVersion}".`,
-        );
-      }
-
       throw new NotFoundException(
-        `No downloadable game files were found on disk for game id ${gameId}.`,
+        `Game file not found on disk for requested version id "${requestedVersionId}".`,
       );
     }
 
@@ -218,7 +204,7 @@ export class FilesService implements OnApplicationBootstrap {
     this.logger.log({
       message: "Game file deleted from disk.",
       gameId,
-      version: requestedVersion || "all",
+      version_id: requestedVersionId,
       count: existingVersionPaths.length,
       paths: existingVersionPaths,
     });
@@ -439,7 +425,7 @@ export class FilesService implements OnApplicationBootstrap {
   /** Returns all versions from normalized storage, falling back to legacy columns. */
   private async listAvailableVersionsFromStorage(
     game: GamevaultGame,
-  ): Promise<GameVersion[]> {
+  ): Promise<GameVersionEntity[]> {
     const versions = await this.gameVersionRepository.find({
       where: {
         game: { id: game.id },
@@ -450,43 +436,52 @@ export class FilesService implements OnApplicationBootstrap {
     });
 
     if (versions.length > 0) {
-      return versions.map((version) => ({
-        file_path: version.file_path,
-        version: version.version,
-        size: version.size?.toString() || "0",
-        release_date: version.release_date,
-        early_access: !!version.early_access,
-        type: version.type || GameType.UNDETECTABLE,
-        indexed_at: version.indexed_at || version.updated_at || new Date(),
-      }));
+      return versions.map((version) =>
+        Object.assign(new GameVersionEntity(), {
+          id: version.id,
+          game: version.game,
+          file_path: version.file_path,
+          version: version.version,
+          size: version.size,
+          release_date: version.release_date,
+          early_access: !!version.early_access,
+          type: version.type || GameType.UNDETECTABLE,
+          indexed_at: version.indexed_at || version.updated_at || new Date(),
+        }),
+      );
     }
 
     return this.normalizeVersions(game);
   }
 
   /** Converts legacy single-file games into a normalized versions structure. */
-  private normalizeVersions(game: GamevaultGame): GameVersion[] {
+  private normalizeVersions(game: GamevaultGame): GameVersionEntity[] {
     if (!game.file_path) {
       return [];
     }
     return [
-      {
+      Object.assign(new GameVersionEntity(), {
+        id: undefined,
+        game: { id: game.id } as GamevaultGame,
         file_path: game.file_path,
         version: game.version,
-        size: game.size?.toString() || "0",
+        size: game.size || 0n,
         release_date: game.release_date,
         early_access: !!game.early_access,
         type: game.type || GameType.UNDETECTABLE,
         indexed_at: game.updated_at || game.created_at || new Date(),
-      },
+      }),
     ];
   }
 
   /** Applies one version to legacy top-level game fields. */
-  private applyVersionToGame(game: GamevaultGame, version: GameVersion): void {
+  private applyVersionToGame(
+    game: GamevaultGame,
+    version: GameVersionEntity,
+  ): void {
     game.file_path = version.file_path;
     game.version = version.version;
-    game.size = BigInt(version.size || "0");
+    game.size = BigInt(version.size || 0);
     game.release_date = version.release_date
       ? new Date(version.release_date)
       : undefined;
@@ -859,16 +854,20 @@ export class FilesService implements OnApplicationBootstrap {
         });
         const availablePersistedVersions =
           persistedVersions.length > 0
-            ? persistedVersions.map((version) => ({
-                file_path: version.file_path,
-                version: version.version,
-                size: version.size?.toString() || "0",
-                release_date: version.release_date,
-                early_access: !!version.early_access,
-                type: version.type || GameType.UNDETECTABLE,
-                indexed_at:
-                  version.indexed_at || version.updated_at || new Date(),
-              }))
+            ? persistedVersions.map((version) =>
+                Object.assign(new GameVersionEntity(), {
+                  id: version.id,
+                  game: version.game,
+                  file_path: version.file_path,
+                  version: version.version,
+                  size: version.size,
+                  release_date: version.release_date,
+                  early_access: !!version.early_access,
+                  type: version.type || GameType.UNDETECTABLE,
+                  indexed_at:
+                    version.indexed_at || version.updated_at || new Date(),
+                }),
+              )
             : this.normalizeVersions(gameInDatabase);
         const existingVersions = availablePersistedVersions.filter((version) =>
           fsPaths.has(version.file_path),
@@ -994,39 +993,11 @@ export class FilesService implements OnApplicationBootstrap {
     }
   }
 
-  /** Returns all available versions for the given game. */
-  public async listAvailableVersions(
-    gameId: number,
-    filterByAge?: number,
-  ): Promise<GameVersion[]> {
-    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
-      filterByAge,
-    });
-
-    return sortGameVersions(await this.listAvailableVersionsFromStorage(game));
-  }
-
-  /** Returns the latest available version for the given game. */
-  public async getLatestVersion(
-    gameId: number,
-    filterByAge?: number,
-  ): Promise<GameVersion> {
-    const versions = await this.listAvailableVersions(gameId, filterByAge);
-    if (versions.length === 0) {
-      throw new NotFoundException(
-        `The game has no downloadable versions available.`,
-      );
-    }
-
-    return versions[0];
-  }
-
   /** Resolves a concrete version to download for this game. */
   private async resolveDownloadVersion(
     game: GamevaultGame,
-    requestedVersion?: string,
-  ): Promise<GameVersion> {
+    requestedVersionId: number,
+  ): Promise<GameVersionEntity> {
     const availableVersions = sortGameVersions(
       await this.listAvailableVersionsFromStorage(game),
     );
@@ -1036,54 +1007,33 @@ export class FilesService implements OnApplicationBootstrap {
       );
     }
 
-    if (requestedVersion) {
-      const selectedVersion = availableVersions.find(
-        (version) => version.version === requestedVersion,
-      );
-
-      if (!selectedVersion) {
-        throw new NotFoundException(
-          `Version "${requestedVersion}" not found. Available versions: ${availableVersions
-            .map((v) => v.version || "(unversioned)")
-            .join(", ")}`,
-        );
-      }
-
-      return selectedVersion;
-    }
-
-    const selectedVersion = selectDefaultGameVersion(availableVersions);
-
-    if (configuration.TESTING.MOCK_FILES) {
-      return selectedVersion;
-    }
-
-    if (await pathExists(selectedVersion.file_path)) {
-      return selectedVersion;
-    }
-
-    const existingFallbackVersion =
-      await this.findFirstExistingVersion(availableVersions);
-
-    if (existingFallbackVersion) {
-      return existingFallbackVersion;
-    }
-
-    throw new NotFoundException(
-      `The game has no downloadable version files available on disk.`,
+    const selectedVersion = availableVersions.find(
+      (version) => version.id === requestedVersionId,
     );
+
+    if (!selectedVersion) {
+      throw new NotFoundException(
+        `Version with id "${requestedVersionId}" not found for game id ${game.id}.`,
+      );
+    }
+
+    return selectedVersion;
   }
 
-  private async findFirstExistingVersion(
-    versions: GameVersion[],
-  ): Promise<GameVersion | undefined> {
-    for (const version of versions) {
-      if (version.file_path && (await pathExists(version.file_path))) {
-        return version;
-      }
+  /** Resolves the default/latest downloadable version for legacy clients. */
+  private async resolveLatestDownloadVersion(
+    game: GamevaultGame,
+  ): Promise<GameVersionEntity> {
+    const availableVersions = sortGameVersions(
+      await this.listAvailableVersionsFromStorage(game),
+    );
+    if (availableVersions.length === 0) {
+      throw new NotFoundException(
+        `The game has no downloadable versions available.`,
+      );
     }
 
-    return undefined;
+    return selectDefaultGameVersion(availableVersions);
   }
 
   /** Schedules the deletion of a temporary file after a fixed timeout. */
@@ -1122,10 +1072,10 @@ export class FilesService implements OnApplicationBootstrap {
   public async download(
     response: Response,
     gameId: number,
+    requestedVersionId?: number,
     speedlimitHeader?: number,
     rangeHeader?: string,
     filterByAge?: number,
-    requestedVersion?: string,
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
     speedlimitHeader =
@@ -1137,10 +1087,10 @@ export class FilesService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       filterByAge,
     });
-    const selectedVersion = await this.resolveDownloadVersion(
-      game,
-      requestedVersion,
-    );
+    const selectedVersion =
+      requestedVersionId != null
+        ? await this.resolveDownloadVersion(game, requestedVersionId)
+        : await this.resolveLatestDownloadVersion(game);
     let fileDownloadPath = selectedVersion.file_path;
 
     // If mocking files for testing, return a StreamableFile with random bytes.

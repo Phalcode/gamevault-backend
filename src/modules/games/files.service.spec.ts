@@ -187,7 +187,7 @@ describe("FilesService", () => {
         file_path: null,
       } as any);
 
-      await expect(service.deleteGameFile(1)).rejects.toThrow(
+      await expect(service.deleteGameFile(1, 1)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -197,9 +197,20 @@ describe("FilesService", () => {
         id: 1,
         file_path: "/tmp/test-files/My Game.zip",
       } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          id: 1,
+          file_path: "/tmp/test-files/My Game.zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+      ] as any);
       fsExtra.pathExists.mockResolvedValueOnce(false);
 
-      await expect(service.deleteGameFile(1)).rejects.toThrow(
+      await expect(service.deleteGameFile(1, 1)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -209,19 +220,33 @@ describe("FilesService", () => {
         id: 1,
         file_path: "/tmp/test-files/My Game.zip",
       } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          id: 1,
+          file_path: "/tmp/test-files/My Game.zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+      ] as any);
       fsExtra.pathExists.mockResolvedValueOnce(true);
       fsExtra.access.mockRejectedValueOnce(new Error("permission denied"));
 
-      await expect(service.deleteGameFile(1)).rejects.toThrow(
+      await expect(service.deleteGameFile(1, 1)).rejects.toThrow(
         BadRequestException,
       );
     });
 
-    it("should remove all game version files from disk when no version is provided", async () => {
-      const game = { id: 1, file_path: "/tmp/test-files/My Game.zip" } as any;
-      gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+    it("should delete explicitly requested version by version id", async () => {
+      gamesService.findOneByGameIdOrFail.mockResolvedValue({
+        id: 1,
+        file_path: "/tmp/test-files/My Game.zip",
+      } as any);
       gameVersionRepository.find.mockResolvedValueOnce([
         {
+          id: 1,
           file_path: "/tmp/test-files/My Game (v1.0.0).zip",
           version: "v1.0.0",
           size: 1000n,
@@ -230,6 +255,7 @@ describe("FilesService", () => {
           indexed_at: new Date("2026-01-01"),
         },
         {
+          id: 2,
           file_path: "/tmp/test-files/My Game (v2.0.0).zip",
           version: "v2.0.0",
           size: 1000n,
@@ -240,14 +266,11 @@ describe("FilesService", () => {
       ] as any);
       fsExtra.pathExists.mockResolvedValue(true);
 
-      await service.deleteGameFile(1);
+      await service.deleteGameFile(1, 1);
 
-      expect(fsExtra.rm).toHaveBeenCalledTimes(2);
+      expect(fsExtra.rm).toHaveBeenCalledTimes(1);
       expect(fsExtra.rm).toHaveBeenCalledWith(
         "/tmp/test-files/My Game (v1.0.0).zip",
-      );
-      expect(fsExtra.rm).toHaveBeenCalledWith(
-        "/tmp/test-files/My Game (v2.0.0).zip",
       );
     });
 
@@ -258,6 +281,7 @@ describe("FilesService", () => {
       } as any);
       gameVersionRepository.find.mockResolvedValueOnce([
         {
+          id: 2,
           file_path: "/tmp/test-files/My Game (v2.0.0).zip",
           version: "v2.0.0",
           size: 1000n,
@@ -267,43 +291,12 @@ describe("FilesService", () => {
         },
       ] as any);
       fsExtra.pathExists.mockResolvedValueOnce(true);
+      fsExtra.access.mockResolvedValueOnce(undefined);
 
-      await service.deleteGameFile(1);
+      await service.deleteGameFile(1, 2);
 
       expect(fsExtra.rm).toHaveBeenCalledWith(
         "/tmp/test-files/My Game (v2.0.0).zip",
-      );
-    });
-
-    it("should delete explicitly requested version", async () => {
-      gamesService.findOneByGameIdOrFail.mockResolvedValue({
-        id: 1,
-        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
-      } as any);
-      gameVersionRepository.find.mockResolvedValueOnce([
-        {
-          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
-          version: "v1.0.0",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-01"),
-        },
-        {
-          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
-          version: "v2.0.0",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-02"),
-        },
-      ] as any);
-      fsExtra.pathExists.mockResolvedValueOnce(true);
-
-      await service.deleteGameFile(1, "v1.0.0");
-
-      expect(fsExtra.rm).toHaveBeenCalledWith(
-        "/tmp/test-files/My Game (v1.0.0).zip",
       );
     });
 
@@ -316,6 +309,7 @@ describe("FilesService", () => {
       } as any);
       gameVersionRepository.find.mockResolvedValueOnce([
         {
+          id: 1,
           file_path: "/tmp/test-files/My Game (v1.0.0).zip",
           version: "v1.0.0",
           size: 1000n,
@@ -325,7 +319,7 @@ describe("FilesService", () => {
         },
       ] as any);
 
-      await expect(service.deleteGameFile(1, "v9.9.9")).rejects.toThrow(
+      await expect(service.deleteGameFile(1, 999)).rejects.toThrow(
         NotFoundException,
       );
       expect(fsExtra.rm).not.toHaveBeenCalled();
@@ -339,11 +333,23 @@ describe("FilesService", () => {
         file_path: "/tmp/test-files/My Game.zip",
         download_count: 0,
       } as any);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        {
+          id: 1,
+          file_path: "/tmp/test-files/My Game.zip",
+          version: "v1.0.0",
+          size: 1000n,
+          type: "WINDOWS_SETUP",
+          early_access: false,
+          indexed_at: new Date("2026-01-01"),
+        },
+      ] as any);
 
       const response = { setHeader: jest.fn() } as any;
       const result = await service.download(
         response,
         42,
+        1,
         undefined,
         undefined,
         18,
@@ -371,120 +377,8 @@ describe("FilesService", () => {
       const response = { setHeader: jest.fn() } as any;
 
       await expect(
-        service.download(response, 42, undefined, undefined, 18, "v9.9.9"),
+        service.download(response, 42, 999, undefined, undefined, 18),
       ).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe("listAvailableVersions", () => {
-    it("should return sorted available versions", async () => {
-      gamesService.findOneByGameIdOrFail.mockResolvedValue({
-        id: 1,
-        file_path: "/tmp/test-files/My Game (v1.0.0).zip",
-        version: "v1.0.0",
-        size: 1000n,
-        type: "WINDOWS_SETUP",
-        early_access: false,
-      } as any);
-      gameVersionRepository.find.mockResolvedValue([
-        {
-          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
-          version: "v1.0.0",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-01"),
-        },
-        {
-          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
-          version: "v2.0.0",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-02"),
-        },
-      ] as any);
-
-      const result = await service.listAvailableVersions(1, 18);
-
-      expect(result.map((v) => v.version)).toEqual(["v2.0.0", "v1.0.0"]);
-      expect(gamesService.findOneByGameIdOrFail).toHaveBeenCalledWith(1, {
-        loadDeletedEntities: false,
-        filterByAge: 18,
-      });
-    });
-
-    it("should sort mixed non-semver versions with best-effort fallback", async () => {
-      gamesService.findOneByGameIdOrFail.mockResolvedValue({
-        id: 1,
-        file_path: "/tmp/test-files/My Game (vBuild 15-01-2024).zip",
-        version: "vBuild 15-01-2024",
-        size: 1000n,
-        type: "WINDOWS_SETUP",
-        early_access: false,
-      } as any);
-      gameVersionRepository.find.mockResolvedValue([
-        {
-          file_path: "/tmp/test-files/My Game (v1.0.0.2).zip",
-          version: "v1.0.0.2",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-01"),
-        },
-        {
-          file_path: "/tmp/test-files/My Game (v2025-04-27).zip",
-          version: "v2025-04-27",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-02"),
-        },
-        {
-          file_path: "/tmp/test-files/My Game (vBuild 15-01-2024).zip",
-          version: "vBuild 15-01-2024",
-          size: 1000n,
-          type: "WINDOWS_SETUP",
-          early_access: false,
-          indexed_at: new Date("2026-01-03"),
-        },
-      ] as any);
-
-      const result = await service.listAvailableVersions(1, 18);
-
-      expect(result.map((v) => v.version)).toEqual([
-        "v1.0.0.2",
-        "v2025-04-27",
-        "vBuild 15-01-2024",
-      ]);
-    });
-  });
-
-  describe("getLatestVersion", () => {
-    it("should return the first sorted version", async () => {
-      jest.spyOn(service, "listAvailableVersions").mockResolvedValue([
-        {
-          file_path: "/tmp/test-files/My Game (v2.0.0).zip",
-          version: "v2.0.0",
-        },
-        {
-          file_path: "/tmp/test-files/My Game (v1.0.0).zip",
-          version: "v1.0.0",
-        },
-      ] as any);
-
-      const result = await service.getLatestVersion(1, 18);
-
-      expect(result.version).toBe("v2.0.0");
-      expect(service.listAvailableVersions).toHaveBeenCalledWith(1, 18);
-    });
-
-    it("should throw if no versions are available", async () => {
-      jest.spyOn(service, "listAvailableVersions").mockResolvedValue([] as any);
-
-      await expect(service.getLatestVersion(1, 18)).rejects.toThrow(
-        NotFoundException,
-      );
     });
   });
 });

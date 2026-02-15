@@ -52,8 +52,6 @@ describe("GamesController", () => {
       download: jest.fn(),
       deleteGameFile: jest.fn(),
       upload: jest.fn(),
-      listAvailableVersions: jest.fn(),
-      getLatestVersion: jest.fn(),
     } as any;
 
     gamesRepository = {
@@ -88,20 +86,6 @@ describe("GamesController", () => {
       filesService.indexAllFiles.mockResolvedValue(undefined);
       await controller.putFilesReindex();
       expect(filesService.indexAllFiles).toHaveBeenCalled();
-    });
-  });
-
-  describe("deleteGame", () => {
-    it("should delete a game file from disk", async () => {
-      filesService.deleteGameFile.mockResolvedValue(undefined);
-      await controller.deleteGame({ game_id: 42 }, undefined);
-      expect(filesService.deleteGameFile).toHaveBeenCalledWith(42, undefined);
-    });
-
-    it("should delete a specific game version when provided", async () => {
-      filesService.deleteGameFile.mockResolvedValue(undefined);
-      await controller.deleteGame({ game_id: 42 }, "v2.0.0");
-      expect(filesService.deleteGameFile).toHaveBeenCalledWith(42, "v2.0.0");
     });
   });
 
@@ -176,48 +160,11 @@ describe("GamesController", () => {
       expect(filesService.download).toHaveBeenCalledWith(
         mockResponse,
         42,
+        undefined,
         1024,
         "bytes=0-999",
         undefined,
-        undefined,
       );
-    });
-  });
-
-  describe("getGameVersions", () => {
-    it("should return all available versions for one game", async () => {
-      filesService.listAvailableVersions.mockResolvedValue([
-        { file_path: "/games/test-game-v1.zip", version: "v1.0.0" },
-        { file_path: "/games/test-game-v2.zip", version: "v2.0.0" },
-      ] as any);
-
-      const result = await controller.getGameVersions(
-        { user: createMockUser() },
-        { game_id: 1 },
-      );
-
-      expect(result).toHaveLength(2);
-      expect(filesService.listAvailableVersions).toHaveBeenCalledWith(
-        1,
-        undefined,
-      );
-    });
-  });
-
-  describe("getGameLatestVersion", () => {
-    it("should return the latest available version for one game", async () => {
-      filesService.getLatestVersion.mockResolvedValue({
-        file_path: "/games/test-game-v2.zip",
-        version: "v2.0.0",
-      } as any);
-
-      const result = await controller.getGameLatestVersion(
-        { user: createMockUser() },
-        { game_id: 1 },
-      );
-
-      expect(result.version).toBe("v2.0.0");
-      expect(filesService.getLatestVersion).toHaveBeenCalledWith(1, undefined);
     });
   });
 

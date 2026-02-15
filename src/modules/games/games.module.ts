@@ -9,6 +9,7 @@ import { ProgressModule } from "../progresses/progress.module";
 import { UsersModule } from "../users/users.module";
 import { FilesService } from "./files.service";
 import { GameVersionEntity } from "./game-version.entity";
+import { GameVersionsController } from "./game-versions.controller";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
@@ -22,7 +23,7 @@ import { GamevaultGame } from "./gamevault-game.entity";
     forwardRef(() => OtpModule),
     forwardRef(() => UsersModule),
   ],
-  controllers: [GamesController],
+  controllers: [GamesController, GameVersionsController],
   providers: [GamesService, FilesService],
   exports: [GamesService, FilesService],
 })

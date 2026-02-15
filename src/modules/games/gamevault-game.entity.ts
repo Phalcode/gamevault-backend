@@ -17,6 +17,7 @@ import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { GameVersionEntity } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
+import { sortGameVersions } from "./version-selection.util";
 
 @Entity()
 export class GamevaultGame extends DatabaseEntity {
@@ -43,7 +44,7 @@ export class GamevaultGame extends DatabaseEntity {
   })
   @ApiPropertyOptional({
     description:
-      "legacy mirror of selected version size in bytes (use versions[] / versions endpoints)",
+      "legacy mirror of selected version size in bytes (use versions[])",
     deprecated: true,
     example: "1234567890",
     type: () => String,
@@ -87,7 +88,7 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
-      "legacy mirror of selected version release date (use versions[] / versions endpoints)",
+      "legacy mirror of selected version release date (use versions[])",
     deprecated: true,
     example: "2013-01-01T00:00:00.000Z",
   })
@@ -96,7 +97,7 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ default: false })
   @ApiPropertyOptional({
     description:
-      "legacy mirror of selected version early-access flag (use versions[] / versions endpoints)",
+      "legacy mirror of selected version early-access flag (use versions[])",
     deprecated: true,
     example: true,
     default: false,
@@ -118,8 +119,7 @@ export class GamevaultGame extends DatabaseEntity {
     default: GameType.UNDETECTABLE,
   })
   @ApiPropertyOptional({
-    description:
-      "legacy mirror of selected version type (use versions[] / versions endpoints)",
+    description: "legacy mirror of selected version type (use versions[])",
     deprecated: true,
     type: "string",
     enum: GameType,
@@ -219,5 +219,11 @@ export class GamevaultGame extends DatabaseEntity {
     if (!this.provider_metadata) {
       this.provider_metadata = [];
     }
+
+    if (!this.versions) {
+      this.versions = [];
+    }
+
+    this.versions = sortGameVersions(this.versions);
   }
 }

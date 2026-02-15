@@ -3,18 +3,23 @@ import {
   sortGameVersions,
 } from "./version-selection.util";
 
+import { GameVersionEntity } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
-import { GameVersion } from "./models/game-version.model";
 
 describe("version-selection.util", () => {
-  const createVersion = (overrides: Partial<GameVersion>): GameVersion => ({
-    file_path: "/files/default.zip",
-    size: "1000",
-    early_access: false,
-    type: GameType.UNDETECTABLE,
-    indexed_at: new Date("2026-01-01T00:00:00.000Z"),
-    ...overrides,
-  });
+  const createVersion = (
+    overrides: Partial<GameVersionEntity>,
+  ): GameVersionEntity =>
+    ({
+      id: 1,
+      game: { id: 1 } as any,
+      file_path: "/files/default.zip",
+      size: 1000n,
+      early_access: false,
+      type: GameType.UNDETECTABLE,
+      indexed_at: new Date("2026-01-01T00:00:00.000Z"),
+      ...overrides,
+    }) as GameVersionEntity;
 
   describe("sortGameVersions", () => {
     it("sorts strict semver versions descending", () => {
