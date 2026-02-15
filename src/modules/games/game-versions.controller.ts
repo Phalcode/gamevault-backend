@@ -13,6 +13,7 @@ import {
 import {
   ApiBearerAuth,
   ApiHeader,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiSecurity,
@@ -43,7 +44,12 @@ export class GameVersionsController {
   @Delete(":gameId/versions/:versionId")
   @ApiOperation({
     summary: "deletes a specific game version file from disk",
+    description:
+      "Deletes exactly one version of a game identified by versionId for the specified game.",
     operationId: "deleteGameVersion",
+  })
+  @ApiNoContentResponse({
+    description: "Game version deletion accepted.",
   })
   @MinimumRole(Role.ADMIN)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
@@ -70,6 +76,8 @@ export class GameVersionsController {
   })
   @ApiOperation({
     summary: "download a specific game version",
+    description:
+      "Downloads exactly one version of a game identified by versionId for the specified game.",
     operationId: "downloadGameVersion",
   })
   @MinimumRole(Role.USER)

@@ -372,6 +372,8 @@ export class GamesController {
   })
   @ApiOperation({
     summary: "download latest game version",
+    description:
+      "Deprecated legacy endpoint. Downloads the default/latest version for compatibility. Use GET /game/:gameId/versions/:versionId for explicit version downloads.",
     deprecated: true,
     operationId: "getGameDownload",
   })
