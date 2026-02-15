@@ -522,7 +522,10 @@ export class GamesService {
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if ((matchedVersion?.early_access ?? foundGame.early_access) != game.early_access) {
+    if (
+      (matchedVersion?.early_access ?? foundGame.early_access) !=
+      game.early_access
+    ) {
       differences.push(
         `early_access: ${matchedVersion?.early_access ?? foundGame.early_access} -> ${game.early_access}`,
       );
@@ -542,7 +545,10 @@ export class GamesService {
         `release_year: ${this.getReleaseYear(matchedVersion?.release_date ?? foundGame.release_date) || "none"} -> ${this.getReleaseYear(game.release_date) || "none"}`,
       );
     }
-    if ((matchedVersion?.size ?? foundGame.size).toString() != game.size.toString()) {
+    if (
+      (matchedVersion?.size ?? foundGame.size).toString() !=
+      game.size.toString()
+    ) {
       differences.push(
         `size: ${(matchedVersion?.size ?? foundGame.size).toString()} -> ${game.size}`,
       );
