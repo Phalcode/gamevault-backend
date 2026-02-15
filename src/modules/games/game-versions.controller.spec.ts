@@ -68,7 +68,12 @@ describe("GameVersionsController", () => {
         "bytes=0-999",
       );
 
-      expect(otpService.create).toHaveBeenCalledWith("testuser", 42, 1024);
+      expect(otpService.create).toHaveBeenCalledWith(
+        "testuser",
+        42,
+        7,
+        1024,
+      );
       expect(mockResponse.setHeader).toHaveBeenCalledWith("X-Otp", "mock-otp");
       expect(filesService.download).toHaveBeenCalledWith(
         mockResponse,

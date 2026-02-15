@@ -16,7 +16,7 @@ describe("OtpService", () => {
 
   describe("create", () => {
     it("should create an OTP and return the token string", () => {
-      const result = service.create("testuser", 42, 1024);
+      const result = service.create("testuser", 42, 7, 1024);
       expect(result).toBeDefined();
       expect(typeof result).toBe("string");
       expect(result.length).toBeGreaterThan(0);
@@ -38,14 +38,17 @@ describe("OtpService", () => {
   describe("get", () => {
     it("should validate and consume a valid OTP", async () => {
       const mockResponse = { setHeader: jest.fn() } as any;
-      const otp = service.create("testuser", 42, 1024);
+      const otp = service.create("testuser", 42, 7, 1024);
       filesService.download.mockResolvedValue({} as any);
 
       await service.get(otp, mockResponse);
       expect(filesService.download).toHaveBeenCalledWith(
         mockResponse,
         42,
+        7,
         1024,
+        undefined,
+        undefined,
       );
     });
 
@@ -86,14 +89,34 @@ describe("OtpService", () => {
 
     it("should pass download speed limit to filesService", async () => {
       const mockResponse = { setHeader: jest.fn() } as any;
-      const otp = service.create("testuser", 99, 2048);
+      const otp = service.create("testuser", 99, undefined, 2048);
       filesService.download.mockResolvedValue({} as any);
 
       await service.get(otp, mockResponse);
       expect(filesService.download).toHaveBeenCalledWith(
         mockResponse,
         99,
+        undefined,
         2048,
+        undefined,
+        undefined,
+      );
+    });
+
+    it("should bind OTP download to the requested version id", async () => {
+      const mockResponse = { setHeader: jest.fn() } as any;
+      const otp = service.create("testuser", 101, 33, 4096);
+      filesService.download.mockResolvedValue({} as any);
+
+      await service.get(otp, mockResponse);
+
+      expect(filesService.download).toHaveBeenCalledWith(
+        mockResponse,
+        101,
+        33,
+        4096,
+        undefined,
+        undefined,
       );
     });
   });

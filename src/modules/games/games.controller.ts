@@ -392,6 +392,7 @@ export class GamesController {
       this.otpService.create(
         request.user.username,
         Number(params.game_id),
+        undefined,
         Number(speedlimit),
       ),
     );

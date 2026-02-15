@@ -30,10 +30,17 @@ export class OtpService {
   public create(
     username: string,
     gameId?: number,
+    versionId?: number,
     xDownloadSpeedLimit?: number,
   ): string {
     const randomOtp = randomBytes(64).toString("hex");
-    const otp = new Otp(randomOtp, username, gameId, xDownloadSpeedLimit);
+    const otp = new Otp(
+      randomOtp,
+      username,
+      gameId,
+      versionId,
+      xDownloadSpeedLimit,
+    );
     this.otps.set(randomOtp, otp);
     this.logger.log("OTP Created.", otp.getLoggableData());
     return randomOtp;
@@ -52,7 +59,10 @@ export class OtpService {
     return this.filesService.download(
       response,
       existingOtp.gameId,
+      existingOtp.versionId,
       existingOtp.xDownloadSpeedLimit,
+      undefined,
+      undefined,
     );
   }
 }
