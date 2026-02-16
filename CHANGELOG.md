@@ -5,9 +5,7 @@
 ### Breaking Changes & Migration
 
 - [#236](https://github.com/Phalcode/gamevault-backend/issues/236) Introduced support for multiple game versions -> **Existing game rows are migrated automatically.**
-
-- Removed legacy top-level game version fields (`version`, `file_path`, `size`, `release_date`, `early_access`, `type`) in favor of the new `game_version` table. -> **If you rely on these fields, update your clients to use the new version structure before migrating.**
-
+- Deprecated top-level game version fields (`version`, `file_path`, `size`, `release_date`, `early_access`, `type`) in favor of the new `game_version` table. -> **If you rely on these fields, update your clients to use the new version structure before migrating.**
 - Duplicate handling now merges files with the same title into one game entity more consistently (year-tagged files merge by matching release year, untagged files merge into a no-year bucket first). -> **If you previously relied on same-title duplicates as separate game entries, rename titles explicitly (e.g. with square brackets) to keep them separate.**
 
 ### Changes

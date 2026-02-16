@@ -41,11 +41,11 @@ export class GameVersionsController {
     private readonly otpService: OtpService,
   ) {}
 
-  @Delete(":gameId/versions/:versionId")
+  @Delete(":game_id/versions/:version_id")
   @ApiOperation({
     summary: "deletes a specific game version file from disk",
     description:
-      "Deletes exactly one version of a game identified by versionId for the specified game.",
+      "Deletes exactly one version of a game identified by version_id for the specified game.",
     operationId: "deleteGameVersion",
   })
   @ApiNoContentResponse({
@@ -54,13 +54,13 @@ export class GameVersionsController {
   @MinimumRole(Role.ADMIN)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async deleteGameVersion(
-    @Param("gameId", ParseIntPipe) gameId: number,
-    @Param("versionId", ParseIntPipe) versionId: number,
+    @Param("game_id", ParseIntPipe) gameId: number,
+    @Param("version_id", ParseIntPipe) versionId: number,
   ): Promise<void> {
     return this.filesService.deleteGameFile(gameId, versionId);
   }
 
-  @Get(":gameId/versions/:versionId")
+  @Get(":game_id/versions/:version_id")
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
@@ -77,7 +77,7 @@ export class GameVersionsController {
   @ApiOperation({
     summary: "download a specific game version",
     description:
-      "Downloads exactly one version of a game identified by versionId for the specified game.",
+      "Downloads exactly one version of a game identified by version_id for the specified game.",
     operationId: "downloadGameVersion",
   })
   @MinimumRole(Role.USER)
@@ -85,8 +85,8 @@ export class GameVersionsController {
   @Header("Accept-Ranges", "bytes")
   async downloadGameVersion(
     @Request() request: { user: GamevaultUser },
-    @Param("gameId", ParseIntPipe) gameId: number,
-    @Param("versionId", ParseIntPipe) versionId: number,
+    @Param("game_id", ParseIntPipe) gameId: number,
+    @Param("version_id", ParseIntPipe) versionId: number,
     @Res({ passthrough: true }) response: Response,
     @Headers("X-Download-Speed-Limit") speedlimit?: string,
     @Headers("Range") range?: string,
