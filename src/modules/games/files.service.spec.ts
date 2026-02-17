@@ -52,6 +52,9 @@ jest.mock("fs-extra", () => ({
 describe("FilesService", () => {
   let service: FilesService;
   let configuration: {
+    TESTING: {
+      MOCK_FILES: boolean;
+    };
     GAMES: {
       SEARCH_EXCLUDE_FILE_REGEX?: RegExp;
       SEARCH_EXCLUDE_DIR_REGEX?: RegExp;
@@ -65,6 +68,8 @@ describe("FilesService", () => {
     findOne: jest.Mock;
     save: jest.Mock;
     recover: jest.Mock;
+    softDelete: jest.Mock;
+    createQueryBuilder: jest.Mock;
   };
   let fsExtra: {
     access: jest.Mock;
@@ -105,6 +110,8 @@ describe("FilesService", () => {
       findOne: jest.fn(),
       save: jest.fn(),
       recover: jest.fn(),
+      softDelete: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     service = new FilesService(
@@ -415,49 +422,59 @@ describe("FilesService", () => {
     });
   });
 
-  describe("upsertReleaseRecord", () => {
-    it("should recover and update a soft-deleted existing version", async () => {
-      const existing = {
-        id: 12,
-        deleted_at: new Date("2026-01-01T00:00:00.000Z"),
-      } as any;
+  describe("checkIntegrity", () => {
+    it("should delete migrated games that only have soft-deleted version history", async () => {
+      configuration.TESTING.MOCK_FILES = false;
 
-      gameVersionRepository.findOne.mockResolvedValueOnce(existing);
+      gamesService.find.mockResolvedValueOnce([
+        {
+          id: 77,
+          file_path: "/tmp/test-files/Shared Existing File.zip",
+        },
+      ] as any);
 
-      await (service as any).upsertReleaseRecord(5, {
-        file_path: "/tmp/test-files/Game (v1).zip",
-        version: "v1",
-        size: 1000n,
-        release_date: new Date("2024-01-01T00:00:00.000Z"),
-        early_access: false,
-        type: "WINDOWS_SETUP",
-      });
+      gameVersionRepository.find
+        .mockResolvedValueOnce([
+          {
+            id: 900,
+            game: { id: 152, deleted_at: new Date("2023-06-07T21:00:06.370Z") },
+            file_path: "/files/Honey, I Joined a Cult (2021).7z",
+            deleted_at: undefined,
+          },
+        ] as any)
+        .mockResolvedValueOnce([
+          {
+            id: 701,
+            game: { id: 77 },
+            file_path: "/tmp/test-files/Shared Existing File.zip",
+            deleted_at: new Date("2026-01-01T00:00:00.000Z"),
+          },
+        ] as any);
 
-      expect(gameVersionRepository.findOne).toHaveBeenCalledWith(
-        expect.objectContaining({ withDeleted: true }),
-      );
-      expect(gameVersionRepository.recover).toHaveBeenCalledWith(existing);
-      expect(gameVersionRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 12,
-          file_path: "/tmp/test-files/Game (v1).zip",
-          version: "v1",
-        }),
-      );
+      jest.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([
+        {
+          path: "/tmp/test-files/Shared Existing File.zip",
+          size: 123,
+        },
+      ]);
+
+      await (service as any).checkIntegrity();
+
+      expect(gameVersionRepository.softDelete).toHaveBeenCalledWith([900]);
+      expect(gamesService.delete).toHaveBeenCalledWith(77);
     });
+  });
 
-    it("should retry as update when insert collides with unique constraint", async () => {
-      const existing = { id: 44, deleted_at: null } as any;
+  describe("upsertReleaseRecord", () => {
+    it("should upsert game versions atomically via query builder", async () => {
+      const execute = jest.fn().mockResolvedValue(undefined);
+      const orUpdate = jest.fn().mockReturnValue({ execute });
+      const values = jest.fn().mockReturnValue({ orUpdate });
+      const into = jest.fn().mockReturnValue({ values });
+      const insert = jest.fn().mockReturnValue({ into });
+      const qb = { insert };
 
-      gameVersionRepository.findOne
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce(existing);
-      gameVersionRepository.save
-        .mockRejectedValueOnce({
-          code: "23505",
-          message: "duplicate key value violates unique constraint",
-        })
-        .mockResolvedValueOnce(existing);
+      gameVersionRepository.createQueryBuilder.mockReturnValue(qb as any);
 
       await (service as any).upsertReleaseRecord(9, {
         file_path: "/tmp/test-files/Game (v2).zip",
@@ -468,16 +485,12 @@ describe("FilesService", () => {
         type: "WINDOWS_PORTABLE",
       });
 
-      expect(gameVersionRepository.findOne).toHaveBeenCalledTimes(2);
-      expect(gameVersionRepository.save).toHaveBeenCalledTimes(2);
-      expect(gameVersionRepository.save).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          id: 44,
-          file_path: "/tmp/test-files/Game (v2).zip",
-          version: "v2",
-          early_access: true,
-        }),
+      expect(gameVersionRepository.createQueryBuilder).toHaveBeenCalled();
+      expect(orUpdate).toHaveBeenCalledWith(
+        expect.arrayContaining(["deleted_at", "updated_at"]),
+        ["game_id", "file_path"],
       );
+      expect(execute).toHaveBeenCalled();
     });
   });
 

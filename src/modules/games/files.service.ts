@@ -27,7 +27,7 @@ import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
 import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
-import { Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 import unidecode from "unidecode";
 
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
@@ -408,70 +408,38 @@ export class FilesService implements OnApplicationBootstrap {
     gameId: number,
     indexedGame: GamevaultGame,
   ): Promise<void> {
-    const query = {
-      where: {
-        game: { id: gameId },
+    const now = new Date();
+
+    await this.gameVersionRepository
+      .createQueryBuilder()
+      .insert()
+      .into(GameVersionEntity)
+      .values({
+        game: { id: gameId } as GamevaultGame,
         file_path: indexedGame.file_path,
-      },
-      relationLoadStrategy: "query" as const,
-      relations: ["game"],
-      withDeleted: true,
-    };
-
-    let existingVersion = await this.gameVersionRepository.findOne(query);
-
-    if (!existingVersion) {
-      const newVersion = new GameVersionEntity();
-      newVersion.game = { id: gameId } as GamevaultGame;
-      newVersion.file_path = indexedGame.file_path;
-      newVersion.version = indexedGame.version;
-      newVersion.size = indexedGame.size;
-      newVersion.release_date = indexedGame.release_date;
-      newVersion.early_access = indexedGame.early_access;
-      newVersion.type = indexedGame.type;
-      newVersion.indexed_at = new Date();
-
-      try {
-        await this.gameVersionRepository.save(newVersion);
-        return;
-      } catch (error) {
-        if (!this.isUniqueConstraintViolation(error)) {
-          throw error;
-        }
-
-        existingVersion = await this.gameVersionRepository.findOne(query);
-      }
-    }
-
-    if (!existingVersion) {
-      throw new BadRequestException(
-        "Failed to upsert game version due to a concurrent write conflict.",
-      );
-    }
-
-    if (existingVersion.deleted_at) {
-      await this.gameVersionRepository.recover(existingVersion);
-    }
-
-    existingVersion.game = { id: gameId } as GamevaultGame;
-    existingVersion.file_path = indexedGame.file_path;
-    existingVersion.version = indexedGame.version;
-    existingVersion.size = indexedGame.size;
-    existingVersion.release_date = indexedGame.release_date;
-    existingVersion.early_access = indexedGame.early_access;
-    existingVersion.type = indexedGame.type;
-    existingVersion.indexed_at = new Date();
-    await this.gameVersionRepository.save(existingVersion);
-  }
-
-  private isUniqueConstraintViolation(error: unknown): boolean {
-    const code = (error as { code?: string })?.code;
-    if (code === "23505" || code === "SQLITE_CONSTRAINT") {
-      return true;
-    }
-
-    const message = (error as { message?: string })?.message || "";
-    return /duplicate key value violates unique constraint/i.test(message);
+        version: indexedGame.version,
+        size: indexedGame.size,
+        release_date: indexedGame.release_date,
+        early_access: indexedGame.early_access,
+        type: indexedGame.type,
+        indexed_at: now,
+        deleted_at: null,
+        updated_at: now,
+      })
+      .orUpdate(
+        [
+          "version",
+          "size",
+          "release_date",
+          "early_access",
+          "type",
+          "indexed_at",
+          "deleted_at",
+          "updated_at",
+        ],
+        ["game_id", "file_path"],
+      )
+      .execute();
   }
 
   /** Returns all versions from normalized storage, falling back to legacy columns. */
@@ -894,6 +862,8 @@ export class FilesService implements OnApplicationBootstrap {
       count: gamesInDatabase.length,
     });
 
+    await this.cleanupDanglingVersionsForDeletedGames();
+
     const fsPaths = new Set(gamesInFileSystem.map((f) => f.path));
     const checkedGames: GamevaultGame[] = [];
     for (const gameInDatabase of gamesInDatabase) {
@@ -902,11 +872,16 @@ export class FilesService implements OnApplicationBootstrap {
           where: { game: { id: gameInDatabase.id } },
           relationLoadStrategy: "query",
           relations: ["game"],
-          withDeleted: false,
+          withDeleted: true,
         });
+
+        const activePersistedVersions = persistedVersions.filter(
+          (version) => !version.deleted_at,
+        );
+
         const availablePersistedVersions =
-          persistedVersions.length > 0
-            ? persistedVersions.map((version) =>
+          activePersistedVersions.length > 0
+            ? activePersistedVersions.map((version) =>
                 Object.assign(new GameVersionEntity(), {
                   id: version.id,
                   game: version.game,
@@ -920,13 +895,22 @@ export class FilesService implements OnApplicationBootstrap {
                     version.indexed_at || version.updated_at || new Date(),
                 }),
               )
-            : this.normalizeVersions(gameInDatabase);
+            : persistedVersions.length > 0
+              ? []
+              : this.normalizeVersions(gameInDatabase);
         const existingVersions = availablePersistedVersions.filter((version) =>
           fsPaths.has(version.file_path),
         );
 
         // If none of the versions are available anymore, mark game as deleted.
         if (existingVersions.length === 0) {
+          const activeVersionIds = activePersistedVersions.map(
+            (version) => version.id,
+          );
+          if (activeVersionIds.length > 0) {
+            await this.gameVersionRepository.softDelete(activeVersionIds);
+          }
+
           await this.gamesService.delete(gameInDatabase.id);
           this.logger.log({
             message: `Game marked as soft-deleted.`,
@@ -943,7 +927,7 @@ export class FilesService implements OnApplicationBootstrap {
           existingVersions.length !== availablePersistedVersions.length;
 
         if (versionsChanged) {
-          const staleVersionIds = persistedVersions
+          const staleVersionIds = activePersistedVersions
             .filter((version) => !fsPaths.has(version.file_path))
             .map((version) => version.id);
 
@@ -980,6 +964,35 @@ export class FilesService implements OnApplicationBootstrap {
       count: gamesInDatabase.length,
     });
     return checkedGames;
+  }
+
+  /** Soft-deletes active versions that still belong to already deleted games. */
+  private async cleanupDanglingVersionsForDeletedGames(): Promise<void> {
+    const danglingVersions = await this.gameVersionRepository.find({
+      where: {
+        deleted_at: IsNull(),
+        game: {
+          deleted_at: Not(IsNull()),
+        },
+      },
+      relationLoadStrategy: "query",
+      relations: ["game"],
+      withDeleted: true,
+    });
+
+    const danglingVersionIds = danglingVersions
+      .map((version) => version.id)
+      .filter((id): id is number => Number.isFinite(id));
+
+    if (danglingVersionIds.length === 0) {
+      return;
+    }
+
+    await this.gameVersionRepository.softDelete(danglingVersionIds);
+    this.logger.log({
+      message: "Soft-deleted dangling game versions for already deleted games.",
+      count: danglingVersionIds.length,
+    });
   }
 
   /** Checks whether a given filename should be included by the indexer. */

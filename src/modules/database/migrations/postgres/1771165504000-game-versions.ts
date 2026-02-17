@@ -42,6 +42,7 @@ export class GameVersions1771165504000 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO game_version (
         game_id,
+        deleted_at,
         file_path,
         version,
         size,
@@ -52,6 +53,7 @@ export class GameVersions1771165504000 implements MigrationInterface {
       )
       SELECT
         g.id,
+        g.deleted_at,
         g.file_path,
         g.version,
         g.size,
