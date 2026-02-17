@@ -194,6 +194,13 @@ function parseKibibytesToBytes(
   return bytes;
 }
 
+function parseRegExp(
+  environmentVariable: string,
+  defaultValue?: RegExp,
+): RegExp | undefined {
+  return environmentVariable ? RegExp(environmentVariable) : defaultValue;
+}
+
 function safeHash(value: string | undefined): string | null {
   if (!value) {
     return null;
@@ -324,6 +331,12 @@ const configuration = {
     SEARCH_RECURSIVE: parseBooleanEnvVariable(
       resolveEnv("GAMES_SEARCH_RECURSIVE"),
       true,
+    ),
+    SEARCH_EXCLUDE_FILE_REGEX: parseRegExp(
+      resolveEnv("GAMES_SEARCH_EXCLUDE_FILE_REGEX"),
+    ),
+    SEARCH_EXCLUDE_DIR_REGEX: parseRegExp(
+      resolveEnv("GAMES_SEARCH_EXCLUDE_DIR_REGEX"),
     ),
     INDEX_CONCURRENCY: parseNumber(resolveEnv("GAMES_INDEX_CONCURRENCY"), 1),
     DEFAULT_ARCHIVE_PASSWORD:
