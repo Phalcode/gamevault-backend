@@ -35,7 +35,7 @@ import configuration from "../../configuration";
 import globals from "../../globals";
 import { logGamevaultGame } from "../../logging";
 import { MetadataService } from "../metadata/metadata.service";
-import { GameVersionEntity } from "./game-version.entity";
+import { GameVersion } from "./game-version.entity";
 import mock from "./games.mock";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
@@ -63,8 +63,8 @@ export class FilesService implements OnApplicationBootstrap {
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
     private readonly schedulerRegistry: SchedulerRegistry,
-    @InjectRepository(GameVersionEntity)
-    private readonly gameVersionRepository: Repository<GameVersionEntity>,
+    @InjectRepository(GameVersion)
+    private readonly gameVersionRepository: Repository<GameVersion>,
   ) {}
 
   /** Initializes the file watcher and starts the initial indexing. */
@@ -413,7 +413,7 @@ export class FilesService implements OnApplicationBootstrap {
     await this.gameVersionRepository
       .createQueryBuilder()
       .insert()
-      .into(GameVersionEntity)
+      .into(GameVersion)
       .values({
         game: { id: gameId } as GamevaultGame,
         file_path: indexedGame.file_path,
@@ -445,7 +445,7 @@ export class FilesService implements OnApplicationBootstrap {
   /** Returns all versions from normalized storage, falling back to legacy columns. */
   private async listAvailableVersionsFromStorage(
     game: GamevaultGame,
-  ): Promise<GameVersionEntity[]> {
+  ): Promise<GameVersion[]> {
     const versions = await this.gameVersionRepository.find({
       where: {
         game: { id: game.id },
@@ -457,7 +457,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     if (versions.length > 0) {
       return versions.map((version) =>
-        Object.assign(new GameVersionEntity(), {
+        Object.assign(new GameVersion(), {
           id: version.id,
           game: version.game,
           file_path: version.file_path,
@@ -475,12 +475,12 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /** Converts legacy single-file games into a normalized versions structure. */
-  private normalizeVersions(game: GamevaultGame): GameVersionEntity[] {
+  private normalizeVersions(game: GamevaultGame): GameVersion[] {
     if (!game.file_path) {
       return [];
     }
     return [
-      Object.assign(new GameVersionEntity(), {
+      Object.assign(new GameVersion(), {
         id: undefined,
         game: { id: game.id } as GamevaultGame,
         file_path: game.file_path,
@@ -497,7 +497,7 @@ export class FilesService implements OnApplicationBootstrap {
   /** Applies one version to legacy top-level game fields. */
   private applyVersionToGame(
     game: GamevaultGame,
-    version: GameVersionEntity,
+    version: GameVersion,
   ): void {
     game.file_path = version.file_path;
     game.version = version.version;
@@ -882,7 +882,7 @@ export class FilesService implements OnApplicationBootstrap {
         const availablePersistedVersions =
           activePersistedVersions.length > 0
             ? activePersistedVersions.map((version) =>
-                Object.assign(new GameVersionEntity(), {
+                Object.assign(new GameVersion(), {
                   id: version.id,
                   game: version.game,
                   file_path: version.file_path,
@@ -1091,7 +1091,7 @@ export class FilesService implements OnApplicationBootstrap {
   private async resolveDownloadVersion(
     game: GamevaultGame,
     requestedVersionId: number,
-  ): Promise<GameVersionEntity> {
+  ): Promise<GameVersion> {
     const availableVersions = sortGameVersions(
       await this.listAvailableVersionsFromStorage(game),
     );
@@ -1117,7 +1117,7 @@ export class FilesService implements OnApplicationBootstrap {
   /** Resolves the default/latest downloadable version for legacy clients. */
   private async resolveLatestDownloadVersion(
     game: GamevaultGame,
-  ): Promise<GameVersionEntity> {
+  ): Promise<GameVersion> {
     const availableVersions = sortGameVersions(
       await this.listAvailableVersionsFromStorage(game),
     );

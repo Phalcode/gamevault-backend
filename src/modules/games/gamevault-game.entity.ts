@@ -15,7 +15,7 @@ import { DatabaseEntity } from "../database/database.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
-import { GameVersionEntity } from "./game-version.entity";
+import { GameVersion } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
 import { sortGameVersions } from "./version-selection.util";
 
@@ -74,15 +74,15 @@ export class GamevaultGame extends DatabaseEntity {
   })
   version?: string;
 
-  @OneToMany(() => GameVersionEntity, (version) => version.game, {
+  @OneToMany(() => GameVersion, (version) => version.game, {
     eager: true,
   })
   @ApiPropertyOptional({
     description: "all indexed versions for this game",
-    type: () => GameVersionEntity,
+    type: () => GameVersion,
     isArray: true,
   })
-  versions?: GameVersionEntity[];
+  versions?: GameVersion[];
 
   @Index()
   @Column({ nullable: true })

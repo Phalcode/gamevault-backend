@@ -3,13 +3,13 @@ import {
   sortGameVersions,
 } from "./version-selection.util";
 
-import { GameVersionEntity } from "./game-version.entity";
+import { GameVersion } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
 
 describe("version-selection.util", () => {
   const createVersion = (
-    overrides: Partial<GameVersionEntity>,
-  ): GameVersionEntity =>
+    overrides: Partial<GameVersion>,
+  ): GameVersion =>
     ({
       id: 1,
       game: { id: 1 } as any,
@@ -19,7 +19,7 @@ describe("version-selection.util", () => {
       type: GameType.UNDETECTABLE,
       indexed_at: new Date("2026-01-01T00:00:00.000Z"),
       ...overrides,
-    }) as GameVersionEntity;
+    }) as GameVersion;
 
   describe("sortGameVersions", () => {
     it("sorts strict semver versions descending", () => {

@@ -7,7 +7,7 @@ import { GameType } from "./models/game-type.enum";
 
 @Entity({ name: "game_version" })
 @Unique("UQ_b0b88b548562b921436bdacea35", ["game", "file_path"])
-export class GameVersionEntity extends DatabaseEntity {
+export class GameVersion extends DatabaseEntity {
   @Index()
   @ManyToOne(() => GamevaultGame, { nullable: false, onDelete: "CASCADE" })
   @JoinColumn({ name: "game_id" })

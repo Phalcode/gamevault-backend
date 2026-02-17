@@ -27,7 +27,7 @@ import { GenreMetadata } from "../metadata/genres/genre.metadata.entity";
 import { MetadataService } from "../metadata/metadata.service";
 import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity";
 import { TagMetadata } from "../metadata/tags/tag.metadata.entity";
-import { GameVersionEntity } from "./game-version.entity";
+import { GameVersion } from "./game-version.entity";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
@@ -47,8 +47,8 @@ export class GamesService {
   constructor(
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
-    @InjectRepository(GameVersionEntity)
-    private readonly gameVersionRepository: Repository<GameVersionEntity>,
+    @InjectRepository(GameVersion)
+    private readonly gameVersionRepository: Repository<GameVersion>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     @Inject(forwardRef(() => GameMetadataService))
