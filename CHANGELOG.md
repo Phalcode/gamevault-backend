@@ -11,6 +11,11 @@
 ### Changes
 
 - Updated automatic Web UI version selection: if no compatible stable release is found, the backend now falls back to the nearest newer stable release before falling back to `unstable`.
+- Added regex-based indexing exclusion filters: `GAMES_SEARCH_EXCLUDE_FILE_REGEX` and `GAMES_SEARCH_EXCLUDE_DIR_REGEX`.
+
+### Thanks
+
+- @AlmostEasyGoing
 
 ## 16.3.0
 
@@ -36,6 +41,18 @@
 - [#337](https://github.com/Phalcode/gamevault-backend/issues/337) Added Docker Secrets support via the `_FILE` suffix for all environment variables (e.g. `DB_PASSWORD_FILE`, `SERVER_PORT_FILE`).
 - Migrated backend configuration to NestJS Config (`@nestjs/config`) as the global config source.
 - Added YAML-based configuration support via `config.yaml` / `config.yml` in the config volume (`VOLUMES_CONFIG`) with precedence: `*_FILE` > env > YAML > defaults.
+
+### Thanks
+
+- @AlmostEasyGoing
+- @brokenglasszero
+- @Toylerrr
+- @Z0y6h0kS9X
+- @dandroid213
+- @spaceboy1234
+- @binarygeek119
+- @KawaKode
+- @ShadowPeo
 
 ## 16.2.0
 

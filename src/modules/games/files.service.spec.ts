@@ -51,6 +51,12 @@ jest.mock("fs-extra", () => ({
 
 describe("FilesService", () => {
   let service: FilesService;
+  let configuration: {
+    GAMES: {
+      SEARCH_EXCLUDE_FILE_REGEX?: RegExp;
+      SEARCH_EXCLUDE_DIR_REGEX?: RegExp;
+    };
+  };
   let gamesService: jest.Mocked<GamesService>;
   let metadataService: jest.Mocked<MetadataService>;
   let schedulerRegistry: jest.Mocked<SchedulerRegistry>;
@@ -69,6 +75,9 @@ describe("FilesService", () => {
 
   beforeEach(() => {
     fsExtra = jest.requireMock("fs-extra");
+    configuration = jest.requireMock("../../configuration").default;
+    configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = undefined;
+    configuration.GAMES.SEARCH_EXCLUDE_DIR_REGEX = undefined;
 
     gamesService = {
       findOneByGameIdOrFail: jest.fn(),
@@ -401,6 +410,32 @@ describe("FilesService", () => {
 
       expect(checkIntegritySpy).toHaveBeenCalledTimes(1);
       jest.useRealTimers();
+    });
+  });
+
+  describe("search exclude regex filters", () => {
+    it("should exclude files matching GAMES_SEARCH_EXCLUDE_FILE_REGEX", () => {
+      configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = /sample/i;
+
+      expect((service as any).shouldIncludeFile("My Sample Game.zip")).toBe(
+        false,
+      );
+      expect((service as any).shouldIncludeFile("My Real Game.zip")).toBe(true);
+    });
+
+    it("should exclude directories matching GAMES_SEARCH_EXCLUDE_DIR_REGEX", () => {
+      configuration.GAMES.SEARCH_EXCLUDE_DIR_REGEX = /^ignored$/i;
+
+      expect((service as any).shouldIncludeDirectory("ignored")).toBe(false);
+      expect((service as any).shouldIncludeDirectory("games")).toBe(true);
+    });
+
+    it("should still apply normal filename validation after regex checks", () => {
+      configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = /^ignore-/i;
+
+      expect((service as any).shouldIncludeFile("ignore-demo.zip")).toBe(false);
+      expect((service as any).shouldIncludeFile("valid-title.zip")).toBe(true);
+      expect((service as any).shouldIncludeFile("valid-title.txt")).toBe(false);
     });
   });
 });
