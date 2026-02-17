@@ -7,9 +7,7 @@ import { GameVersion } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
 
 describe("version-selection.util", () => {
-  const createVersion = (
-    overrides: Partial<GameVersion>,
-  ): GameVersion =>
+  const createVersion = (overrides: Partial<GameVersion>): GameVersion =>
     ({
       id: 1,
       game: { id: 1 } as any,

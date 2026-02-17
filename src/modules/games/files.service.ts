@@ -495,10 +495,7 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /** Applies one version to legacy top-level game fields. */
-  private applyVersionToGame(
-    game: GamevaultGame,
-    version: GameVersion,
-  ): void {
+  private applyVersionToGame(game: GamevaultGame, version: GameVersion): void {
     game.file_path = version.file_path;
     game.version = version.version;
     game.size = BigInt(version.size || 0);
