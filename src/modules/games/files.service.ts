@@ -267,8 +267,15 @@ export class FilesService implements OnApplicationBootstrap {
 
   /** Indexes a single file and updates the database accordingly. */
   private async index(path: string, stats?: Stats, skipIntegrityCheck = false) {
+    if (!path || !this.isValidFilePath(path)) {
+      return;
+    }
+
     const size = BigInt(stats?.size || 0);
-    if (!size || !path || !this.isValidFilePath(path)) {
+    if (!size) {
+      if (!skipIntegrityCheck) {
+        this.runDebouncedIntegrityCheck();
+      }
       return;
     }
 

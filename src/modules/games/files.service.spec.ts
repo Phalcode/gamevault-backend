@@ -381,4 +381,26 @@ describe("FilesService", () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe("index", () => {
+    it("should trigger integrity check when file stats are missing", async () => {
+      jest.useFakeTimers();
+      const localService = new FilesService(
+        gamesService,
+        metadataService,
+        schedulerRegistry,
+        gameVersionRepository as any,
+      );
+      const checkIntegritySpy = jest
+        .spyOn(localService as any, "checkIntegrity")
+        .mockResolvedValue([]);
+
+      await (localService as any).index("/tmp/test-files/My Game.zip");
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+
+      expect(checkIntegritySpy).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+  });
 });
