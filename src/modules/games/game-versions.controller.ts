@@ -16,7 +16,6 @@ import {
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
@@ -43,18 +42,6 @@ export class GameVersionsController {
   ) {}
 
   @Delete(":game_id/versions/:version_id")
-  @ApiParam({
-    name: "game_id",
-    type: Number,
-    description: "numeric id of the game",
-    example: 42,
-  })
-  @ApiParam({
-    name: "version_id",
-    type: Number,
-    description: "numeric id of the game version",
-    example: 7,
-  })
   @ApiOperation({
     summary: "deletes a specific game version file from disk",
     description:
@@ -74,18 +61,6 @@ export class GameVersionsController {
   }
 
   @Get(":game_id/versions/:version_id")
-  @ApiParam({
-    name: "game_id",
-    type: Number,
-    description: "numeric id of the game",
-    example: 42,
-  })
-  @ApiParam({
-    name: "version_id",
-    type: Number,
-    description: "numeric id of the game version",
-    example: 7,
-  })
   @ApiHeader({
     name: "X-Download-Speed-Limit",
     required: false,
