@@ -333,12 +333,20 @@ export class GamesController {
     @Request() request: { user: GamevaultUser },
     @Param() params: GameIdDto,
   ): Promise<GamevaultGame> {
-    return this.gamesService.findOneByGameIdOrFail(Number(params.game_id), {
-      loadDeletedEntities: true,
-      filterByAge: await this.usersService.findUserAgeByUsername(
-        request.user.username,
-      ),
-    });
+    const game = await this.gamesService.findOneByGameIdOrFail(
+      Number(params.game_id),
+      {
+        loadDeletedEntities: true,
+        filterByAge: await this.usersService.findUserAgeByUsername(
+          request.user.username,
+        ),
+      },
+    );
+
+    game.versions = (game.versions || []).filter(
+      (version) => !version.deleted_at,
+    );
+    return game;
   }
 
   /** Download a game by its ID. */

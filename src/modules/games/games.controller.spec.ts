@@ -126,14 +126,23 @@ describe("GamesController", () => {
 
   describe("getGameByGameId", () => {
     it("should return game details by ID", async () => {
-      const mockGame = createMockGame({ id: 5 });
+      const mockGame = createMockGame({
+        id: 5,
+        versions: [
+          { id: 1, deleted_at: undefined } as any,
+          { id: 2, deleted_at: new Date() } as any,
+        ],
+      });
       gamesService.findOneByGameIdOrFail.mockResolvedValue(mockGame);
 
       const result = await controller.getGameByGameId(
         { user: createMockUser() },
         { game_id: 5 },
       );
-      expect(result).toEqual(mockGame);
+      expect(result).toEqual({
+        ...mockGame,
+        versions: [{ id: 1, deleted_at: undefined }],
+      });
       expect(gamesService.findOneByGameIdOrFail).toHaveBeenCalledWith(5, {
         loadDeletedEntities: true,
         filterByAge: undefined,

@@ -408,25 +408,70 @@ export class FilesService implements OnApplicationBootstrap {
     gameId: number,
     indexedGame: GamevaultGame,
   ): Promise<void> {
-    const existingVersion = await this.gameVersionRepository.findOne({
+    const query = {
       where: {
         game: { id: gameId },
         file_path: indexedGame.file_path,
       },
-      relationLoadStrategy: "query",
+      relationLoadStrategy: "query" as const,
       relations: ["game"],
-    });
+      withDeleted: true,
+    };
 
-    const version = existingVersion || new GameVersionEntity();
-    version.game = { id: gameId } as GamevaultGame;
-    version.file_path = indexedGame.file_path;
-    version.version = indexedGame.version;
-    version.size = indexedGame.size;
-    version.release_date = indexedGame.release_date;
-    version.early_access = indexedGame.early_access;
-    version.type = indexedGame.type;
-    version.indexed_at = new Date();
-    await this.gameVersionRepository.save(version);
+    let existingVersion = await this.gameVersionRepository.findOne(query);
+
+    if (!existingVersion) {
+      const newVersion = new GameVersionEntity();
+      newVersion.game = { id: gameId } as GamevaultGame;
+      newVersion.file_path = indexedGame.file_path;
+      newVersion.version = indexedGame.version;
+      newVersion.size = indexedGame.size;
+      newVersion.release_date = indexedGame.release_date;
+      newVersion.early_access = indexedGame.early_access;
+      newVersion.type = indexedGame.type;
+      newVersion.indexed_at = new Date();
+
+      try {
+        await this.gameVersionRepository.save(newVersion);
+        return;
+      } catch (error) {
+        if (!this.isUniqueConstraintViolation(error)) {
+          throw error;
+        }
+
+        existingVersion = await this.gameVersionRepository.findOne(query);
+      }
+    }
+
+    if (!existingVersion) {
+      throw new BadRequestException(
+        "Failed to upsert game version due to a concurrent write conflict.",
+      );
+    }
+
+    if (existingVersion.deleted_at) {
+      await this.gameVersionRepository.recover(existingVersion);
+    }
+
+    existingVersion.game = { id: gameId } as GamevaultGame;
+    existingVersion.file_path = indexedGame.file_path;
+    existingVersion.version = indexedGame.version;
+    existingVersion.size = indexedGame.size;
+    existingVersion.release_date = indexedGame.release_date;
+    existingVersion.early_access = indexedGame.early_access;
+    existingVersion.type = indexedGame.type;
+    existingVersion.indexed_at = new Date();
+    await this.gameVersionRepository.save(existingVersion);
+  }
+
+  private isUniqueConstraintViolation(error: unknown): boolean {
+    const code = (error as { code?: string })?.code;
+    if (code === "23505" || code === "SQLITE_CONSTRAINT") {
+      return true;
+    }
+
+    const message = (error as { message?: string })?.message || "";
+    return /duplicate key value violates unique constraint/i.test(message);
   }
 
   /** Returns all versions from normalized storage, falling back to legacy columns. */

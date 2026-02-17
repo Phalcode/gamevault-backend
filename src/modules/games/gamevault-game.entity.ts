@@ -224,7 +224,6 @@ export class GamevaultGame extends DatabaseEntity {
       this.versions = [];
     }
 
-    this.versions = this.versions.filter((version) => !version.deleted_at);
     this.versions = sortGameVersions(this.versions);
   }
 }

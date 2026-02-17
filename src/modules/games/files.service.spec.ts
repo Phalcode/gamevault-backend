@@ -64,6 +64,7 @@ describe("FilesService", () => {
     find: jest.Mock;
     findOne: jest.Mock;
     save: jest.Mock;
+    recover: jest.Mock;
   };
   let fsExtra: {
     access: jest.Mock;
@@ -103,6 +104,7 @@ describe("FilesService", () => {
       find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn(),
       save: jest.fn(),
+      recover: jest.fn(),
     };
 
     service = new FilesService(
@@ -410,6 +412,72 @@ describe("FilesService", () => {
 
       expect(checkIntegritySpy).toHaveBeenCalledTimes(1);
       jest.useRealTimers();
+    });
+  });
+
+  describe("upsertReleaseRecord", () => {
+    it("should recover and update a soft-deleted existing version", async () => {
+      const existing = {
+        id: 12,
+        deleted_at: new Date("2026-01-01T00:00:00.000Z"),
+      } as any;
+
+      gameVersionRepository.findOne.mockResolvedValueOnce(existing);
+
+      await (service as any).upsertReleaseRecord(5, {
+        file_path: "/tmp/test-files/Game (v1).zip",
+        version: "v1",
+        size: 1000n,
+        release_date: new Date("2024-01-01T00:00:00.000Z"),
+        early_access: false,
+        type: "WINDOWS_SETUP",
+      });
+
+      expect(gameVersionRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ withDeleted: true }),
+      );
+      expect(gameVersionRepository.recover).toHaveBeenCalledWith(existing);
+      expect(gameVersionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 12,
+          file_path: "/tmp/test-files/Game (v1).zip",
+          version: "v1",
+        }),
+      );
+    });
+
+    it("should retry as update when insert collides with unique constraint", async () => {
+      const existing = { id: 44, deleted_at: null } as any;
+
+      gameVersionRepository.findOne
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(existing);
+      gameVersionRepository.save
+        .mockRejectedValueOnce({
+          code: "23505",
+          message: "duplicate key value violates unique constraint",
+        })
+        .mockResolvedValueOnce(existing);
+
+      await (service as any).upsertReleaseRecord(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        version: "v2",
+        size: 2000n,
+        release_date: new Date("2025-01-01T00:00:00.000Z"),
+        early_access: true,
+        type: "WINDOWS_PORTABLE",
+      });
+
+      expect(gameVersionRepository.findOne).toHaveBeenCalledTimes(2);
+      expect(gameVersionRepository.save).toHaveBeenCalledTimes(2);
+      expect(gameVersionRepository.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          id: 44,
+          file_path: "/tmp/test-files/Game (v2).zip",
+          version: "v2",
+          early_access: true,
+        }),
+      );
     });
   });
 
