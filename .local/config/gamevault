@@ -1,0 +1,5 @@
+# Docker Compose example
+environment:
+  SERVER_PORT: 92898
+  DB_HOST: English
+  DB_PASSWORD: mypassword
