@@ -71,9 +71,10 @@ export class FilesService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     if (configuration.TESTING.MOCK_FILES) {
       this.logger.warn({
-        message: "Skipping File Indexer.",
+        message: "Skipping File Watcher.",
         reason: "TESTING_MOCK_FILES is set to true.",
       });
+      this.indexAllFiles();
       return;
     }
 
@@ -389,16 +390,21 @@ export class FilesService implements OnApplicationBootstrap {
 
     const selectedVersion = selectDefaultGameVersion(availableVersions);
 
-    this.applyVersionToGame(gameToUpdate, selectedVersion);
-    gameToUpdate.title = indexedGame.title;
-    gameToUpdate.sort_title = this.gamesService.generateSortTitle(
+    const gamePatch = Object.assign(new GamevaultGame(), { id });
+    this.applyVersionToGame(gamePatch, selectedVersion);
+    gamePatch.title = indexedGame.title;
+    gamePatch.sort_title = this.gamesService.generateSortTitle(
       indexedGame.title,
     );
 
-    const updatedGame = await this.gamesService.save(gameToUpdate);
+    // Persist only scalar game fields to avoid relation graph side effects.
+    await this.gamesService.save(gamePatch);
+    const updatedGame = await this.gamesService.findOneByGameIdOrFail(id, {
+      loadDeletedEntities: false,
+    });
     this.logger.log({
       message: `Updated game versions based on file changes.`,
-      game: logGamevaultGame(gameToUpdate),
+      game: logGamevaultGame(updatedGame),
     });
     return updatedGame;
   }
@@ -932,16 +938,13 @@ export class FilesService implements OnApplicationBootstrap {
             await this.gameVersionRepository.softDelete(staleVersionIds);
           }
 
-          const gameToUpdate = await this.gamesService.findOneByGameIdOrFail(
-            gameInDatabase.id,
-            {
-              loadDeletedEntities: false,
-            },
-          );
-
           const selectedVersion = selectDefaultGameVersion(existingVersions);
-          this.applyVersionToGame(gameToUpdate, selectedVersion);
-          await this.gamesService.save(gameToUpdate);
+          const gamePatch = Object.assign(new GamevaultGame(), {
+            id: gameInDatabase.id,
+          });
+          this.applyVersionToGame(gamePatch, selectedVersion);
+          // Persist only scalar game fields to avoid relation graph side effects.
+          await this.gamesService.save(gamePatch);
         }
 
         checkedGames.push(gameInDatabase);

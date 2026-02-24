@@ -76,7 +76,7 @@ export class GameVersion extends DatabaseEntity {
   })
   type: GameType;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({ default: new Date() })
   @ApiProperty({
     description: "timestamp when this version was indexed",
     example: "2026-02-15T12:00:00.000Z",

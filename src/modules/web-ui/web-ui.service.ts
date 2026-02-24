@@ -41,6 +41,7 @@ export class WebUIService {
       message: "Preparing frontend",
       serverVersion,
       forcedVersion,
+      cachePath: this.cachePath,
     });
 
     await fs.ensureDir(this.cachePath);
@@ -57,11 +58,13 @@ export class WebUIService {
         this.logger.log({
           message: "Using cached frontend version",
           version: this.compatibleVersion,
+          cachePath: this.cachePath,
         });
       } else {
         this.logger.log({
           message: "Cached frontend not found, downloading",
           version: this.compatibleVersion,
+          cachePath: this.cachePath,
         });
         await this.ensureFrontendCached(this.compatibleVersion);
       }
@@ -69,6 +72,7 @@ export class WebUIService {
       this.logger.log({
         message: "Frontend is ready",
         version: this.compatibleVersion,
+        cachePath: this.cachePath,
       });
     } catch (error) {
       this.logger.error("Error fetching or preparing frontend", error);
