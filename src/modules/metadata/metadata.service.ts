@@ -13,6 +13,7 @@ import { kebabCase } from "lodash";
 import { setTimeout } from "timers/promises";
 import { AppConfiguration } from "../../configuration";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
+import globals from "../../globals";
 import { logGamevaultGame, logMetadataProvider } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { GamevaultGame } from "../games/gamevault-game.entity";
@@ -326,9 +327,15 @@ export class MetadataService {
       loadDeletedEntities: false,
       loadRelations: ["metadata", "provider_metadata", "user_metadata"],
     });
+    const { mergeableProviderMetadata, removedInvalidProviderMetadata } =
+      this.getMergeableProviderMetadata(game);
 
     // SAFEGUARD: Nothing to merge
-    if (!game.provider_metadata.length && !game.user_metadata) {
+    if (!mergeableProviderMetadata.length && !game.user_metadata) {
+      if (removedInvalidProviderMetadata) {
+        return this.gamesService.save(game);
+      }
+
       this.logger.warn({
         message: "No metadata sources available. Skipping merge.",
         game: logGamevaultGame(game),
@@ -338,7 +345,14 @@ export class MetadataService {
 
     // SAFEGUARD: Skip merge for provider-only updates if nothing changed
     // Note: Always merge when user_metadata exists since user explicitly requested changes
-    if (!game.user_metadata && this.isMetadataFresh(game)) {
+    if (
+      !game.user_metadata &&
+      this.isMetadataFresh(game, mergeableProviderMetadata)
+    ) {
+      if (removedInvalidProviderMetadata) {
+        return this.gamesService.save(game);
+      }
+
       this.logger.debug({
         message: "Provider metadata unchanged. Skipping merge.",
         game: logGamevaultGame(game),
@@ -348,7 +362,10 @@ export class MetadataService {
 
     // Build merged metadata from all sources
     let mergedMetadata = this.buildBaseMetadata(game);
-    mergedMetadata = this.applyProviderMetadata(mergedMetadata, game);
+    mergedMetadata = this.applyProviderMetadata(
+      mergedMetadata,
+      mergeableProviderMetadata,
+    );
     mergedMetadata = this.applyFileMetadata(mergedMetadata, game);
     mergedMetadata = this.applyUserMetadata(mergedMetadata, game);
     mergedMetadata = this.finalizeMetadata(mergedMetadata, game, gameId);
@@ -368,12 +385,15 @@ export class MetadataService {
   /**
    * Checks if merged metadata is still fresh (no provider has newer data).
    */
-  private isMetadataFresh(game: GamevaultGame): boolean {
+  private isMetadataFresh(
+    game: GamevaultGame,
+    providerMetadata: GameMetadata[],
+  ): boolean {
     const effectiveTs =
       game.metadata?.updated_at ?? game.metadata?.created_at ?? null;
     if (!effectiveTs) return false;
 
-    return !game.provider_metadata.some((provider) => {
+    return !providerMetadata.some((provider) => {
       const providerTs = provider.updated_at ?? provider.created_at ?? null;
       return providerTs != null && providerTs > effectiveTs;
     });
@@ -399,9 +419,9 @@ export class MetadataService {
    */
   private applyProviderMetadata(
     base: GameMetadata,
-    game: GamevaultGame,
+    providerMetadata: GameMetadata[],
   ): GameMetadata {
-    const sortedProviders = game.provider_metadata.toSorted((a, b) => {
+    const sortedProviders = providerMetadata.toSorted((a, b) => {
       const priorityA =
         a.provider_priority ??
         this.getProviderBySlugOrFail(a.provider_slug).priority;
@@ -420,6 +440,62 @@ export class MetadataService {
     }
 
     return result;
+  }
+
+  /**
+   * Removes corrupt internal provider mappings and skips unregistered providers during merge.
+   */
+  private getMergeableProviderMetadata(game: GamevaultGame): {
+    mergeableProviderMetadata: GameMetadata[];
+    removedInvalidProviderMetadata: boolean;
+  } {
+    const registeredProviderSlugs = new Set(
+      this.providers.map((provider) => provider.slug),
+    );
+    const mergeableProviderMetadata: GameMetadata[] = [];
+    const cleanedProviderMetadata: GameMetadata[] = [];
+    let removedInvalidProviderMetadata = false;
+
+    for (const providerMetadata of game.provider_metadata ?? []) {
+      const providerSlug = providerMetadata.provider_slug;
+
+      if (
+        !providerSlug ||
+        globals.RESERVED_PROVIDER_SLUGS.includes(providerSlug)
+      ) {
+        removedInvalidProviderMetadata = true;
+        this.logger.warn({
+          message:
+            "Removing invalid provider metadata mapping with reserved or missing slug.",
+          game: logGamevaultGame(game),
+          providerSlug: providerSlug ?? null,
+        });
+        continue;
+      }
+
+      cleanedProviderMetadata.push(providerMetadata);
+
+      if (!registeredProviderSlugs.has(providerSlug)) {
+        this.logger.warn({
+          message:
+            "Skipping provider metadata from an unregistered provider during merge.",
+          game: logGamevaultGame(game),
+          providerSlug,
+        });
+        continue;
+      }
+
+      mergeableProviderMetadata.push(providerMetadata);
+    }
+
+    if (removedInvalidProviderMetadata) {
+      game.provider_metadata = cleanedProviderMetadata;
+    }
+
+    return {
+      mergeableProviderMetadata,
+      removedInvalidProviderMetadata,
+    };
   }
 
   /**

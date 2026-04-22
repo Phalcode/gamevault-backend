@@ -268,6 +268,50 @@ describe("MetadataService", () => {
       expect(result.metadata).toBeDefined();
     });
 
+    it("should ignore corrupt gamevault provider metadata during merge", async () => {
+      const corruptProviderMeta = {
+        id: 99,
+        provider_slug: "gamevault",
+        provider_data_id: "1",
+        title: "Corrupted Title",
+        created_at: new Date("2020-01-01"),
+        updated_at: new Date("2025-01-02"),
+      } as GameMetadata;
+
+      const validProviderMeta = {
+        provider_slug: "test-provider",
+        provider_data_id: "123",
+        title: "Provider Title",
+        created_at: new Date("2020-01-01"),
+        updated_at: new Date("2025-01-01"),
+      } as GameMetadata;
+
+      const game = {
+        id: 1,
+        file_path: "/test.zip",
+        release_date: new Date("2020-06-15"),
+        type: "WINDOWS_PORTABLE",
+        early_access: false,
+        provider_metadata: [corruptProviderMeta, validProviderMeta],
+        user_metadata: null,
+        metadata: null,
+      };
+
+      service.registerProvider(createMockProvider());
+      mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+      mockGameMetadataService.save.mockImplementation((m) =>
+        Promise.resolve({ ...m, id: 10 }),
+      );
+      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+
+      await service.merge(1);
+
+      const savedMeta = mockGameMetadataService.save.mock.calls[0][0];
+      expect(savedMeta.title).toBe("Provider Title");
+      expect(game.provider_metadata).toEqual([validProviderMeta]);
+      expect(mockGamesService.save).toHaveBeenCalledWith(game);
+    });
+
     it("should apply user metadata with highest priority", async () => {
       const providerMeta = {
         provider_slug: "test-provider",
