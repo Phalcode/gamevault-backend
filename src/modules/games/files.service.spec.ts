@@ -466,15 +466,9 @@ describe("FilesService", () => {
   });
 
   describe("upsertReleaseRecord", () => {
-    it("should upsert game versions atomically via query builder", async () => {
-      const execute = jest.fn().mockResolvedValue(undefined);
-      const orUpdate = jest.fn().mockReturnValue({ execute });
-      const values = jest.fn().mockReturnValue({ orUpdate });
-      const into = jest.fn().mockReturnValue({ values });
-      const insert = jest.fn().mockReturnValue({ into });
-      const qb = { insert };
-
-      gameVersionRepository.createQueryBuilder.mockReturnValue(qb as any);
+    it("should create a new release row when none exists", async () => {
+      gameVersionRepository.findOne.mockResolvedValueOnce(null);
+      gameVersionRepository.save.mockResolvedValueOnce(undefined);
 
       await (service as any).upsertReleaseRecord(9, {
         file_path: "/tmp/test-files/Game (v2).zip",
@@ -485,12 +479,53 @@ describe("FilesService", () => {
         type: "WINDOWS_PORTABLE",
       });
 
-      expect(gameVersionRepository.createQueryBuilder).toHaveBeenCalled();
-      expect(orUpdate).toHaveBeenCalledWith(
-        expect.arrayContaining(["deleted_at", "updated_at"]),
-        ["game_id", "file_path"],
+      expect(gameVersionRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            game: { id: 9 },
+            file_path: "/tmp/test-files/Game (v2).zip",
+          },
+          withDeleted: true,
+        }),
       );
-      expect(execute).toHaveBeenCalled();
+      expect(gameVersionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: undefined,
+          game: { id: 9 },
+          file_path: "/tmp/test-files/Game (v2).zip",
+          version: "v2",
+          size: 2000n,
+          early_access: true,
+          type: "WINDOWS_PORTABLE",
+          deleted_at: null,
+        }),
+      );
+    });
+
+    it("should update an existing release row by reusing its id", async () => {
+      gameVersionRepository.findOne.mockResolvedValueOnce({
+        id: 42,
+        file_path: "/tmp/test-files/Game (v2).zip",
+      });
+      gameVersionRepository.save.mockResolvedValueOnce(undefined);
+
+      await (service as any).upsertReleaseRecord(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        version: "v2",
+        size: 2000n,
+        release_date: new Date("2025-01-01T00:00:00.000Z"),
+        early_access: true,
+        type: "WINDOWS_PORTABLE",
+      });
+
+      expect(gameVersionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 42,
+          game: { id: 9 },
+          file_path: "/tmp/test-files/Game (v2).zip",
+          deleted_at: null,
+        }),
+      );
     });
   });
 

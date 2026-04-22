@@ -416,36 +416,28 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<void> {
     const now = new Date();
 
-    await this.gameVersionRepository
-      .createQueryBuilder()
-      .insert()
-      .into(GameVersion)
-      .values({
-        game: { id: gameId } as GamevaultGame,
+    const existingVersion = await this.gameVersionRepository.findOne({
+      where: {
+        game: { id: gameId },
         file_path: indexedGame.file_path,
-        version: indexedGame.version,
-        size: indexedGame.size,
-        release_date: indexedGame.release_date,
-        early_access: indexedGame.early_access,
-        type: indexedGame.type,
-        indexed_at: now,
-        deleted_at: null,
-        updated_at: now,
-      })
-      .orUpdate(
-        [
-          "version",
-          "size",
-          "release_date",
-          "early_access",
-          "type",
-          "indexed_at",
-          "deleted_at",
-          "updated_at",
-        ],
-        ["game_id", "file_path"],
-      )
-      .execute();
+      },
+      withDeleted: true,
+    });
+
+    const versionPatch = Object.assign(new GameVersion(), {
+      id: existingVersion?.id,
+      game: { id: gameId } as GamevaultGame,
+      file_path: indexedGame.file_path,
+      version: indexedGame.version,
+      size: indexedGame.size,
+      release_date: indexedGame.release_date,
+      early_access: indexedGame.early_access,
+      type: indexedGame.type,
+      indexed_at: now,
+      deleted_at: null,
+    });
+
+    await this.gameVersionRepository.save(versionPatch);
   }
 
   /** Returns all versions from normalized storage, falling back to legacy columns. */
