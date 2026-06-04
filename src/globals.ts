@@ -1,5 +1,10 @@
 import { applyDecorators, Type } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
+import {
+  FindOptionsRelations,
+  FindOptionsSelect,
+  ObjectLiteral,
+} from "typeorm";
 
 import { PaginatedEntity } from "./modules/database/models/paginated-entity.model";
 
@@ -26,6 +31,53 @@ export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(
       },
     }),
   );
+
+interface FindOptionsTree {
+  [key: string]: true | FindOptionsTree;
+}
+
+function pathsToFindOptionsTree(paths: readonly string[]): FindOptionsTree {
+  const tree: FindOptionsTree = {};
+
+  for (const path of paths) {
+    const segments = path.split(".").filter(Boolean);
+    let current = tree;
+
+    for (const [index, segment] of segments.entries()) {
+      const isLeaf = index === segments.length - 1;
+      const existing = current[segment];
+
+      if (isLeaf) {
+        if (existing == null) {
+          current[segment] = true;
+        }
+        continue;
+      }
+
+      if (existing === true) {
+        current[segment] = {};
+      } else if (existing == null) {
+        current[segment] = {};
+      }
+
+      current = current[segment] as FindOptionsTree;
+    }
+  }
+
+  return tree;
+}
+
+export function toFindOptionsRelations<Entity extends ObjectLiteral>(
+  relationPaths: readonly string[],
+): FindOptionsRelations<Entity> {
+  return pathsToFindOptionsTree(relationPaths) as FindOptionsRelations<Entity>;
+}
+
+export function toFindOptionsSelect<Entity extends ObjectLiteral>(
+  selectedPaths: readonly string[],
+): FindOptionsSelect<Entity> {
+  return pathsToFindOptionsTree(selectedPaths) as FindOptionsSelect<Entity>;
+}
 
 export default {
   get SUPPORTED_FILE_FORMATS() {

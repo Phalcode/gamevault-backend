@@ -26,7 +26,7 @@ describe("DeveloperMetadataService", () => {
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { provider_slug: "gamevault" },
-          relations: [],
+          relations: undefined,
           withDeleted: false,
         }),
       );
@@ -39,7 +39,7 @@ describe("DeveloperMetadataService", () => {
       });
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: ["games"],
+          relations: { games: true },
           withDeleted: true,
         }),
       );
@@ -51,7 +51,7 @@ describe("DeveloperMetadataService", () => {
         loadRelations: ["games"],
       });
       expect(repo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ relations: ["games"] }),
+        expect.objectContaining({ relations: { games: true } }),
       );
     });
   });

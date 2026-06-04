@@ -39,7 +39,7 @@ RUN mkdir -p /config /files /media /logs /db /plugins /savefiles \
     # Clean up to reduce image size
     && apt clean && rm -rf /var/lib/apt/lists/* \
     # Install PNPM package manager globally
-    && npm i -g pnpm@^10.29.3
+    && npm i -g pnpm@^11.5.1
 
 # Set working directory for the application
 WORKDIR /app

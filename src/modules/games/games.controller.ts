@@ -46,7 +46,7 @@ import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { ApiOkResponsePaginated } from "../../globals";
+import { ApiOkResponsePaginated, toFindOptionsRelations } from "../../globals";
 import { OtpService } from "../otp/otp.service";
 import { State } from "../progresses/models/state.enum";
 import { Progress } from "../progresses/progress.entity";
@@ -204,7 +204,7 @@ export class GamesController {
             user: { id: userId },
             state: Not(State.UNPLAYED),
           },
-          relations: ["game"],
+          relations: toFindOptionsRelations<Progress>(["game"]),
           select: { game: { id: true } },
         });
 

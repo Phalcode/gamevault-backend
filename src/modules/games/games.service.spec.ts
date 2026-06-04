@@ -185,7 +185,7 @@ describe("GamesService", () => {
       await service.find({ loadDeletedEntities: false, loadRelations: true });
       expect(gamesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: expect.arrayContaining(["progresses"]),
+          relations: expect.objectContaining({ progresses: { user: true } }),
         }),
       );
     });

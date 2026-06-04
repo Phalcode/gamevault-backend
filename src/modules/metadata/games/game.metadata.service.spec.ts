@@ -87,7 +87,7 @@ describe("GameMetadataService", () => {
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { provider_slug: "gamevault" },
-          relations: [],
+          relations: undefined,
           withDeleted: false,
         }),
       );
@@ -101,7 +101,12 @@ describe("GameMetadataService", () => {
       });
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: ["developers", "publishers", "genres", "tags"],
+          relations: {
+            developers: true,
+            publishers: true,
+            genres: true,
+            tags: true,
+          },
         }),
       );
     });
@@ -113,7 +118,7 @@ describe("GameMetadataService", () => {
         loadRelations: ["developers"],
       });
       expect(repo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ relations: ["developers"] }),
+        expect.objectContaining({ relations: { developers: true } }),
       );
     });
   });
@@ -148,7 +153,12 @@ describe("GameMetadataService", () => {
       expect(repo.findOneOrFail).toHaveBeenCalledWith(
         expect.objectContaining({
           withDeleted: true,
-          relations: ["developers", "publishers", "genres", "tags"],
+          relations: {
+            developers: true,
+            publishers: true,
+            genres: true,
+            tags: true,
+          },
         }),
       );
     });

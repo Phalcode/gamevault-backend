@@ -28,12 +28,18 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../globals", () => ({
-  __esModule: true,
-  default: {
-    ARCHIVE_FORMATS: [".zip", ".7z", ".rar", ".tar", ".gz"],
-  },
-}));
+jest.mock("../../globals", () => {
+  const actual = jest.requireActual("../../globals");
+
+  return {
+    __esModule: true,
+    ...actual,
+    default: {
+      ...actual.default,
+      ARCHIVE_FORMATS: [".zip", ".7z", ".rar", ".tar", ".gz"],
+    },
+  };
+});
 
 jest.mock("../../logging", () => ({
   logGamevaultGame: jest.fn((g) => ({ id: g?.id, path: g?.file_path })),

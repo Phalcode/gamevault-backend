@@ -4370,7 +4370,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     const games = await gameRepository.find({
       withDeleted: true,
       loadEagerRelations: false,
-      select: ["id", "title"],
+      select: { id: true, title: true },
     });
 
     // Update each game with the new sort_title
@@ -4562,14 +4562,14 @@ export class V13Final1728421385000 implements MigrationInterface {
 
   private async migrateGames(queryRunner: QueryRunner): Promise<void> {
     const games = await queryRunner.manager.find(GameV12, {
-      relations: [
-        "box_image",
-        "background_image",
-        "publishers",
-        "developers",
-        "tags",
-        "genres",
-      ],
+      relations: {
+        box_image: true,
+        background_image: true,
+        publishers: true,
+        developers: true,
+        tags: true,
+        genres: true,
+      },
       withDeleted: true,
       relationLoadStrategy: "query",
     });
@@ -4730,25 +4730,29 @@ export class V13Final1728421385000 implements MigrationInterface {
   ): Promise<void> {
     const users = await queryRunner.manager.find(GamevaultUserV12, {
       withDeleted: true,
-      select: [
-        "id",
-        "created_at",
-        "updated_at",
-        "deleted_at",
-        "entity_version",
-        "username",
-        "password",
-        "socket_secret",
-        "profile_picture",
-        "background_image",
-        "email",
-        "first_name",
-        "last_name",
-        "activated",
-        "role",
-        "bookmarked_games",
-      ],
-      relations: ["profile_picture", "background_image", "bookmarked_games"],
+      select: {
+        id: true,
+        created_at: true,
+        updated_at: true,
+        deleted_at: true,
+        entity_version: true,
+        username: true,
+        password: true,
+        socket_secret: true,
+        profile_picture: true,
+        background_image: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        activated: true,
+        role: true,
+        bookmarked_games: true,
+      },
+      relations: {
+        profile_picture: true,
+        background_image: true,
+        bookmarked_games: true,
+      },
       relationLoadStrategy: "query",
     });
     this.logger.log({
@@ -4816,7 +4820,7 @@ export class V13Final1728421385000 implements MigrationInterface {
     const progresses = await queryRunner.manager.find(ProgressV12, {
       withDeleted: true,
       loadEagerRelations: true,
-      relations: ["user", "game"],
+      relations: { user: true, game: true },
       relationLoadStrategy: "query",
     });
     this.logger.log({

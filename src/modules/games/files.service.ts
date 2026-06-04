@@ -32,7 +32,7 @@ import unidecode from "unidecode";
 
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import configuration from "../../configuration";
-import globals from "../../globals";
+import globals, { toFindOptionsRelations } from "../../globals";
 import { logGamevaultGame } from "../../logging";
 import { MetadataService } from "../metadata/metadata.service";
 import { GameVersion } from "./game-version.entity";
@@ -449,7 +449,7 @@ export class FilesService implements OnApplicationBootstrap {
         game: { id: game.id },
       },
       relationLoadStrategy: "query",
-      relations: ["game"],
+      relations: toFindOptionsRelations<GameVersion>(["game"]),
       withDeleted: false,
     });
 
@@ -866,7 +866,7 @@ export class FilesService implements OnApplicationBootstrap {
         const persistedVersions = await this.gameVersionRepository.find({
           where: { game: { id: gameInDatabase.id } },
           relationLoadStrategy: "query",
-          relations: ["game"],
+          relations: toFindOptionsRelations<GameVersion>(["game"]),
           withDeleted: true,
         });
 
@@ -968,7 +968,7 @@ export class FilesService implements OnApplicationBootstrap {
         },
       },
       relationLoadStrategy: "query",
-      relations: ["game"],
+      relations: toFindOptionsRelations<GameVersion>(["game"]),
       withDeleted: true,
     });
 

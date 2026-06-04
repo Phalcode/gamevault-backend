@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { FindOptions } from "../../../globals";
+import { FindOptions, toFindOptionsRelations } from "../../../globals";
 import { TagMetadata } from "./tag.metadata.entity";
 
 @Injectable()
@@ -18,14 +18,19 @@ export class TagMetadataService {
     provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<TagMetadata[]> {
-    let relations = [];
+    let relationPaths: string[] = [];
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["games"];
+        relationPaths = ["games"];
       } else if (Array.isArray(options.loadRelations))
-        relations = options.loadRelations;
+        relationPaths = options.loadRelations;
     }
+
+    const relations =
+      relationPaths.length > 0
+        ? toFindOptionsRelations<TagMetadata>(relationPaths)
+        : undefined;
 
     return this.tagRepository.find({
       where: { provider_slug },

@@ -10,7 +10,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   FindManyOptions,
   FindOneOptions,
-  FindOptionsSelect,
   IsNull,
   LessThanOrEqual,
   Or,
@@ -18,7 +17,11 @@ import {
 } from "typeorm";
 
 import { isEmpty, kebabCase, toLower } from "lodash";
-import { FindOptions } from "../../globals";
+import {
+  FindOptions,
+  toFindOptionsRelations,
+  toFindOptionsSelect,
+} from "../../globals";
 import { logGamevaultGame } from "../../logging";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -35,14 +38,14 @@ import { UpdateGameDto } from "./models/update-game.dto";
 @Injectable()
 export class GamesService {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly defaultRelations = [
+  private readonly defaultRelations = toFindOptionsRelations<GamevaultGame>([
     "progresses",
     "progresses.user",
     "bookmarked_users",
     "metadata",
     "provider_metadata",
     "user_metadata",
-  ];
+  ]);
 
   constructor(
     @InjectRepository(GamevaultGame)
@@ -96,15 +99,18 @@ export class GamesService {
     };
 
     if (options.select) {
-      findParameters.select =
-        options.select as FindOptionsSelect<GamevaultGame>;
+      findParameters.select = toFindOptionsSelect<GamevaultGame>(
+        options.select,
+      );
     }
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
         findParameters.relations = this.defaultRelations;
       } else if (Array.isArray(options.loadRelations))
-        findParameters.relations = options.loadRelations;
+        findParameters.relations = toFindOptionsRelations<GamevaultGame>(
+          options.loadRelations,
+        );
     }
 
     if (options.loadDeletedEntities) {
@@ -113,7 +119,9 @@ export class GamesService {
 
     if (options.filterByAge) {
       if (!options.loadRelations) {
-        findParameters.relations = ["metadata"];
+        findParameters.relations = toFindOptionsRelations<GamevaultGame>([
+          "metadata",
+        ]);
       }
       findParameters.where = {
         metadata: {
@@ -129,7 +137,7 @@ export class GamesService {
     const findParameters: FindManyOptions<GamevaultGame> = {
       relationLoadStrategy: "query",
       loadEagerRelations: false,
-      select: ["id"],
+      select: toFindOptionsSelect<GamevaultGame>(["id"]),
     };
 
     if (options.loadDeletedEntities) {
@@ -137,7 +145,9 @@ export class GamesService {
     }
 
     if (options.filterByAge) {
-      findParameters.relations = ["metadata"];
+      findParameters.relations = toFindOptionsRelations<GamevaultGame>([
+        "metadata",
+      ]);
       findParameters.where = {
         metadata: {
           age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
@@ -394,7 +404,7 @@ export class GamesService {
     const matchedVersionByPath = await this.gameVersionRepository.findOne({
       relationLoadStrategy: "query",
       where: { file_path: game.file_path },
-      relations: ["game"],
+      relations: toFindOptionsRelations<GameVersion>(["game"]),
       withDeleted: true,
     });
 
