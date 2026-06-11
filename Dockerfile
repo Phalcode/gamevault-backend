@@ -59,7 +59,7 @@ RUN pnpm run build
 FROM base AS prod-deps
 
 # Copy dependency files and install only production dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 # ---- Release Stage ----
