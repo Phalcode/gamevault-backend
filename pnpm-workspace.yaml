@@ -1,6 +1,6 @@
 allowBuilds:
-  '@scarf/scarf': true
+  '@scarf/scarf': false
+  unrs-resolver: false
   bcrypt: true
   better-sqlite3: true
   simple-git-hooks: true
-  unrs-resolver: true
