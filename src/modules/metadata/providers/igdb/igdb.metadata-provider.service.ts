@@ -167,6 +167,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     game: igdbModels.IGame,
     averagePlaytime?: number,
   ): Promise<GameMetadata> {
+    const releaseDate = this.parseReleaseDate(game.first_release_date);
+
     return {
       age_rating: this.calculateAverageAgeRating(game.age_ratings, game.name),
       average_playtime: averagePlaytime,
@@ -174,9 +176,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       provider_data_id: game.id?.toString(),
       provider_data_url: game.url,
       title: game.name,
-      release_date: isNaN(new Date(game.first_release_date * 1000).getTime())
-        ? undefined
-        : new Date(game.first_release_date * 1000),
+      release_date: releaseDate,
       description:
         game.summary && game.storyline
           ? `${game.summary}\n\n${game.storyline}`
@@ -271,9 +271,31 @@ export class IgdbMetadataProviderService extends MetadataProvider {
       provider_data_id: game.id?.toString(),
       title: game.name,
       description: game.summary || game.storyline || null,
-      release_date: new Date(game.first_release_date * 1000),
+      release_date: this.parseReleaseDate(game.first_release_date),
       cover_url: this.replaceUrl(game.cover?.url, "t_thumb", "t_cover_big_2x"),
     } as MinimalGameMetadataDto;
+  }
+
+  private parseReleaseDate(
+    releaseDate:
+      | igdbModels.IGame["first_release_date"]
+      | number
+      | null
+      | undefined,
+  ): Date | undefined {
+    const seconds =
+      typeof releaseDate === "number"
+        ? releaseDate
+        : typeof releaseDate?.seconds === "number"
+          ? releaseDate.seconds
+          : undefined;
+
+    if (seconds === undefined) {
+      return undefined;
+    }
+
+    const parsedDate = new Date(seconds * 1000);
+    return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
   }
 
   private async getClient() {

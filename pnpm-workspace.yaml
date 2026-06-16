@@ -4,3 +4,5 @@ allowBuilds:
   bcrypt: true
   better-sqlite3: true
   simple-git-hooks: true
+minimumReleaseAgeExclude:
+  - '@nestjs/typeorm@11.0.2'
