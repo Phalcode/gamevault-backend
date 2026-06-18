@@ -1,3 +1,5 @@
+import * as nestjsPaginate from "nestjs-paginate";
+import * as nestjsPaginateFilter from "nestjs-paginate/lib/filter";
 import { Repository } from "typeorm";
 import { OtpService } from "../otp/otp.service";
 import { Progress } from "../progresses/progress.entity";
@@ -8,6 +10,22 @@ import { FilesService } from "./files.service";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
+
+jest.mock("nestjs-paginate", () => {
+  const actual = jest.requireActual("nestjs-paginate");
+  return {
+    ...actual,
+    paginate: jest.fn(),
+  };
+});
+
+jest.mock("nestjs-paginate/lib/filter", () => {
+  const actual = jest.requireActual("nestjs-paginate/lib/filter");
+  return {
+    ...actual,
+    addFilter: jest.fn(),
+  };
+});
 
 describe("GamesController", () => {
   let controller: GamesController;
@@ -57,6 +75,9 @@ describe("GamesController", () => {
     gamesRepository = {
       find: jest.fn(),
       createQueryBuilder: jest.fn(),
+      manager: {
+        getRepository: jest.fn(),
+      },
     } as any;
 
     progressRepository = {
@@ -79,6 +100,67 @@ describe("GamesController", () => {
       usersService,
       otpService,
     );
+
+    jest.clearAllMocks();
+  });
+
+  describe("findGames", () => {
+    it("should resolve metadata tag filters to game ids before paginate", async () => {
+      const metadataQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        distinct: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
+      };
+
+      const metadataRepository = {
+        createQueryBuilder: jest.fn().mockReturnValue(metadataQueryBuilder),
+      };
+
+      (gamesRepository.manager.getRepository as jest.Mock).mockReturnValue(
+        metadataRepository,
+      );
+
+      (nestjsPaginateFilter.addFilter as jest.Mock).mockImplementation(() => {
+        return {};
+      });
+
+      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+        data: [],
+        meta: {} as any,
+        links: {} as any,
+      });
+
+      await controller.findGames({ user: createMockUser() }, {
+        filter: {
+          "metadata.tags.name": "$in:Action",
+        },
+        sortBy: [],
+        path: "api/games",
+      } as any);
+
+      expect(gamesRepository.manager.getRepository).toHaveBeenCalled();
+      expect(nestjsPaginateFilter.addFilter).toHaveBeenCalledWith(
+        metadataQueryBuilder,
+        {
+          filter: {
+            "tags.name": "$in:Action",
+          },
+        },
+        {
+          "tags.name": true,
+        },
+      );
+      expect(nestjsPaginate.paginate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filter: {
+            id: "$in:7,9",
+          },
+        }),
+        gamesRepository,
+        expect.any(Object),
+      );
+    });
   });
 
   describe("putFilesReindex", () => {

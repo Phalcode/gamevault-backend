@@ -41,12 +41,13 @@ import { In, Not, Repository } from "typeorm";
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
 import { isArray } from "lodash";
-import { FilterSuffix } from "nestjs-paginate/lib/filter";
+import { FilterSuffix, addFilter } from "nestjs-paginate/lib/filter";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
 import { ApiOkResponsePaginated, toFindOptionsRelations } from "../../globals";
+import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { OtpService } from "../otp/otp.service";
 import { State } from "../progresses/models/state.enum";
 import { Progress } from "../progresses/progress.entity";
@@ -58,6 +59,15 @@ import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameIdDto } from "./models/game-id.dto";
 import { UpdateGameDto } from "./models/update-game.dto";
+
+const metadataRelationNameFilters = {
+  "metadata.genres.name": "genres.name",
+  "metadata.tags.name": "tags.name",
+  "metadata.developers.name": "developers.name",
+  "metadata.publishers.name": "publishers.name",
+} as const;
+
+type MetadataRelationNameFilterKey = keyof typeof metadataRelationNameFilters;
 
 @ApiBearerAuth()
 @ApiTags("game")
@@ -222,6 +232,14 @@ export class GamesController {
       } else {
         relations.push("progresses", "progresses.user");
       }
+    }
+
+    const relationFilteredGameIds =
+      await this.resolveMetadataRelationNameFilterGameIds(query);
+
+    if (relationFilteredGameIds) {
+      this.removeMetadataRelationNameFilters(query);
+      this.applyResolvedGameIdFilter(query, relationFilteredGameIds);
     }
 
     if (
@@ -482,5 +500,94 @@ export class GamesController {
     }
 
     return query;
+  }
+
+  private async resolveMetadataRelationNameFilterGameIds(
+    query: PaginateQuery,
+  ): Promise<number[] | undefined> {
+    const activeFilters = Object.entries(metadataRelationNameFilters).filter(
+      ([filterKey]) => query.filter?.[filterKey] != null,
+    ) as Array<
+      [
+        MetadataRelationNameFilterKey,
+        (typeof metadataRelationNameFilters)[MetadataRelationNameFilterKey],
+      ]
+    >;
+
+    if (activeFilters.length === 0) {
+      return undefined;
+    }
+
+    let matchingIds: number[] | undefined;
+
+    for (const [queryFilterKey, metadataFilterKey] of activeFilters) {
+      const filterValue = query.filter?.[queryFilterKey];
+
+      if (filterValue == null) {
+        continue;
+      }
+
+      const metadataQuery = {
+        filter: {
+          [metadataFilterKey]: filterValue,
+        },
+      } as PaginateQuery;
+
+      const queryBuilder = this.gamesRepository.manager
+        .getRepository(GameMetadata)
+        .createQueryBuilder("metadata")
+        .select("game.id", "id")
+        .distinct(true)
+        .innerJoin(GamevaultGame, "game", "game.metadata_id = metadata.id");
+
+      addFilter(queryBuilder, metadataQuery, {
+        [metadataFilterKey]: true,
+      });
+
+      const resolvedIds = (
+        await queryBuilder.getRawMany<{ id: number | string }>()
+      )
+        .map(({ id }) => Number(id))
+        .filter((id) => Number.isInteger(id));
+
+      if (matchingIds == null) {
+        matchingIds = resolvedIds;
+      } else {
+        const resolvedIdSet = new Set(resolvedIds);
+        matchingIds = matchingIds.filter((id) => resolvedIdSet.has(id));
+      }
+
+      if (matchingIds.length === 0) {
+        break;
+      }
+    }
+
+    return matchingIds;
+  }
+
+  private removeMetadataRelationNameFilters(query: PaginateQuery) {
+    for (const filterKey of Object.keys(metadataRelationNameFilters)) {
+      delete query.filter?.[filterKey];
+    }
+  }
+
+  private applyResolvedGameIdFilter(query: PaginateQuery, gameIds: number[]) {
+    query.filter ??= {};
+
+    const resolvedIdFilter =
+      gameIds.length > 0 ? `$in:${gameIds.join(",")}` : "$eq:-1";
+    const existingIdFilter = query.filter.id;
+
+    if (existingIdFilter == null) {
+      query.filter.id = resolvedIdFilter;
+      return;
+    }
+
+    if (isArray(existingIdFilter)) {
+      query.filter.id = [...existingIdFilter, resolvedIdFilter];
+      return;
+    }
+
+    query.filter.id = [existingIdFilter, resolvedIdFilter];
   }
 }
