@@ -5,7 +5,7 @@
   "author": "Alkan Alper, Schäfer Philip GbR / Phalcode",
   "private": true,
   "license": "CC BY-NC-SA 4.0",
-  "packageManager": "pnpm@11.5.1",
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "build": "rimraf dist && nest build",
     "format": "prettier --write \"src/**/*.ts\"",
