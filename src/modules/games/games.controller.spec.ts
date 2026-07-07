@@ -1,6 +1,7 @@
 import * as nestjsPaginate from "nestjs-paginate";
 import * as nestjsPaginateFilter from "nestjs-paginate/lib/filter";
 import { Repository } from "typeorm";
+import configuration from "../../configuration";
 import { OtpService } from "../otp/otp.service";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
@@ -158,8 +159,112 @@ describe("GamesController", () => {
           },
         }),
         gamesRepository,
+        expect.objectContaining({
+          relations: {
+            bookmarked_users: true,
+            metadata: {
+              background: true,
+              cover: true,
+              tags: true,
+            },
+          },
+        }),
+      );
+    });
+
+    it("should resolve metadata tag filter expressions to game ids before paginate", async () => {
+      const metadataQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        distinct: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
+      };
+
+      const metadataRepository = {
+        createQueryBuilder: jest.fn().mockReturnValue(metadataQueryBuilder),
+      };
+
+      (gamesRepository.manager.getRepository as jest.Mock).mockReturnValue(
+        metadataRepository,
+      );
+
+      (nestjsPaginateFilter.addFilter as jest.Mock).mockImplementation(() => {
+        return {};
+      });
+
+      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+        data: [],
+        meta: {} as any,
+        links: {} as any,
+      });
+
+      await controller.findGames(
+        { user: createMockUser() },
+        {
+          filterExpression: "metadata.tags.name=$eq:Action OR title=$ilike:Mario",
+          sortBy: [],
+          path: "api/games",
+        } as any,
+      );
+
+      expect(gamesRepository.manager.getRepository).toHaveBeenCalled();
+      expect(nestjsPaginateFilter.addFilter).toHaveBeenCalledWith(
+        metadataQueryBuilder,
+        {
+          filter: {
+            "tags.name": "$eq:Action",
+          },
+        },
+        {
+          "tags.name": true,
+        },
+      );
+      expect(nestjsPaginate.paginate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filterExpression: "(id=$in:7,9) OR (title=$ilike:Mario)",
+        }),
+        gamesRepository,
         expect.any(Object),
       );
+    });
+
+    it("should append the parental age restriction as a filter expression", async () => {
+      const parentalConfig = configuration.PARENTAL as {
+        AGE_RESTRICTION_ENABLED: boolean;
+      };
+      const originalAgeRestrictionEnabled =
+        parentalConfig.AGE_RESTRICTION_ENABLED;
+
+      parentalConfig.AGE_RESTRICTION_ENABLED = true;
+      usersService.findUserAgeByUsername.mockResolvedValue(16);
+
+      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+        data: [],
+        meta: {} as any,
+        links: {} as any,
+      });
+
+      try {
+        await controller.findGames(
+          { user: createMockUser() },
+          {
+            filterExpression: "title=$ilike:zelda",
+            sortBy: [],
+            path: "api/games",
+          } as any,
+        );
+
+        expect(nestjsPaginate.paginate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            filterExpression:
+              "(title=$ilike:zelda) AND (metadata.age_rating=$null OR metadata.age_rating=$lte:16)",
+          }),
+          gamesRepository,
+          expect.any(Object),
+        );
+      } finally {
+        parentalConfig.AGE_RESTRICTION_ENABLED = originalAgeRestrictionEnabled;
+      }
     });
   });
 

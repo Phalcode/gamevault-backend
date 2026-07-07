@@ -42,11 +42,19 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
 import { isArray } from "lodash";
 import { FilterSuffix, addFilter } from "nestjs-paginate/lib/filter";
+import {
+  parseFilterExpression,
+  type FilterExpression,
+} from "nestjs-paginate/lib/filter-expression";
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { ApiOkResponsePaginated, toFindOptionsRelations } from "../../globals";
+import {
+  ApiOkResponsePaginated,
+  appendPaginateFilterExpression,
+  toFindOptionsRelations,
+} from "../../globals";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { OtpService } from "../otp/otp.service";
 import { State } from "../progresses/models/state.enum";
@@ -159,7 +167,7 @@ export class GamesController {
     @Request() request: { user: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<GamevaultGame>> {
-    const relations = [
+    const relationPaths = [
       "bookmarked_users",
       "metadata",
       "metadata.cover",
@@ -167,19 +175,19 @@ export class GamesController {
     ];
 
     if (query.filter?.["metadata.genres.name"]) {
-      relations.push("metadata.genres");
+      relationPaths.push("metadata.genres");
     }
 
     if (query.filter?.["metadata.tags.name"]) {
-      relations.push("metadata.tags");
+      relationPaths.push("metadata.tags");
     }
 
     if (query.filter?.["metadata.developers.name"]) {
-      relations.push("metadata.developers");
+      relationPaths.push("metadata.developers");
     }
 
     if (query.filter?.["metadata.publishers.name"]) {
-      relations.push("metadata.publishers");
+      relationPaths.push("metadata.publishers");
     }
 
     query = this.redirectLegacyQueries(query);
@@ -230,7 +238,7 @@ export class GamesController {
         delete query.filter["progresses.state"];
         delete query.filter["progresses.user.id"];
       } else {
-        relations.push("progresses", "progresses.user");
+        relationPaths.push("progresses", "progresses.user");
       }
     }
 
@@ -242,15 +250,22 @@ export class GamesController {
       this.applyResolvedGameIdFilter(query, relationFilteredGameIds);
     }
 
+    await this.rewriteMetadataRelationNameFilterExpression(query);
+
     if (
       configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
       request.user.role !== Role.ADMIN
     ) {
-      query.filter ??= {};
-      query.filter["metadata.age_rating"] = [
-        `$null`,
-        `$or:$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`,
-      ];
+      const userAge = await this.usersService.findUserAgeByUsername(
+        request.user.username,
+      );
+
+      if (userAge !== undefined) {
+        appendPaginateFilterExpression(
+          query,
+          `metadata.age_rating=$null OR metadata.age_rating=$lte:${userAge}`,
+        );
+      }
     }
 
     return paginate(query, this.gamesRepository, {
@@ -260,7 +275,7 @@ export class GamesController {
       defaultSortBy: [["sort_title", "ASC"]],
       maxLimit: -1,
       nullSort: "last",
-      relations,
+      relations: toFindOptionsRelations<GamevaultGame>(relationPaths),
       sortableColumns: [
         "id",
         "title",
@@ -527,28 +542,10 @@ export class GamesController {
         continue;
       }
 
-      const metadataQuery = {
-        filter: {
-          [metadataFilterKey]: filterValue,
-        },
-      } as PaginateQuery;
-
-      const queryBuilder = this.gamesRepository.manager
-        .getRepository(GameMetadata)
-        .createQueryBuilder("metadata")
-        .select("game.id", "id")
-        .distinct(true)
-        .innerJoin(GamevaultGame, "game", "game.metadata_id = metadata.id");
-
-      addFilter(queryBuilder, metadataQuery, {
-        [metadataFilterKey]: true,
-      });
-
-      const resolvedIds = (
-        await queryBuilder.getRawMany<{ id: number | string }>()
-      )
-        .map(({ id }) => Number(id))
-        .filter((id) => Number.isInteger(id));
+      const resolvedIds = await this.resolveGameIdsForMetadataFilter(
+        metadataFilterKey,
+        filterValue,
+      );
 
       if (matchingIds == null) {
         matchingIds = resolvedIds;
@@ -571,11 +568,104 @@ export class GamesController {
     }
   }
 
+  private async rewriteMetadataRelationNameFilterExpression(
+    query: PaginateQuery,
+  ): Promise<void> {
+    if (!query.filterExpression) {
+      return;
+    }
+
+    const { expression, replaced } =
+      await this.rewriteMetadataRelationExpressionNode(
+        parseFilterExpression(query.filterExpression),
+        new Map<string, number[]>(),
+      );
+
+    if (replaced) {
+      query.filterExpression = this.serializeFilterExpression(expression);
+    }
+  }
+
+  private async rewriteMetadataRelationExpressionNode(
+    expression: FilterExpression,
+    resolvedFilterCache: Map<string, number[]>,
+  ): Promise<{ expression: FilterExpression; replaced: boolean }> {
+    switch (expression.type) {
+      case "leaf": {
+        if (!(expression.column in metadataRelationNameFilters)) {
+          return { expression, replaced: false };
+        }
+
+        const queryFilterKey = expression.column as MetadataRelationNameFilterKey;
+        const cacheKey = `${queryFilterKey}\u0000${expression.value}`;
+        let gameIds = resolvedFilterCache.get(cacheKey);
+
+        if (!gameIds) {
+          gameIds = await this.resolveGameIdsForMetadataFilter(
+            metadataRelationNameFilters[queryFilterKey],
+            expression.value,
+          );
+          resolvedFilterCache.set(cacheKey, gameIds);
+        }
+
+        return {
+          expression: {
+            type: "leaf",
+            column: "id",
+            value: this.createResolvedGameIdFilter(gameIds),
+          },
+          replaced: true,
+        };
+      }
+      case "not": {
+        const rewrittenChild = await this.rewriteMetadataRelationExpressionNode(
+          expression.child,
+          resolvedFilterCache,
+        );
+
+        if (!rewrittenChild.replaced) {
+          return { expression, replaced: false };
+        }
+
+        return {
+          expression: {
+            ...expression,
+            child: rewrittenChild.expression,
+          },
+          replaced: true,
+        };
+      }
+      case "and":
+      case "or": {
+        const rewrittenChildren = await Promise.all(
+          expression.children.map((child) =>
+            this.rewriteMetadataRelationExpressionNode(
+              child,
+              resolvedFilterCache,
+            ),
+          ),
+        );
+        const replaced = rewrittenChildren.some((child) => child.replaced);
+
+        if (!replaced) {
+          return { expression, replaced: false };
+        }
+
+        return {
+          expression: {
+            ...expression,
+            children: rewrittenChildren.map((child) => child.expression),
+          },
+          replaced: true,
+        };
+      }
+    }
+  }
+
   private applyResolvedGameIdFilter(query: PaginateQuery, gameIds: number[]) {
     query.filter ??= {};
 
-    const resolvedIdFilter =
-      gameIds.length > 0 ? `$in:${gameIds.join(",")}` : "$eq:-1";
+    const resolvedIdFilter = this.createResolvedGameIdFilter(gameIds);
     const existingIdFilter = query.filter.id;
 
     if (existingIdFilter == null) {
@@ -589,5 +679,61 @@ export class GamesController {
     }
 
     query.filter.id = [existingIdFilter, resolvedIdFilter];
+  }
+
+  private async resolveGameIdsForMetadataFilter(
+    metadataFilterKey: string,
+    filterValue: string | string[],
+  ): Promise<number[]> {
+    const metadataQuery = {
+      filter: {
+        [metadataFilterKey]: filterValue,
+      },
+    } as PaginateQuery;
+
+    const queryBuilder = this.gamesRepository.manager
+      .getRepository(GameMetadata)
+      .createQueryBuilder("metadata")
+      .select("game.id", "id")
+      .distinct(true)
+      .innerJoin(GamevaultGame, "game", "game.metadata_id = metadata.id");
+
+    addFilter(queryBuilder, metadataQuery, {
+      [metadataFilterKey]: true,
+    });
+
+    return (await queryBuilder.getRawMany<{ id: number | string }>())
+      .map(({ id }) => Number(id))
+      .filter((id) => Number.isInteger(id));
+  }
+
+  private createResolvedGameIdFilter(gameIds: number[]): string {
+    return gameIds.length > 0 ? `$in:${gameIds.join(",")}` : "$eq:-1";
+  }
+
+  private serializeFilterExpression(expression: FilterExpression): string {
+    switch (expression.type) {
+      case "leaf":
+        return `${expression.column}=${this.serializeFilterExpressionValue(expression.value)}`;
+      case "not":
+        return `NOT (${this.serializeFilterExpression(expression.child)})`;
+      case "and":
+      case "or":
+        return expression.children
+          .map((child) => `(${this.serializeFilterExpression(child)})`)
+          .join(` ${expression.type.toUpperCase()} `);
+    }
+  }
+
+  private serializeFilterExpressionValue(value: string): string {
+    if (!/[()\s"'\\]/.test(value)) {
+      return value;
+    }
+
+    const escapedValue = value
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
+
+    return `"${escapedValue}"`;
   }
 }

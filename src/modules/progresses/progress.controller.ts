@@ -30,7 +30,11 @@ import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
 import { MinimumRole } from "../../decorators/minimum-role.decorator";
 import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
-import { ApiOkResponsePaginated } from "../../globals";
+import {
+  ApiOkResponsePaginated,
+  appendPaginateFilterExpression,
+  toFindOptionsRelations,
+} from "../../globals";
 import { GamevaultUser } from "../users/gamevault-user.entity";
 import { Role } from "../users/models/role.enum";
 import { UsersService } from "../users/users.service";
@@ -79,17 +83,20 @@ export class ProgressController {
     @Request() request: { user: GamevaultUser },
     @Paginate() query: PaginateQuery,
   ): Promise<Paginated<Progress>> {
-    const relations = ["user", "game"];
-
     if (
       configuration.PARENTAL.AGE_RESTRICTION_ENABLED &&
       request.user.role !== Role.ADMIN
     ) {
-      query.filter ??= {};
-      query.filter["game.metadata.age_rating"] = [
-        `$null`,
-        `$or:$lte:${await this.usersService.findUserAgeByUsername(request.user.username)}`,
-      ];
+      const userAge = await this.usersService.findUserAgeByUsername(
+        request.user.username,
+      );
+
+      if (userAge !== undefined) {
+        appendPaginateFilterExpression(
+          query,
+          `game.metadata.age_rating=$null OR game.metadata.age_rating=$lte:${userAge}`,
+        );
+      }
     }
 
     return paginate(query, this.progressRepository, {
@@ -97,7 +104,7 @@ export class ProgressController {
       defaultLimit: 100,
       maxLimit: -1,
       nullSort: "last",
-      relations,
+      relations: toFindOptionsRelations<Progress>(["user", "game"]),
       sortableColumns: ["id", "created_at", "updated_at", "minutes_played"],
       searchableColumns: ["user.username", "game.title"],
       filterableColumns: {

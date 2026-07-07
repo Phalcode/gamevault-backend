@@ -1,4 +1,5 @@
 import { applyDecorators, Type } from "@nestjs/common";
+import { PaginateQuery } from "nestjs-paginate";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
 import {
   FindOptionsRelations,
@@ -77,6 +78,15 @@ export function toFindOptionsSelect<Entity extends ObjectLiteral>(
   selectedPaths: readonly string[],
 ): FindOptionsSelect<Entity> {
   return pathsToFindOptionsTree(selectedPaths) as FindOptionsSelect<Entity>;
+}
+
+export function appendPaginateFilterExpression(
+  query: Pick<PaginateQuery, "filterExpression">,
+  expression: string,
+): void {
+  query.filterExpression = query.filterExpression
+    ? `(${query.filterExpression}) AND (${expression})`
+    : expression;
 }
 
 export default {
