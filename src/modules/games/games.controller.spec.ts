@@ -198,14 +198,11 @@ describe("GamesController", () => {
         links: {} as any,
       });
 
-      await controller.findGames(
-        { user: createMockUser() },
-        {
-          filterExpression: "metadata.tags.name=$eq:Action OR title=$ilike:Mario",
-          sortBy: [],
-          path: "api/games",
-        } as any,
-      );
+      await controller.findGames({ user: createMockUser() }, {
+        filterExpression: "metadata.tags.name=$eq:Action OR title=$ilike:Mario",
+        sortBy: [],
+        path: "api/games",
+      } as any);
 
       expect(gamesRepository.manager.getRepository).toHaveBeenCalled();
       expect(nestjsPaginateFilter.addFilter).toHaveBeenCalledWith(
@@ -245,14 +242,11 @@ describe("GamesController", () => {
       });
 
       try {
-        await controller.findGames(
-          { user: createMockUser() },
-          {
-            filterExpression: "title=$ilike:zelda",
-            sortBy: [],
-            path: "api/games",
-          } as any,
-        );
+        await controller.findGames({ user: createMockUser() }, {
+          filterExpression: "title=$ilike:zelda",
+          sortBy: [],
+          path: "api/games",
+        } as any);
 
         expect(nestjsPaginate.paginate).toHaveBeenCalledWith(
           expect.objectContaining({

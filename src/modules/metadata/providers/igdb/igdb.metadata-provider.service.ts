@@ -278,10 +278,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
 
   private parseReleaseDate(
     releaseDate:
-      | igdbModels.IGame["first_release_date"]
-      | number
-      | null
-      | undefined,
+      igdbModels.IGame["first_release_date"] | number | null | undefined,
   ): Date | undefined {
     const seconds =
       typeof releaseDate === "number"
@@ -322,8 +319,7 @@ export class IgdbMetadataProviderService extends MetadataProvider {
         .execute();
 
       const timeToBeat = result.data?.[0] as
-        | igdbModels.IGameTimeToBeat
-        | undefined;
+        igdbModels.IGameTimeToBeat | undefined;
 
       if (timeToBeat?.normally) {
         const minutes = Math.round(timeToBeat.normally / 60);

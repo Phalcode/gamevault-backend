@@ -13,9 +13,10 @@ export class BasicAuthGuard extends AuthGuard("basic") {
   canActivate(context: ExecutionContext) {
     if (
       this.reflector
-        .getAllAndOverride<
-          string[]
-        >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
+        .getAllAndOverride<string[]>(SKIP_GUARDS_KEY, [
+          context.getHandler(),
+          context.getClass(),
+        ])
         ?.includes(this.constructor.name)
     ) {
       return true;

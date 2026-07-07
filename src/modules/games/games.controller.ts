@@ -596,7 +596,8 @@ export class GamesController {
           return { expression, replaced: false };
         }
 
-        const queryFilterKey = expression.column as MetadataRelationNameFilterKey;
+        const queryFilterKey =
+          expression.column as MetadataRelationNameFilterKey;
         const cacheKey = `${queryFilterKey}\u0000${expression.value}`;
         let gameIds = resolvedFilterCache.get(cacheKey);
 
@@ -730,9 +731,7 @@ export class GamesController {
       return value;
     }
 
-    const escapedValue = value
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"');
+    const escapedValue = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
     return `"${escapedValue}"`;
   }

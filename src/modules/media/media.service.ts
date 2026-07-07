@@ -46,9 +46,9 @@ export class MediaService {
   public async findOneByMediaIdOrFail(id: number): Promise<Media> {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
-      if (
-        !((await pathExists(media.file_path)) || this.config.TESTING.MOCK_FILES)
-      ) {
+      if (!(
+        (await pathExists(media.file_path)) || this.config.TESTING.MOCK_FILES
+      )) {
         await this.delete(media);
         throw new NotFoundException("Media not found on filesystem.");
       }

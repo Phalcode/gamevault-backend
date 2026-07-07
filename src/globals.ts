@@ -1,6 +1,6 @@
 import { applyDecorators, Type } from "@nestjs/common";
-import { PaginateQuery } from "nestjs-paginate";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
+import { PaginateQuery } from "nestjs-paginate";
 import {
   FindOptionsRelations,
   FindOptionsSelect,
