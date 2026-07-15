@@ -396,6 +396,7 @@ export class FilesService implements OnApplicationBootstrap {
     gamePatch.sort_title = this.gamesService.generateSortTitle(
       indexedGame.title,
     );
+    gamePatch.download_count = gameToUpdate.download_count;
 
     // Persist only scalar game fields to avoid relation graph side effects.
     await this.gamesService.save(gamePatch);
@@ -1239,7 +1240,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     // Increment the download count.
     game.download_count++;
-    this.gamesService.save(game);
+    await this.gamesService.save(game);
 
     const originalFilename = path.basename(fileDownloadPath);
     const downloadFilename = globals.ARCHIVE_FORMATS.includes(
