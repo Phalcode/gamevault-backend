@@ -62,7 +62,29 @@ export class MediaController {
   ): Promise<void> {
     const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
-    createReadStream(media.file_path).pipe(res);
+
+    const stream = createReadStream(media.file_path);
+
+    // Handle stream errors to prevent hanging responses or truncated data
+    // when the file on disk is corrupt or unreadable.
+    stream.on("error", (error) => {
+      this.logger.error({
+        message: "Error streaming media file.",
+        mediaId: id,
+        filePath: media.file_path,
+        error,
+      });
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: "Internal Server Error",
+          message: "Failed to read media file.",
+        });
+      } else {
+        res.end();
+      }
+    });
+
+    stream.pipe(res);
   }
 
   @Post()
