@@ -1,22 +1,26 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 
+import { ServerService } from "../server/server.service";
 import { StatusEnum } from "./models/status.enum";
 import { Status, StatusEntry } from "./models/status.model";
 
 @Injectable()
 export class StatusService {
   private readonly epoch: Date = new Date();
-  private currentStatus: Status = new Status(this.epoch, []);
+  private currentStatus: Status;
 
-  constructor() {
+  constructor(@Optional() private readonly serverService?: ServerService) {
+    this.currentStatus = new Status(this.epoch, []);
     this.set(StatusEnum.HEALTHY, "Server started successfully");
     this.currentStatus = this.getExtensive();
   }
 
   getExtensive(): Status {
-    this.currentStatus = new Status(this.epoch, [
-      ...this.currentStatus.protocol,
-    ]);
+    this.currentStatus = new Status(
+      this.epoch,
+      [...this.currentStatus.protocol],
+      this.serverService?.getServerUuid(),
+    );
     return this.currentStatus;
   }
 

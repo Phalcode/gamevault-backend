@@ -13,6 +13,7 @@
 - Updated automatic Web UI version selection: if no compatible stable release is found, the backend now falls back to the nearest newer stable release before falling back to `unstable`.
 - Added regex-based indexing exclusion filters: `GAMES_SEARCH_EXCLUDE_FILE_REGEX` and `GAMES_SEARCH_EXCLUDE_DIR_REGEX`.
 - Fixed reindex crashes for games with corrupted internal metadata mappings (for example `gamevault` being stored as a provider mapping). Reindex now skips those invalid entries and automatically cleans them up on the next merge/reindex.
+- Added a persistent server UUID, generated on first startup and exposed via the status API, allowing clients to recognize the same server across different URLs.
 
 ### Thanks
 

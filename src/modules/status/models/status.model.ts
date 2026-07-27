@@ -70,6 +70,15 @@ export class Status {
   })
   available_authentication_methods?: AuthenticationMethod[];
 
+  @ApiProperty({
+    description:
+      "Persistent unique identifier of the gamevault server. " +
+      "This UUID is generated on first startup and persists across restarts, " +
+      "allowing clients to recognize the same server even when accessed at different URLs.",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+  })
+  server_uuid: string;
+
   @ApiPropertyOptional({
     description: "Server's uptime in seconds (Only visible to admins)",
     example: 300,
@@ -83,7 +92,7 @@ export class Status {
   })
   protocol?: StatusEntry[];
 
-  constructor(epoch: Date, protocol: StatusEntry[] = []) {
+  constructor(epoch: Date, protocol: StatusEntry[] = [], serverUuid?: string) {
     this.status = StatusEnum.HEALTHY;
     this.version = configuration.SERVER.VERSION;
     this.registration_enabled = !configuration.SERVER.REGISTRATION_DISABLED;
@@ -107,6 +116,7 @@ export class Status {
       configuration.AUTH.OAUTH2.ENABLED ? AuthenticationMethod.SSO : null,
     ].filter(Boolean);
 
+    this.server_uuid = serverUuid;
     this.uptime = Math.floor((Date.now() - epoch.getTime()) / 1000);
     this.protocol = protocol;
   }
