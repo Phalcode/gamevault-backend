@@ -14,6 +14,8 @@
 - Added regex-based indexing exclusion filters: `GAMES_SEARCH_EXCLUDE_FILE_REGEX` and `GAMES_SEARCH_EXCLUDE_DIR_REGEX`.
 - Fixed reindex crashes for games with corrupted internal metadata mappings (for example `gamevault` being stored as a provider mapping). Reindex now skips those invalid entries and automatically cleans them up on the next merge/reindex.
 - Added a persistent server UUID, generated on first startup and exposed via the status API, allowing clients to recognize the same server across different URLs.
+- The media endpoint (`/api/media/:id`) now serves with long-lived HTTP caching (`Cache-Control: immutable`) and supports conditional requests (`ETag`/`Last-Modified`, returning `304`), so clients can reuse covers/art without re-downloading them.
+- Production JSON responses are no longer pretty-printed, reducing payload sizes.
 
 ### Thanks
 
