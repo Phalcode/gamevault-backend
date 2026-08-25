@@ -46,8 +46,10 @@ async function bootstrap(): Promise<void> {
 
   // To Support Reverse Proxies
   app.set("trust proxy", 1);
-  // Fancy JSON Responses
-  app.set("json spaces", 2);
+  // Pretty JSON only outside production to keep large payloads compact.
+  if (process.env.NODE_ENV !== "production") {
+    app.set("json spaces", 2);
+  }
   // CORS Configuration
   app.enableCors({
     origin: configuration.SERVER.CORS_ALLOWED_ORIGINS.length

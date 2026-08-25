@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipe,
   Post,
+  Req,
   Request,
   Res,
   UploadedFile,
@@ -25,7 +26,7 @@ import {
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";
-import { createReadStream } from "fs-extra";
+import { createReadStream, stat } from "fs-extra";
 
 import configuration from "../../configuration";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
@@ -58,10 +59,37 @@ export class MediaController {
   @MinimumRole(Role.GUEST)
   async getMediaByMediaId(
     @Param("id") id: string,
+    @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
     const media = await this.mediaService.findOneByMediaIdOrFail(Number(id));
     res.set("Content-Type", media.type);
+
+    // Media is keyed by a unique id and never changes, so allow long-lived
+    // HTTP caching so clients can reuse covers/art without re-downloading.
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+
+    try {
+      const fileStat = await stat(media.file_path);
+      const etag = `W/"${fileStat.size}-${Math.floor(fileStat.mtimeMs)}"`;
+      res.set("Last-Modified", fileStat.mtime.toUTCString());
+      res.set("ETag", etag);
+
+      const ifNoneMatch = req.headers["if-none-match"];
+      const ifModifiedSince = req.headers["if-modified-since"];
+      const notModified =
+        (ifNoneMatch != null && ifNoneMatch.includes(etag)) ||
+        (ifNoneMatch == null &&
+          ifModifiedSince != null &&
+          new Date(ifModifiedSince).getTime() >= fileStat.mtime.getTime());
+
+      if (notModified) {
+        res.status(304).end();
+        return;
+      }
+    } catch {
+      // If statting the file fails, fall back to streaming it as before.
+    }
 
     const stream = createReadStream(media.file_path);
 
