@@ -24,7 +24,7 @@ describe("PublisherMetadataService", () => {
       expect(repo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { provider_slug: "gamevault" },
-          relations: [],
+          relations: undefined,
         }),
       );
     });
@@ -35,7 +35,7 @@ describe("PublisherMetadataService", () => {
         loadRelations: true,
       });
       expect(repo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ relations: ["games"] }),
+        expect.objectContaining({ relations: { games: true } }),
       );
     });
   });

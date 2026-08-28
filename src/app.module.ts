@@ -18,6 +18,7 @@ import { MetadataModule } from "./modules/metadata/metadata.module";
 import { OtpModule } from "./modules/otp/otp.module";
 import { ProgressModule } from "./modules/progresses/progress.module";
 import { SavefileModule } from "./modules/savefiles/savefile.module";
+import { ServerModule } from "./modules/server/server.module";
 import { StatusModule } from "./modules/status/status.module";
 import { UsersModule } from "./modules/users/users.module";
 import { WebUIModule } from "./modules/web-ui/web-ui.module";
@@ -43,6 +44,7 @@ import { WebUIModule } from "./modules/web-ui/web-ui.module";
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     GarbageCollectionModule,
+    ServerModule,
     StatusModule,
     ...(configuration.WEB_UI.ENABLED ? [WebUIModule] : []),
   ],

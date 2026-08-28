@@ -2,7 +2,6 @@ import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 export const dataSource = new DataSource({
-  name: "postgres",
   type: "postgres",
   host: "localhost",
   port: 5432,

@@ -8,6 +8,7 @@ import { Repository } from "typeorm";
 
 import { uniq } from "lodash";
 import configuration from "../../configuration";
+import { toFindOptionsRelations } from "../../globals";
 import { Media } from "../media/media.entity";
 import { MediaService } from "../media/media.service";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -117,7 +118,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     for (const { repository, relations } of entityMediaProperties) {
       const entities = await repository.find({
         withDeleted: true,
-        relations,
+        relations: toFindOptionsRelations<unknown>(relations),
         loadEagerRelations: false,
         relationLoadStrategy: "query",
       });

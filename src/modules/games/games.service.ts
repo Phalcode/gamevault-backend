@@ -10,7 +10,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   FindManyOptions,
   FindOneOptions,
-  FindOptionsSelect,
   IsNull,
   LessThanOrEqual,
   Or,
@@ -18,7 +17,11 @@ import {
 } from "typeorm";
 
 import { isEmpty, kebabCase, toLower } from "lodash";
-import { FindOptions } from "../../globals";
+import {
+  FindOptions,
+  toFindOptionsRelations,
+  toFindOptionsSelect,
+} from "../../globals";
 import { logGamevaultGame } from "../../logging";
 import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
@@ -27,6 +30,7 @@ import { GenreMetadata } from "../metadata/genres/genre.metadata.entity";
 import { MetadataService } from "../metadata/metadata.service";
 import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity";
 import { TagMetadata } from "../metadata/tags/tag.metadata.entity";
+import { GameVersion } from "./game-version.entity";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
 import { UpdateGameDto } from "./models/update-game.dto";
@@ -34,18 +38,20 @@ import { UpdateGameDto } from "./models/update-game.dto";
 @Injectable()
 export class GamesService {
   private readonly logger = new Logger(this.constructor.name);
-  private readonly defaultRelations = [
+  private readonly defaultRelations = toFindOptionsRelations<GamevaultGame>([
     "progresses",
     "progresses.user",
     "bookmarked_users",
     "metadata",
     "provider_metadata",
     "user_metadata",
-  ];
+  ]);
 
   constructor(
     @InjectRepository(GamevaultGame)
     private readonly gamesRepository: Repository<GamevaultGame>,
+    @InjectRepository(GameVersion)
+    private readonly gameVersionRepository: Repository<GameVersion>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     @Inject(forwardRef(() => GameMetadataService))
@@ -93,15 +99,18 @@ export class GamesService {
     };
 
     if (options.select) {
-      findParameters.select =
-        options.select as FindOptionsSelect<GamevaultGame>;
+      findParameters.select = toFindOptionsSelect<GamevaultGame>(
+        options.select,
+      );
     }
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
         findParameters.relations = this.defaultRelations;
       } else if (Array.isArray(options.loadRelations))
-        findParameters.relations = options.loadRelations;
+        findParameters.relations = toFindOptionsRelations<GamevaultGame>(
+          options.loadRelations,
+        );
     }
 
     if (options.loadDeletedEntities) {
@@ -110,7 +119,9 @@ export class GamesService {
 
     if (options.filterByAge) {
       if (!options.loadRelations) {
-        findParameters.relations = ["metadata"];
+        findParameters.relations = toFindOptionsRelations<GamevaultGame>([
+          "metadata",
+        ]);
       }
       findParameters.where = {
         metadata: {
@@ -126,7 +137,7 @@ export class GamesService {
     const findParameters: FindManyOptions<GamevaultGame> = {
       relationLoadStrategy: "query",
       loadEagerRelations: false,
-      select: ["id"],
+      select: toFindOptionsSelect<GamevaultGame>(["id"]),
     };
 
     if (options.loadDeletedEntities) {
@@ -134,7 +145,9 @@ export class GamesService {
     }
 
     if (options.filterByAge) {
-      findParameters.relations = ["metadata"];
+      findParameters.relations = toFindOptionsRelations<GamevaultGame>([
+        "metadata",
+      ]);
       findParameters.where = {
         metadata: {
           age_rating: Or(LessThanOrEqual(options.filterByAge), IsNull()),
@@ -381,31 +394,115 @@ export class GamesService {
   public async checkIfExistsInDatabase(
     game: GamevaultGame,
   ): Promise<[GameExistence, GamevaultGame]> {
-    if (!game.file_path || (!game.title && !game.release_date)) {
+    if (!game.file_path || !game.title) {
       throw new InternalServerErrorException(
         game,
         "Dupe-Checking Data not available in indexed game!",
       );
     }
 
-    const foundGame =
-      (await this.gamesRepository.findOne({
-        relationLoadStrategy: "query",
-        where: { file_path: game.file_path },
-        relations: this.defaultRelations,
-        withDeleted: true,
-      })) ??
-      (await this.gamesRepository.findOne({
+    const matchedVersionByPath = await this.gameVersionRepository.findOne({
+      relationLoadStrategy: "query",
+      where: { file_path: game.file_path },
+      relations: toFindOptionsRelations<GameVersion>(["game"]),
+      withDeleted: true,
+    });
+
+    let foundGame = matchedVersionByPath?.game;
+
+    if (foundGame) {
+      this.logger.debug({
+        message: "Matched indexed game by exact version file path.",
+        game: logGamevaultGame(game),
+        existingGame: logGamevaultGame(foundGame),
+      });
+    }
+
+    if (!foundGame) {
+      foundGame = await this.gamesRepository.findOne({
         relationLoadStrategy: "query",
         where: {
-          title: game.title,
-          release_date: game.release_date,
+          file_path: game.file_path,
         },
         relations: this.defaultRelations,
         withDeleted: true,
-      }));
+      });
+
+      if (foundGame) {
+        this.logger.debug({
+          message: "Matched indexed game by legacy game file path.",
+          game: logGamevaultGame(game),
+          existingGame: logGamevaultGame(foundGame),
+        });
+      }
+    }
 
     if (!foundGame) {
+      const titleCandidates =
+        (await this.gamesRepository.find({
+          relationLoadStrategy: "query",
+          where: {
+            title: game.title,
+          },
+          relations: this.defaultRelations,
+          withDeleted: true,
+        })) || [];
+
+      this.logger.debug({
+        message: "Trying title-based duplicate matching.",
+        game: logGamevaultGame(game),
+        candidateCount: titleCandidates.length,
+        hasReleaseYear: !!game.release_date,
+      });
+
+      if (!foundGame && game.release_date) {
+        // Year-tagged files must only merge with same title + same release year.
+        foundGame = titleCandidates.find((candidate) =>
+          this.hasSameReleaseYear(candidate.release_date, game.release_date),
+        );
+
+        if (foundGame) {
+          this.logger.debug({
+            message: "Matched by title and release year.",
+            game: logGamevaultGame(game),
+            existingGame: logGamevaultGame(foundGame),
+            releaseYear: this.getReleaseYear(game.release_date),
+          });
+        }
+      } else if (!foundGame) {
+        // Files without year tag merge into the unknown-year bucket first.
+        foundGame = titleCandidates.find(
+          (candidate) => !candidate.release_date,
+        );
+
+        if (foundGame) {
+          this.logger.debug({
+            message: "Matched no-year game into no-year title bucket.",
+            game: logGamevaultGame(game),
+            existingGame: logGamevaultGame(foundGame),
+          });
+        }
+
+        // Legacy fallback: if no unknown-year bucket exists yet, merge by title.
+        if (!foundGame) {
+          foundGame = titleCandidates[0];
+
+          if (foundGame) {
+            this.logger.debug({
+              message: "Matched no-year game by legacy title fallback.",
+              game: logGamevaultGame(game),
+              existingGame: logGamevaultGame(foundGame),
+            });
+          }
+        }
+      }
+    }
+
+    if (!foundGame) {
+      this.logger.debug({
+        message: "No duplicate game match found.",
+        game: logGamevaultGame(game),
+      });
       return [GameExistence.DOES_NOT_EXIST, undefined];
     }
 
@@ -413,24 +510,58 @@ export class GamesService {
       return [GameExistence.EXISTS_BUT_DELETED_IN_DATABASE, foundGame];
     }
 
+    const matchedVersion = (foundGame.versions || []).find(
+      (version) => version.file_path === game.file_path,
+    );
+    const hasNormalizedVersions = (foundGame.versions || []).length > 0;
+
     const differences: string[] = [];
 
-    if (foundGame.file_path != game.file_path) {
-      differences.push(`path: ${foundGame.file_path} -> ${game.file_path}`);
+    const comparisonFilePath = hasNormalizedVersions
+      ? matchedVersion?.file_path
+      : foundGame.file_path;
+    const comparisonVersion = hasNormalizedVersions
+      ? matchedVersion?.version
+      : foundGame.version;
+
+    if (comparisonFilePath != game.file_path) {
+      differences.push(
+        `path: ${comparisonFilePath || "none"} -> ${game.file_path}`,
+      );
     }
     if (foundGame.title != game.title) {
       differences.push(`title: ${foundGame.title} -> ${game.title}`);
     }
-    if (foundGame.early_access != game.early_access) {
+    if (
+      (matchedVersion?.early_access ?? foundGame.early_access) !=
+      game.early_access
+    ) {
       differences.push(
-        `early_access: ${foundGame.early_access} -> ${game.early_access}`,
+        `early_access: ${matchedVersion?.early_access ?? foundGame.early_access} -> ${game.early_access}`,
       );
     }
-    if (foundGame.version != game.version) {
-      differences.push(`version: ${foundGame.version} -> ${game.version}`);
+    if (comparisonVersion != game.version) {
+      differences.push(
+        `version: ${comparisonVersion || "none"} -> ${game.version}`,
+      );
     }
-    if (foundGame.size.toString() != game.size.toString()) {
-      differences.push(`size: ${foundGame.size} -> ${game.size}`);
+    if (
+      !this.hasSameReleaseYear(
+        matchedVersion?.release_date ?? foundGame.release_date,
+        game.release_date,
+      )
+    ) {
+      differences.push(
+        `release_year: ${this.getReleaseYear(matchedVersion?.release_date ?? foundGame.release_date) || "none"} -> ${this.getReleaseYear(game.release_date) || "none"}`,
+      );
+    }
+    if (
+      (matchedVersion?.size ?? foundGame.size).toString() !=
+      game.size.toString()
+    ) {
+      differences.push(
+        `size: ${(matchedVersion?.size ?? foundGame.size).toString()} -> ${game.size}`,
+      );
     }
 
     if (differences.length > 0) {
@@ -442,7 +573,7 @@ export class GamesService {
         },
         existingGame: {
           id: foundGame.id,
-          file_path: foundGame.file_path,
+          file_path: matchedVersion?.file_path,
         },
         differences,
       });
@@ -450,6 +581,26 @@ export class GamesService {
     }
 
     return [GameExistence.EXISTS, foundGame];
+  }
+
+  private getReleaseYear(date?: Date): number | undefined {
+    if (!date) {
+      return undefined;
+    }
+
+    const year = new Date(date).getUTCFullYear();
+    return Number.isNaN(year) ? undefined : year;
+  }
+
+  private hasSameReleaseYear(first?: Date, second?: Date): boolean {
+    const firstYear = this.getReleaseYear(first);
+    const secondYear = this.getReleaseYear(second);
+
+    if (firstYear == null && secondYear == null) {
+      return true;
+    }
+
+    return firstYear != null && secondYear != null && firstYear === secondYear;
   }
 
   public generateSortTitle(title: string): string {

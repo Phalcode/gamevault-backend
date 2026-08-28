@@ -16,6 +16,7 @@ import { randomBytes } from "crypto";
 import {
   EntityNotFoundError,
   FindManyOptions,
+  FindOptionsWhere,
   ILike,
   IsNull,
   Not,
@@ -25,7 +26,12 @@ import {
 import { toLower } from "lodash";
 import { AppConfiguration } from "../../configuration";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import { FindOptions } from "../../globals";
+import {
+  FindOptions,
+  toFindOptionsRelations,
+  toFindOptionsSelect,
+} from "../../globals";
+import { logGamevaultGame } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { MediaService } from "../media/media.service";
 import { GamevaultUser } from "./gamevault-user.entity";
@@ -91,11 +97,11 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
-    let relations = [];
+    let relationPaths: string[] = [];
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = [
+        relationPaths = [
           "progresses",
           "progresses.game",
           "progresses.game.metadata",
@@ -103,15 +109,21 @@ export class UsersService implements OnApplicationBootstrap {
           "bookmarked_games",
         ];
       } else if (Array.isArray(options.loadRelations))
-        relations = options.loadRelations;
+        relationPaths = options.loadRelations;
     }
+
+    const relations =
+      relationPaths.length > 0
+        ? toFindOptionsRelations<GamevaultUser>(relationPaths)
+        : undefined;
+
+    const where = options.loadDeletedEntities
+      ? { id }
+      : { id, deleted_at: IsNull() };
 
     const user = await this.userRepository
       .findOneOrFail({
-        where: {
-          id,
-          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
-        },
+        where,
         relations,
         withDeleted: true,
         relationLoadStrategy: "query",
@@ -129,21 +141,27 @@ export class UsersService implements OnApplicationBootstrap {
     username: string,
     options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
   ): Promise<GamevaultUser> {
-    let relations = [];
+    let relationPaths: string[] = [];
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["progresses", "progresses.game", "bookmarked_games"];
+        relationPaths = ["progresses", "progresses.game", "bookmarked_games"];
       } else if (Array.isArray(options.loadRelations))
-        relations = options.loadRelations;
+        relationPaths = options.loadRelations;
     }
+
+    const relations =
+      relationPaths.length > 0
+        ? toFindOptionsRelations<GamevaultUser>(relationPaths)
+        : undefined;
+
+    const where = options.loadDeletedEntities
+      ? { username: ILike(username) }
+      : { username: ILike(username), deleted_at: IsNull() };
 
     const user = await this.userRepository
       .findOneOrFail({
-        where: {
-          username: ILike(username),
-          deleted_at: options.loadDeletedEntities ? undefined : IsNull(),
-        },
+        where,
         relations,
         withDeleted: true,
       })
@@ -210,14 +228,28 @@ export class UsersService implements OnApplicationBootstrap {
     email?: string;
     idp_id?: string; // TODO: Could Implement search for idp_id
   }): Promise<GamevaultUser> {
+    const where: FindOptionsWhere<GamevaultUser>[] = [];
+
+    if (searchBy.id != null) {
+      where.push({ id: searchBy.id });
+    }
+    if (searchBy.username != null) {
+      where.push({ username: ILike(searchBy.username) });
+    }
+    if (searchBy.email != null) {
+      where.push({ email: ILike(searchBy.email) });
+    }
+
+    if (where.length === 0) {
+      throw new BadRequestException(
+        "Authentication Failed: No user search criteria were provided.",
+      );
+    }
+
     const user = await this.userRepository
       .findOneOrFail({
-        where: [
-          { id: searchBy.id },
-          { username: ILike(searchBy.username) },
-          { email: ILike(searchBy.email) },
-        ],
-        select: [
+        where,
+        select: toFindOptionsSelect<GamevaultUser>([
           "username",
           "email",
           "password",
@@ -225,7 +257,7 @@ export class UsersService implements OnApplicationBootstrap {
           "activated",
           "role",
           "deleted_at",
-        ],
+        ]),
         withDeleted: true,
         loadEagerRelations: false,
       })
@@ -479,10 +511,7 @@ export class UsersService implements OnApplicationBootstrap {
     this.logger.log({
       message: "User bookmarked game.",
       user: user.username,
-      game: {
-        id: game.id,
-        file_path: game.file_path,
-      },
+      game: logGamevaultGame(game),
     });
     return user;
   }
@@ -514,10 +543,7 @@ export class UsersService implements OnApplicationBootstrap {
     this.logger.log({
       message: "User unbookmarked game.",
       user: user.username,
-      game: {
-        id: game.id,
-        file_path: game.file_path,
-      },
+      game: logGamevaultGame(game),
     });
 
     return user;

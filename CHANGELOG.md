@@ -1,5 +1,27 @@
 # GameVault Backend Server Changelog
 
+## 17.0.0
+
+### Breaking Changes & Migration
+
+- [#236](https://github.com/Phalcode/gamevault-backend/issues/236) Introduced support for multiple game versions -> **Existing game rows are migrated automatically.**
+- Deprecated top-level game version fields (`version`, `file_path`, `size`, `release_date`, `early_access`, `type`) in favor of the new `game_version` table. -> **If you rely on these fields, update your clients to use the new version structure before migrating.**
+- Duplicate handling now merges files with the same title into one game entity more consistently (year-tagged files merge by matching release year, untagged files merge into a no-year bucket first). -> **If you previously relied on same-title duplicates as separate game entries, rename titles explicitly (e.g. with square brackets) to keep them separate.**
+
+### Changes
+
+- Updated automatic Web UI version selection: if no compatible stable release is found, the backend now falls back to the nearest newer stable release before falling back to `unstable`.
+- Added regex-based indexing exclusion filters: `GAMES_SEARCH_EXCLUDE_FILE_REGEX` and `GAMES_SEARCH_EXCLUDE_DIR_REGEX`.
+- Fixed reindex crashes for games with corrupted internal metadata mappings (for example `gamevault` being stored as a provider mapping). Reindex now skips those invalid entries and automatically cleans them up on the next merge/reindex.
+- Added a persistent server UUID, generated on first startup and exposed via the status API, allowing clients to recognize the same server across different URLs.
+- The media endpoint (`/api/media/:id`) now serves with long-lived HTTP caching (`Cache-Control: immutable`) and supports conditional requests (`ETag`/`Last-Modified`, returning `304`), so clients can reuse covers/art without re-downloading them.
+- Production JSON responses are no longer pretty-printed, reducing payload sizes.
+
+### Thanks
+
+- @AlmostEasyGoing
+- @JoaGamo
+
 ## 16.3.0
 
 ### Changes
@@ -24,6 +46,18 @@
 - [#337](https://github.com/Phalcode/gamevault-backend/issues/337) Added Docker Secrets support via the `_FILE` suffix for all environment variables (e.g. `DB_PASSWORD_FILE`, `SERVER_PORT_FILE`).
 - Migrated backend configuration to NestJS Config (`@nestjs/config`) as the global config source.
 - Added YAML-based configuration support via `config.yaml` / `config.yml` in the config volume (`VOLUMES_CONFIG`) with precedence: `*_FILE` > env > YAML > defaults.
+
+### Thanks
+
+- @AlmostEasyGoing
+- @brokenglasszero
+- @Toylerrr
+- @Z0y6h0kS9X
+- @dandroid213
+- @spaceboy1234
+- @binarygeek119
+- @KawaKode
+- @ShadowPeo
 
 ## 16.2.0
 
@@ -1013,7 +1047,7 @@ Recommended Gamevault App Version: `v1.5.0.0`
 
 ### Breaking Changes
 
-- When adding the same game multiple times to your GameVault server, [follow this documentation.](https://gamevau.lt/docs/server-docs/adding-games#adding-the-same-game-multiple-times)
+- When adding the same game multiple times to your GameVault server, [follow this documentation.](https://gamevau.lt/docs/server-docs/adding-games#keeping-multiple-versions-of-the-same-game)
 
 ### Changes
 

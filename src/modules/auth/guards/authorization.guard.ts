@@ -34,9 +34,10 @@ export class AuthorizationGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (
       this.reflector
-        .getAllAndOverride<
-          string[]
-        >(SKIP_GUARDS_KEY, [context.getHandler(), context.getClass()])
+        .getAllAndOverride<string[]>(SKIP_GUARDS_KEY, [
+          context.getHandler(),
+          context.getClass(),
+        ])
         ?.includes(this.constructor.name)
     ) {
       return true;

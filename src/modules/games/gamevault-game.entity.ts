@@ -15,7 +15,9 @@ import { DatabaseEntity } from "../database/database.entity";
 import { GameMetadata } from "../metadata/games/game.metadata.entity";
 import { Progress } from "../progresses/progress.entity";
 import { GamevaultUser } from "../users/gamevault-user.entity";
+import { GameVersion } from "./game-version.entity";
 import { GameType } from "./models/game-type.enum";
+import { sortGameVersions } from "./version-selection.util";
 
 @Entity()
 export class GamevaultGame extends DatabaseEntity {
@@ -24,6 +26,7 @@ export class GamevaultGame extends DatabaseEntity {
   @ApiPropertyOptional({
     description:
       "file path to the game or the game manifest (relative to root)",
+    deprecated: true,
     example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
   file_path?: string;
@@ -40,7 +43,9 @@ export class GamevaultGame extends DatabaseEntity {
     },
   })
   @ApiPropertyOptional({
-    description: "size of the game file in bytes",
+    description:
+      "legacy mirror of selected version size in bytes (use versions[])",
+    deprecated: true,
     example: "1234567890",
     type: () => String,
   })
@@ -64,15 +69,27 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description: "version tag (extracted from the filename e.g. '(v1.0.0)')",
+    deprecated: true,
     example: "v1.0.0",
   })
   version?: string;
+
+  @OneToMany(() => GameVersion, (version) => version.game, {
+    eager: true,
+  })
+  @ApiPropertyOptional({
+    description: "all indexed versions for this game",
+    type: () => GameVersion,
+    isArray: true,
+  })
+  versions?: GameVersion[];
 
   @Index()
   @Column({ nullable: true })
   @ApiPropertyOptional({
     description:
-      "release date of the game (extracted from filename e.g. '(2013)')",
+      "legacy mirror of selected version release date (use versions[])",
+    deprecated: true,
     example: "2013-01-01T00:00:00.000Z",
   })
   release_date?: Date;
@@ -80,7 +97,8 @@ export class GamevaultGame extends DatabaseEntity {
   @Column({ default: false })
   @ApiPropertyOptional({
     description:
-      "indicates if the game is an early access title (extracted from filename e.g. '(EA)')",
+      "legacy mirror of selected version early-access flag (use versions[])",
+    deprecated: true,
     example: true,
     default: false,
   })
@@ -101,8 +119,8 @@ export class GamevaultGame extends DatabaseEntity {
     default: GameType.UNDETECTABLE,
   })
   @ApiPropertyOptional({
-    description:
-      "type of the game, see https://gamevau.lt/docs/server-docs/game-types for all possible values",
+    description: "legacy mirror of selected version type (use versions[])",
+    deprecated: true,
     type: "string",
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
@@ -201,5 +219,11 @@ export class GamevaultGame extends DatabaseEntity {
     if (!this.provider_metadata) {
       this.provider_metadata = [];
     }
+
+    if (!this.versions) {
+      this.versions = [];
+    }
+
+    this.versions = sortGameVersions(this.versions);
   }
 }

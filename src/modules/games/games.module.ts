@@ -8,20 +8,22 @@ import { Progress } from "../progresses/progress.entity";
 import { ProgressModule } from "../progresses/progress.module";
 import { UsersModule } from "../users/users.module";
 import { FilesService } from "./files.service";
+import { GameVersion } from "./game-version.entity";
+import { GameVersionsController } from "./game-versions.controller";
 import { GamesController } from "./games.controller";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GamevaultGame, Progress]),
+    TypeOrmModule.forFeature([GamevaultGame, GameVersion, Progress]),
     MediaModule,
     MetadataModule,
     ProgressModule,
     forwardRef(() => OtpModule),
     forwardRef(() => UsersModule),
   ],
-  controllers: [GamesController],
+  controllers: [GamesController, GameVersionsController],
   providers: [GamesService, FilesService],
   exports: [GamesService, FilesService],
 })

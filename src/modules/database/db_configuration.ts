@@ -3,8 +3,8 @@ import { readFileSync } from "fs-extra";
 import pg from "pg";
 import { TlsOptions } from "tls";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { BetterSqlite3ConnectionOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3ConnectionOptions";
-import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions";
+import { PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions";
 
 import { AppConfiguration } from "../../configuration";
 
@@ -18,9 +18,12 @@ export function getDatabaseConfiguration(
     namingStrategy: new SnakeNamingStrategy(),
     migrationsRun: !configuration.DB.SYNCHRONIZE,
     logging: configuration.DB.DEBUG,
+    invalidWhereValuesBehavior: {
+      undefined: "ignore",
+    },
   };
 
-  const postgresConfig: PostgresConnectionOptions = {
+  const postgresConfig: PostgresDataSourceOptions = {
     type: "postgres",
     host: configuration.DB.HOST,
     port: configuration.DB.PORT,
@@ -31,7 +34,7 @@ export function getDatabaseConfiguration(
     ssl: getPostgresTlsOptions(configuration),
   };
 
-  const sqliteConfig: BetterSqlite3ConnectionOptions = {
+  const sqliteConfig: BetterSqlite3DataSourceOptions = {
     type: "better-sqlite3",
     migrations: ["dist/src/modules/database/migrations/sqlite/*.js"],
     database: configuration.TESTING.IN_MEMORY_DB

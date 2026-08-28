@@ -10,7 +10,9 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { pathExists, remove, writeFile } from "fs-extra";
+import { move, pathExists, remove, writeFile } from "fs-extra";
+import { tmpdir } from "os";
+import { join } from "path";
 import { Repository } from "typeorm";
 
 import { AppConfiguration } from "../../configuration";
@@ -46,9 +48,9 @@ export class MediaService {
   public async findOneByMediaIdOrFail(id: number): Promise<Media> {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
-      if (
-        !((await pathExists(media.file_path)) || this.config.TESTING.MOCK_FILES)
-      ) {
+      if (!(
+        (await pathExists(media.file_path)) || this.config.TESTING.MOCK_FILES
+      )) {
         await this.delete(media);
         throw new NotFoundException("Media not found on filesystem.");
       }
@@ -94,8 +96,22 @@ export class MediaService {
       await this.saveToFileSystem(media.file_path, mediaBuffer);
       return await this.mediaRepository.save(media);
     } catch (error) {
-      if (media.id) {
-        await this.delete(media);
+      // Clean up the file if it was already written to disk before the DB save
+      // failed.
+      if (media.file_path) {
+        try {
+          await remove(media.file_path);
+          this.logger.debug({
+            message: "Cleaned up orphaned media file after failed download.",
+            path: media.file_path,
+          });
+        } catch (cleanupError) {
+          this.logger.warn({
+            message: "Failed to clean up orphaned media file.",
+            path: media.file_path,
+            error: cleanupError,
+          });
+        }
       }
       throw new InternalServerErrorException(
         `Failed to download media from '${sourceUrl}'.`,
@@ -140,7 +156,22 @@ export class MediaService {
       });
       return;
     }
-    await writeFile(path, mediaBuffer);
+
+    // Write to a temporary file first, then atomically move to the target path.
+    // This prevents partial/corrupt files
+    const tempPath = join(tmpdir(), `media-${randomUUID()}.tmp`);
+    try {
+      await writeFile(tempPath, mediaBuffer);
+      await move(tempPath, path, { overwrite: true });
+    } catch (error) {
+      try {
+        await remove(tempPath);
+      } catch {
+        // Ignore cleanup errors
+      }
+      throw error;
+    }
+
     this.logger.debug({
       message: "Media successfully saved to filesystem.",
       path,

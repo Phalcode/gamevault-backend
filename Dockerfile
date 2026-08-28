@@ -39,7 +39,7 @@ RUN mkdir -p /config /files /media /logs /db /plugins /savefiles \
     # Clean up to reduce image size
     && apt clean && rm -rf /var/lib/apt/lists/* \
     # Install PNPM package manager globally
-    && npm i -g pnpm@^10.29.3
+    && npm i -g pnpm@11
 
 # Set working directory for the application
 WORKDIR /app
@@ -48,7 +48,7 @@ WORKDIR /app
 FROM base AS build
 
 # Copy dependency files and install dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Copy application source code and build the project
@@ -59,7 +59,7 @@ RUN pnpm run build
 FROM base AS prod-deps
 
 # Copy dependency files and install only production dependencies
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 # ---- Release Stage ----
@@ -69,7 +69,7 @@ FROM base AS release
 ENV NODE_ENV=production
 
 # Copy dependency files (ensuring same versions as build)
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy built application and production dependencies
 COPY --from=build --chown=node:node /app/dist ./dist

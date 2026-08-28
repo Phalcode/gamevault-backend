@@ -17,7 +17,7 @@ import {
   Repository,
 } from "typeorm";
 
-import { FindOptions } from "../../globals";
+import { FindOptions, toFindOptionsRelations } from "../../globals";
 import { logProgress } from "../../logging";
 import { GamesService } from "../games/games.service";
 import { UsersService } from "../users/users.service";
@@ -66,9 +66,14 @@ export class ProgressService implements OnApplicationBootstrap {
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          findParameters.relations = ["user", "game"];
+          findParameters.relations = toFindOptionsRelations<Progress>([
+            "user",
+            "game",
+          ]);
         } else if (Array.isArray(options.loadRelations))
-          findParameters.relations = options.loadRelations;
+          findParameters.relations = toFindOptionsRelations<Progress>(
+            options.loadRelations,
+          );
       }
 
       if (options.loadDeletedEntities) {
@@ -77,7 +82,7 @@ export class ProgressService implements OnApplicationBootstrap {
 
       if (options.filterByAge) {
         if (!options.loadRelations) {
-          findParameters.relations = ["game"];
+          findParameters.relations = toFindOptionsRelations<Progress>(["game"]);
         }
         findParameters.where = {
           id,
@@ -158,9 +163,14 @@ export class ProgressService implements OnApplicationBootstrap {
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          findParameters.relations = ["user", "game"];
+          findParameters.relations = toFindOptionsRelations<Progress>([
+            "user",
+            "game",
+          ]);
         } else if (Array.isArray(options.loadRelations))
-          findParameters.relations = options.loadRelations;
+          findParameters.relations = toFindOptionsRelations<Progress>(
+            options.loadRelations,
+          );
       }
 
       if (options.loadDeletedEntities) {
@@ -169,7 +179,7 @@ export class ProgressService implements OnApplicationBootstrap {
 
       if (options.filterByAge) {
         if (!options.loadRelations) {
-          findParameters.relations = ["game"];
+          findParameters.relations = toFindOptionsRelations<Progress>(["game"]);
         }
         findParameters.where = {
           user: { id: userId },

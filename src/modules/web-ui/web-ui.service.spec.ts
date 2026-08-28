@@ -78,7 +78,7 @@ describe("WebUIService", () => {
       expect(ensureSpy).toHaveBeenCalledWith("16.3.0");
     });
 
-    it("should fallback to unstable when no compatible stable release is found", async () => {
+    it("should fallback to nearest newer stable when no compatible stable release is found", async () => {
       const config = jest.requireMock("../../configuration").default;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
@@ -91,6 +91,27 @@ describe("WebUIService", () => {
       jest.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [{ tag_name: "17.0.0" }, { tag_name: "unstable" }],
+      } as Response);
+
+      await service.prepareFrontend();
+
+      expect((service as any).compatibleVersion).toBe("17.0.0");
+      expect(ensureSpy).toHaveBeenCalledWith("17.0.0");
+    });
+
+    it("should fallback to unstable when no stable releases are available", async () => {
+      const config = jest.requireMock("../../configuration").default;
+      config.WEB_UI.VERSION = undefined;
+      config.SERVER.VERSION = "16.3.0";
+
+      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = jest
+        .spyOn(service as any, "ensureFrontendCached")
+        .mockResolvedValue(undefined);
+
+      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+        ok: true,
+        json: async () => [{ tag_name: "unstable" }],
       } as Response);
 
       await service.prepareFrontend();
@@ -182,10 +203,21 @@ describe("WebUIService", () => {
       expect(release).toBeNull();
     });
 
+    it("should pick latest patch when server and release minors match", () => {
+      const release = (service as any).selectCompatibleRelease("16.3.2", [
+        { tag_name: "16.3.9" },
+        { tag_name: "16.3.1" },
+        { tag_name: "16.2.9" },
+        { tag_name: "unstable" },
+      ]);
+
+      expect(release).toEqual({ tag_name: "16.3.9" });
+    });
+
     it("should throw when fallback unstable release is missing", () => {
       expect(() =>
         (service as any).getCompatibleOrFallbackRelease("16.3.0", [
-          { tag_name: "17.0.0" },
+          { tag_name: "15.9.0" },
         ]),
       ).toThrow("No unstable release found");
     });

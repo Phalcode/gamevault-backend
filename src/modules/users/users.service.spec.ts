@@ -125,7 +125,9 @@ describe("UsersService", () => {
       await service.findOneByUserIdOrFail(1);
       expect(userRepository.findOneOrFail).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: expect.arrayContaining(["progresses"]),
+          relations: expect.objectContaining({
+            progresses: { game: { metadata: { cover: true } } },
+          }),
         }),
       );
     });
@@ -139,7 +141,7 @@ describe("UsersService", () => {
       });
       expect(userRepository.findOneOrFail).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: [],
+          relations: undefined,
         }),
       );
     });

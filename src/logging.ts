@@ -68,10 +68,14 @@ const stream = {
 };
 
 function logGamevaultGame(game: GamevaultGame) {
+  const resolvedPath =
+    game?.file_path ||
+    game?.versions?.find((version) => !!version.file_path)?.file_path;
+
   return {
     id: game?.id,
     title: game?.title,
-    file_path: game?.file_path,
+    file_path: resolvedPath,
   };
 }
 

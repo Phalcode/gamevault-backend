@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { FindOptions } from "../../../globals";
+import { FindOptions, toFindOptionsRelations } from "../../../globals";
 import logger from "../../../logging";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service";
@@ -29,14 +29,20 @@ export class GameMetadataService {
     provider_slug: string = "gamevault",
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<GameMetadata[]> {
-    let relations = [];
+    let relationPaths: string[] = [];
 
     if (options.loadRelations) {
       if (options.loadRelations === true) {
-        relations = ["developers", "publishers", "genres", "tags"];
+        relationPaths = ["developers", "publishers", "genres", "tags"];
       } else if (Array.isArray(options.loadRelations))
-        relations = options.loadRelations;
+        relationPaths = options.loadRelations;
     }
+
+    const relations =
+      relationPaths.length > 0
+        ? toFindOptionsRelations<GameMetadata>(relationPaths)
+        : undefined;
+
     return this.gameMetadataRepository.find({
       where: { provider_slug },
       relations,
@@ -50,14 +56,19 @@ export class GameMetadataService {
     options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
   ): Promise<GameMetadata> {
     try {
-      let relations = [];
+      let relationPaths: string[] = [];
 
       if (options.loadRelations) {
         if (options.loadRelations === true) {
-          relations = ["developers", "publishers", "genres", "tags"];
+          relationPaths = ["developers", "publishers", "genres", "tags"];
         } else if (Array.isArray(options.loadRelations))
-          relations = options.loadRelations;
+          relationPaths = options.loadRelations;
       }
+
+      const relations =
+        relationPaths.length > 0
+          ? toFindOptionsRelations<GameMetadata>(relationPaths)
+          : undefined;
 
       return await this.gameMetadataRepository.findOneOrFail({
         where: { id },

@@ -3,9 +3,15 @@ import { StatusService } from "./status.service";
 
 describe("StatusService", () => {
   let service: StatusService;
+  let mockServerService: { getServerUuid: jest.Mock };
 
   beforeEach(() => {
-    service = new StatusService();
+    mockServerService = {
+      getServerUuid: jest
+        .fn()
+        .mockReturnValue("550e8400-e29b-41d4-a716-446655440000"),
+    };
+    service = new StatusService(mockServerService as any);
   });
 
   describe("constructor", () => {
@@ -20,6 +26,11 @@ describe("StatusService", () => {
       expect(status.protocol.length).toBeGreaterThanOrEqual(1);
       expect(status.protocol[0].status).toBe(StatusEnum.HEALTHY);
       expect(status.protocol[0].reason).toBe("Server started successfully");
+    });
+
+    it("should include a server_uuid", () => {
+      const status = service.getExtensive();
+      expect(status.server_uuid).toBe("550e8400-e29b-41d4-a716-446655440000");
     });
   });
 
@@ -37,6 +48,12 @@ describe("StatusService", () => {
       const result = service.getExtensive();
       expect(Array.isArray(result.protocol)).toBe(true);
     });
+
+    it("should include server_uuid", () => {
+      const result = service.getExtensive();
+      expect(result).toHaveProperty("server_uuid");
+      expect(result.server_uuid).toBe("550e8400-e29b-41d4-a716-446655440000");
+    });
   });
 
   describe("get", () => {
@@ -46,6 +63,12 @@ describe("StatusService", () => {
       expect(result).toHaveProperty("version");
       expect(result.protocol).toBeUndefined();
       expect(result.uptime).toBeUndefined();
+    });
+
+    it("should include server_uuid (public field)", () => {
+      const result = service.get();
+      expect(result).toHaveProperty("server_uuid");
+      expect(result.server_uuid).toBe("550e8400-e29b-41d4-a716-446655440000");
     });
   });
 

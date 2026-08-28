@@ -2,7 +2,6 @@ import { DataSource } from "typeorm";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 export const dataSource = new DataSource({
-  name: "sqlite",
   type: "better-sqlite3",
   database: ".local/db/database.sqlite",
   entities: ["dist/**/*.*entity.js"],

@@ -22,7 +22,7 @@ export class ApiKeyService {
 
   async findApiKeyOrFail(userId: number): Promise<string> {
     const user = await this.userRepository.findOneOrFail({
-      select: ["id", "api_key"],
+      select: { id: true, api_key: true },
       where: { id: userId },
       relationLoadStrategy: "query",
     });

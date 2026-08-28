@@ -5,6 +5,7 @@ import {
 import { Repository } from "typeorm";
 import { GameMetadataService } from "../metadata/games/game.metadata.service";
 import { MetadataService } from "../metadata/metadata.service";
+import { GameVersion } from "./game-version.entity";
 import { GamesService } from "./games.service";
 import { GamevaultGame } from "./gamevault-game.entity";
 import { GameExistence } from "./models/game-existence.enum";
@@ -13,6 +14,7 @@ import { GameType } from "./models/game-type.enum";
 describe("GamesService", () => {
   let service: GamesService;
   let gamesRepository: jest.Mocked<Repository<GamevaultGame>>;
+  let gameVersionRepository: jest.Mocked<Repository<GameVersion>>;
   let metadataService: jest.Mocked<MetadataService>;
   let gameMetadataService: jest.Mocked<GameMetadataService>;
 
@@ -55,8 +57,13 @@ describe("GamesService", () => {
       save: jest.fn(),
     } as any;
 
+    gameVersionRepository = {
+      findOne: jest.fn(),
+    } as any;
+
     service = new GamesService(
       gamesRepository,
+      gameVersionRepository,
       metadataService,
       gameMetadataService,
     );
@@ -178,7 +185,7 @@ describe("GamesService", () => {
       await service.find({ loadDeletedEntities: false, loadRelations: true });
       expect(gamesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
-          relations: expect.arrayContaining(["progresses"]),
+          relations: expect.objectContaining({ progresses: { user: true } }),
         }),
       );
     });
@@ -210,11 +217,54 @@ describe("GamesService", () => {
   describe("checkIfExistsInDatabase", () => {
     it("should return DOES_NOT_EXIST when game is new", async () => {
       const game = createMockGame();
-      gamesRepository.findOne
-        .mockResolvedValueOnce(null) // by file_path
-        .mockResolvedValueOnce(null); // by title+release_date
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([]); // by title candidates
       const [existence] = await service.checkIfExistsInDatabase(game);
       expect(existence).toBe(GameExistence.DOES_NOT_EXIST);
+    });
+
+    it("should not merge year-tagged games across different years", async () => {
+      const game = createMockGame({
+        release_date: new Date("2025-01-01T00:00:00.000Z"),
+      });
+
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([
+        createMockGame({ release_date: new Date("2013-01-01T00:00:00.000Z") }),
+      ]); // same title, different year
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+      expect(existence).toBe(GameExistence.DOES_NOT_EXIST);
+    });
+
+    it("should merge year-tagged game when title and release year match", async () => {
+      const game = createMockGame({
+        release_date: new Date("2025-01-01T00:00:00.000Z"),
+      });
+
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([
+        createMockGame({
+          release_date: new Date("2025-06-15T00:00:00.000Z"),
+          deleted_at: null,
+        }),
+      ]);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+      expect(existence).toBe(GameExistence.EXISTS);
+    });
+
+    it("should merge no-year game into no-year title bucket", async () => {
+      const game = createMockGame({ release_date: undefined });
+
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([
+        createMockGame({ release_date: new Date("2020-01-01T00:00:00.000Z") }),
+        createMockGame({ release_date: undefined, deleted_at: null }),
+      ]);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+      expect(existence).toBe(GameExistence.EXISTS);
     });
 
     it("should return EXISTS when game is identical", async () => {

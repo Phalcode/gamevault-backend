@@ -7,9 +7,15 @@ import { StatusService } from "./status.service";
 describe("StatusController", () => {
   let controller: StatusController;
   let service: StatusService;
+  let mockServerService: { getServerUuid: jest.Mock };
 
   beforeEach(() => {
-    service = new StatusService();
+    mockServerService = {
+      getServerUuid: jest
+        .fn()
+        .mockReturnValue("550e8400-e29b-41d4-a716-446655440000"),
+    };
+    service = new StatusService(mockServerService as any);
     controller = new StatusController(service);
   });
 
@@ -19,6 +25,7 @@ describe("StatusController", () => {
       user.role = Role.USER;
       const result = await controller.getStatus({ user });
       expect(result).toHaveProperty("status", StatusEnum.HEALTHY);
+      expect(result).toHaveProperty("server_uuid");
       expect(result.protocol).toBeUndefined();
       expect(result.uptime).toBeUndefined();
     });
@@ -28,6 +35,7 @@ describe("StatusController", () => {
       user.role = Role.ADMIN;
       const result = await controller.getStatus({ user });
       expect(result).toHaveProperty("status", StatusEnum.HEALTHY);
+      expect(result).toHaveProperty("server_uuid");
       expect(result).toHaveProperty("protocol");
       expect(result).toHaveProperty("uptime");
     });
@@ -36,6 +44,7 @@ describe("StatusController", () => {
       const user = new GamevaultUser();
       user.role = Role.GUEST;
       const result = await controller.getStatus({ user });
+      expect(result).toHaveProperty("server_uuid");
       expect(result.protocol).toBeUndefined();
       expect(result.uptime).toBeUndefined();
     });
@@ -43,6 +52,7 @@ describe("StatusController", () => {
     it("should return basic status when request is null", async () => {
       const result = await controller.getStatus(null);
       expect(result).toHaveProperty("status", StatusEnum.HEALTHY);
+      expect(result).toHaveProperty("server_uuid");
       expect(result.protocol).toBeUndefined();
       expect(result.uptime).toBeUndefined();
     });
@@ -50,7 +60,18 @@ describe("StatusController", () => {
     it("should return basic status when user is undefined", async () => {
       const result = await controller.getStatus({ user: undefined } as any);
       expect(result).toHaveProperty("status", StatusEnum.HEALTHY);
+      expect(result).toHaveProperty("server_uuid");
       expect(result.protocol).toBeUndefined();
+    });
+
+    it("should include server_uuid for all auth levels", async () => {
+      const roles = [Role.GUEST, Role.USER, Role.EDITOR, Role.ADMIN];
+      for (const role of roles) {
+        const user = new GamevaultUser();
+        user.role = role;
+        const result = await controller.getStatus({ user });
+        expect(result).toHaveProperty("server_uuid");
+      }
     });
 
     it("should return extensive status for editor users (role < ADMIN)", async () => {

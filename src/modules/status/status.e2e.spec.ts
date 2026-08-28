@@ -1,9 +1,24 @@
-import { INestApplication } from "@nestjs/common";
+import { Global, INestApplication, Module } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { AddressInfo } from "net";
 
 import configuration from "../../configuration";
+import { ServerService } from "../server/server.service";
 import { StatusModule } from "./status.module";
+
+const MOCK_SERVER_UUID = "550e8400-e29b-41d4-a716-446655440000";
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: ServerService,
+      useValue: { getServerUuid: () => MOCK_SERVER_UUID },
+    },
+  ],
+  exports: [ServerService],
+})
+class MockServerModule {}
 
 describe("/api/status", () => {
   let app: INestApplication;
@@ -11,7 +26,7 @@ describe("/api/status", () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [StatusModule],
+      imports: [MockServerModule, StatusModule],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -33,6 +48,7 @@ describe("/api/status", () => {
     expect(response.status).toBe(200);
     expect(payload).toHaveProperty("status", "HEALTHY");
     expect(payload).toHaveProperty("version", configuration.SERVER.VERSION);
+    expect(payload).toHaveProperty("server_uuid", MOCK_SERVER_UUID);
     expect(payload).not.toHaveProperty("protocol");
     expect(payload).not.toHaveProperty("uptime");
   });
