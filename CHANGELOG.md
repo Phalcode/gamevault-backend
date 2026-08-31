@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 17.1.0
+
+### Changes
+
+- Fixed progress deletion authorization: the permission check now verifies the *requesting* user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
+
 ## 17.0.0
 
 ### Breaking Changes & Migration
