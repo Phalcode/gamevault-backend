@@ -375,17 +375,21 @@ describe("UsersService", () => {
   });
 
   describe("checkIfUsernameMatchesIdOrIsAdminOrThrow", () => {
-    it("should return true for admin users", async () => {
-      const adminUser = createMockUser({ role: Role.ADMIN });
-      userRepository.findOneOrFail.mockResolvedValue(adminUser);
+    it("should allow an admin executor to modify any user's data", async () => {
+      jest
+        .spyOn(service, "checkIfUsernameIsAtLeastRole")
+        .mockResolvedValue(true);
       const result = await service.checkIfUsernameMatchesIdOrIsAdminOrThrow(
         1,
-        "testuser",
+        "adminuser",
       );
       expect(result).toBe(true);
     });
 
     it("should return true when username matches", async () => {
+      jest
+        .spyOn(service, "checkIfUsernameIsAtLeastRole")
+        .mockResolvedValue(false);
       const user = createMockUser({ username: "testuser" });
       userRepository.findOneOrFail.mockResolvedValue(user);
       const result = await service.checkIfUsernameMatchesIdOrIsAdminOrThrow(
@@ -396,6 +400,9 @@ describe("UsersService", () => {
     });
 
     it("should throw ForbiddenException for mismatched non-admin user", async () => {
+      jest
+        .spyOn(service, "checkIfUsernameIsAtLeastRole")
+        .mockResolvedValue(false);
       const user = createMockUser({ username: "testuser", role: Role.USER });
       userRepository.findOneOrFail.mockResolvedValue(user);
       await expect(

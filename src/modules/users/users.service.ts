@@ -469,10 +469,11 @@ export class UsersService implements OnApplicationBootstrap {
     if (!username) {
       throw new UnauthorizedException("No Authorization provided");
     }
-    const user = await this.findOneByUserIdOrFail(userId);
-    if (user.role === Role.ADMIN) {
+    // Administrators may modify any user's data.
+    if (await this.checkIfUsernameIsAtLeastRole(username, Role.ADMIN)) {
       return true;
     }
+    const user = await this.findOneByUserIdOrFail(userId);
     if (toLower(user.username) !== toLower(username)) {
       throw new ForbiddenException(
         {
