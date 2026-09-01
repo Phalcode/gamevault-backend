@@ -2,6 +2,10 @@
 
 ## 17.0.1
 
+### Breaking Changes & Migration
+
+- The backend now requires plugins to be compiled as ESM: plugins built for the pre-ESM (CommonJS) backend no longer load, and relative imports must include explicit `.js` extensions. -> **Rebuild any custom plugins together with the backend (`pnpm build`), fix relative imports to include `.js`, and use `export default` for the plugin module class. See example plugin for details.**
+
 ### Changes
 
 - Fixed re-indexing overwriting user-defined game titles and sort titles: the indexer now only derives `title`/`sort_title` from the file name when the user has not overridden them, so custom sort titles survive every re-index (startup, scheduled index, integrity checks).
