@@ -389,11 +389,17 @@ export class FilesService implements OnApplicationBootstrap {
 
     const gamePatch = Object.assign(new GamevaultGame(), { id });
     this.applyVersionToGame(gamePatch, selectedVersion);
-    gamePatch.title = indexedGame.title;
-    gamePatch.sort_title = this.gamesService.generateSortTitle(
-      indexedGame.title ?? "",
-    );
     gamePatch.download_count = gameToUpdate.download_count;
+
+    // Only (re)derive title/sort title from the file name when the game has
+    // no user-provided metadata. Otherwise re-indexing (e.g. after an upgrade)
+    // would clobber user-defined titles and sort titles (v17 regression).
+    if (!gameToUpdate.user_metadata) {
+      gamePatch.title = indexedGame.title;
+      gamePatch.sort_title = this.gamesService.generateSortTitle(
+        indexedGame.title ?? "",
+      );
+    }
 
     // Persist only scalar game fields to avoid relation graph side effects.
     await this.gamesService.save(gamePatch);

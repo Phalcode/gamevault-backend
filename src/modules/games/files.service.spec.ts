@@ -546,6 +546,52 @@ describe("FilesService", () => {
     });
   });
 
+  describe("upsertIndexedVersion", () => {
+    it("should preserve user-defined title/sort title when user metadata exists", async () => {
+      const game = {
+        id: 9,
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "My Game",
+        sort_title: "my custom sort",
+        download_count: 3,
+        user_metadata: { id: 1 },
+      } as any;
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+
+      await (service as any).upsertIndexedVersion(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game (v2)",
+        sort_title: "game (v2)",
+      });
+
+      const patch = gamesService.save.mock.calls.at(-1)?.[0];
+      expect(patch!.title).toBeUndefined();
+      expect(patch!.sort_title).toBeUndefined();
+    });
+
+    it("should derive title/sort title from the file when no user metadata exists", async () => {
+      const game = {
+        id: 9,
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game",
+        sort_title: "game",
+        download_count: 0,
+        user_metadata: undefined,
+      } as any;
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+
+      await (service as any).upsertIndexedVersion(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game (v2)",
+        sort_title: "game (v2)",
+      });
+
+      const patch = gamesService.save.mock.calls.at(-1)?.[0];
+      expect(patch!.title).toBe("Game (v2)");
+      expect(patch!.sort_title).toBe("game (v2)");
+    });
+  });
+
   describe("search exclude regex filters", () => {
     it("should exclude files matching GAMES_SEARCH_EXCLUDE_FILE_REGEX", () => {
       configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = /sample/i;
