@@ -3,6 +3,10 @@
     "@types/node": {
       "versions": ">24.0.0",
       "reason": "LTS is 24"
+    },
+    "typescript": {
+      "versions": ">6",
+      "reason": "Nest-CLI incompability"
     }
   }
 }

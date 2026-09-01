@@ -111,7 +111,7 @@
     "@types/string-similarity": "^4.0.2",
     "@types/unidecode": "^1.1.0",
     "@vitest/coverage-v8": "^4.1.11",
-    "oxlint": "^1.80.0",
+    "oxlint": "^1.81.0",
     "prettier": "^3.9.6",
     "prettier-plugin-jsdoc": "^1.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
