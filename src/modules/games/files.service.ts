@@ -32,7 +32,6 @@ import globals, { toFindOptionsRelations } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
 import { MetadataService } from "../metadata/metadata.service.js";
 import { GameVersion } from "./game-version.entity.js";
-import mock from "./games.mock.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
 import { File } from "./models/file.model.js";
@@ -1018,7 +1017,9 @@ export class FilesService implements OnApplicationBootstrap {
    */
   private async readAllFiles(): Promise<File[]> {
     try {
-      if (configuration.TESTING.MOCK_FILES) return mock;
+      if (configuration.TESTING.MOCK_FILES) {
+        return (await import("../../testing/games.mock.js")).default;
+      }
 
       const { readdirp } = await import("readdirp");
 

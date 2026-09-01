@@ -1,13 +1,5 @@
 {
   "ignore": {
-    "fastify": {
-      "versions": ">4",
-      "reason": "NestJS Paginate Compatibility"
-    },
-    "logform": {
-      "versions": ">2.6.1",
-      "reason": "Remove when https://github.com/winstonjs/logform/issues/336 is fixed"
-    },
     "@types/node": {
       "versions": ">24.0.0",
       "reason": "LTS is 24"

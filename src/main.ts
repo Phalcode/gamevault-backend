@@ -23,7 +23,7 @@ import configuration, {
   getMaxBodySizeInBytes,
 } from "./configuration.js";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
-import { default as logger, stream, default as winston } from "./logging.js";
+import logger, { stream } from "./logging.js";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
 import loadPlugins from "./plugin.js";
 const { readFileSync } = fsExtra;
@@ -41,7 +41,7 @@ async function bootstrap(): Promise<void> {
     AppModule,
     new ExpressAdapter(server),
     {
-      logger: winston,
+      logger,
     },
   );
 
@@ -112,9 +112,6 @@ async function bootstrap(): Promise<void> {
 
   // Basepath
   app.setGlobalPrefix("api");
-
-  // Enable automatic HTTP Error Response Logging
-  app.useGlobalFilters(new LoggingExceptionFilter());
 
   // Provide API Specification
   if (configuration.WEB_UI.ENABLED) {
