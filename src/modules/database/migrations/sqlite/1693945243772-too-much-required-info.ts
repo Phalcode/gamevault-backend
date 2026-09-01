@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class TooMuchRequiredInfo1693945243772 implements MigrationInterface {
   name = "TooMuchRequiredInfo1693945243772";

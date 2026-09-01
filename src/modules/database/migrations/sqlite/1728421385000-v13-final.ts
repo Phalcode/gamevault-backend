@@ -2,7 +2,7 @@ import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
-import { In, MigrationInterface, QueryRunner } from "typeorm";
+import { In, MigrationInterface, type QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity.js";
 import { Media } from "../../../media/media.entity.js";
 import { DeveloperMetadata } from "../../../metadata/developers/developer.metadata.entity.js";
@@ -4422,7 +4422,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       const newImage = await queryRunner.manager.save(Media, {
         id: image.id,
         source_url: image.source,
-        file_path: image.path.replace("/images/", "/media/"),
+        file_path: image.path?.replace("/images/", "/media/") ?? "",
         type: image.mediaType ?? "application/octet-stream",
         uploader: image.uploader,
         created_at: image.created_at,
@@ -4452,7 +4452,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       const newTag = await queryRunner.manager.save(TagMetadata, {
         id: tag.id,
         provider_slug: this.legacyProviderSlug,
-        provider_data_id: tag.rawg_id.toString(),
+        provider_data_id: tag.rawg_id?.toString() ?? "",
         name: tag.name,
         created_at: tag.created_at,
         updated_at: tag.updated_at,
@@ -4483,7 +4483,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       const newGenre = await queryRunner.manager.save(GenreMetadata, {
         id: genre.id,
         provider_slug: this.legacyProviderSlug,
-        provider_data_id: genre.rawg_id.toString(),
+        provider_data_id: genre.rawg_id?.toString() ?? "",
         name: genre.name,
         created_at: genre.created_at,
         updated_at: genre.updated_at,
@@ -4514,7 +4514,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       const newDeveloper = await queryRunner.manager.save(DeveloperMetadata, {
         id: developer.id,
         provider_slug: this.legacyProviderSlug,
-        provider_data_id: developer.rawg_id.toString(),
+        provider_data_id: developer.rawg_id?.toString() ?? "",
         name: developer.name,
         created_at: developer.created_at,
         updated_at: developer.updated_at,
@@ -4548,7 +4548,7 @@ export class V13Final1728421385000 implements MigrationInterface {
       const newPublisher = await queryRunner.manager.save(PublisherMetadata, {
         id: publisher.id,
         provider_slug: this.legacyProviderSlug,
-        provider_data_id: publisher.rawg_id.toString(),
+        provider_data_id: publisher.rawg_id?.toString() ?? "",
         name: publisher.name,
         created_at: publisher.created_at,
         updated_at: publisher.updated_at,
@@ -4625,8 +4625,8 @@ export class V13Final1728421385000 implements MigrationInterface {
           const userMetadata = await queryRunner.manager.save(GameMetadata, {
             provider_slug: "user",
             provider_data_id: game.id?.toString(),
-            cover,
-            background,
+            cover: cover ?? undefined,
+            background: background ?? undefined,
           });
           migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
@@ -4703,9 +4703,9 @@ export class V13Final1728421385000 implements MigrationInterface {
           release_date: game.rawg_release_date,
           description: game.description,
           average_playtime: game.average_playtime,
-          cover,
-          background,
-          url_websites: [game.website_url],
+          cover: cover ?? undefined,
+          background: background ?? undefined,
+          url_websites: game.website_url ? [game.website_url] : undefined,
           rating: game.metacritic_rating,
           early_access: game.early_access,
           tags,
@@ -4799,8 +4799,8 @@ export class V13Final1728421385000 implements MigrationInterface {
         username: user.username,
         password: user.password,
         socket_secret: user.socket_secret ?? randomBytes(32).toString("hex"),
-        avatar,
-        background,
+        avatar: avatar ?? undefined,
+        background: background ?? undefined,
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
@@ -4850,10 +4850,10 @@ export class V13Final1728421385000 implements MigrationInterface {
 
       const newProgress = await queryRunner.manager.save(Progress, {
         id: progress.id,
-        user,
-        game,
+        user: user ?? undefined,
+        game: game ?? undefined,
         minutes_played: progress.minutes_played,
-        state: State[progress.state.valueOf()],
+        state: State[progress.state.valueOf() as keyof typeof State],
         last_played_at: progress.last_played_at,
         created_at: progress.created_at,
         updated_at: progress.updated_at,

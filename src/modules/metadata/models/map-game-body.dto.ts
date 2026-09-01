@@ -8,5 +8,5 @@ export class MapGameBodyDto {
       "Target id of the game this game should be mapped to from the metadata provider. Can be found in the provider's API or website.",
     example: "12345",
   })
-  provider_game_id: string;
+  provider_game_id!: string;
 }

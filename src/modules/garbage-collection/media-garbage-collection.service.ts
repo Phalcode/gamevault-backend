@@ -120,39 +120,40 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     for (const { repository, relations } of entityMediaProperties) {
       const entities = await repository.find({
         withDeleted: true,
-        relations: toFindOptionsRelations<unknown>(relations),
+        relations: toFindOptionsRelations<Record<string, unknown>>(relations),
         loadEagerRelations: false,
         relationLoadStrategy: "query",
       });
       for (const entity of entities) {
         const foundMedia: Media[] = [];
+        const entityRecord = entity as unknown as Record<string, unknown>;
         /**
          * Loop through each property of the entity and check if it contains
          * media.
          */
         for (const relation of relations) {
-          if (Array.isArray(entity[relation])) {
+          if (Array.isArray(entityRecord[relation])) {
+            const relatedMedia = entityRecord[relation] as Media[];
             this.logger.debug({
-              message: `Found ${entity[relation].length} media entities in relation.`,
+              message: `Found ${relatedMedia.length} media entities in relation.`,
               entity: entity.constructor.name,
               entity_id: entity.id,
               entity_relation: relation,
-              media_ids: entity[relation].map((media: Media) => media.id),
-              media_paths: entity[relation].map(
-                (media: Media) => media.file_path,
-              ),
+              media_ids: relatedMedia.map((media) => media.id),
+              media_paths: relatedMedia.map((media) => media.file_path),
             });
-            foundMedia.push(...entity[relation]);
-          } else if (entity[relation]) {
+            foundMedia.push(...relatedMedia);
+          } else if (entityRecord[relation]) {
+            const media = entityRecord[relation] as Media;
             this.logger.debug({
               message: `Found 1 media entity in relation.`,
               entity: entity.constructor.name,
               entity_id: entity.id,
               entity_relation: relation,
-              media_id: entity[relation].id,
-              media_path: entity[relation].file_path,
+              media_id: media.id,
+              media_path: media.file_path,
             });
-            foundMedia.push(entity[relation]);
+            foundMedia.push(media);
           }
         }
         /**
@@ -161,7 +162,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
         mediaPaths.push(
           ...foundMedia
             .filter((media) => media.file_path)
-            .map((media) => media.file_path),
+            .map((media) => media.file_path ?? ""),
         );
       }
     }
@@ -191,7 +192,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     // Filter out media that are not being used
     const uniqueUnusedMedia = uniq(
       uniqueAllMedia.filter(
-        (media) => !uniqueUsedMediaPaths.includes(media.file_path),
+        (media) => !uniqueUsedMediaPaths.includes(media.file_path ?? ""),
       ),
     );
 

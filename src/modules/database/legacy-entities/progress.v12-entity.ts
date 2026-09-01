@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne, Relation } from "typeorm";
+import { Column, Entity, Index, ManyToOne, type Relation } from "typeorm";
 import { State } from "../../progresses/models/state.enum.js";
 import { DatabaseEntityV12 } from "./database.v12-entity.js";
 import { GameV12 } from "./game.v12-entity.js";
@@ -28,7 +28,7 @@ export class ProgressV12 extends DatabaseEntityV12 {
     description: "playtime in minutes",
     example: 25,
   })
-  minutes_played: number;
+  minutes_played!: number;
 
   @Column({ type: "simple-enum", enum: State, default: State.UNPLAYED })
   @ApiProperty({
@@ -37,7 +37,7 @@ export class ProgressV12 extends DatabaseEntityV12 {
     enum: State,
     example: State.PLAYING,
   })
-  state: State;
+  state!: State;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({

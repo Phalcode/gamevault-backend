@@ -8,7 +8,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
-  Relation,
+  type Relation,
 } from "typeorm";
 
 import globals from "../../../globals.js";

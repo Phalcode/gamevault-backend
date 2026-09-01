@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { StringValue } from "ms";
+import { type StringValue } from "ms";
 import configuration from "../../configuration.js";
 import { UsersModule } from "../users/users.module.js";
 import { AuthenticationService } from "./authentication.service.js";

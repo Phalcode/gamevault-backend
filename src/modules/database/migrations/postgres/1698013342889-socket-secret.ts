@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class SocketSecret1698013342889 implements MigrationInterface {
   name = "SocketSecret1698013342889";

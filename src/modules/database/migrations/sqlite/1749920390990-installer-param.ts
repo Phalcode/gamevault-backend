@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class InstallerParam1749920390990 implements MigrationInterface {
   name = "InstallerParam1749920390990";

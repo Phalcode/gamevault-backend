@@ -9,7 +9,7 @@ import configurationModule from "../../configuration.js";
 import { GameMetadata } from "./games/game.metadata.entity.js";
 import { GameMetadataService } from "./games/game.metadata.service.js";
 import { MetadataService } from "./metadata.service.js";
-import { MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
+import { type MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
 import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception.js";
 
 vi.mock("../../configuration.js", async () => ({
@@ -255,9 +255,9 @@ describe("MetadataService", () => {
 
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
       mockGameMetadataService.save.mockImplementation((m) =>
-        Promise.resolve({ ...m, id: 10 }),
+        Promise.resolve({ ...m, id: 10 } as GameMetadata),
       );
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       const result = await service.merge(1);
       expect(mockGameMetadataService.save).toHaveBeenCalled();
@@ -300,9 +300,9 @@ describe("MetadataService", () => {
       service.registerProvider(createMockProvider());
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
       mockGameMetadataService.save.mockImplementation((m) =>
-        Promise.resolve({ ...m, id: 10 }),
+        Promise.resolve({ ...m, id: 10 } as GameMetadata),
       );
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.merge(1);
 
@@ -344,9 +344,9 @@ describe("MetadataService", () => {
       service.registerProvider(createMockProvider());
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
       mockGameMetadataService.save.mockImplementation((m) =>
-        Promise.resolve({ ...m, id: 10 }),
+        Promise.resolve({ ...m, id: 10 } as GameMetadata),
       );
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.merge(1);
       const savedMeta = mockGameMetadataService.save.mock.calls[0][0];
@@ -388,9 +388,9 @@ describe("MetadataService", () => {
       service.registerProvider(createMockProvider());
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
       mockGameMetadataService.save.mockImplementation((m) =>
-        Promise.resolve({ ...m, id: 10 }),
+        Promise.resolve({ ...m, id: 10 } as GameMetadata),
       );
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.merge(1);
       const savedMeta = mockGameMetadataService.save.mock.calls[0][0];
@@ -434,15 +434,15 @@ describe("MetadataService", () => {
       service.registerProvider(createMockProvider());
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
       mockGameMetadataService.save.mockImplementation((m) =>
-        Promise.resolve({ ...m, id: 10 }),
+        Promise.resolve({ ...m, id: 10 } as GameMetadata),
       );
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.merge(1);
       const savedMeta = mockGameMetadataService.save.mock.calls[0][0];
-      expect(savedMeta.genres[0].provider_slug).toBe("gamevault");
-      expect(savedMeta.genres[0].provider_data_id).toBe("action-rpg");
-      expect(savedMeta.genres[0].id).toBeUndefined();
+      expect(savedMeta.genres![0].provider_slug).toBe("gamevault");
+      expect(savedMeta.genres![0].provider_data_id).toBe("action-rpg");
+      expect(savedMeta.genres![0].id).toBeUndefined();
     });
   });
 
@@ -460,7 +460,7 @@ describe("MetadataService", () => {
         user_metadata: null,
       };
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.unmap(1, "test-provider");
 
@@ -479,7 +479,7 @@ describe("MetadataService", () => {
         user_metadata: { id: 20, provider_slug: "user" },
       };
       mockGamesService.findOneByGameIdOrFail.mockResolvedValue(game);
-      mockGamesService.save.mockImplementation((g) => Promise.resolve(g));
+      mockGamesService.save.mockImplementation((g: any) => Promise.resolve(g));
 
       await service.unmap(1, "user");
 

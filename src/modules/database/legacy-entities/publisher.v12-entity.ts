@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToMany, Relation } from "typeorm";
+import { Column, Entity, Index, ManyToMany, type Relation } from "typeorm";
 import { DatabaseEntityV12 } from "./database.v12-entity.js";
 import { GameV12 } from "./game.v12-entity.js";
 
@@ -19,7 +19,7 @@ export class PublisherV12 extends DatabaseEntityV12 {
     example: "Rockstar Games",
     description: "name of the publisher",
   })
-  name: string;
+  name!: string;
 
   @ManyToMany(() => GameV12, (game) => game.publishers)
   @ApiProperty({
@@ -27,5 +27,5 @@ export class PublisherV12 extends DatabaseEntityV12 {
     type: () => GameV12,
     isArray: true,
   })
-  games: Relation<GameV12[]>;
+  games!: Relation<GameV12[]>;
 }

@@ -1,6 +1,6 @@
 import {
   CanActivate,
-  ExecutionContext,
+  type ExecutionContext,
   ForbiddenException,
   Injectable,
   Logger,

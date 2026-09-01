@@ -5,7 +5,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  Relation,
+  type Relation,
   Unique,
 } from "typeorm";
 
@@ -23,14 +23,14 @@ export class GameVersion extends DatabaseEntity {
     description: "game associated with this version",
     type: () => GamevaultGame,
   })
-  game: Relation<GamevaultGame>;
+  game!: Relation<GamevaultGame>;
 
   @Column()
   @ApiProperty({
     description: "file path for this specific version",
     example: "/files/Action/Grand Theft Auto V (v1.0.0).zip",
   })
-  file_path: string;
+  file_path!: string;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -55,7 +55,7 @@ export class GameVersion extends DatabaseEntity {
     example: "1234567890",
     type: () => String,
   })
-  size: bigint;
+  size!: bigint;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -82,12 +82,12 @@ export class GameVersion extends DatabaseEntity {
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })
-  type: GameType;
+  type!: GameType;
 
   @Column({ default: new Date() })
   @ApiProperty({
     description: "timestamp when this version was indexed",
     example: "2026-02-15T12:00:00.000Z",
   })
-  indexed_at: Date;
+  indexed_at!: Date;
 }

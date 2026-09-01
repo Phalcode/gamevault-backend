@@ -1,11 +1,11 @@
 import {
-  ArgumentsHost,
+  type ArgumentsHost,
   Catch,
   ExceptionFilter,
   HttpException,
   Logger,
 } from "@nestjs/common";
-import { Request, Response } from "express";
+import { type Request, type Response } from "express";
 
 @Catch()
 export class LoggingExceptionFilter implements ExceptionFilter {

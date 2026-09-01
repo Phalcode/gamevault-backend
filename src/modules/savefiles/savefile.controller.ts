@@ -30,7 +30,7 @@ import bytes from "bytes";
 import configuration from "../../configuration.js";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
-import { UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
+import { type UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
 import { SavefileService } from "./savefile.service.js";
@@ -82,9 +82,14 @@ export class SavefileController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: configuration.SAVEFILES.MAX_SIZE,
+            maxSize:
+              configuration.SAVEFILES.MAX_SIZE ??
+              bytes("200mb") ??
+              Number.MAX_SAFE_INTEGER,
             message: `File exceeds maximum allowed size of ${bytes(
-              configuration.SAVEFILES.MAX_SIZE,
+              configuration.SAVEFILES.MAX_SIZE ??
+                bytes("200mb") ??
+                Number.MAX_SAFE_INTEGER,
               {
                 unit: "MB",
                 thousandsSeparator: ".",

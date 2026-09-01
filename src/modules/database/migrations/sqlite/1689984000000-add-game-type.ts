@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 import { AddDirectPlay1689638400000 } from "./1689638400000-add-direct-play.js";
 

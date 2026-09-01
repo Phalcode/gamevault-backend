@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import { type FindOptions, toFindOptionsRelations } from "../../../globals.js";
 import { PublisherMetadata } from "./publisher.metadata.entity.js";
 
 @Injectable()

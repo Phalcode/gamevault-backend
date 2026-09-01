@@ -25,7 +25,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import bytes from "bytes";
-import { Response } from "express";
+import { type Response } from "express";
 import fsExtra from "fs-extra";
 const { createReadStream, stat } = fsExtra;
 
@@ -71,13 +71,13 @@ export class MediaController {
     res.set("Cache-Control", "public, max-age=31536000, immutable");
 
     try {
-      const fileStat = await stat(media.file_path);
+      const fileStat = await stat(media.file_path ?? "");
       const etag = `W/"${fileStat.size}-${Math.floor(fileStat.mtimeMs)}"`;
       res.set("Last-Modified", fileStat.mtime.toUTCString());
       res.set("ETag", etag);
 
-      const ifNoneMatch = req.headers["if-none-match"];
-      const ifModifiedSince = req.headers["if-modified-since"];
+      const ifNoneMatch = req.headers.get("if-none-match");
+      const ifModifiedSince = req.headers.get("if-modified-since");
       const notModified =
         (ifNoneMatch != null && ifNoneMatch.includes(etag)) ||
         (ifNoneMatch == null &&
@@ -92,7 +92,7 @@ export class MediaController {
       // If statting the file fails, fall back to streaming it as before.
     }
 
-    const stream = createReadStream(media.file_path);
+    const stream = createReadStream(media.file_path ?? "");
 
     // Handle stream errors to prevent hanging responses or truncated data
     // when the file on disk is corrupt or unreadable.
@@ -148,8 +148,16 @@ export class MediaController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: configuration.MEDIA.MAX_SIZE,
-            message: `File exceeds maximum allowed size of ${bytes(configuration.MEDIA.MAX_SIZE, { unit: "MB", thousandsSeparator: "." })}.`,
+            maxSize:
+              configuration.MEDIA.MAX_SIZE ??
+              bytes("100mb") ??
+              Number.MAX_SAFE_INTEGER,
+            message: `File exceeds maximum allowed size of ${bytes(
+              configuration.MEDIA.MAX_SIZE ??
+                bytes("100mb") ??
+                Number.MAX_SAFE_INTEGER,
+              { unit: "MB", thousandsSeparator: "." },
+            )}.`,
           }),
           new FileTypeValidator({ fileType: /^(image|video|audio)\/.*/ }),
         ],

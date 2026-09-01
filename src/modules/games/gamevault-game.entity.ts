@@ -9,7 +9,7 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
-  Relation,
+  type Relation,
 } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity.js";
@@ -126,7 +126,7 @@ export class GamevaultGame extends DatabaseEntity {
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })
-  type: GameType;
+  type!: GameType;
 
   @JoinTable({
     name: "gamevault_game_provider_metadata_game_metadata",

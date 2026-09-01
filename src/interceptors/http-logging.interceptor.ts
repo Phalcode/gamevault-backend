@@ -1,12 +1,12 @@
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   Injectable,
   Logger,
   NestInterceptor,
 } from "@nestjs/common";
-import { Request, Response } from "express";
-import { Observable } from "rxjs";
+import { type Request, type Response } from "express";
+import { type Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 
 import type { AppConfiguration } from "../configuration.js";

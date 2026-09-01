@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class GamevaultServer1785146645374 implements MigrationInterface {
   name = "GamevaultServer1785146645374";

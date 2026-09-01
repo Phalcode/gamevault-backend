@@ -17,7 +17,7 @@ export class MinimalGameMetadataDto {
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
     example: "igdb",
   })
-  provider_slug: string;
+  provider_slug!: string;
 
   @ApiPropertyOptional({
     description: "id of the game from the provider",
@@ -29,7 +29,7 @@ export class MinimalGameMetadataDto {
     description: "title of the game",
     example: "Grand Theft Auto V",
   })
-  title: string;
+  title!: string;
 
   @ApiPropertyOptional({
     description: "release date of the game",

@@ -19,8 +19,8 @@ import { GamevaultGame } from "../games/gamevault-game.entity.js";
 import { GameType } from "../games/models/game-type.enum.js";
 import { GameMetadata } from "./games/game.metadata.entity.js";
 import { GameMetadataService } from "./games/game.metadata.service.js";
-import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto.js";
-import { MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
+import { type MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto.js";
+import { type MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
 import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception.js";
 
 const { kebabCase } = lodash;
@@ -132,8 +132,11 @@ export class MetadataService {
     this.isProcessingQueue = true;
 
     while (this.metadataJobs.size > 0) {
-      const [gameId, game] = this.metadataJobs.entries().next().value;
-
+      const nextJob = this.metadataJobs.entries().next().value;
+      if (!nextJob) {
+        continue;
+      }
+      const [gameId, game] = nextJob;
       try {
         await this.updateMetadata(game);
       } catch (error) {
@@ -159,11 +162,11 @@ export class MetadataService {
    * @param game The game to update the metadata for.
    * @returns The updated game.
    */
-  private async updateMetadata(game: GamevaultGame): Promise<void> {
+  private async updateMetadata(game: GamevaultGame | undefined): Promise<void> {
     if (!game) {
       this.logger.error({
         message: "Corresponding metadata-job was not found",
-        game: { id: game.id },
+        game: undefined,
       });
       throw new NotFoundException("Corresponding metadata-job was not found");
     }
@@ -175,13 +178,11 @@ export class MetadataService {
 
     const versionPaths = (game.versions || [])
       .map((version) => version.file_path)
-      .filter((path) => !!path);
+      .filter((path): path is string => !!path);
     const candidatePaths =
       versionPaths.length > 0
         ? versionPaths
-        : [game.file_path].filter((path) => !!path);
-
-    // If any known game path contains "(NC)", skip the metadata update.
+        : [game.file_path].filter((path): path is string => !!path);
     if (candidatePaths.some((path) => path.includes("(NC)"))) {
       this.logger.debug({
         message: "Skipping metadata update for (NC) game.",
@@ -206,7 +207,7 @@ export class MetadataService {
             existingProviderMetadata.created_at) >
             new Date(
               Date.now() -
-                this.config.METADATA.TTL_IN_DAYS * 24 * 60 * 60 * 1000,
+                (this.config.METADATA.TTL_IN_DAYS ?? 30) * 24 * 60 * 60 * 1000,
             )
         ) {
           this.logger.debug({
@@ -232,7 +233,7 @@ export class MetadataService {
           await this.map(
             game.id,
             provider.slug,
-            existingProviderMetadata.provider_data_id,
+            existingProviderMetadata.provider_data_id ?? "",
           );
         } else {
           // If the existing provider metadata is not found, find the metadata.
@@ -265,7 +266,11 @@ export class MetadataService {
     });
     try {
       const bestMatchingGame = await provider.getBestMatch(game);
-      await this.map(game.id, provider.slug, bestMatchingGame.provider_data_id);
+      await this.map(
+        game.id,
+        provider.slug,
+        bestMatchingGame.provider_data_id ?? "",
+      );
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.debug({
@@ -426,10 +431,10 @@ export class MetadataService {
     const sortedProviders = providerMetadata.toSorted((a, b) => {
       const priorityA =
         a.provider_priority ??
-        this.getProviderBySlugOrFail(a.provider_slug).priority;
+        this.getProviderBySlugOrFail(a.provider_slug ?? "").priority;
       const priorityB =
         b.provider_priority ??
-        this.getProviderBySlugOrFail(b.provider_slug).priority;
+        this.getProviderBySlugOrFail(b.provider_slug ?? "").priority;
       return priorityA - priorityB;
     });
 
@@ -546,7 +551,7 @@ export class MetadataService {
       provider_slug: "gamevault",
       provider_data_id: gameId.toString(),
       provider_priority: null,
-    } as GameMetadata;
+    } as unknown as GameMetadata;
 
     // Normalize relation entities to use gamevault as provider
     this.normalizeRelations(result.genres, "gamevault");
@@ -606,8 +611,8 @@ export class MetadataService {
     });
 
     // Clear the effective metadata.
-    game.provider_metadata = game.provider_metadata.filter(
-      (metadata) => metadata.provider_slug !== providerSlug,
+    game.provider_metadata = (game.provider_metadata ?? []).filter(
+      (metadata: GameMetadata) => metadata.provider_slug !== providerSlug,
     );
     this.logger.log({
       message: "Unmapped metadata provider from a game.",
@@ -684,7 +689,11 @@ export class MetadataService {
       });
 
       // Only add the metadata if it's not already associated with the game
-      if (!game.provider_metadata.some((m) => m.id === gameMetadata.id)) {
+      if (
+        !(game.provider_metadata ?? []).some(
+          (m: GameMetadata) => m.id === gameMetadata.id,
+        )
+      ) {
         this.logger.debug({
           message: "Adding new metadata provider mapping to game",
           game: logGamevaultGame(game),

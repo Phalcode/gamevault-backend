@@ -1,10 +1,10 @@
-import { TypeOrmModuleOptions } from "@nestjs/typeorm";
+import { type TypeOrmModuleOptions } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
 import pg from "pg";
-import { TlsOptions } from "tls";
+import { type TlsOptions } from "tls";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
-import { PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions.js";
+import { type BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
+import { type PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions.js";
 const { readFileSync } = fsExtra;
 
 import type { AppConfiguration } from "../../configuration.js";
@@ -64,7 +64,9 @@ function preparePostgresConnector() {
   pg.defaults.parseInputDatesAsUTC = true;
 }
 
-function getPostgresTlsOptions(configuration: AppConfiguration): TlsOptions {
+function getPostgresTlsOptions(
+  configuration: AppConfiguration,
+): TlsOptions | undefined {
   if (!configuration.DB.TLS.ENABLED) {
     return undefined;
   }

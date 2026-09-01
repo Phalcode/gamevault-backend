@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class RemoveNotNullConstraints1693526400000 implements MigrationInterface {
   name = "RemoveNotNullConstraints1693526400000";

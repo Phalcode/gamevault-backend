@@ -1,28 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Paginated } from "nestjs-paginate";
-import { Column, type SortBy } from "nestjs-paginate/lib/helper.js";
+import { type Column, type SortBy } from "nestjs-paginate/lib/helper.js";
 
 export class Metadata<T> {
   @ApiProperty({ example: 50, description: "amount of items per page" })
-  itemsPerPage: number;
+  itemsPerPage!: number;
   @ApiProperty({ example: 5000, description: "total amount of items" })
-  totalItems: number;
+  totalItems!: number;
   @ApiProperty({ example: 5, description: "current page number" })
-  currentPage: number;
+  currentPage!: number;
   @ApiProperty({ example: 12, description: "total number of pages" })
-  totalPages: number;
+  totalPages!: number;
   @ApiProperty({ description: "sorting that was applied by the query" })
-  sortBy: SortBy<T>;
+  sortBy!: SortBy<T>;
   @ApiPropertyOptional({
     description: "searches that were applied by the query",
     type: () => String,
     isArray: true,
   })
-  searchBy: Column<T>[];
+  searchBy!: Column<T>[];
   @ApiPropertyOptional({ description: "search query" })
-  search: string;
+  search!: string;
   @ApiPropertyOptional({ description: "select string" })
-  select: string[];
+  select!: string[];
   @ApiPropertyOptional({
     description: "filters that were applied by the query",
   })
@@ -49,7 +49,7 @@ export class Links {
       "http://localhost:8080/games?limit=5&page=2&sortBy=title:DESC&search=i&filter.early_access=$not:true",
     description: "current page",
   })
-  current: string;
+  current!: string;
   @ApiPropertyOptional({
     example:
       "http://localhost:8080/games?limit=5&page=3&sortBy=title:DESC&search=i&filter.early_access=$not:true",
@@ -65,9 +65,9 @@ export class Links {
 }
 
 export class PaginatedEntity<T> implements Paginated<T> {
-  data: T[];
+  data!: T[];
   @ApiProperty({ description: "metadata of this list", type: () => Metadata })
-  meta: Metadata<T>;
+  meta!: Metadata<T>;
   @ApiProperty({ description: "links to related queries", type: () => Links })
-  links: Links;
+  links!: Links;
 }

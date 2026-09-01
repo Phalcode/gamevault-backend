@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class NonUniqueImageSources1694219968449 implements MigrationInterface {
   name = "NonUniqueImageSources1694219968449";

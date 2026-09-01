@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
+import { type ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
 import type { AppConfiguration } from "../../../configuration.js";

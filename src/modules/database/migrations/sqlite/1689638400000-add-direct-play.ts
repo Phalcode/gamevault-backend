@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class AddDirectPlay1689638400000 implements MigrationInterface {
   name = "AddDirectPlay1689638400000";

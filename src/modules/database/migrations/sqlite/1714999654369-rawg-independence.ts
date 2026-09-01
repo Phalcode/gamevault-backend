@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class RawgIndependence1714999654369 implements MigrationInterface {
   name = "RawgIndependence1714999654369";

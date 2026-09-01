@@ -1,12 +1,12 @@
 import {
   Injectable,
   Logger,
-  StreamableFile,
+  type StreamableFile,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
 import { randomBytes } from "crypto";
-import { Response } from "express";
+import { type Response } from "express";
 import ms from "ms";
 import { FilesService } from "./../games/files.service.js";
 import Otp from "./models/otp.model.js";
@@ -58,7 +58,7 @@ export class OtpService {
     this.otps.delete(otp);
     return this.filesService.download(
       response,
-      existingOtp.gameId,
+      existingOtp.gameId ?? 0,
       existingOtp.versionId,
       existingOtp.xDownloadSpeedLimit,
       undefined,

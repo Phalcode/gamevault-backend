@@ -9,15 +9,16 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import lodash from "lodash";
 import {
-  FindManyOptions,
-  FindOneOptions,
+  type DeepPartial,
+  type FindManyOptions,
+  type FindOneOptions,
   IsNull,
   LessThanOrEqual,
   Or,
   Repository,
 } from "typeorm";
 import {
-  FindOptions,
+  type FindOptions,
   toFindOptionsRelations,
   toFindOptionsSelect,
 } from "../../globals.js";
@@ -32,9 +33,9 @@ import { TagMetadata } from "../metadata/tags/tag.metadata.entity.js";
 import { GameVersion } from "./game-version.entity.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
 import { GameExistence } from "./models/game-existence.enum.js";
-import { UpdateGameDto } from "./models/update-game.dto.js";
+import { type UpdateGameDto } from "./models/update-game.dto.js";
 
-const { isEmpty, kebabCase, toLower } = lodash;
+const { kebabCase, toLower } = lodash;
 
 @Injectable()
 export class GamesService {
@@ -216,7 +217,8 @@ export class GamesService {
         game: logGamevaultGame(game),
         user_metadata: dto.user_metadata,
       });
-      const updatedUserMetadata = game.user_metadata || new GameMetadata();
+      const updatedUserMetadata: DeepPartial<GameMetadata> =
+        game.user_metadata || new GameMetadata();
 
       updatedUserMetadata.id = updatedUserMetadata.id || undefined;
       updatedUserMetadata.provider_slug = "user";
@@ -322,8 +324,9 @@ export class GamesService {
         updatedUserMetadata.url_gameplays = dto.user_metadata.url_gameplays;
       }
 
-      if (!isEmpty(dto.user_metadata.tags)) {
-        updatedUserMetadata.tags = dto.user_metadata.tags.map((tag) => {
+      const tags = dto.user_metadata.tags;
+      if (tags?.length) {
+        updatedUserMetadata.tags = tags.map((tag) => {
           return {
             provider_slug: "user",
             provider_data_id: kebabCase(tag),
@@ -332,8 +335,9 @@ export class GamesService {
         });
       }
 
-      if (!isEmpty(dto.user_metadata.genres)) {
-        updatedUserMetadata.genres = dto.user_metadata.genres.map((genre) => {
+      const genres = dto.user_metadata.genres;
+      if (genres?.length) {
+        updatedUserMetadata.genres = genres.map((genre) => {
           return {
             provider_slug: "user",
             provider_data_id: kebabCase(genre),
@@ -342,28 +346,26 @@ export class GamesService {
         });
       }
 
-      if (!isEmpty(dto.user_metadata.developers)) {
-        updatedUserMetadata.developers = dto.user_metadata.developers.map(
-          (developer) => {
-            return {
-              provider_slug: "user",
-              provider_data_id: kebabCase(developer),
-              name: developer,
-            } as DeveloperMetadata;
-          },
-        );
+      const developers = dto.user_metadata.developers;
+      if (developers?.length) {
+        updatedUserMetadata.developers = developers.map((developer) => {
+          return {
+            provider_slug: "user",
+            provider_data_id: kebabCase(developer),
+            name: developer,
+          } as DeveloperMetadata;
+        });
       }
 
-      if (!isEmpty(dto.user_metadata.publishers)) {
-        updatedUserMetadata.publishers = dto.user_metadata.publishers.map(
-          (publisher) => {
-            return {
-              provider_slug: "user",
-              provider_data_id: kebabCase(publisher),
-              name: publisher,
-            } as PublisherMetadata;
-          },
-        );
+      const publishers = dto.user_metadata.publishers;
+      if (publishers?.length) {
+        updatedUserMetadata.publishers = publishers.map((publisher) => {
+          return {
+            provider_slug: "user",
+            provider_data_id: kebabCase(publisher),
+            name: publisher,
+          } as PublisherMetadata;
+        });
       }
 
       game.user_metadata =
@@ -395,7 +397,7 @@ export class GamesService {
   /** Checks if a game exists in the database. */
   public async checkIfExistsInDatabase(
     game: GamevaultGame,
-  ): Promise<[GameExistence, GamevaultGame]> {
+  ): Promise<[GameExistence, GamevaultGame | undefined]> {
     if (!game.file_path || !game.title) {
       throw new InternalServerErrorException(
         game,
@@ -421,15 +423,15 @@ export class GamesService {
     }
 
     if (!foundGame) {
-      foundGame = await this.gamesRepository.findOne({
-        relationLoadStrategy: "query",
-        where: {
-          file_path: game.file_path,
-        },
-        relations: this.defaultRelations,
-        withDeleted: true,
-      });
-
+      foundGame =
+        (await this.gamesRepository.findOne({
+          relationLoadStrategy: "query",
+          where: {
+            file_path: game.file_path,
+          },
+          relations: this.defaultRelations,
+          withDeleted: true,
+        })) ?? undefined;
       if (foundGame) {
         this.logger.debug({
           message: "Matched indexed game by legacy game file path.",
@@ -558,11 +560,11 @@ export class GamesService {
       );
     }
     if (
-      (matchedVersion?.size ?? foundGame.size).toString() !=
-      game.size.toString()
+      (matchedVersion?.size ?? foundGame.size ?? 0).toString() !=
+      (game.size ?? 0).toString()
     ) {
       differences.push(
-        `size: ${(matchedVersion?.size ?? foundGame.size).toString()} -> ${game.size}`,
+        `size: ${(matchedVersion?.size ?? foundGame.size ?? 0).toString()} -> ${game.size}`,
       );
     }
 

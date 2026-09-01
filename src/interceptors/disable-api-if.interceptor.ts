@@ -1,12 +1,12 @@
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   Injectable,
   MethodNotAllowedException,
   NestInterceptor,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { Observable } from "rxjs";
+import { type Observable } from "rxjs";
 
 import { DISABLE_API_IF_KEY } from "../decorators/disable-api-if.decorator.js";
 

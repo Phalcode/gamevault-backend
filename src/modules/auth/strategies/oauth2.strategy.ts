@@ -7,13 +7,13 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { randomBytes } from "crypto";
-import { VerifiedCallback } from "passport-jwt";
+import { type VerifiedCallback } from "passport-jwt";
 import { Strategy } from "passport-oauth2";
 import type { AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { GamevaultUser } from "../../users/gamevault-user.entity.js";
 import { UsersService } from "../../users/users.service.js";
-import { OidcUserInfo } from "../models/oidc-user-info.interface.js";
+import { type OidcUserInfo } from "../models/oidc-user-info.interface.js";
 import PassportUserProfile from "../models/passport-user-profile.interface.js";
 
 @Injectable()
@@ -230,7 +230,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     let user = await this.usersService
       .findUserForAuthOrFail({
         username: validatedProfile.preferred_username,
-        email: validatedProfile.emails[0]?.value,
+        email: validatedProfile.emails?.[0]?.value,
         idp_id: validatedProfile.id,
       })
       .then((user) => this.usersService.findOneByUsernameOrFail(user.username))
@@ -252,12 +252,12 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
         : null;
 
       user = await this.usersService.register({
-        username: validatedProfile.preferred_username,
-        email: validatedProfile.emails[0]?.value,
+        username: validatedProfile.preferred_username ?? "",
+        email: validatedProfile.emails?.[0]?.value,
         first_name: validatedProfile.name?.givenName,
         last_name: validatedProfile.name?.familyName,
         password: randomBytes(24).toString("base64").slice(0, 32),
-        birth_date,
+        birth_date: birth_date ?? undefined,
         // TODO: We could also store the idp_id in the database to make it possible to find users if they changed their email address.
       });
     }

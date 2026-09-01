@@ -80,11 +80,11 @@ describe("UsersService", () => {
     });
 
     it("should return 0 for null birth date", () => {
-      expect(service.calculateAge(null)).toBe(0);
+      expect(service.calculateAge(null as unknown as Date)).toBe(0);
     });
 
     it("should return 0 for undefined birth date", () => {
-      expect(service.calculateAge(undefined)).toBe(0);
+      expect(service.calculateAge(undefined as unknown as Date)).toBe(0);
     });
 
     it("should return 0 for a birth date today", () => {
@@ -156,8 +156,8 @@ describe("UsersService", () => {
       });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       const result = await service.findOneByUserIdOrFail(1);
-      expect(result.progresses).toHaveLength(1);
-      expect(result.progresses[0].id).toBe(1);
+      expect(result.progresses!).toHaveLength(1);
+      expect(result.progresses![0].id).toBe(1);
     });
   });
 
@@ -263,10 +263,10 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       userRepository.recover.mockResolvedValue({
         ...mockUser,
-        deleted_at: null,
+        deleted_at: undefined,
       });
       const result = await service.recover(1);
-      expect(result.deleted_at).toBeNull();
+      expect(result.deleted_at).toBeUndefined();
     });
   });
 
@@ -412,7 +412,10 @@ describe("UsersService", () => {
 
   describe("findUserForAuthOrFail", () => {
     it("should return user for valid credentials", async () => {
-      const mockUser = createMockUser({ activated: true, deleted_at: null });
+      const mockUser = createMockUser({
+        activated: true,
+        deleted_at: undefined,
+      });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       const result = await service.findUserForAuthOrFail({
         username: "testuser",
@@ -432,7 +435,7 @@ describe("UsersService", () => {
       const mockUser = createMockUser({
         activated: false,
         role: Role.USER,
-        deleted_at: null,
+        deleted_at: undefined,
       });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       await expect(

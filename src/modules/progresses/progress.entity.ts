@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne, Relation } from "typeorm";
+import { Column, Entity, Index, ManyToOne, type Relation } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity.js";
 import { GamevaultGame } from "../games/gamevault-game.entity.js";
@@ -29,7 +29,7 @@ export class Progress extends DatabaseEntity {
     description: "playtime in minutes",
     example: 25,
   })
-  minutes_played: number;
+  minutes_played!: number;
 
   @Column({ type: "simple-enum", enum: State, default: State.UNPLAYED })
   @ApiProperty({
@@ -38,7 +38,7 @@ export class Progress extends DatabaseEntity {
     enum: State,
     example: State.PLAYING,
   })
-  state: State;
+  state!: State;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({

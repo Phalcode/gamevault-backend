@@ -8,5 +8,5 @@ export class UpdateNewsDto {
     example: "# Welcome\nThis is the latest news.",
     description: "the markdown content of the news.md file",
   })
-  content: string;
+  content!: string;
 }

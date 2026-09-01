@@ -23,10 +23,10 @@ describe("StatusService", () => {
 
     it("should have a protocol entry for server start", () => {
       const status = service.getExtensive();
-      expect(status.protocol).toBeDefined();
-      expect(status.protocol.length).toBeGreaterThanOrEqual(1);
-      expect(status.protocol[0].status).toBe(StatusEnum.HEALTHY);
-      expect(status.protocol[0].reason).toBe("Server started successfully");
+      expect(status.protocol!).toBeDefined();
+      expect(status.protocol!.length).toBeGreaterThanOrEqual(1);
+      expect(status.protocol![0].status).toBe(StatusEnum.HEALTHY);
+      expect(status.protocol![0].reason).toBe("Server started successfully");
     });
 
     it("should include a server_uuid", () => {
@@ -42,7 +42,7 @@ describe("StatusService", () => {
       expect(result).toHaveProperty("version");
       expect(result).toHaveProperty("protocol");
       expect(result).toHaveProperty("uptime");
-      expect(result.uptime).toBeGreaterThanOrEqual(0);
+      expect(result.uptime!).toBeGreaterThanOrEqual(0);
     });
 
     it("should return protocol as an array", () => {
@@ -84,16 +84,16 @@ describe("StatusService", () => {
     });
 
     it("should add a protocol entry", () => {
-      const initialLength = service.getExtensive().protocol.length;
+      const initialLength = service.getExtensive().protocol!.length;
       service.set(StatusEnum.UNHEALTHY, "Something went wrong");
       const result = service.getExtensive();
-      expect(result.protocol.length).toBe(initialLength + 1);
+      expect(result.protocol!.length).toBe(initialLength + 1);
     });
 
     it("should record the reason in protocol", () => {
       service.set(StatusEnum.UNHEALTHY, "Test failure reason");
       const result = service.getExtensive();
-      const lastEntry = result.protocol[result.protocol.length - 1];
+      const lastEntry = result.protocol![result.protocol!.length - 1];
       expect(lastEntry.reason).toBe("Test failure reason");
       expect(lastEntry.status).toBe(StatusEnum.UNHEALTHY);
     });
@@ -103,7 +103,7 @@ describe("StatusService", () => {
       service.set(StatusEnum.HEALTHY, "Recovered");
       const after = new Date();
       const result = service.getExtensive();
-      const lastEntry = result.protocol[result.protocol.length - 1];
+      const lastEntry = result.protocol![result.protocol!.length - 1];
       expect(lastEntry.timestamp.getTime()).toBeGreaterThanOrEqual(
         before.getTime(),
       );
@@ -118,9 +118,9 @@ describe("StatusService", () => {
       service.set(StatusEnum.UNHEALTHY, "Error 2");
       const result = service.getExtensive();
       // initial + 3 more
-      expect(result.protocol.length).toBeGreaterThanOrEqual(4);
+      expect(result.protocol!.length).toBeGreaterThanOrEqual(4);
       // Verify protocol entries are recorded correctly
-      const lastEntry = result.protocol[result.protocol.length - 1];
+      const lastEntry = result.protocol![result.protocol!.length - 1];
       expect(lastEntry.status).toBe(StatusEnum.UNHEALTHY);
       expect(lastEntry.reason).toBe("Error 2");
     });

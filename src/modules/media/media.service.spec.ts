@@ -109,7 +109,7 @@ describe("MediaService", () => {
     });
 
     it("should return false when id is null", async () => {
-      const result = await service.isAvailable(null);
+      const result = await service.isAvailable(null as unknown as number);
       expect(result).toBe(false);
     });
 

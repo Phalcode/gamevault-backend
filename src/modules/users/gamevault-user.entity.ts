@@ -8,7 +8,7 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
-  Relation,
+  type Relation,
 } from "typeorm";
 
 import { Session } from "../auth/session.entity.js";
@@ -23,14 +23,14 @@ export class GamevaultUser extends DatabaseEntity {
   @Index({ unique: true })
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
-  username: string;
+  username!: string;
 
   @Column({ select: false })
   @ApiProperty({
     description: "encrypted password of the user",
     example: "Hunter2",
   })
-  password: string;
+  password!: string;
 
   @Index({ unique: true })
   @Column({ select: false, unique: true, length: 64 })
@@ -72,7 +72,7 @@ export class GamevaultUser extends DatabaseEntity {
     example: "john.doe@mail.com",
     description: "email address of the user",
   })
-  email: string;
+  email?: string;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -98,7 +98,7 @@ export class GamevaultUser extends DatabaseEntity {
     description: "indicates if the user is activated",
     example: false,
   })
-  activated: boolean;
+  activated!: boolean;
 
   @OneToMany(() => Progress, (progress) => progress.user)
   @ApiPropertyOptional({
@@ -120,7 +120,7 @@ export class GamevaultUser extends DatabaseEntity {
     description:
       "The role determines the set of permissions and access rights for a user in the system.",
   })
-  role: Role;
+  role!: Role;
 
   @OneToMany(() => Media, (media) => media.uploader)
   @ApiPropertyOptional({

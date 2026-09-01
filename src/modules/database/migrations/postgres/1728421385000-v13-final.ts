@@ -2,7 +2,7 @@ import { Logger, NotImplementedException } from "@nestjs/common";
 import { randomBytes } from "crypto";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
-import { In, MigrationInterface, QueryRunner } from "typeorm";
+import { In, MigrationInterface, type QueryRunner } from "typeorm";
 import { GamevaultGame } from "../../../games/gamevault-game.entity.js";
 import { Media } from "../../../media/media.entity.js";
 import { DeveloperMetadata } from "../../../metadata/developers/developer.metadata.entity.js";
@@ -1000,7 +1000,7 @@ export class V13Final1728421385000 implements MigrationInterface {
           image.deleted_at,
           image.entity_version,
           image.source,
-          image.path.replace("/images/", "/media/"),
+          image.path?.replace("/images/", "/media/") ?? "",
           image.mediaType ?? "application/octet-stream",
           image.uploader?.id,
         ],
@@ -1201,6 +1201,12 @@ export class V13Final1728421385000 implements MigrationInterface {
         withDeleted: true,
       });
 
+      if (!migratedGame) {
+        throw new Error(
+          `Migrated GamevaultGame with id ${game.id} could not be re-fetched.`,
+        );
+      }
+
       const cover = game.box_image
         ? await queryRunner.manager.findOne(Media, {
             where: { id: game.box_image.id },
@@ -1226,8 +1232,8 @@ export class V13Final1728421385000 implements MigrationInterface {
           const userMetadata = await queryRunner.manager.save(GameMetadata, {
             provider_slug: "user",
             provider_data_id: game.id?.toString(),
-            cover,
-            background,
+            cover: cover ?? undefined,
+            background: background ?? undefined,
           });
           migratedGame.user_metadata = userMetadata;
           await queryRunner.manager.save(GamevaultGame, migratedGame);
@@ -1304,9 +1310,9 @@ export class V13Final1728421385000 implements MigrationInterface {
           release_date: game.rawg_release_date,
           description: game.description,
           average_playtime: game.average_playtime,
-          cover,
-          background,
-          url_websites: [game.website_url],
+          cover: cover ?? undefined,
+          background: background ?? undefined,
+          url_websites: game.website_url ? [game.website_url] : undefined,
           rating: game.metacritic_rating,
           early_access: game.early_access,
           tags,

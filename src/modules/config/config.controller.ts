@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Put, StreamableFile } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Put,
+  StreamableFile,
+} from "@nestjs/common";
 import {
   ApiBearerAuth,
   ApiBody,
@@ -39,6 +46,8 @@ export class ConfigController {
         createReadStream(`${this.config.VOLUMES.CONFIG}/news.md`),
       );
     }
+
+    throw new NotFoundException("news.md file not found.");
   }
 
   @Put("news")

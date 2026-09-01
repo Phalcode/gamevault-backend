@@ -140,7 +140,7 @@ function extractVersionSignals(version?: string): VersionSignals {
   }
 
   return {
-    strictSemver,
+    strictSemver: strictSemver ?? undefined,
     comparabilityScore,
     dateValue,
     numericParts,

@@ -10,7 +10,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
 import path from "path";
 import {
-  FindOneOptions,
+  type FindOneOptions,
   IsNull,
   LessThanOrEqual,
   Or,
@@ -18,12 +18,12 @@ import {
 } from "typeorm";
 const { readFile } = fsExtra;
 
-import { FindOptions, toFindOptionsRelations } from "../../globals.js";
+import { type FindOptions, toFindOptionsRelations } from "../../globals.js";
 import { logProgress } from "../../logging.js";
 import { GamesService } from "../games/games.service.js";
 import { UsersService } from "../users/users.service.js";
 import { State } from "./models/state.enum.js";
-import { UpdateProgressDto } from "./models/update-progress.dto.js";
+import { type UpdateProgressDto } from "./models/update-progress.dto.js";
 import { Progress } from "./progress.entity.js";
 
 @Injectable()
@@ -113,7 +113,7 @@ export class ProgressService implements OnApplicationBootstrap {
     });
 
     await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
-      progress.user.id,
+      progress.user!.id,
       executorUsername,
     );
 

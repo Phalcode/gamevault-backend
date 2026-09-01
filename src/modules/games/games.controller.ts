@@ -27,15 +27,15 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Response } from "express";
+import { type Response } from "express";
 import lodash from "lodash";
 import {
   FilterOperator,
   Paginate,
-  Paginated,
   PaginationType,
   paginate,
   type PaginateQuery,
+  type Paginated,
 } from "nestjs-paginate";
 import { In, Not, Repository } from "typeorm";
 
@@ -65,7 +65,7 @@ import { UsersService } from "../users/users.service.js";
 import { FilesService } from "./files.service.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
-import { GameIdDto } from "./models/game-id.dto.js";
+import { type GameIdDto } from "./models/game-id.dto.js";
 import { UpdateGameDto } from "./models/update-game.dto.js";
 const { isArray } = lodash;
 
@@ -144,8 +144,16 @@ export class GamesController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: configuration.GAMES.MAX_UPLOAD_SIZE,
-            message: `File exceeds maximum allowed upload size of ${bytes(configuration.GAMES.MAX_UPLOAD_SIZE, { unit: "GB", thousandsSeparator: "." })}.`,
+            maxSize:
+              configuration.GAMES.MAX_UPLOAD_SIZE ??
+              bytes("100gb") ??
+              Number.MAX_SAFE_INTEGER,
+            message: `File exceeds maximum allowed upload size of ${bytes(
+              configuration.GAMES.MAX_UPLOAD_SIZE ??
+                bytes("100gb") ??
+                Number.MAX_SAFE_INTEGER,
+              { unit: "GB", thousandsSeparator: "." },
+            )}.`,
           }),
         ],
       }),
@@ -229,15 +237,15 @@ export class GamesController {
 
         const excludedGameIds = playedProgresses
           .filter((p) => p.game != null)
-          .map((p) => p.game.id);
+          .map((p) => p.game!.id);
 
         if (excludedGameIds.length > 0) {
           unplayedWhereCondition = { id: Not(In(excludedGameIds)) };
         }
 
         // Remove progress filters — handled by the pre-query above
-        delete query.filter["progresses.state"];
-        delete query.filter["progresses.user.id"];
+        delete query.filter?.["progresses.state"];
+        delete query.filter?.["progresses.user.id"];
       } else {
         relationPaths.push("progresses", "progresses.user");
       }
@@ -292,7 +300,7 @@ export class GamesController {
         "metadata.average_playtime",
         "metadata.age_rating",
         "metadata.rating",
-      ],
+      ] as any,
       loadEagerRelations: false,
       searchableColumns: [
         "id",
@@ -485,8 +493,9 @@ export class GamesController {
         direction: sortByEarlyAccess[1],
       });
 
-      query.sortBy.push(["metadata.early_access", sortByEarlyAccess[1]]);
-      delete query.sortBy[query.sortBy.indexOf(sortByEarlyAccess)];
+      const sortBy = (query.sortBy ??= []);
+      sortBy.push(["metadata.early_access", sortByEarlyAccess[1]]);
+      delete sortBy[sortBy.indexOf(sortByEarlyAccess)];
     }
 
     // Release Date
@@ -511,8 +520,9 @@ export class GamesController {
         direction: sortByReleaseDate[1],
       });
 
-      query.sortBy.push(["metadata.release_date", sortByReleaseDate[1]]);
-      delete query.sortBy[query.sortBy.indexOf(sortByReleaseDate)];
+      const sortBy = (query.sortBy ??= []);
+      sortBy.push(["metadata.release_date", sortByReleaseDate[1]]);
+      delete sortBy[sortBy.indexOf(sortByReleaseDate)];
     }
 
     return query;

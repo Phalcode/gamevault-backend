@@ -38,7 +38,7 @@ describe("ProgressService", () => {
     progress.game = createMockGame();
     progress.minutes_played = 0;
     progress.state = State.UNPLAYED;
-    progress.deleted_at = null;
+    progress.deleted_at = undefined;
     Object.assign(progress, overrides);
     return progress;
   };
@@ -226,7 +226,7 @@ describe("ProgressService", () => {
         "testuser",
       );
       expect(result.last_played_at).toBeDefined();
-      expect(result.last_played_at.getTime()).toBeGreaterThanOrEqual(
+      expect(result.last_played_at!.getTime()).toBeGreaterThanOrEqual(
         before.getTime(),
       );
     });
@@ -309,7 +309,7 @@ describe("ProgressService", () => {
 
       const before = new Date();
       const result = await service.increment(1, 1, "testuser");
-      expect(result.last_played_at.getTime()).toBeGreaterThanOrEqual(
+      expect(result.last_played_at!.getTime()).toBeGreaterThanOrEqual(
         before.getTime(),
       );
     });

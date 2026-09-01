@@ -113,6 +113,10 @@ export class DatabaseService {
       return this.createStreamableFile(backupFilePath);
     } catch (error) {
       this.handleBackupError(error);
+      throw new InternalServerErrorException(
+        "Failed to backup PostgreSQL database.",
+        { cause: error },
+      );
     }
   }
 
@@ -254,7 +258,7 @@ export class DatabaseService {
     return new StreamableFile(file, {
       disposition: `attachment; filename="${filename}"`,
       length,
-      type,
+      type: type ?? undefined,
     });
   }
 

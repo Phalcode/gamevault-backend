@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import type { AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { UsersService } from "../../users/users.service.js";
-import { GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface.js";
+import { type GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface.js";
 @Injectable()
 export class AuthenticationStrategy extends PassportStrategy(Strategy, "auth") {
   private readonly logger = new Logger(this.constructor.name);

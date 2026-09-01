@@ -247,7 +247,7 @@ describe("GamesService", () => {
       gamesRepository.find.mockResolvedValueOnce([
         createMockGame({
           release_date: new Date("2025-06-15T00:00:00.000Z"),
-          deleted_at: null,
+          deleted_at: undefined,
         }),
       ]);
 
@@ -261,7 +261,7 @@ describe("GamesService", () => {
       gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
       gamesRepository.find.mockResolvedValueOnce([
         createMockGame({ release_date: new Date("2020-01-01T00:00:00.000Z") }),
-        createMockGame({ release_date: undefined, deleted_at: null }),
+        createMockGame({ release_date: undefined, deleted_at: undefined }),
       ]);
 
       const [existence] = await service.checkIfExistsInDatabase(game);
@@ -271,7 +271,7 @@ describe("GamesService", () => {
     it("should return EXISTS when game is identical", async () => {
       const game = createMockGame();
       gamesRepository.findOne.mockResolvedValueOnce(
-        createMockGame({ deleted_at: null }),
+        createMockGame({ deleted_at: undefined }),
       );
       const [existence] = await service.checkIfExistsInDatabase(game);
       expect(existence).toBe(GameExistence.EXISTS);
@@ -291,7 +291,7 @@ describe("GamesService", () => {
     it("should return EXISTS_BUT_ALTERED when game has changes", async () => {
       const game = createMockGame({ title: "New Title" });
       gamesRepository.findOne.mockResolvedValueOnce(
-        createMockGame({ title: "Old Title", deleted_at: null }),
+        createMockGame({ title: "Old Title", deleted_at: undefined }),
       );
       const [existence] = await service.checkIfExistsInDatabase(game);
       expect(existence).toBe(GameExistence.EXISTS_BUT_ALTERED);

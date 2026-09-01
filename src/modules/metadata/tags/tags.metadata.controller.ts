@@ -9,7 +9,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
   type PaginateQuery,
-  Paginated,
+  type Paginated,
   PaginationType,
   paginate,
 } from "nestjs-paginate";

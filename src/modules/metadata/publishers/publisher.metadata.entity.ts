@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotIn, Matches } from "class-validator";
-import { Column, Entity, Index, ManyToMany, Relation } from "typeorm";
+import { Column, Entity, Index, ManyToMany, type Relation } from "typeorm";
 
 import globals from "../../../globals.js";
 import { DatabaseEntity } from "../../database/database.entity.js";
@@ -27,7 +27,7 @@ export class PublisherMetadata extends DatabaseEntity implements Metadata {
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
     example: "igdb",
   })
-  provider_slug: string;
+  provider_slug!: string;
 
   @Column()
   @Index()
@@ -35,7 +35,7 @@ export class PublisherMetadata extends DatabaseEntity implements Metadata {
     description: "id of the developer from the provider",
     example: "1190",
   })
-  provider_data_id: string;
+  provider_data_id!: string;
 
   @Index()
   @Column()
@@ -43,7 +43,7 @@ export class PublisherMetadata extends DatabaseEntity implements Metadata {
     example: "Rockstar Games",
     description: "name of the publisher",
   })
-  name: string;
+  name!: string;
 
   @ManyToMany(() => GameMetadata, (game) => game.publishers)
   @ApiPropertyOptional({

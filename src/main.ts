@@ -2,7 +2,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
   ExpressAdapter,
-  NestExpressApplication,
+  type NestExpressApplication,
 } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
@@ -13,9 +13,8 @@ import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
 import { createHash } from "crypto";
-import express, { Response } from "express";
+import express, { type Request, type Response } from "express";
 import session from "express-session";
-import { createServer as createHttpServer } from "http";
 import { createServer as createHttpsServer } from "https";
 import { AppModule } from "./app.module.js";
 import configuration, {
@@ -29,6 +28,8 @@ import loadPlugins from "./plugin.js";
 const { readFileSync } = fsExtra;
 
 async function bootstrap(): Promise<void> {
+  let httpsServer: ReturnType<typeof createHttpsServer> | undefined;
+
   // Load Modules & Plugins
   const builtinModules = Reflect.getOwnMetadata("imports", AppModule);
   const pluginModules = await loadPlugins();
@@ -97,7 +98,8 @@ async function bootstrap(): Promise<void> {
   app.use(
     morgan(configuration.SERVER.REQUEST_LOG_FORMAT, {
       stream,
-      skip: (req) => req.url.includes("/status") || req.url.includes("/health"),
+      skip: (req) =>
+        !req.url || req.url.includes("/status") || req.url.includes("/health"),
     }),
   );
 
@@ -200,14 +202,14 @@ async function bootstrap(): Promise<void> {
   }
 
   // Redirect /health to /status
-  app.use("/api/health", (_req, res: Response) => {
+  app.use("/api/health", (_req: Request, res: Response) => {
     res.redirect(308, "/api/status");
   });
 
   await app.init();
 
-  // Start HTTP server
-  createHttpServer(server).listen(configuration.SERVER.PORT);
+  // Start HTTP server (Nest owns the http.Server here, so Socket.IO attaches to it)
+  await app.listen(configuration.SERVER.PORT ?? 8080);
 
   // Additionally start HTTPS server if enabled
   if (configuration.SERVER.HTTPS.ENABLED) {
@@ -229,9 +231,11 @@ async function bootstrap(): Promise<void> {
     if (configuration.SERVER.HTTPS.CA_CERT_PATH) {
       httpsOptions.ca = readFileSync(configuration.SERVER.HTTPS.CA_CERT_PATH);
     }
-    createHttpsServer(httpsOptions, server).listen(
-      configuration.SERVER.HTTPS.PORT,
+    httpsServer = createHttpsServer(
+      httpsOptions,
+      app.getHttpAdapter().getInstance(),
     );
+    httpsServer.listen(configuration.SERVER.HTTPS.PORT);
   }
 
   logger.log({
@@ -244,9 +248,39 @@ async function bootstrap(): Promise<void> {
       : undefined,
     config: getCensoredConfiguration(),
   });
+
+  // Graceful shutdown: stop accepting connections, drain in-flight requests
+  // (Nest 12 Express adapter) and close both servers before exiting.
+  let isShuttingDown = false;
+  const shutdown = async (signal: string): Promise<void> => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    logger.log({
+      context: "Shutdown",
+      message: `Received ${signal}. Shutting down gracefully.`,
+    });
+    try {
+      await app.close();
+      if (httpsServer) {
+        await new Promise<void>((resolve) =>
+          httpsServer?.close(() => resolve()),
+        );
+      }
+    } catch (error) {
+      logger.error({
+        context: "Shutdown",
+        message: "Error during graceful shutdown.",
+        error,
+      });
+    } finally {
+      process.exit(0);
+    }
+  };
+  process.once("SIGTERM", () => void shutdown("SIGTERM"));
+  process.once("SIGINT", () => void shutdown("SIGINT"));
 }
 
-Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT;
+Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT ?? 10;
 bootstrap().catch((error) => {
   logger.error({ message: "A fatal error occured", error });
   throw error;

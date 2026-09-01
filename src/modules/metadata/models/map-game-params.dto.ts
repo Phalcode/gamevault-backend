@@ -15,10 +15,10 @@ export class MapGameParamsDto implements ProviderSlugDto, GameIdDto {
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
     example: "igdb",
   })
-  provider_slug: string;
+  provider_slug!: string;
 
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the game" })
-  game_id: number;
+  game_id!: number;
 }

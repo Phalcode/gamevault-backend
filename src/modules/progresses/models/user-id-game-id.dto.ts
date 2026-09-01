@@ -8,10 +8,10 @@ export class UserIdGameIdDto implements UserIdDto, GameIdDto {
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the user" })
-  user_id: number;
+  user_id!: number;
 
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the game" })
-  game_id: number;
+  game_id!: number;
 }

@@ -24,14 +24,14 @@ export class MetadataProviderDto {
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
     example: "igdb",
   })
-  public slug: string;
+  public slug!: string;
 
   @IsNotEmpty()
   @ApiProperty({
     description: "display name of the provider.",
     example: "IGDB",
   })
-  public name: string;
+  public name!: string;
 
   @IsInt()
   @IsNotEmpty()
@@ -40,7 +40,7 @@ export class MetadataProviderDto {
     description:
       "priority of usage for this provider. Lower priority providers are tried first, while higher priority providers fill in gaps.",
   })
-  public priority: number;
+  public priority!: number;
 
   @IsBoolean()
   @ApiProperty({

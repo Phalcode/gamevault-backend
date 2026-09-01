@@ -1,12 +1,12 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
-import { Request } from "express";
+import { type Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import type { AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { UsersService } from "../../users/users.service.js";
 import { AuthenticationService } from "../authentication.service.js";
-import { GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface.js";
+import { type GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface.js";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -30,7 +30,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 
   async validate(request: Request, dto: { payload: GamevaultJwtPayload }) {
     // Check if token is revoked
-    const token = request.headers.authorization.split(" ")[1];
+    const token = (request.headers.authorization ?? "").split(" ")[1];
     const isRevoked = await this.authService.isTokenRevoked(token);
     if (isRevoked) {
       throw new UnauthorizedException(

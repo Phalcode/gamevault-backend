@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import configuration from "../../../../configuration.js";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity.js";
 import { GameMetadata } from "../../games/game.metadata.entity.js";
-import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
+import { type MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
 import { GenreMetadata } from "../../genres/genre.metadata.entity.js";
 import { PublisherMetadata } from "../../publishers/publisher.metadata.entity.js";
 import { TagMetadata } from "../../tags/tag.metadata.entity.js";

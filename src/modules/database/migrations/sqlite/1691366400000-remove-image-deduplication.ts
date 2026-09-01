@@ -1,6 +1,6 @@
 import {
   MigrationInterface,
-  QueryRunner,
+  type QueryRunner,
   TableForeignKey,
   TableUnique,
 } from "typeorm";

@@ -5,5 +5,5 @@ export class ProgressIdDto {
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the progress" })
-  progress_id: number;
+  progress_id!: number;
 }

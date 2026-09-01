@@ -44,7 +44,6 @@
     "@phalcode/ts-igdb-client": "^1.0.31",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^13.0.3",
-    "builder-pattern": "^2.2.0",
     "bytes": "^3.1.2",
     "chokidar": "^5.0.0",
     "class-transformer": "^0.5.1",

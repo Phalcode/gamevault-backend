@@ -13,7 +13,7 @@ import { Role } from "../users/models/role.enum.js";
 import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto.js";
 import { MetadataService } from "./metadata.service.js";
 import { MetadataProviderDto } from "./providers/models/metadata-provider.dto.js";
-import { ProviderSlugDto } from "./providers/models/provider-slug.dto.js";
+import { type ProviderSlugDto } from "./providers/models/provider-slug.dto.js";
 
 @Controller("metadata")
 @ApiTags("metadata")

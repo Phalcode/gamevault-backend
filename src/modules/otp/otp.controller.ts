@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Res, StreamableFile } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Response } from "express";
+import { type Response } from "express";
 import { SkipGuards } from "../../decorators/skip-guards.decorator.js";
 import { OtpService } from "./otp.service.js";
 

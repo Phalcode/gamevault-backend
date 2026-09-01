@@ -51,7 +51,7 @@ describe("StatusController", () => {
     });
 
     it("should return basic status when request is null", async () => {
-      const result = await controller.getStatus(null);
+      const result = await controller.getStatus(undefined);
       expect(result).toHaveProperty("status", StatusEnum.HEALTHY);
       expect(result).toHaveProperty("server_uuid");
       expect(result.protocol).toBeUndefined();

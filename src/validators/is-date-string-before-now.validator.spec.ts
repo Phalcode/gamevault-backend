@@ -3,7 +3,7 @@ import { IsDateStringBeforeNow } from "./is-date-string-before-now.validator.js"
 
 class TestDto {
   @IsDateStringBeforeNow()
-  date: string;
+  date!: string;
 }
 
 describe("IsDateStringBeforeNow", () => {

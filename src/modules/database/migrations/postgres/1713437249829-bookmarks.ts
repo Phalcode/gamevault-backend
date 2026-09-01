@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class Bookmarks1713437249829 implements MigrationInterface {
   name = "Bookmarks1713437249829";

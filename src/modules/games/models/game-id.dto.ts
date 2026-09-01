@@ -5,5 +5,5 @@ export class GameIdDto {
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the game" })
-  game_id: number;
+  game_id!: number;
 }

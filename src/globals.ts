@@ -1,10 +1,10 @@
-import { applyDecorators, Type } from "@nestjs/common";
+import { applyDecorators, type Type } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
 import type { PaginateQuery } from "nestjs-paginate";
 import {
-  FindOptionsRelations,
-  FindOptionsSelect,
-  ObjectLiteral,
+  type FindOptionsRelations,
+  type FindOptionsSelect,
+  type ObjectLiteral,
 } from "typeorm";
 
 import { PaginatedEntity } from "./modules/database/models/paginated-entity.model.js";

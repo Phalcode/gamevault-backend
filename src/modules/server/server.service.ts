@@ -7,7 +7,7 @@ import { GamevaultServer } from "./gamevault-server.entity.js";
 @Injectable()
 export class ServerService implements OnModuleInit {
   private readonly logger = new Logger(ServerService.name);
-  private serverUuid: string;
+  private serverUuid!: string;
 
   constructor(
     @InjectRepository(GamevaultServer)

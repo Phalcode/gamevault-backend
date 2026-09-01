@@ -1,7 +1,7 @@
 import {
   registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
+  type ValidationArguments,
+  type ValidationOptions,
 } from "class-validator";
 
 export function IsDateStringBeforeNow(validationOptions?: ValidationOptions) {

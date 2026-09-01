@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class SocketSecretNotNull1698020001983 implements MigrationInterface {
   name = "SocketSecretNotNull1698020001983";

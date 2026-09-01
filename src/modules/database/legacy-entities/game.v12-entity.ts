@@ -8,7 +8,7 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { GameType } from "../../games/models/game-type.enum.js";
 import { DatabaseEntityV12 } from "./database.v12-entity.js";
@@ -36,7 +36,7 @@ export class GameV12 extends DatabaseEntityV12 {
     description: "title of the game (extracted from the filename)",
     example: "Grand Theft Auto V",
   })
-  title: string;
+  title!: string;
 
   @Column()
   @Column({ nullable: true })
@@ -83,7 +83,7 @@ export class GameV12 extends DatabaseEntityV12 {
     description: "filepath to the game (relative to the root)",
     example: "Grand Theft Auto V (v1.0.0).zip",
   })
-  file_path: string;
+  file_path!: string;
 
   @Column({
     type: "bigint",
@@ -101,7 +101,7 @@ export class GameV12 extends DatabaseEntityV12 {
     example: "1234567890",
     type: () => String,
   })
-  size: bigint;
+  size!: bigint;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -165,7 +165,7 @@ export class GameV12 extends DatabaseEntityV12 {
       "indicates if the game is an early access title ('(EA)' Flag in the filename)",
     example: true,
   })
-  early_access: boolean;
+  early_access!: boolean;
 
   @Column({
     type: "simple-enum",
@@ -178,7 +178,7 @@ export class GameV12 extends DatabaseEntityV12 {
     enum: GameType,
     example: GameType.WINDOWS_PORTABLE,
   })
-  type: GameType;
+  type!: GameType;
 
   @OneToMany(() => ProgressV12, (progress) => progress.game)
   @ApiPropertyOptional({

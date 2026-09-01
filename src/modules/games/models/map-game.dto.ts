@@ -24,7 +24,7 @@ export class MapGameDto {
       "slug (url-friendly name) of the provider. This is the primary identifier. Must be formatted like a valid slug.",
     example: "igdb",
   })
-  provider_slug: string;
+  provider_slug!: string;
 
   @IsOptional()
   @ApiPropertyOptional({

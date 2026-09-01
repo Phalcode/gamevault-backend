@@ -14,7 +14,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { Response } from "express";
+import { type Response } from "express";
 import configuration from "../../../configuration.js";
 import { SkipGuards } from "../../../decorators/skip-guards.decorator.js";
 import { GamevaultUser } from "../../users/gamevault-user.entity.js";

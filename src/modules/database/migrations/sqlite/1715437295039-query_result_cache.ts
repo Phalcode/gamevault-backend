@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class QueryResultCache1715437295039 implements MigrationInterface {
   name = "QueryResultCache1715437295039";

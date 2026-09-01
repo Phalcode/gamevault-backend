@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class CheckUserCaseConflicts1695686400000 implements MigrationInterface {
   name?: string;

@@ -185,8 +185,8 @@ describe("IgdbMetadataProviderService", () => {
       expect(metadata.url_gameplays).toEqual([
         "https://www.youtube.com/watch?v=gameplay123",
       ]);
-      expect(metadata.developers[0].name).toBe("Dev Studio");
-      expect(metadata.publishers[0].name).toBe("Pub House");
+      expect(metadata.developers![0].name).toBe("Dev Studio");
+      expect(metadata.publishers![0].name).toBe("Pub House");
       expect(mockMediaService.downloadByUrl).toHaveBeenCalledTimes(2);
     });
 

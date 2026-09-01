@@ -10,14 +10,14 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 //import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
-import { Server, Socket } from "socket.io";
+import { type Server, type Socket } from "socket.io";
 
 import configuration from "../../configuration.js";
 import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter.js";
 import { ApiKeyGuard } from "../auth/guards/api-key.guard.js";
 import { GamevaultUser } from "./gamevault-user.entity.js";
 import { ActivityState } from "./models/activity-state.enum.js";
-import { Activity } from "./models/activity.dto.js";
+import { type Activity } from "./models/activity.dto.js";
 import { UsersService } from "./users.service.js";
 
 // Conditionally decorate the WebSocket gateway class.
@@ -41,7 +41,7 @@ export class ActivityGateway
   >();
 
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   constructor(private readonly usersService: UsersService) {}
 

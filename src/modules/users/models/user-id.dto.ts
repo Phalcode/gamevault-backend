@@ -5,5 +5,5 @@ export class UserIdDto {
   @IsNumberString()
   @IsNotEmpty()
   @ApiProperty({ example: "1", description: "id of the user" })
-  user_id: number;
+  user_id!: number;
 }

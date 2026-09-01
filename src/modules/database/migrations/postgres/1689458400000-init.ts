@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class Init1689458400000 implements MigrationInterface {
   name = "Init1689458400000";

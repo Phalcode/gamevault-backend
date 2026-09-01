@@ -2,10 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import {
-  type AppConfiguration,
-  CONFIG_NAMESPACE,
-} from "../../configuration.js";
+import { AppConfiguration, CONFIG_NAMESPACE } from "../../configuration.js";
 import { DatabaseService } from "./database.service.js";
 import { getDatabaseConfiguration } from "./db_configuration.js";
 

@@ -7,16 +7,16 @@ import {
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
 import { createHash } from "crypto";
-import ms, { StringValue } from "ms";
+import ms, { type StringValue } from "ms";
 import { LessThan, MoreThan, Repository } from "typeorm";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
-import { RegisterUserDto } from "../users/models/register-user.dto.js";
+import { type RegisterUserDto } from "../users/models/register-user.dto.js";
 import { UsersService } from "../users/users.service.js";
-import { GamevaultJwtPayload } from "./models/gamevault-jwt-payload.interface.js";
-import { RefreshTokenDto } from "./models/refresh-token.dto.js";
-import { TokenPairDto } from "./models/token-pair.dto.js";
+import { type GamevaultJwtPayload } from "./models/gamevault-jwt-payload.interface.js";
+import { type RefreshTokenDto } from "./models/refresh-token.dto.js";
+import { type TokenPairDto } from "./models/token-pair.dto.js";
 import { Session } from "./session.entity.js";
 
 @Injectable()
@@ -63,13 +63,13 @@ export class AuthenticationService implements OnModuleInit {
 
     const payload: GamevaultJwtPayload = {
       sub: user.id.toString(),
-      name: [user.first_name, user.last_name].filter(Boolean).join(" ") || null,
-      given_name: user.first_name,
-      family_name: user.last_name,
+      name: [user.first_name, user.last_name].filter(Boolean).join(" ") || "",
+      given_name: user.first_name ?? "",
+      family_name: user.last_name ?? "",
       preferred_username: user.username,
-      email: user.email,
+      email: user.email ?? "",
       role: user.role.toString(),
-      birthdate: user.birth_date?.toISOString(),
+      birthdate: user.birth_date?.toISOString() ?? "",
     };
 
     const refreshToken = this.jwtService.sign(
@@ -134,13 +134,13 @@ export class AuthenticationService implements OnModuleInit {
     // Generate new tokens
     const payload: GamevaultJwtPayload = {
       sub: user.id.toString(),
-      name: [user.first_name, user.last_name].filter(Boolean).join(" ") || null,
-      given_name: user.first_name,
-      family_name: user.last_name,
+      name: [user.first_name, user.last_name].filter(Boolean).join(" ") || "",
+      given_name: user.first_name ?? "",
+      family_name: user.last_name ?? "",
       preferred_username: user.username,
-      email: user.email,
+      email: user.email ?? "",
       role: user.role.toString(),
-      birthdate: user.birth_date?.toISOString(),
+      birthdate: user.birth_date?.toISOString() ?? "",
     };
 
     const newRefreshToken = this.jwtService.sign(

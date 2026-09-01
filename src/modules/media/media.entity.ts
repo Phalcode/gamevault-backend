@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne, Relation } from "typeorm";
+import { Column, Entity, Index, ManyToOne, type Relation } from "typeorm";
 
 import { DatabaseEntity } from "../database/database.entity.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
@@ -28,7 +28,7 @@ export class Media extends DatabaseEntity {
     example: "image/jpeg",
     description: "the media type of the media on the filesystem",
   })
-  type: string;
+  type!: string;
 
   @ManyToOne(() => GamevaultUser, (user) => user.uploaded_media, {
     nullable: true,

@@ -1,6 +1,6 @@
-import { Global, INestApplication, Module } from "@nestjs/common";
+import { Global, type INestApplication, Module } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { AddressInfo } from "net";
+import { type AddressInfo } from "net";
 
 import configuration from "../../configuration.js";
 import { ServerService } from "../server/server.service.js";

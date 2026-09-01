@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, type QueryRunner } from "typeorm";
 
 export class LinuxPortableGameType1701391157783 implements MigrationInterface {
   name = "LinuxPortableGameType1701391157783";

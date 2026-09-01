@@ -22,7 +22,7 @@ import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service.js";
 import { GameMetadata } from "../games/game.metadata.entity.js";
 import { GameMetadataService } from "../games/game.metadata.service.js";
-import { MinimalGameMetadataDto } from "../games/minimal-game.metadata.dto.js";
+import { type MinimalGameMetadataDto } from "../games/minimal-game.metadata.dto.js";
 import { GenreMetadata } from "../genres/genre.metadata.entity.js";
 import { GenreMetadataService } from "../genres/genre.metadata.service.js";
 import { MetadataService } from "../metadata.service.js";
@@ -62,14 +62,14 @@ export abstract class MetadataProvider
     message:
       "Invalid slug: The terms 'gamevault' and 'user' are reserved slugs.",
   })
-  public slug: string;
+  public slug!: string;
 
   @IsNotEmpty()
-  public name: string;
+  public name!: string;
 
   @IsInt()
   @IsNotEmpty()
-  public priority: number;
+  public priority!: number;
 
   @IsBoolean()
   public enabled = true;
@@ -117,10 +117,7 @@ export abstract class MetadataProvider
   ): Promise<MinimalGameMetadataDto> {
     // Search for the game using all available metadata providers but remove Edition Tags in the search.
     const gameResults = await this.search(
-      game.title
-        .replace(/\[.*?\]/g, "")
-        .replaceAll("  ", " ")
-        .trim(),
+      (game.title ?? "").replaceAll("  ", " ").trim(),
     );
 
     // If no matching games are found, throw an exception.
@@ -163,7 +160,7 @@ export abstract class MetadataProvider
 
         probabilityMap.set(
           gameResults.indexOf(gameResult),
-          probabilityMap.get(gameResults.indexOf(gameResult)) -
+          (probabilityMap.get(gameResults.indexOf(gameResult)) ?? 0) -
             Math.abs(gameResultReleaseYear - gameReleaseYear) / 10,
         );
       }
@@ -172,8 +169,8 @@ export abstract class MetadataProvider
     // Sort the game results by the match probability in descending order.
     gameResults.sort(
       (a, b) =>
-        probabilityMap.get(gameResults.indexOf(b)) -
-        probabilityMap.get(gameResults.indexOf(a)),
+        (probabilityMap.get(gameResults.indexOf(b)) ?? 0) -
+        (probabilityMap.get(gameResults.indexOf(a)) ?? 0),
     );
 
     this.logger.debug({
@@ -188,7 +185,7 @@ export abstract class MetadataProvider
     });
 
     // Return the game result with the highest match probability.
-    return gameResults.shift();
+    return gameResults.shift()!;
   }
 
   public async register() {

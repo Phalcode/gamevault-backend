@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { GameMetadata } from "../../games/game.metadata.entity.js";
-import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
+import { type MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
 import { MetadataProvider } from "../abstract.metadata-provider.service.js";
 
 @Injectable()

@@ -27,6 +27,6 @@ export class ApiKeyService {
       relationLoadStrategy: "query",
     });
 
-    return user.api_key;
+    return user.api_key ?? "";
   }
 }

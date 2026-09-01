@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomBytes } from "crypto";
-import { Response } from "express";
+import { type Response } from "express";
 import type { Stats } from "fs-extra";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
@@ -17,7 +17,7 @@ import path, { basename } from "path";
 import { from, lastValueFrom } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
-import { Readable } from "stream";
+import { type Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import { IsNull, Not, Repository } from "typeorm";
 import unidecode from "unidecode";
@@ -34,10 +34,10 @@ import { MetadataService } from "../metadata/metadata.service.js";
 import { GameVersion } from "./game-version.entity.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
-import { File } from "./models/file.model.js";
+import { type File } from "./models/file.model.js";
 import { GameExistence } from "./models/game-existence.enum.js";
 import { GameType } from "./models/game-type.enum.js";
-import { RangeHeader } from "./models/range-header.model.js";
+import { type RangeHeader } from "./models/range-header.model.js";
 import {
   selectDefaultGameVersion,
   sortGameVersions,
@@ -94,10 +94,10 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   @Cron(
-    `*/${configuration.GAMES.INDEX_INTERVAL_IN_MINUTES > 0 ? configuration.GAMES.INDEX_INTERVAL_IN_MINUTES : 1} * * * *`,
+    `*/${(configuration.GAMES.INDEX_INTERVAL_IN_MINUTES ?? 60) > 0 ? (configuration.GAMES.INDEX_INTERVAL_IN_MINUTES ?? 60) : 1} * * * *`,
     {
       disabled:
-        configuration.GAMES.INDEX_INTERVAL_IN_MINUTES <= 0 ||
+        (configuration.GAMES.INDEX_INTERVAL_IN_MINUTES ?? 60) <= 0 ||
         configuration.TESTING.MOCK_FILES,
     },
   )
@@ -296,7 +296,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     try {
       // Check if the game already exists in the database
-      const existingGameTuple: [GameExistence, GamevaultGame] =
+      const existingGameTuple: [GameExistence, GamevaultGame | undefined] =
         await this.gamesService.checkIfExistsInDatabase(gameToIndex);
       const existingGame = existingGameTuple[1];
 
@@ -321,7 +321,7 @@ export class FilesService implements OnApplicationBootstrap {
           // Keep legacy rows normalized while preserving current default file path.
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
-            await this.upsertIndexedVersion(existingGame.id, gameToIndex),
+            await this.upsertIndexedVersion(existingGame!.id, gameToIndex),
           );
           break;
         }
@@ -338,7 +338,9 @@ export class FilesService implements OnApplicationBootstrap {
 
         case GameExistence.EXISTS_BUT_DELETED_IN_DATABASE: {
           // Restore soft-deleted game and add/update the indexed version
-          const restoredGame = await this.gamesService.restore(existingGame.id);
+          const restoredGame = await this.gamesService.restore(
+            existingGame!.id,
+          );
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
             await this.upsertIndexedVersion(restoredGame.id, gameToIndex),
@@ -350,7 +352,7 @@ export class FilesService implements OnApplicationBootstrap {
           // Update or add a version for an altered duplicate
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
-            await this.upsertIndexedVersion(existingGame.id, gameToIndex),
+            await this.upsertIndexedVersion(existingGame!.id, gameToIndex),
           );
           break;
         }
@@ -389,7 +391,7 @@ export class FilesService implements OnApplicationBootstrap {
     this.applyVersionToGame(gamePatch, selectedVersion);
     gamePatch.title = indexedGame.title;
     gamePatch.sort_title = this.gamesService.generateSortTitle(
-      indexedGame.title,
+      indexedGame.title ?? "",
     );
     gamePatch.download_count = gameToUpdate.download_count;
 
@@ -554,9 +556,14 @@ export class FilesService implements OnApplicationBootstrap {
    * Extracts the game release year from a given file path string
    * using a regular expression.
    */
-  private extractReleaseYear(filePath: string): Date {
+  private extractReleaseYear(filePath: string): Date | undefined {
     try {
-      return new Date(RegExp(/\((\d{4})\)/).exec(filePath)[1]);
+      const match = /\((\d{4})\)/.exec(filePath);
+      if (!match?.[1]) {
+        return undefined;
+      }
+      const parsedDate = new Date(match[1]);
+      return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
     } catch {
       return undefined;
     }
@@ -1163,7 +1170,9 @@ export class FilesService implements OnApplicationBootstrap {
   ): Promise<StreamableFile> {
     // Set the download speed limit if provided, otherwise use the default value from configuration.
     speedlimitHeader =
-      speedlimitHeader || configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS;
+      speedlimitHeader ??
+      configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS ??
+      0;
     speedlimitHeader *= 1024;
 
     // Find the game by ID.
@@ -1253,7 +1262,7 @@ export class FilesService implements OnApplicationBootstrap {
         unidecode(downloadFilename),
       )}"`,
       length: range.size,
-      type: mime.getType(fileDownloadPath),
+      type: mime.getType(fileDownloadPath) ?? undefined,
     });
   }
 

@@ -51,7 +51,8 @@ export class MediaService {
     try {
       const media = await this.mediaRepository.findOneByOrFail({ id });
       if (!(
-        (await pathExists(media.file_path)) || this.config.TESTING.MOCK_FILES
+        (await pathExists(media.file_path ?? "")) ||
+        this.config.TESTING.MOCK_FILES
       )) {
         await this.delete(media);
         throw new NotFoundException("Media not found on filesystem.");
@@ -102,7 +103,7 @@ export class MediaService {
       // failed.
       if (media.file_path) {
         try {
-          await remove(media.file_path);
+          await remove(media.file_path ?? "");
           this.logger.debug({
             message: "Cleaned up orphaned media file after failed download.",
             path: media.file_path,
@@ -190,7 +191,7 @@ export class MediaService {
     }
     try {
       await this.mediaRepository.remove(media);
-      await remove(media.file_path);
+      await remove(media.file_path ?? "");
       this.logger.debug({
         message: "Media successfully deleted from filesystem and database.",
         media,
@@ -211,7 +212,7 @@ export class MediaService {
     const media = await this.createFromUpload(file, username);
 
     try {
-      await this.saveToFileSystem(media.file_path, file.buffer);
+      await this.saveToFileSystem(media.file_path ?? "", file.buffer);
       const uploadedMedia = await this.mediaRepository.save(media);
       this.logger.log({
         message: "Media successfully uploaded.",
@@ -232,10 +233,9 @@ export class MediaService {
     const errorContextObject = {
       type,
       bufferLength: mediaBuffer.length,
-      bufferStart: mediaBuffer
-        .toString("hex", 0, 32)
-        .match(/.{1,2}/g)
-        .join(" "),
+      bufferStart: (
+        mediaBuffer.toString("hex", 0, 32).match(/.{1,2}/g) ?? []
+      ).join(" "),
     };
     if (!type?.extension || !type?.mimeType) {
       throw new BadRequestException(

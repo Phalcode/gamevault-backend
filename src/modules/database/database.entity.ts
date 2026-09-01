@@ -15,14 +15,14 @@ export abstract class DatabaseEntity {
     example: 1,
     description: "Unique gamevault-identifier of the entity",
   })
-  id: number;
+  id!: number;
 
   @CreateDateColumn()
   @ApiProperty({
     description: "date the entity was created",
     example: "2021-01-01T00:00:00.000Z",
   })
-  created_at: Date;
+  created_at!: Date;
 
   @UpdateDateColumn()
   @ApiPropertyOptional({
@@ -43,5 +43,5 @@ export abstract class DatabaseEntity {
     description: "incremental version number of the entity",
     example: 1,
   })
-  entity_version: number;
+  entity_version!: number;
 }

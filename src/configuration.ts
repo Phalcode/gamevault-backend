@@ -138,7 +138,7 @@ function resolveEnv(name: string): string | undefined {
 }
 
 function parseBooleanEnvVariable(
-  environmentVariable: string,
+  environmentVariable: string | undefined,
   defaultCase: boolean = false,
 ): boolean {
   switch (toLower(environmentVariable)) {
@@ -161,12 +161,15 @@ function parseBooleanEnvVariable(
   }
 }
 
-function parsePath(environmentVariable: string, defaultPath: string) {
+function parsePath(
+  environmentVariable: string | undefined,
+  defaultPath: string,
+) {
   return environmentVariable?.replace(/\/$/, "") || defaultPath;
 }
 
 function parseList(
-  environmentVariable: string,
+  environmentVariable: string | undefined,
   defaultList: string[] = [],
 ): string[] {
   return environmentVariable
@@ -175,7 +178,7 @@ function parseList(
 }
 
 function parseNumber(
-  environmentVariable: string,
+  environmentVariable: string | undefined,
   defaultValue?: number,
 ): number | undefined {
   const number = Number(environmentVariable);
@@ -186,7 +189,7 @@ function parseNumber(
 }
 
 function parseKibibytesToBytes(
-  environmentVariable: string,
+  environmentVariable: string | undefined,
   defaultValue?: number,
 ): number | undefined {
   const bytes = Number(environmentVariable) * 1024;
@@ -197,7 +200,7 @@ function parseKibibytesToBytes(
 }
 
 function parseRegExp(
-  environmentVariable: string,
+  environmentVariable: string | undefined,
   defaultValue?: RegExp,
 ): RegExp | undefined {
   return environmentVariable ? RegExp(environmentVariable) : defaultValue;
@@ -212,10 +215,10 @@ function safeHash(value: string | undefined): string | null {
 
 export function getMaxBodySizeInBytes() {
   return Math.max(
-    bytes("10mb"),
-    configuration.MEDIA.MAX_SIZE,
-    configuration.SAVEFILES.MAX_SIZE,
-    configuration.GAMES.MAX_UPLOAD_SIZE,
+    bytes("10mb") ?? 0,
+    configuration.MEDIA.MAX_SIZE ?? 0,
+    configuration.SAVEFILES.MAX_SIZE ?? 0,
+    configuration.GAMES.MAX_UPLOAD_SIZE ?? 0,
   );
 }
 

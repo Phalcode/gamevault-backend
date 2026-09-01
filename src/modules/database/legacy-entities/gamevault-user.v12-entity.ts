@@ -8,7 +8,7 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { Role } from "../../users/models/role.enum.js";
 import { DatabaseEntityV12 } from "./database.v12-entity.js";
@@ -20,14 +20,14 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
   @Index()
   @Column({ unique: true })
   @ApiProperty({ example: "JohnDoe", description: "username of the user" })
-  username: string;
+  username!: string;
 
   @Column({ select: false })
   @ApiProperty({
     description: "encrypted password of the user",
     example: "Hunter2",
   })
-  password: string;
+  password!: string;
 
   @Column({ select: false, unique: true, length: 64 })
   @ApiProperty({
@@ -35,7 +35,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
       "the user's socket secret is used for authentication with the server over the websocket protocol.",
     example: "fd9c4f417fb494aeacef28a70eba95128d9f2521374852cdb12ecb746888b892",
   })
-  socket_secret: string;
+  socket_secret!: string;
 
   @OneToOne(() => ImageV12, {
     nullable: true,
@@ -68,22 +68,22 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     example: "john.doe@mail.com",
     description: "email address of the user",
   })
-  email: string;
+  email!: string;
 
   @Column({ nullable: true })
   @ApiProperty({ example: "John", description: "first name of the user" })
-  first_name: string;
+  first_name!: string;
 
   @Column({ nullable: true })
   @ApiProperty({ example: "Doe", description: "last name of the user" })
-  last_name: string;
+  last_name!: string;
 
   @Column({ default: false })
   @ApiProperty({
     description: "indicates if the user is activated",
     example: false,
   })
-  activated: boolean;
+  activated!: boolean;
 
   @OneToMany(() => ProgressV12, (progress) => progress.user)
   @ApiPropertyOptional({
@@ -105,7 +105,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     description:
       "The role determines the set of permissions and access rights for a user in the system.",
   })
-  role: Role;
+  role!: Role;
 
   @OneToMany(() => ImageV12, (image) => image.uploader)
   @ApiPropertyOptional({

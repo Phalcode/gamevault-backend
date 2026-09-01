@@ -18,7 +18,7 @@ export class StatusService {
   getExtensive(): Status {
     this.currentStatus = new Status(
       this.epoch,
-      [...this.currentStatus.protocol],
+      [...(this.currentStatus.protocol ?? [])],
       this.serverService?.getServerUuid(),
     );
     return this.currentStatus;
@@ -34,6 +34,6 @@ export class StatusService {
 
   set(status: StatusEnum, reason: string) {
     this.currentStatus.status = status;
-    this.currentStatus.protocol.push(new StatusEntry(status, reason));
+    (this.currentStatus.protocol ??= []).push(new StatusEntry(status, reason));
   }
 }
