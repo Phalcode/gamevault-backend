@@ -30,7 +30,7 @@ import bytes from "bytes";
 import configuration from "../../configuration.js";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
-import { type UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
+import { UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
 import { SavefileService } from "./savefile.service.js";

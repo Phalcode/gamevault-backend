@@ -38,9 +38,9 @@ import {
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
 import { UsersService } from "../users/users.service.js";
-import { type IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto.js";
+import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto.js";
 import { UpdateProgressDto } from "./models/update-progress.dto.js";
-import { type UserIdGameIdDto } from "./models/user-id-game-id.dto.js";
+import { UserIdGameIdDto } from "./models/user-id-game-id.dto.js";
 import { Progress } from "./progress.entity.js";
 import { ProgressService } from "./progress.service.js";
 

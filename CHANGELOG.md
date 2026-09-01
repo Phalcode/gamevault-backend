@@ -1,15 +1,17 @@
 # GameVault Backend Server Changelog
 
+## 17.0.2
+
+### Changes
+
+- Fixed the generated OpenAPI/Swagger API specification: endpoints that bind path parameters through a combined DTO (e.g. `GET /api/users/:user_id`, `GET /api/games/:game_id`) now declare those path parameters correctly, so the API docs and auto-generated clients work as expected.
+
 ## 17.0.1
-
-### Breaking Changes & Migration
-
-- The backend now requires plugins to be compiled as ESM: plugins built for the pre-ESM (CommonJS) backend no longer load, and relative imports must include explicit `.js` extensions. -> **Rebuild any custom plugins together with the backend (`pnpm build`), fix relative imports to include `.js`, and use `export default` for the plugin module class. See example plugin for details.**
 
 ### Changes
 
 - Fixed re-indexing overwriting user-defined game titles and sort titles: the indexer now only derives `title`/`sort_title` from the file name when the user has not overridden them, so custom sort titles survive every re-index (startup, scheduled index, integrity checks).
-- Fixed progress deletion authorization: the permission check now verifies the *requesting* user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
+- Fixed progress deletion authorization: the permission check now verifies the _requesting_ user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
 - The server now shuts down gracefully on `SIGTERM`/`SIGINT`, draining in-flight requests and closing the HTTP/HTTPS servers cleanly.
 
 ### Thanks
@@ -23,6 +25,7 @@
 - [#236](https://github.com/Phalcode/gamevault-backend/issues/236) Introduced support for multiple game versions -> **Existing game rows are migrated automatically.**
 - Deprecated top-level game version fields (`version`, `file_path`, `size`, `release_date`, `early_access`, `type`) in favor of the new `game_version` table. -> **If you rely on these fields, update your clients to use the new version structure before migrating.**
 - Duplicate handling now merges files with the same title into one game entity more consistently (year-tagged files merge by matching release year, untagged files merge into a no-year bucket first). -> **If you previously relied on same-title duplicates as separate game entries, rename titles explicitly (e.g. with square brackets) to keep them separate.**
+- The backend now requires plugins to be compiled as ESM: plugins built for the pre-ESM (CommonJS) backend no longer load, and relative imports must include explicit `.js` extensions. -> **Rebuild any custom plugins together with the backend (`pnpm build`), fix relative imports to include `.js`, and use `export default` for the plugin module class. See example plugin for details.**
 
 ### Changes
 

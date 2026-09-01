@@ -65,7 +65,7 @@ import { UsersService } from "../users/users.service.js";
 import { FilesService } from "./files.service.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
-import { type GameIdDto } from "./models/game-id.dto.js";
+import { GameIdDto } from "./models/game-id.dto.js";
 import { UpdateGameDto } from "./models/update-game.dto.js";
 const { isArray } = lodash;
 
