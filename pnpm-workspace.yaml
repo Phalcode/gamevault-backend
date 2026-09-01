@@ -4,7 +4,4 @@ allowBuilds:
   bcrypt: true
   better-sqlite3: true
   simple-git-hooks: true
-minimumReleaseAgeExclude:
-  - '@nestjs/typeorm@11.0.2'
-  - nestjs-paginate@15.0.1
-  - typeorm@1.1.1
+minimumReleaseAgeExclude: 0
