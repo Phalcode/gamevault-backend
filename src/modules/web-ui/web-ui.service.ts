@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import fs from "fs-extra";
 import node7z from "node-7z";
-import * as streamWeb from "node:stream/web";
 import { join } from "node:path";
-import * as semver from "semver";
 import { Readable } from "node:stream";
+import * as streamWeb from "node:stream/web";
+import * as semver from "semver";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 const { extractFull } = node7z;

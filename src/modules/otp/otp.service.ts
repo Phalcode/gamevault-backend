@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import { randomBytes } from "node:crypto";
 import { type Response } from "express";
 import ms from "ms";
+import { randomBytes } from "node:crypto";
 import { FilesService } from "./../games/files.service.js";
 import Otp from "./models/otp.model.js";
 

@@ -739,9 +739,7 @@ export class GamesController {
       return value;
     }
 
-    const escapedValue = value
-      .replaceAll("\\", "\\\\")
-      .replaceAll('"', '\\"');
+    const escapedValue = value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 
     return `"${escapedValue}"`;
   }

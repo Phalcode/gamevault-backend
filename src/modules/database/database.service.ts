@@ -6,15 +6,15 @@ import {
   StreamableFile,
   UnauthorizedException,
 } from "@nestjs/common";
+import fsExtra from "fs-extra";
 import { exec } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
-import fsExtra from "fs-extra";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
-import { promisify } from "node:util";
 const { copyFile, createReadStream, pathExists, stat, writeFile } = fsExtra;
 
 import type { AppConfiguration } from "../../configuration.js";
@@ -209,7 +209,9 @@ export class DatabaseService {
         }
       }
     } finally {
-      await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+      await rm(tempDir, { recursive: true, force: true }).catch(
+        () => undefined,
+      );
     }
   }
 
@@ -239,7 +241,9 @@ export class DatabaseService {
         this.logger.log("Restored pre-restore database.");
       }
     } finally {
-      await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+      await rm(tempDir, { recursive: true, force: true }).catch(
+        () => undefined,
+      );
     }
   }
 

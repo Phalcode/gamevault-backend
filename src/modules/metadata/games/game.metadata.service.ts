@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type DeepPartial, Repository } from "typeorm";
 
-import { DEFAULT_METADATA_OPTIONS, type FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import {
+  DEFAULT_METADATA_OPTIONS,
+  type FindOptions,
+  toFindOptionsRelations,
+} from "../../../globals.js";
 import logger from "../../../logging.js";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service.js";

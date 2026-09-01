@@ -2,7 +2,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { DEFAULT_METADATA_OPTIONS, type FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import {
+  DEFAULT_METADATA_OPTIONS,
+  type FindOptions,
+  toFindOptionsRelations,
+} from "../../../globals.js";
 import { DeveloperMetadata } from "./developer.metadata.entity.js";
 
 @Injectable()
