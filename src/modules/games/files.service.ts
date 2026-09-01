@@ -391,11 +391,22 @@ export class FilesService implements OnApplicationBootstrap {
     this.applyVersionToGame(gamePatch, selectedVersion);
     gamePatch.download_count = gameToUpdate.download_count;
 
-    // Only (re)derive title/sort title from the file name when the game has
-    // no user-provided metadata. Otherwise re-indexing (e.g. after an upgrade)
-    // would clobber user-defined titles and sort titles (v17 regression).
-    if (!gameToUpdate.user_metadata) {
+    // Only (re)derive title/sort title from the file name when the user has
+    // specifically set them. A user metadata row may exist for unrelated edits
+    // (e.g. description/cover only), so preserve only what was actually
+    // overridden; a customized sort_title is detected by comparing it against
+    // the auto-generated value for the current title.
+    const userSetTitle = !!gameToUpdate.user_metadata?.title?.trim();
+    const autoSortTitle = this.gamesService.generateSortTitle(
+      gameToUpdate.title ?? "",
+    );
+    const hasCustomSortTitle =
+      !!gameToUpdate.sort_title && gameToUpdate.sort_title !== autoSortTitle;
+
+    if (!userSetTitle) {
       gamePatch.title = indexedGame.title;
+    }
+    if (!hasCustomSortTitle) {
       gamePatch.sort_title = this.gamesService.generateSortTitle(
         indexedGame.title ?? "",
       );

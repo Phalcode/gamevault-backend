@@ -547,14 +547,14 @@ describe("FilesService", () => {
   });
 
   describe("upsertIndexedVersion", () => {
-    it("should preserve user-defined title/sort title when user metadata exists", async () => {
+    it("should preserve user-defined title and sort title when both are set", async () => {
       const game = {
         id: 9,
         file_path: "/tmp/test-files/Game (v2).zip",
         title: "My Game",
         sort_title: "my custom sort",
         download_count: 3,
-        user_metadata: { id: 1 },
+        user_metadata: { id: 1, title: "My Game" },
       } as any;
       gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
 
@@ -567,6 +567,50 @@ describe("FilesService", () => {
       const patch = gamesService.save.mock.calls.at(-1)?.[0];
       expect(patch!.title).toBeUndefined();
       expect(patch!.sort_title).toBeUndefined();
+    });
+
+    it("should keep a customized sort title even if only metadata without title exists", async () => {
+      const game = {
+        id: 9,
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "My Game",
+        sort_title: "my custom sort",
+        download_count: 1,
+        user_metadata: { id: 1 },
+      } as any;
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+
+      await (service as any).upsertIndexedVersion(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game (v2)",
+        sort_title: "game (v2)",
+      });
+
+      const patch = gamesService.save.mock.calls.at(-1)?.[0];
+      expect(patch!.title).toBe("Game (v2)");
+      expect(patch!.sort_title).toBeUndefined();
+    });
+
+    it("should derive title/sort title from the file when nothing was overridden", async () => {
+      const game = {
+        id: 9,
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game",
+        sort_title: "game",
+        download_count: 0,
+        user_metadata: { id: 1 },
+      } as any;
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(game);
+
+      await (service as any).upsertIndexedVersion(9, {
+        file_path: "/tmp/test-files/Game (v2).zip",
+        title: "Game (v2)",
+        sort_title: "game (v2)",
+      });
+
+      const patch = gamesService.save.mock.calls.at(-1)?.[0];
+      expect(patch!.title).toBe("Game (v2)");
+      expect(patch!.sort_title).toBe("game (v2)");
     });
 
     it("should derive title/sort title from the file when no user metadata exists", async () => {

@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Fixed re-indexing overwriting user-defined game titles and sort titles: the indexer no longer derives `title`/`sort_title` from the file name when the game has user metadata, so custom sort titles survive every re-index (startup, scheduled index, integrity checks).
+- Fixed re-indexing overwriting user-defined game titles and sort titles: the indexer now only derives `title`/`sort_title` from the file name when the user has not overridden them, so custom sort titles survive every re-index (startup, scheduled index, integrity checks).
 - Fixed progress deletion authorization: the permission check now verifies the *requesting* user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
 - The server now shuts down gracefully on `SIGTERM`/`SIGINT`, draining in-flight requests and closing the HTTP/HTTPS servers cleanly.
 
