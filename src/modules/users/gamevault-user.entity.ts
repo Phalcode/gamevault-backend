@@ -8,14 +8,15 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
+  Relation,
 } from "typeorm";
 
-import { Session } from "../auth/session.entity";
-import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultGame } from "../games/gamevault-game.entity";
-import { Media } from "../media/media.entity";
-import { Progress } from "../progresses/progress.entity";
-import { Role } from "./models/role.enum";
+import { Session } from "../auth/session.entity.js";
+import { DatabaseEntity } from "../database/database.entity.js";
+import { GamevaultGame } from "../games/gamevault-game.entity.js";
+import { Media } from "../media/media.entity.js";
+import { Progress } from "../progresses/progress.entity.js";
+import { Role } from "./models/role.enum.js";
 
 @Entity()
 export class GamevaultUser extends DatabaseEntity {
@@ -51,7 +52,7 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => Media,
     description: "the user's avatar image",
   })
-  avatar?: Media;
+  avatar?: Relation<Media>;
 
   @OneToOne(() => Media, {
     nullable: true,
@@ -64,7 +65,7 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => Media,
     description: "the user's profile background image",
   })
-  background?: Media;
+  background?: Relation<Media>;
 
   @Column({ unique: true, nullable: true })
   @ApiProperty({
@@ -105,7 +106,7 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => Progress,
     isArray: true,
   })
-  progresses?: Progress[];
+  progresses?: Relation<Progress[]>;
 
   @Column({
     type: "simple-enum",
@@ -127,7 +128,7 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => Media,
     isArray: true,
   })
-  uploaded_media?: Media[];
+  uploaded_media?: Relation<Media[]>;
 
   @OneToMany(() => Session, (session) => session.user)
   @ApiPropertyOptional({
@@ -135,7 +136,7 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => Session,
     isArray: true,
   })
-  sessions?: Session[];
+  sessions?: Relation<Session[]>;
 
   @ManyToMany(() => GamevaultGame, (game) => game.bookmarked_users)
   @JoinTable({
@@ -154,5 +155,5 @@ export class GamevaultUser extends DatabaseEntity {
     type: () => GamevaultGame,
     isArray: true,
   })
-  bookmarked_games?: GamevaultGame[];
+  bookmarked_games?: Relation<GamevaultGame[]>;
 }

@@ -1,8 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  Relation,
+} from "typeorm";
 
-import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
+import { DatabaseEntity } from "../database/database.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
 
 @Entity()
 @Index(["user", "revoked", "expires_at"]) // For querying active sessions
@@ -16,7 +23,7 @@ export class Session extends DatabaseEntity {
     type: () => GamevaultUser,
     description: "The user this session belongs to",
   })
-  user: GamevaultUser;
+  user: Relation<GamevaultUser>;
 
   @Column()
   @ApiProperty({

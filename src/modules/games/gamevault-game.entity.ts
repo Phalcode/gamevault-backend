@@ -9,15 +9,16 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
+  Relation,
 } from "typeorm";
 
-import { DatabaseEntity } from "../database/database.entity";
-import { GameMetadata } from "../metadata/games/game.metadata.entity";
-import { Progress } from "../progresses/progress.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { GameVersion } from "./game-version.entity";
-import { GameType } from "./models/game-type.enum";
-import { sortGameVersions } from "./version-selection.util";
+import { DatabaseEntity } from "../database/database.entity.js";
+import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
+import { Progress } from "../progresses/progress.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { GameVersion } from "./game-version.entity.js";
+import { GameType } from "./models/game-type.enum.js";
+import { sortGameVersions } from "./version-selection.util.js";
 
 @Entity()
 export class GamevaultGame extends DatabaseEntity {
@@ -82,7 +83,7 @@ export class GamevaultGame extends DatabaseEntity {
     type: () => GameVersion,
     isArray: true,
   })
-  versions?: GameVersion[];
+  versions?: Relation<GameVersion[]>;
 
   @Index()
   @Column({ nullable: true })
@@ -144,7 +145,7 @@ export class GamevaultGame extends DatabaseEntity {
     type: () => GameMetadata,
     isArray: true,
   })
-  provider_metadata?: GameMetadata[];
+  provider_metadata?: Relation<GameMetadata[]>;
 
   @OneToOne(() => GameMetadata, {
     nullable: true,
@@ -157,7 +158,7 @@ export class GamevaultGame extends DatabaseEntity {
     description: "user-defined metadata of the game",
     type: () => GameMetadata,
   })
-  user_metadata?: GameMetadata;
+  user_metadata?: Relation<GameMetadata>;
 
   @OneToOne(() => GameMetadata, {
     eager: true,
@@ -171,7 +172,7 @@ export class GamevaultGame extends DatabaseEntity {
     description: "effective and merged metadata of the game",
     type: () => GameMetadata,
   })
-  metadata?: GameMetadata;
+  metadata?: Relation<GameMetadata>;
 
   @OneToMany(() => Progress, (progress) => progress.game)
   @ApiPropertyOptional({
@@ -179,7 +180,7 @@ export class GamevaultGame extends DatabaseEntity {
     type: () => Progress,
     isArray: true,
   })
-  progresses?: Progress[];
+  progresses?: Relation<Progress[]>;
 
   @ManyToMany(() => GamevaultUser, (user) => user.bookmarked_games)
   @ApiPropertyOptional({
@@ -187,7 +188,7 @@ export class GamevaultGame extends DatabaseEntity {
     type: () => GamevaultUser,
     isArray: true,
   })
-  bookmarked_users?: GamevaultUser[];
+  bookmarked_users?: Relation<GamevaultUser[]>;
 
   private createSortTitle(title: string): string {
     // List of leading articles to be removed

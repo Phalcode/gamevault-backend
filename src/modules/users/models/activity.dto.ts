@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEmpty, IsNotEmpty, IsOptional } from "class-validator";
 
-import { ActivityState } from "./activity-state.enum";
+import { ActivityState } from "./activity-state.enum.js";
 
 export class Activity {
   @IsEmpty()

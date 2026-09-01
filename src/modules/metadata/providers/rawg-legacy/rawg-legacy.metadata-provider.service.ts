@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { GameMetadata } from "../../games/game.metadata.entity";
-import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
-import { MetadataProvider } from "../abstract.metadata-provider.service";
+import { GameMetadata } from "../../games/game.metadata.entity.js";
+import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
+import { MetadataProvider } from "../abstract.metadata-provider.service.js";
 
 @Injectable()
 export class RawgLegacyMetadataProviderService extends MetadataProvider {

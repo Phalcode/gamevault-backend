@@ -1,36 +1,37 @@
 import { Reflector } from "@nestjs/core";
-import configuration from "../../../configuration";
+import configuration from "../../../configuration.js";
 
-import { AuthenticationGuard } from "./authentication.guard";
+import type { Mocked } from "vitest";
+import { AuthenticationGuard } from "./authentication.guard.js";
 
-jest.mock("../../../configuration", () => ({
+vi.mock("../../../configuration.js", () => ({
   __esModule: true,
   default: {
     TESTING: { AUTHENTICATION_DISABLED: false },
   },
 }));
 
-jest.mock("../../../logging", () => ({
+vi.mock("../../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 // Mock AuthGuard so we don't need Passport infrastructure
-jest.mock("@nestjs/passport", () => ({
+vi.mock("@nestjs/passport", () => ({
   AuthGuard: () => {
     class MockAuthGuard {
-      canActivate = jest.fn().mockReturnValue(true);
+      canActivate = vi.fn().mockReturnValue(true);
     }
     return MockAuthGuard;
   },
@@ -38,12 +39,12 @@ jest.mock("@nestjs/passport", () => ({
 
 describe("AuthenticationGuard", () => {
   let guard: AuthenticationGuard;
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: Mocked<Reflector>;
 
   function createContext(user?: any) {
     return {
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
       switchToHttp: () => ({
         getRequest: () => ({ user }),
       }),
@@ -52,7 +53,7 @@ describe("AuthenticationGuard", () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: vi.fn(),
     } as any;
 
     guard = new AuthenticationGuard(reflector, configuration as any);
@@ -85,30 +86,28 @@ describe("AuthenticationGuard", () => {
 
 describe("AuthenticationGuard (auth disabled)", () => {
   let guard: AuthenticationGuard;
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: Mocked<Reflector>;
 
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const config = require("../../../configuration").default;
+    const config = configuration as any;
     config.TESTING.AUTHENTICATION_DISABLED = true;
 
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(null),
+      getAllAndOverride: vi.fn().mockReturnValue(null),
     } as any;
 
     guard = new AuthenticationGuard(reflector, config as any);
   });
 
   afterEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const config = require("../../../configuration").default;
+    const config = configuration as any;
     config.TESTING.AUTHENTICATION_DISABLED = false;
   });
 
   it("should skip authentication when disabled", () => {
     const result = guard.canActivate({
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
       switchToHttp: () => ({
         getRequest: () => ({}),
       }),

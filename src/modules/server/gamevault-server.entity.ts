@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, Entity, Index } from "typeorm";
-import { DatabaseEntity } from "../database/database.entity";
+import { DatabaseEntity } from "../database/database.entity.js";
 
 @Entity()
 export class GamevaultServer extends DatabaseEntity {

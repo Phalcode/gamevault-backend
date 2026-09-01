@@ -7,21 +7,16 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { exec } from "child_process";
-import {
-  copyFile,
-  createReadStream,
-  pathExists,
-  stat,
-  writeFile,
-} from "fs-extra";
+import fsExtra from "fs-extra";
 import path from "path";
 import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
 import { promisify } from "util";
+const { copyFile, createReadStream, pathExists, stat, writeFile } = fsExtra;
 
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 
 @Injectable()
 export class DatabaseService {

@@ -1,8 +1,11 @@
+import * as fsExtraModule from "fs-extra";
 import { extractFull } from "node-7z";
 import { EventEmitter } from "node:events";
-import { WebUIService } from "./web-ui.service";
+import type { Mock } from "vitest";
+import configurationModule from "../../configuration.js";
+import { WebUIService } from "./web-ui.service.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     SERVER: { VERSION: "16.3.0" },
@@ -11,40 +14,54 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("node-7z", () => ({
-  extractFull: jest.fn(),
-}));
+vi.mock("node-7z", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const overrides = { extractFull: vi.fn() };
+  return {
+    ...actual,
+    ...overrides,
+    default: { ...(actual as any).default, ...overrides },
+  };
+});
 
-jest.mock("fs-extra", () => ({
-  ensureDir: jest.fn().mockResolvedValue(undefined),
-  readdir: jest.fn().mockResolvedValue([]),
-  remove: jest.fn().mockResolvedValue(undefined),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-  pathExists: jest.fn().mockResolvedValue(false),
-  readFile: jest.fn().mockResolvedValue(""),
-  createWriteStream: jest.fn(() => ({
-    on: jest.fn(),
-  })),
-}));
+vi.mock("fs-extra", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const overrides = {
+    ensureDir: vi.fn().mockResolvedValue(undefined),
+    readdir: vi.fn().mockResolvedValue([]),
+    remove: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+    pathExists: vi.fn().mockResolvedValue(false),
+    readFile: vi.fn().mockResolvedValue(""),
+    createWriteStream: vi.fn(() => ({
+      on: vi.fn(),
+    })),
+  };
+  return {
+    ...actual,
+    ...overrides,
+    default: { ...(actual as any).default, ...overrides },
+  };
+});
 
 describe("WebUIService", () => {
   let service: WebUIService;
 
   beforeEach(() => {
-    service = new WebUIService(jest.requireMock("../../configuration").default);
-    jest.restoreAllMocks();
+    service = new WebUIService(configurationModule);
+    vi.restoreAllMocks();
   });
 
   describe("prepareFrontend", () => {
     it("should use forced version and skip download when cached", async () => {
       (service as any).compatibleVersion = "";
-      jest.spyOn(service as any, "isCached").mockResolvedValue(true);
+      vi.spyOn(service as any, "isCached").mockResolvedValue(true);
 
-      const config = jest.requireMock("../../configuration").default;
+      const config = configurationModule as any;
       config.WEB_UI.VERSION = "v16.2.0";
 
-      const fetchSpy = jest.spyOn(global, "fetch" as any);
-      const ensureSpy = jest.spyOn(service as any, "ensureFrontendCached");
+      const fetchSpy = vi.spyOn(global, "fetch" as any);
+      const ensureSpy = vi.spyOn(service as any, "ensureFrontendCached");
 
       await service.prepareFrontend();
 
@@ -54,16 +71,16 @@ describe("WebUIService", () => {
     });
 
     it("should fetch releases and cache selected compatible version when not cached", async () => {
-      const config = jest.requireMock("../../configuration").default;
+      const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
 
-      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
-      const ensureSpy = jest
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
 
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [
           { tag_name: "16.3.0" },
@@ -79,16 +96,16 @@ describe("WebUIService", () => {
     });
 
     it("should fallback to nearest newer stable when no compatible stable release is found", async () => {
-      const config = jest.requireMock("../../configuration").default;
+      const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
 
-      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
-      const ensureSpy = jest
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
 
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [{ tag_name: "17.0.0" }, { tag_name: "unstable" }],
       } as Response);
@@ -100,16 +117,16 @@ describe("WebUIService", () => {
     });
 
     it("should fallback to unstable when no stable releases are available", async () => {
-      const config = jest.requireMock("../../configuration").default;
+      const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
 
-      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
-      const ensureSpy = jest
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
 
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [{ tag_name: "unstable" }],
       } as Response);
@@ -121,15 +138,15 @@ describe("WebUIService", () => {
     });
 
     it("should fallback to unstable default list when GitHub API fails", async () => {
-      const config = jest.requireMock("../../configuration").default;
+      const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
 
-      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
-      const ensureSpy = jest
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
 
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
@@ -144,7 +161,7 @@ describe("WebUIService", () => {
 
   describe("cleanCacheExceptZip", () => {
     it("should remove all files except frontend zip", async () => {
-      const fs = jest.requireMock("fs-extra");
+      const fs = fsExtraModule as any;
       fs.readdir.mockResolvedValue([
         "gamevault-frontend.zip",
         "dist",
@@ -161,7 +178,7 @@ describe("WebUIService", () => {
 
   describe("private helpers", () => {
     it("should detect valid cache for matching version", async () => {
-      const fs = jest.requireMock("fs-extra");
+      const fs = fsExtraModule as any;
       fs.pathExists.mockResolvedValueOnce(true).mockResolvedValueOnce(true);
       fs.readFile.mockResolvedValue("16.3.0\n");
 
@@ -170,7 +187,7 @@ describe("WebUIService", () => {
     });
 
     it("should return false cache when files are missing", async () => {
-      const fs = jest.requireMock("fs-extra");
+      const fs = fsExtraModule as any;
       fs.pathExists.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
       const result = await (service as any).isCached("16.3.0");
@@ -178,7 +195,7 @@ describe("WebUIService", () => {
     });
 
     it("should sort semver releases before non-semver releases", async () => {
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [
           { tag_name: "unstable" },
@@ -223,8 +240,8 @@ describe("WebUIService", () => {
     });
 
     it("should skip frontend download when cached and not force redownload", async () => {
-      jest.spyOn(service as any, "isCached").mockResolvedValue(true);
-      const downloadSpy = jest.spyOn(service as any, "downloadFile");
+      vi.spyOn(service as any, "isCached").mockResolvedValue(true);
+      const downloadSpy = vi.spyOn(service as any, "downloadFile");
 
       await (service as any).ensureFrontendCached("16.3.0");
 
@@ -232,18 +249,18 @@ describe("WebUIService", () => {
     });
 
     it("should execute full cache refresh flow when not cached", async () => {
-      const fs = jest.requireMock("fs-extra");
-      jest.spyOn(service as any, "isCached").mockResolvedValue(false);
-      const downloadSpy = jest
+      const fs = fsExtraModule as any;
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const downloadSpy = vi
         .spyOn(service as any, "downloadFile")
         .mockResolvedValue(undefined);
-      const cleanSpy = jest
+      const cleanSpy = vi
         .spyOn(service as any, "cleanCacheExceptZip")
         .mockResolvedValue(undefined);
-      const extractSpy = jest
+      const extractSpy = vi
         .spyOn(service as any, "extractZip")
         .mockResolvedValue(undefined);
-      const writeVersionSpy = jest
+      const writeVersionSpy = vi
         .spyOn(service as any, "writeVersionFile")
         .mockResolvedValue(undefined);
 
@@ -257,7 +274,7 @@ describe("WebUIService", () => {
     });
 
     it("should resolve zip extraction when 7z emits end", async () => {
-      (extractFull as jest.Mock).mockImplementation(() => {
+      (extractFull as Mock).mockImplementation(() => {
         const emitter = new EventEmitter();
         setImmediate(() => emitter.emit("end"));
         return emitter;
@@ -269,7 +286,7 @@ describe("WebUIService", () => {
     });
 
     it("should reject zip extraction when 7z emits error", async () => {
-      (extractFull as jest.Mock).mockImplementation(() => {
+      (extractFull as Mock).mockImplementation(() => {
         const emitter = new EventEmitter();
         setImmediate(() => emitter.emit("error", new Error("extract failed")));
         return emitter;
@@ -281,7 +298,7 @@ describe("WebUIService", () => {
     });
 
     it("should throw when download response is not ok", async () => {
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: false,
         statusText: "Not Found",
       } as Response);
@@ -295,7 +312,7 @@ describe("WebUIService", () => {
     });
 
     it("should throw when download response body is empty", async () => {
-      jest.spyOn(global, "fetch" as any).mockResolvedValue({
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         body: null,
       } as Response);

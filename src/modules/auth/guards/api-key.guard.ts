@@ -9,11 +9,11 @@ import {
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { Socket } from "socket.io";
-import { AppConfiguration } from "../../../configuration";
-import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator";
-import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
-import { ApiKeyService } from "../../users/api-key.service";
-import { Role } from "../../users/models/role.enum";
+import type { AppConfiguration } from "../../../configuration.js";
+import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
+import { ApiKeyService } from "../../users/api-key.service.js";
+import { Role } from "../../users/models/role.enum.js";
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {

@@ -1,8 +1,9 @@
-import { copy, mkdir, readdir } from "fs-extra";
+import fsExtra from "fs-extra";
 import path, { join, resolve } from "path";
-import configuration from "./configuration";
-import { GameVaultPluginModule } from "./globals";
-import { default as logger } from "./logging";
+import configuration from "./configuration.js";
+import { GameVaultPluginModule } from "./globals.js";
+import { default as logger } from "./logging.js";
+const { copy, mkdir, readdir } = fsExtra;
 
 export default async function loadPlugins() {
   try {
@@ -11,7 +12,7 @@ export default async function loadPlugins() {
 
     if (configuration.VOLUMES.PLUGINS == "./.local/plugins") {
       // In Development
-      injectDir = path.resolve(__dirname, "..", pluginDir);
+      injectDir = path.resolve(import.meta.dirname, "..", pluginDir);
       logger.log({
         context: "PluginLoader",
         message: "Short-Circuiting Plugins.",

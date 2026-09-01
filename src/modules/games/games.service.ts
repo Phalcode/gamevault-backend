@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import lodash from "lodash";
 import {
   FindManyOptions,
   FindOneOptions,
@@ -15,25 +16,25 @@ import {
   Or,
   Repository,
 } from "typeorm";
-
-import { isEmpty, kebabCase, toLower } from "lodash";
 import {
   FindOptions,
   toFindOptionsRelations,
   toFindOptionsSelect,
-} from "../../globals";
-import { logGamevaultGame } from "../../logging";
-import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity";
-import { GameMetadata } from "../metadata/games/game.metadata.entity";
-import { GameMetadataService } from "../metadata/games/game.metadata.service";
-import { GenreMetadata } from "../metadata/genres/genre.metadata.entity";
-import { MetadataService } from "../metadata/metadata.service";
-import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity";
-import { TagMetadata } from "../metadata/tags/tag.metadata.entity";
-import { GameVersion } from "./game-version.entity";
-import { GamevaultGame } from "./gamevault-game.entity";
-import { GameExistence } from "./models/game-existence.enum";
-import { UpdateGameDto } from "./models/update-game.dto";
+} from "../../globals.js";
+import { logGamevaultGame } from "../../logging.js";
+import { DeveloperMetadata } from "../metadata/developers/developer.metadata.entity.js";
+import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
+import { GameMetadataService } from "../metadata/games/game.metadata.service.js";
+import { GenreMetadata } from "../metadata/genres/genre.metadata.entity.js";
+import { MetadataService } from "../metadata/metadata.service.js";
+import { PublisherMetadata } from "../metadata/publishers/publisher.metadata.entity.js";
+import { TagMetadata } from "../metadata/tags/tag.metadata.entity.js";
+import { GameVersion } from "./game-version.entity.js";
+import { GamevaultGame } from "./gamevault-game.entity.js";
+import { GameExistence } from "./models/game-existence.enum.js";
+import { UpdateGameDto } from "./models/update-game.dto.js";
+
+const { isEmpty, kebabCase, toLower } = lodash;
 
 @Injectable()
 export class GamesService {
@@ -53,7 +54,8 @@ export class GamesService {
     @InjectRepository(GameVersion)
     private readonly gameVersionRepository: Repository<GameVersion>,
     @Inject(forwardRef(() => MetadataService))
-    private readonly metadataService: MetadataService,
+    // Cyclic service reference (ESM): intentionally loosely typed to avoid design:paramtypes TDZ
+    private readonly metadataService: any,
     @Inject(forwardRef(() => GameMetadataService))
     private readonly gameMetadataService: GameMetadataService,
   ) {}

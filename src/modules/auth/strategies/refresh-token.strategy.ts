@@ -2,11 +2,11 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { AppConfiguration } from "../../../configuration";
-import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator";
-import { UsersService } from "../../users/users.service";
-import { AuthenticationService } from "../authentication.service";
-import { GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface";
+import type { AppConfiguration } from "../../../configuration.js";
+import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
+import { UsersService } from "../../users/users.service.js";
+import { AuthenticationService } from "../authentication.service.js";
+import { GamevaultJwtPayload } from "../models/gamevault-jwt-payload.interface.js";
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(

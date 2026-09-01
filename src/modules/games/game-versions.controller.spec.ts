@@ -1,15 +1,16 @@
-import { OtpService } from "../otp/otp.service";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { FilesService } from "./files.service";
-import { GameVersionsController } from "./game-versions.controller";
+import type { Mocked } from "vitest";
+import { OtpService } from "../otp/otp.service.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { FilesService } from "./files.service.js";
+import { GameVersionsController } from "./game-versions.controller.js";
 
 describe("GameVersionsController", () => {
   let controller: GameVersionsController;
-  let filesService: jest.Mocked<FilesService>;
-  let usersService: jest.Mocked<UsersService>;
-  let otpService: jest.Mocked<OtpService>;
+  let filesService: Mocked<FilesService>;
+  let usersService: Mocked<UsersService>;
+  let otpService: Mocked<OtpService>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -24,16 +25,16 @@ describe("GameVersionsController", () => {
 
   beforeEach(() => {
     filesService = {
-      download: jest.fn(),
-      deleteGameFile: jest.fn(),
+      download: vi.fn(),
+      deleteGameFile: vi.fn(),
     } as any;
 
     usersService = {
-      findUserAgeByUsername: jest.fn().mockResolvedValue(undefined),
+      findUserAgeByUsername: vi.fn().mockResolvedValue(undefined),
     } as any;
 
     otpService = {
-      create: jest.fn().mockReturnValue("mock-otp"),
+      create: vi.fn().mockReturnValue("mock-otp"),
     } as any;
 
     controller = new GameVersionsController(
@@ -56,7 +57,7 @@ describe("GameVersionsController", () => {
   describe("downloadGameVersion", () => {
     it("should download a specific version and set OTP header", async () => {
       const mockUser = createMockUser();
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       filesService.download.mockResolvedValue({} as any);
 
       await controller.downloadGameVersion(

@@ -1,11 +1,14 @@
 import "reflect-metadata";
 
-import { AuthenticationGuard } from "../modules/auth/guards/authentication.guard";
-import { AuthorizationGuard } from "../modules/auth/guards/authorization.guard";
-import { Role } from "../modules/users/models/role.enum";
-import { DISABLE_API_IF_KEY, DisableApiIf } from "./disable-api-if.decorator";
-import { MINIMUM_ROLE_KEY, MinimumRole } from "./minimum-role.decorator";
-import { SKIP_GUARDS_KEY, SkipGuards } from "./skip-guards.decorator";
+import { AuthenticationGuard } from "../modules/auth/guards/authentication.guard.js";
+import { AuthorizationGuard } from "../modules/auth/guards/authorization.guard.js";
+import { Role } from "../modules/users/models/role.enum.js";
+import {
+  DISABLE_API_IF_KEY,
+  DisableApiIf,
+} from "./disable-api-if.decorator.js";
+import { MINIMUM_ROLE_KEY, MinimumRole } from "./minimum-role.decorator.js";
+import { SKIP_GUARDS_KEY, SkipGuards } from "./skip-guards.decorator.js";
 
 class DecoratorFixture {
   @DisableApiIf(true)

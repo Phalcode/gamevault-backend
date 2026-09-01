@@ -15,8 +15,8 @@ import {
   NotContains,
 } from "class-validator";
 
-import { MediaValidator } from "../../../validators/media.validator";
-import { Media } from "../../media/media.entity";
+import { MediaValidator } from "../../../validators/media.validator.js";
+import { Media } from "../../media/media.entity.js";
 
 export class UpdateGameUserMetadataDto {
   @ApiPropertyOptional({

@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsArray, IsOptional, ValidateNested } from "class-validator";
 
-import { UpdateGameUserMetadataDto } from "../../metadata/models/user-game-metadata.dto";
-import { MapGameDto } from "./map-game.dto";
+import { UpdateGameUserMetadataDto } from "../../metadata/models/user-game-metadata.dto.js";
+import { MapGameDto } from "./map-game.dto.js";
 
 export class UpdateGameDto {
   @IsArray()

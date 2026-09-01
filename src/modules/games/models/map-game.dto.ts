@@ -7,7 +7,7 @@ import {
   Matches,
 } from "class-validator";
 
-import globals from "../../../globals";
+import globals from "../../../globals.js";
 
 export class MapGameDto {
   @IsNotEmpty()

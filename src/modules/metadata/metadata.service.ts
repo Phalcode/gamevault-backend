@@ -8,21 +8,22 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { validateOrReject } from "class-validator";
-
-import { kebabCase } from "lodash";
+import lodash from "lodash";
 import { setTimeout } from "timers/promises";
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import globals from "../../globals";
-import { logGamevaultGame, logMetadataProvider } from "../../logging";
-import { GamesService } from "../games/games.service";
-import { GamevaultGame } from "../games/gamevault-game.entity";
-import { GameType } from "../games/models/game-type.enum";
-import { GameMetadata } from "./games/game.metadata.entity";
-import { GameMetadataService } from "./games/game.metadata.service";
-import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
-import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
-import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import globals from "../../globals.js";
+import { logGamevaultGame, logMetadataProvider } from "../../logging.js";
+import { GamesService } from "../games/games.service.js";
+import { GamevaultGame } from "../games/gamevault-game.entity.js";
+import { GameType } from "../games/models/game-type.enum.js";
+import { GameMetadata } from "./games/game.metadata.entity.js";
+import { GameMetadataService } from "./games/game.metadata.service.js";
+import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto.js";
+import { MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
+import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception.js";
+
+const { kebabCase } = lodash;
 
 @Injectable()
 export class MetadataService {
@@ -33,7 +34,8 @@ export class MetadataService {
 
   constructor(
     @Inject(forwardRef(() => GamesService))
-    private readonly gamesService: GamesService,
+    // Cyclic service reference (ESM): intentionally loosely typed to avoid design:paramtypes TDZ
+    private readonly gamesService: any,
     private readonly gameMetadataService: GameMetadataService,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
   ) {}

@@ -1,14 +1,15 @@
 import { UnauthorizedException } from "@nestjs/common";
-import { FilesService } from "../games/files.service";
-import { OtpService } from "./otp.service";
+import type { Mocked } from "vitest";
+import { FilesService } from "../games/files.service.js";
+import { OtpService } from "./otp.service.js";
 
 describe("OtpService", () => {
   let service: OtpService;
-  let filesService: jest.Mocked<FilesService>;
+  let filesService: Mocked<FilesService>;
 
   beforeEach(() => {
     filesService = {
-      download: jest.fn(),
+      download: vi.fn(),
     } as any;
 
     service = new OtpService(filesService);
@@ -37,7 +38,7 @@ describe("OtpService", () => {
 
   describe("get", () => {
     it("should validate and consume a valid OTP", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       const otp = service.create("testuser", 42, 7, 1024);
       filesService.download.mockResolvedValue({} as any);
 
@@ -53,14 +54,14 @@ describe("OtpService", () => {
     });
 
     it("should throw UnauthorizedException for invalid OTP", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       await expect(
         service.get("invalid-otp-value", mockResponse),
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it("should throw UnauthorizedException for already consumed OTP", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       const otp = service.create("testuser", 42);
       filesService.download.mockResolvedValue({} as any);
 
@@ -74,7 +75,7 @@ describe("OtpService", () => {
     });
 
     it("should throw UnauthorizedException for expired OTP", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       const otp = service.create("testuser", 42);
 
       // Manually expire the OTP
@@ -88,7 +89,7 @@ describe("OtpService", () => {
     });
 
     it("should pass download speed limit to filesService", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       const otp = service.create("testuser", 99, undefined, 2048);
       filesService.download.mockResolvedValue({} as any);
 
@@ -104,7 +105,7 @@ describe("OtpService", () => {
     });
 
     it("should bind OTP download to the requested version id", async () => {
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       const otp = service.create("testuser", 101, 33, 4096);
       filesService.download.mockResolvedValue({} as any);
 

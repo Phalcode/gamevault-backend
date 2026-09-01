@@ -1,13 +1,14 @@
-import { ApiKeyService } from "./api-key.service";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { Role } from "./models/role.enum";
-import { UsersController } from "./users.controller";
-import { UsersService } from "./users.service";
+import type { Mocked } from "vitest";
+import { ApiKeyService } from "./api-key.service.js";
+import { GamevaultUser } from "./gamevault-user.entity.js";
+import { Role } from "./models/role.enum.js";
+import { UsersController } from "./users.controller.js";
+import { UsersService } from "./users.service.js";
 
 describe("UsersController", () => {
   let controller: UsersController;
-  let usersService: jest.Mocked<UsersService>;
-  let apiKeyService: jest.Mocked<ApiKeyService>;
+  let usersService: Mocked<UsersService>;
+  let apiKeyService: Mocked<ApiKeyService>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -23,18 +24,18 @@ describe("UsersController", () => {
 
   beforeEach(() => {
     usersService = {
-      find: jest.fn(),
-      findOneByUserIdOrFail: jest.fn(),
-      findOneByUsernameOrFail: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      recover: jest.fn(),
-      bookmarkGame: jest.fn(),
-      unbookmarkGame: jest.fn(),
+      find: vi.fn(),
+      findOneByUserIdOrFail: vi.fn(),
+      findOneByUsernameOrFail: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      recover: vi.fn(),
+      bookmarkGame: vi.fn(),
+      unbookmarkGame: vi.fn(),
     } as any;
 
     apiKeyService = {
-      findApiKeyOrFail: jest.fn(),
+      findApiKeyOrFail: vi.fn(),
     } as any;
 
     controller = new UsersController(usersService, apiKeyService);

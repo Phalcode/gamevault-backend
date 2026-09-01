@@ -1,10 +1,10 @@
 import {
   selectDefaultGameVersion,
   sortGameVersions,
-} from "./version-selection.util";
+} from "./version-selection.util.js";
 
-import { GameVersion } from "./game-version.entity";
-import { GameType } from "./models/game-type.enum";
+import { GameVersion } from "./game-version.entity.js";
+import { GameType } from "./models/game-type.enum.js";
 
 describe("version-selection.util", () => {
   const createVersion = (overrides: Partial<GameVersion>): GameVersion =>

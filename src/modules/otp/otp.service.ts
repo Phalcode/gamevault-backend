@@ -8,8 +8,8 @@ import { Interval } from "@nestjs/schedule";
 import { randomBytes } from "crypto";
 import { Response } from "express";
 import ms from "ms";
-import { FilesService } from "./../games/files.service";
-import Otp from "./models/otp.model";
+import { FilesService } from "./../games/files.service.js";
+import Otp from "./models/otp.model.js";
 
 @Injectable()
 export class OtpService {

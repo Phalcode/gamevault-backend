@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumberString } from "class-validator";
 
-import { GameIdDto } from "../../games/models/game-id.dto";
-import { UserIdDto } from "../../users/models/user-id.dto";
+import { GameIdDto } from "../../games/models/game-id.dto.js";
+import { UserIdDto } from "../../users/models/user-id.dto.js";
 
 export class IncrementProgressByMinutesDto implements UserIdDto, GameIdDto {
   @IsNumberString()

@@ -1,8 +1,8 @@
 import { Logger, Module, OnModuleInit } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { join, resolve } from "path";
-import configuration from "../../configuration";
-import { WebUIService } from "./web-ui.service";
+import configuration from "../../configuration.js";
+import { WebUIService } from "./web-ui.service.js";
 
 @Module({
   providers: [WebUIService],

@@ -1,4 +1,4 @@
-import { ServerService } from "./server.service";
+import { ServerService } from "./server.service.js";
 
 describe("ServerService", () => {
   let service: ServerService;
@@ -6,9 +6,9 @@ describe("ServerService", () => {
 
   beforeEach(() => {
     mockRepository = {
-      findOne: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findOne: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
     service = new ServerService(mockRepository);
   });

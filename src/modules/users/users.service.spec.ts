@@ -1,17 +1,18 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { Repository } from "typeorm";
-import configuration from "../../configuration";
-import { GamesService } from "../games/games.service";
-import { MediaService } from "../media/media.service";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { Role } from "./models/role.enum";
-import { UsersService } from "./users.service";
+import type { Mocked } from "vitest";
+import configuration from "../../configuration.js";
+import { GamesService } from "../games/games.service.js";
+import { MediaService } from "../media/media.service.js";
+import { GamevaultUser } from "./gamevault-user.entity.js";
+import { Role } from "./models/role.enum.js";
+import { UsersService } from "./users.service.js";
 
 describe("UsersService", () => {
   let service: UsersService;
-  let userRepository: jest.Mocked<Repository<GamevaultUser>>;
-  let mediaService: jest.Mocked<MediaService>;
-  let gamesService: jest.Mocked<GamesService>;
+  let userRepository: Mocked<Repository<GamevaultUser>>;
+  let mediaService: Mocked<MediaService>;
+  let gamesService: Mocked<GamesService>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -31,22 +32,22 @@ describe("UsersService", () => {
 
   beforeEach(() => {
     userRepository = {
-      findOneOrFail: jest.fn(),
-      findOne: jest.fn(),
-      find: jest.fn(),
-      save: jest.fn(),
-      softRemove: jest.fn(),
-      recover: jest.fn(),
-      count: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      findOneOrFail: vi.fn(),
+      findOne: vi.fn(),
+      find: vi.fn(),
+      save: vi.fn(),
+      softRemove: vi.fn(),
+      recover: vi.fn(),
+      count: vi.fn(),
+      createQueryBuilder: vi.fn(),
     } as any;
 
     mediaService = {
-      findOneByMediaIdOrFail: jest.fn(),
+      findOneByMediaIdOrFail: vi.fn(),
     } as any;
 
     gamesService = {
-      findOneByGameIdOrFail: jest.fn(),
+      findOneByGameIdOrFail: vi.fn(),
     } as any;
 
     const testConfiguration = {
@@ -328,9 +329,9 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       gamesService.findOneByGameIdOrFail.mockResolvedValue(mockGame);
       const mockQb = {
-        relation: jest.fn().mockReturnThis(),
-        of: jest.fn().mockReturnThis(),
-        add: jest.fn().mockResolvedValue(undefined),
+        relation: vi.fn().mockReturnThis(),
+        of: vi.fn().mockReturnThis(),
+        add: vi.fn().mockResolvedValue(undefined),
       };
       userRepository.createQueryBuilder.mockReturnValue(mockQb as any);
 
@@ -355,9 +356,9 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       gamesService.findOneByGameIdOrFail.mockResolvedValue(mockGame);
       const mockQb = {
-        relation: jest.fn().mockReturnThis(),
-        of: jest.fn().mockReturnThis(),
-        remove: jest.fn().mockResolvedValue(undefined),
+        relation: vi.fn().mockReturnThis(),
+        of: vi.fn().mockReturnThis(),
+        remove: vi.fn().mockResolvedValue(undefined),
       };
       userRepository.createQueryBuilder.mockReturnValue(mockQb as any);
 
@@ -376,9 +377,7 @@ describe("UsersService", () => {
 
   describe("checkIfUsernameMatchesIdOrIsAdminOrThrow", () => {
     it("should allow an admin executor to modify any user's data", async () => {
-      jest
-        .spyOn(service, "checkIfUsernameIsAtLeastRole")
-        .mockResolvedValue(true);
+      vi.spyOn(service, "checkIfUsernameIsAtLeastRole").mockResolvedValue(true);
       const result = await service.checkIfUsernameMatchesIdOrIsAdminOrThrow(
         1,
         "adminuser",
@@ -387,9 +386,9 @@ describe("UsersService", () => {
     });
 
     it("should return true when username matches", async () => {
-      jest
-        .spyOn(service, "checkIfUsernameIsAtLeastRole")
-        .mockResolvedValue(false);
+      vi.spyOn(service, "checkIfUsernameIsAtLeastRole").mockResolvedValue(
+        false,
+      );
       const user = createMockUser({ username: "testuser" });
       userRepository.findOneOrFail.mockResolvedValue(user);
       const result = await service.checkIfUsernameMatchesIdOrIsAdminOrThrow(
@@ -400,9 +399,9 @@ describe("UsersService", () => {
     });
 
     it("should throw ForbiddenException for mismatched non-admin user", async () => {
-      jest
-        .spyOn(service, "checkIfUsernameIsAtLeastRole")
-        .mockResolvedValue(false);
+      vi.spyOn(service, "checkIfUsernameIsAtLeastRole").mockResolvedValue(
+        false,
+      );
       const user = createMockUser({ username: "testuser", role: Role.USER });
       userRepository.findOneOrFail.mockResolvedValue(user);
       await expect(

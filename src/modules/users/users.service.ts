@@ -13,6 +13,7 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { hash } from "bcrypt";
 import { randomBytes } from "crypto";
+import lodash from "lodash";
 import {
   EntityNotFoundError,
   FindManyOptions,
@@ -22,22 +23,22 @@ import {
   Not,
   Repository,
 } from "typeorm";
-
-import { toLower } from "lodash";
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import {
   FindOptions,
   toFindOptionsRelations,
   toFindOptionsSelect,
-} from "../../globals";
-import { logGamevaultGame } from "../../logging";
-import { GamesService } from "../games/games.service";
-import { MediaService } from "../media/media.service";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { RegisterUserDto } from "./models/register-user.dto";
-import { Role } from "./models/role.enum";
-import { UpdateUserDto } from "./models/update-user.dto";
+} from "../../globals.js";
+import { logGamevaultGame } from "../../logging.js";
+import { GamesService } from "../games/games.service.js";
+import { MediaService } from "../media/media.service.js";
+import { GamevaultUser } from "./gamevault-user.entity.js";
+import { RegisterUserDto } from "./models/register-user.dto.js";
+import { Role } from "./models/role.enum.js";
+import { UpdateUserDto } from "./models/update-user.dto.js";
+
+const { toLower } = lodash;
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -47,7 +48,8 @@ export class UsersService implements OnApplicationBootstrap {
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
     @Inject(forwardRef(() => MediaService))
-    private readonly mediaService: MediaService,
+    // Cyclic service reference (ESM): intentionally loosely typed to avoid design:paramtypes TDZ
+    private readonly mediaService: any,
     @Inject(forwardRef(() => GamesService))
     private readonly gamesService: GamesService,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,

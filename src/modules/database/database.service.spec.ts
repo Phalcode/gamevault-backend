@@ -1,9 +1,9 @@
 import { NotAcceptableException, UnauthorizedException } from "@nestjs/common";
-import configuration from "../../configuration";
+import configuration from "../../configuration.js";
 
-import { DatabaseService } from "./database.service";
+import { DatabaseService } from "./database.service.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     TESTING: { IN_MEMORY_DB: false },
@@ -20,20 +20,20 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 describe("DatabaseService", () => {
@@ -42,15 +42,15 @@ describe("DatabaseService", () => {
 
   beforeEach(() => {
     mockDataSource = {
-      initialize: jest.fn().mockResolvedValue(undefined),
-      destroy: jest.fn().mockResolvedValue(undefined),
-      runMigrations: jest.fn().mockResolvedValue([]),
+      initialize: vi.fn().mockResolvedValue(undefined),
+      destroy: vi.fn().mockResolvedValue(undefined),
+      runMigrations: vi.fn().mockResolvedValue([]),
     };
 
     service = new DatabaseService(mockDataSource, configuration as any);
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   // ─── validatePassword ──────────────────────────────────────────────
 
@@ -117,8 +117,7 @@ describe("DatabaseService", () => {
 
   describe("in-memory DB guard", () => {
     it("should reject backup on in-memory DB", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const config = require("../../configuration").default;
+      const config = configuration as any;
       config.TESTING.IN_MEMORY_DB = true;
 
       await expect(service.backup("correct-password")).rejects.toThrow(
@@ -129,8 +128,7 @@ describe("DatabaseService", () => {
     });
 
     it("should reject restore on in-memory DB", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const config = require("../../configuration").default;
+      const config = configuration as any;
       config.TESTING.IN_MEMORY_DB = true;
 
       await expect(

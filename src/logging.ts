@@ -3,13 +3,13 @@ import winston from "winston";
 import { consoleFormat } from "winston-console-format";
 import DailyRotateFile from "winston-daily-rotate-file";
 
-import configuration from "./configuration";
-import { GamevaultGame } from "./modules/games/gamevault-game.entity";
-import { Media } from "./modules/media/media.entity";
-import { Metadata } from "./modules/metadata/models/metadata.interface";
-import { MetadataProvider } from "./modules/metadata/providers/abstract.metadata-provider.service";
-import { Progress } from "./modules/progresses/progress.entity";
-import { GamevaultUser } from "./modules/users/gamevault-user.entity";
+import configuration from "./configuration.js";
+import { GamevaultGame } from "./modules/games/gamevault-game.entity.js";
+import { Media } from "./modules/media/media.entity.js";
+import { Metadata } from "./modules/metadata/models/metadata.interface.js";
+import { MetadataProvider } from "./modules/metadata/providers/abstract.metadata-provider.service.js";
+import { Progress } from "./modules/progresses/progress.entity.js";
+import { GamevaultUser } from "./modules/users/gamevault-user.entity.js";
 
 const transports: winston.transport[] = [];
 

@@ -1,13 +1,13 @@
 import { applyDecorators, Type } from "@nestjs/common";
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from "@nestjs/swagger";
-import { PaginateQuery } from "nestjs-paginate";
+import type { PaginateQuery } from "nestjs-paginate";
 import {
   FindOptionsRelations,
   FindOptionsSelect,
   ObjectLiteral,
 } from "typeorm";
 
-import { PaginatedEntity } from "./modules/database/models/paginated-entity.model";
+import { PaginatedEntity } from "./modules/database/models/paginated-entity.model.js";
 
 export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(
   dataDto: DataDto,

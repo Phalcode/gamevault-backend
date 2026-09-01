@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { LoggingExceptionFilter } from "./http-exception.filter";
+import { LoggingExceptionFilter } from "./http-exception.filter.js";
 
 describe("LoggingExceptionFilter", () => {
   let filter: LoggingExceptionFilter;
@@ -10,8 +10,8 @@ describe("LoggingExceptionFilter", () => {
   beforeEach(() => {
     filter = new LoggingExceptionFilter();
     mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
     };
     mockRequest = { url: "/api/test" };
     mockHost = {

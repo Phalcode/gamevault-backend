@@ -1,4 +1,4 @@
-import Otp from "./otp.model";
+import Otp from "./otp.model.js";
 
 describe("Otp Model", () => {
   it("should create an OTP with all properties", () => {

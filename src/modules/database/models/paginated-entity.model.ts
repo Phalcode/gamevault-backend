@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Paginated } from "nestjs-paginate";
-import { Column, SortBy } from "nestjs-paginate/lib/helper";
+import { Column, type SortBy } from "nestjs-paginate/lib/helper.js";
 
 export class Metadata<T> {
   @ApiProperty({ example: 50, description: "amount of items per page" })

@@ -2,17 +2,17 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { FindOptions, toFindOptionsRelations } from "../../../globals";
-import logger from "../../../logging";
-import { DeveloperMetadata } from "../developers/developer.metadata.entity";
-import { DeveloperMetadataService } from "../developers/developer.metadata.service";
-import { GenreMetadata } from "../genres/genre.metadata.entity";
-import { GenreMetadataService } from "../genres/genre.metadata.service";
-import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
-import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
-import { TagMetadata } from "../tags/tag.metadata.entity";
-import { TagMetadataService } from "../tags/tag.metadata.service";
-import { GameMetadata } from "./game.metadata.entity";
+import { FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import logger from "../../../logging.js";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
+import { DeveloperMetadataService } from "../developers/developer.metadata.service.js";
+import { GenreMetadata } from "../genres/genre.metadata.entity.js";
+import { GenreMetadataService } from "../genres/genre.metadata.service.js";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity.js";
+import { PublisherMetadataService } from "../publishers/publisher.metadata.service.js";
+import { TagMetadata } from "../tags/tag.metadata.entity.js";
+import { TagMetadataService } from "../tags/tag.metadata.service.js";
+import { GameMetadata } from "./game.metadata.entity.js";
 
 @Injectable()
 export class GameMetadataService {

@@ -1,13 +1,14 @@
-import { LegacyRoutesMiddleware } from "./legacy-routes.middleware";
+import type { Mock } from "vitest";
+import { LegacyRoutesMiddleware } from "./legacy-routes.middleware.js";
 
 describe("LegacyRoutesMiddleware", () => {
   let middleware: LegacyRoutesMiddleware;
-  let mockNext: jest.Mock;
+  let mockNext: Mock;
   let mockRes: any;
 
   beforeEach(() => {
     middleware = new LegacyRoutesMiddleware();
-    mockNext = jest.fn();
+    mockNext = vi.fn();
     mockRes = {};
   });
 

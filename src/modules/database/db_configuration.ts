@@ -1,12 +1,13 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { readFileSync } from "fs-extra";
+import fsExtra from "fs-extra";
 import pg from "pg";
 import { TlsOptions } from "tls";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions";
-import { PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions";
+import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
+import { PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions.js";
+const { readFileSync } = fsExtra;
 
-import { AppConfiguration } from "../../configuration";
+import type { AppConfiguration } from "../../configuration.js";
 
 export function getDatabaseConfiguration(
   configuration: AppConfiguration,

@@ -8,17 +8,18 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
+  Relation,
 } from "typeorm";
-import { GameType } from "../../games/models/game-type.enum";
-import { DatabaseEntityV12 } from "./database.v12-entity";
-import { DeveloperV12 } from "./developer.v12-entity";
-import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
-import { GenreV12 } from "./genre.v12-entity";
-import { ImageV12 } from "./image.v12-entity";
-import { ProgressV12 } from "./progress.v12-entity";
-import { PublisherV12 } from "./publisher.v12-entity";
-import { StoreV12 } from "./store.v12-entity";
-import { TagV12 } from "./tag.v12-entity";
+import { GameType } from "../../games/models/game-type.enum.js";
+import { DatabaseEntityV12 } from "./database.v12-entity.js";
+import { DeveloperV12 } from "./developer.v12-entity.js";
+import { GamevaultUserV12 } from "./gamevault-user.v12-entity.js";
+import { GenreV12 } from "./genre.v12-entity.js";
+import { ImageV12 } from "./image.v12-entity.js";
+import { ProgressV12 } from "./progress.v12-entity.js";
+import { PublisherV12 } from "./publisher.v12-entity.js";
+import { StoreV12 } from "./store.v12-entity.js";
+import { TagV12 } from "./tag.v12-entity.js";
 
 @Entity("v12_game", { synchronize: false })
 export class GameV12 extends DatabaseEntityV12 {
@@ -121,7 +122,7 @@ export class GameV12 extends DatabaseEntityV12 {
     description: "box image of the game",
     type: () => ImageV12,
   })
-  box_image?: ImageV12;
+  box_image?: Relation<ImageV12>;
 
   @OneToOne(() => ImageV12, {
     nullable: true,
@@ -134,7 +135,7 @@ export class GameV12 extends DatabaseEntityV12 {
     description: "background image of the game",
     type: () => ImageV12,
   })
-  background_image?: ImageV12;
+  background_image?: Relation<ImageV12>;
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
@@ -185,7 +186,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => ProgressV12,
     isArray: true,
   })
-  progresses?: ProgressV12[];
+  progresses?: Relation<ProgressV12[]>;
 
   @JoinTable({ name: "v12_game_publishers_v12_publisher" })
   @ManyToMany(() => PublisherV12, (publisher) => publisher.games)
@@ -194,7 +195,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => PublisherV12,
     isArray: true,
   })
-  publishers?: PublisherV12[];
+  publishers?: Relation<PublisherV12[]>;
 
   @JoinTable({ name: "v12_game_developers_v12_developer" })
   @ManyToMany(() => DeveloperV12, (developer) => developer.games)
@@ -203,7 +204,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => DeveloperV12,
     isArray: true,
   })
-  developers?: DeveloperV12[];
+  developers?: Relation<DeveloperV12[]>;
 
   @JoinTable({ name: "v12_game_stores_v12_store" })
   @ManyToMany(() => StoreV12, (store) => store.games)
@@ -212,7 +213,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => StoreV12,
     isArray: true,
   })
-  stores?: StoreV12[];
+  stores?: Relation<StoreV12[]>;
 
   @JoinTable({ name: "v12_game_tags_v12_tag" })
   @ManyToMany(() => TagV12, (tag) => tag.games)
@@ -221,7 +222,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => TagV12,
     isArray: true,
   })
-  tags?: TagV12[];
+  tags?: Relation<TagV12[]>;
 
   @JoinTable({ name: "v12_game_genres_v12_genre" })
   @ManyToMany(() => GenreV12, (genre) => genre.games)
@@ -230,7 +231,7 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => GenreV12,
     isArray: true,
   })
-  genres?: GenreV12[];
+  genres?: Relation<GenreV12[]>;
 
   @ManyToMany(() => GamevaultUserV12, (user) => user.bookmarked_games)
   @ApiProperty({
@@ -238,5 +239,5 @@ export class GameV12 extends DatabaseEntityV12 {
     type: () => GameV12,
     isArray: true,
   })
-  bookmarked_users?: GamevaultUserV12[];
+  bookmarked_users?: Relation<GamevaultUserV12[]>;
 }

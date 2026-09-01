@@ -28,45 +28,46 @@ import {
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Response } from "express";
+import lodash from "lodash";
 import {
   FilterOperator,
   Paginate,
-  PaginateQuery,
   Paginated,
   PaginationType,
   paginate,
+  type PaginateQuery,
 } from "nestjs-paginate";
 import { In, Not, Repository } from "typeorm";
 
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
-import { isArray } from "lodash";
-import { FilterSuffix, addFilter } from "nestjs-paginate/lib/filter";
 import {
   parseFilterExpression,
   type FilterExpression,
-} from "nestjs-paginate/lib/filter-expression";
-import configuration from "../../configuration";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+} from "nestjs-paginate/lib/filter-expression.js";
+import { FilterSuffix, addFilter } from "nestjs-paginate/lib/filter.js";
+import configuration from "../../configuration.js";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator.js";
 import {
   ApiOkResponsePaginated,
   appendPaginateFilterExpression,
   toFindOptionsRelations,
-} from "../../globals";
-import { GameMetadata } from "../metadata/games/game.metadata.entity";
-import { OtpService } from "../otp/otp.service";
-import { State } from "../progresses/models/state.enum";
-import { Progress } from "../progresses/progress.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { FilesService } from "./files.service";
-import { GamesService } from "./games.service";
-import { GamevaultGame } from "./gamevault-game.entity";
-import { GameIdDto } from "./models/game-id.dto";
-import { UpdateGameDto } from "./models/update-game.dto";
+} from "../../globals.js";
+import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
+import { OtpService } from "../otp/otp.service.js";
+import { State } from "../progresses/models/state.enum.js";
+import { Progress } from "../progresses/progress.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { FilesService } from "./files.service.js";
+import { GamesService } from "./games.service.js";
+import { GamevaultGame } from "./gamevault-game.entity.js";
+import { GameIdDto } from "./models/game-id.dto.js";
+import { UpdateGameDto } from "./models/update-game.dto.js";
+const { isArray } = lodash;
 
 const metadataRelationNameFilters = {
   "metadata.genres.name": "genres.name",

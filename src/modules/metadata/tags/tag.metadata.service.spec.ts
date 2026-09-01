@@ -1,17 +1,17 @@
 import { Repository } from "typeorm";
 
-import { TagMetadata } from "./tag.metadata.entity";
-import { TagMetadataService } from "./tag.metadata.service";
-
+import type { Mock, Mocked } from "vitest";
+import { TagMetadata } from "./tag.metadata.entity.js";
+import { TagMetadataService } from "./tag.metadata.service.js";
 describe("TagMetadataService", () => {
   let service: TagMetadataService;
-  let repo: jest.Mocked<Partial<Repository<TagMetadata>>>;
+  let repo: Mocked<Partial<Repository<TagMetadata>>>;
 
   beforeEach(() => {
     repo = {
-      find: jest.fn().mockResolvedValue([]),
-      findOneBy: jest.fn(),
-      save: jest
+      find: vi.fn().mockResolvedValue([]),
+      findOneBy: vi.fn(),
+      save: vi
         .fn()
         .mockImplementation((e) => Promise.resolve({ ...e, id: e.id ?? 1 })),
     };
@@ -42,7 +42,7 @@ describe("TagMetadataService", () => {
 
   describe("save", () => {
     it("should create new tag when none exists", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue(null);
+      (repo.findOneBy as Mock).mockResolvedValue(null);
       await service.save({
         provider_slug: "igdb",
         provider_data_id: "action",
@@ -55,7 +55,7 @@ describe("TagMetadataService", () => {
     });
 
     it("should update existing tag", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue({
+      (repo.findOneBy as Mock).mockResolvedValue({
         id: 30,
         provider_slug: "igdb",
         provider_data_id: "action",

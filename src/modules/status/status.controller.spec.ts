@@ -1,17 +1,18 @@
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { StatusEnum } from "./models/status.enum";
-import { StatusController } from "./status.controller";
-import { StatusService } from "./status.service";
+import type { Mock } from "vitest";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { StatusEnum } from "./models/status.enum.js";
+import { StatusController } from "./status.controller.js";
+import { StatusService } from "./status.service.js";
 
 describe("StatusController", () => {
   let controller: StatusController;
   let service: StatusService;
-  let mockServerService: { getServerUuid: jest.Mock };
+  let mockServerService: { getServerUuid: Mock };
 
   beforeEach(() => {
     mockServerService = {
-      getServerUuid: jest
+      getServerUuid: vi
         .fn()
         .mockReturnValue("550e8400-e29b-41d4-a716-446655440000"),
     };

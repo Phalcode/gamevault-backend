@@ -1,17 +1,17 @@
 import { Repository } from "typeorm";
 
-import { GenreMetadata } from "./genre.metadata.entity";
-import { GenreMetadataService } from "./genre.metadata.service";
-
+import type { Mock, Mocked } from "vitest";
+import { GenreMetadata } from "./genre.metadata.entity.js";
+import { GenreMetadataService } from "./genre.metadata.service.js";
 describe("GenreMetadataService", () => {
   let service: GenreMetadataService;
-  let repo: jest.Mocked<Partial<Repository<GenreMetadata>>>;
+  let repo: Mocked<Partial<Repository<GenreMetadata>>>;
 
   beforeEach(() => {
     repo = {
-      find: jest.fn().mockResolvedValue([]),
-      findOneBy: jest.fn(),
-      save: jest
+      find: vi.fn().mockResolvedValue([]),
+      findOneBy: vi.fn(),
+      save: vi
         .fn()
         .mockImplementation((e) => Promise.resolve({ ...e, id: e.id ?? 1 })),
     };
@@ -42,7 +42,7 @@ describe("GenreMetadataService", () => {
 
   describe("save", () => {
     it("should create new genre when none exists", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue(null);
+      (repo.findOneBy as Mock).mockResolvedValue(null);
       await service.save({
         provider_slug: "igdb",
         provider_data_id: "rpg",
@@ -55,7 +55,7 @@ describe("GenreMetadataService", () => {
     });
 
     it("should update existing genre", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue({
+      (repo.findOneBy as Mock).mockResolvedValue({
         id: 10,
         provider_slug: "igdb",
         provider_data_id: "rpg",

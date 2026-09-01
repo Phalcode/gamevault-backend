@@ -1,18 +1,19 @@
 import { BadRequestException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Repository } from "typeorm";
-import configuration from "../../configuration";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { AuthenticationService } from "./authentication.service";
-import { Session } from "./session.entity";
+import type { Mocked } from "vitest";
+import configuration from "../../configuration.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { AuthenticationService } from "./authentication.service.js";
+import { Session } from "./session.entity.js";
 
 describe("AuthenticationService", () => {
   let service: AuthenticationService;
-  let usersService: jest.Mocked<UsersService>;
-  let jwtService: jest.Mocked<JwtService>;
-  let sessionRepository: jest.Mocked<Repository<Session>>;
+  let usersService: Mocked<UsersService>;
+  let jwtService: Mocked<JwtService>;
+  let sessionRepository: Mocked<Repository<Session>>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -31,20 +32,20 @@ describe("AuthenticationService", () => {
 
   beforeEach(() => {
     usersService = {
-      findOneByUsernameOrFail: jest.fn(),
-      register: jest.fn(),
+      findOneByUsernameOrFail: vi.fn(),
+      register: vi.fn(),
     } as any;
 
     jwtService = {
-      sign: jest.fn().mockReturnValue("mock-jwt-token"),
+      sign: vi.fn().mockReturnValue("mock-jwt-token"),
     } as any;
 
     sessionRepository = {
-      save: jest.fn().mockImplementation(async (s) => ({ ...s, id: 1 })),
-      findOne: jest.fn(),
-      find: jest.fn(),
-      delete: jest.fn().mockResolvedValue({ affected: 0 }),
-      update: jest.fn().mockResolvedValue({ affected: 0 }),
+      save: vi.fn().mockImplementation(async (s) => ({ ...s, id: 1 })),
+      findOne: vi.fn(),
+      find: vi.fn(),
+      delete: vi.fn().mockResolvedValue({ affected: 0 }),
+      update: vi.fn().mockResolvedValue({ affected: 0 }),
     } as any;
 
     service = new AuthenticationService(

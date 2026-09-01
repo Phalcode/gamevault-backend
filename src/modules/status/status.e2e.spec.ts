@@ -2,9 +2,9 @@ import { Global, INestApplication, Module } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { AddressInfo } from "net";
 
-import configuration from "../../configuration";
-import { ServerService } from "../server/server.service";
-import { StatusModule } from "./status.module";
+import configuration from "../../configuration.js";
+import { ServerService } from "../server/server.service.js";
+import { StatusModule } from "./status.module.js";
 
 const MOCK_SERVER_UUID = "550e8400-e29b-41d4-a716-446655440000";
 

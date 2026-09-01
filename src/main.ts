@@ -7,6 +7,7 @@ import {
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
 import cookieparser from "cookie-parser";
+import fsExtra from "fs-extra";
 import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
@@ -14,18 +15,18 @@ import morgan from "morgan";
 import { createHash } from "crypto";
 import express, { Response } from "express";
 import session from "express-session";
-import { readFileSync } from "fs-extra";
 import { createServer as createHttpServer } from "http";
 import { createServer as createHttpsServer } from "https";
-import { AppModule } from "./app.module";
+import { AppModule } from "./app.module.js";
 import configuration, {
   getCensoredConfiguration,
   getMaxBodySizeInBytes,
-} from "./configuration";
-import { LoggingExceptionFilter } from "./filters/http-exception.filter";
-import { default as logger, stream, default as winston } from "./logging";
-import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware";
-import loadPlugins from "./plugin";
+} from "./configuration.js";
+import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
+import { default as logger, stream, default as winston } from "./logging.js";
+import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
+import loadPlugins from "./plugin.js";
+const { readFileSync } = fsExtra;
 
 async function bootstrap(): Promise<void> {
   // Load Modules & Plugins

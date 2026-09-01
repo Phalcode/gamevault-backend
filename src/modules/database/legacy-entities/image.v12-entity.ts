@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne } from "typeorm";
-import { DatabaseEntityV12 } from "./database.v12-entity";
-import { GamevaultUserV12 } from "./gamevault-user.v12-entity";
+import { Column, Entity, Index, ManyToOne, Relation } from "typeorm";
+import { DatabaseEntityV12 } from "./database.v12-entity.js";
+import { GamevaultUserV12 } from "./gamevault-user.v12-entity.js";
 
 @Entity("v12_image", { synchronize: false })
 export class ImageV12 extends DatabaseEntityV12 {
@@ -36,5 +36,5 @@ export class ImageV12 extends DatabaseEntityV12 {
     description: "the uploader of the image",
     type: () => GamevaultUserV12,
   })
-  uploader?: GamevaultUserV12;
+  uploader?: Relation<GamevaultUserV12>;
 }

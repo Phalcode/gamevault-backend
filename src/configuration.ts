@@ -3,12 +3,14 @@ import bytes from "bytes";
 import { createHash, randomBytes } from "crypto";
 import * as dotenv from "dotenv";
 import { existsSync } from "fs";
-import { readFileSync } from "fs-extra";
-import { toLower } from "lodash";
+import fsExtra from "fs-extra";
+import lodash from "lodash";
 import { join } from "path";
 import { parse as parseYaml } from "yaml";
-import packageJson from "../package.json";
-import globals from "./globals";
+import packageJson from "../package.json" with { type: "json" };
+import globals from "./globals.js";
+const { readFileSync } = fsExtra;
+const { toLower } = lodash;
 
 dotenv.config();
 
@@ -42,7 +44,7 @@ function getYamlConfiguration(): Record<string, unknown> | null {
       throw new Error("Configuration root must be a YAML mapping/object.");
     } catch (error) {
       throw new Error(
-        `Failed to parse YAML configuration at \"${yamlPath}\": ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to parse YAML configuration at "${yamlPath}": ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

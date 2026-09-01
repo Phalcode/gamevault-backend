@@ -1,8 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToOne } from "typeorm";
+import { Column, Entity, Index, ManyToOne, Relation } from "typeorm";
 
-import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
+import { DatabaseEntity } from "../database/database.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
 
 @Entity()
 export class Media extends DatabaseEntity {
@@ -37,5 +37,5 @@ export class Media extends DatabaseEntity {
     description: "the uploader of the media",
     type: () => GamevaultUser,
   })
-  uploader?: GamevaultUser;
+  uploader?: Relation<GamevaultUser>;
 }

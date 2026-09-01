@@ -9,12 +9,12 @@ import { PassportStrategy } from "@nestjs/passport";
 import { randomBytes } from "crypto";
 import { VerifiedCallback } from "passport-jwt";
 import { Strategy } from "passport-oauth2";
-import { AppConfiguration } from "../../../configuration";
-import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator";
-import { GamevaultUser } from "../../users/gamevault-user.entity";
-import { UsersService } from "../../users/users.service";
-import { OidcUserInfo } from "../models/oidc-user-info.interface";
-import PassportUserProfile from "../models/passport-user-profile.interface";
+import type { AppConfiguration } from "../../../configuration.js";
+import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
+import { GamevaultUser } from "../../users/gamevault-user.entity.js";
+import { UsersService } from "../../users/users.service.js";
+import { OidcUserInfo } from "../models/oidc-user-info.interface.js";
+import PassportUserProfile from "../models/passport-user-profile.interface.js";
 
 @Injectable()
 export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
@@ -133,9 +133,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     req: { user: GamevaultUser },
     accessToken: string,
     refreshToken: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     profile: any,
     done: VerifiedCallback,
   ) {

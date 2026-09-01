@@ -2,17 +2,19 @@ import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
-import { readdir, remove } from "fs-extra";
+import fsExtra from "fs-extra";
+import lodash from "lodash";
 import { join } from "path";
 import { Repository } from "typeorm";
+import configuration from "../../configuration.js";
+import { toFindOptionsRelations } from "../../globals.js";
+import { Media } from "../media/media.entity.js";
+import { MediaService } from "../media/media.service.js";
+import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+const { readdir, remove } = fsExtra;
 
-import { uniq } from "lodash";
-import configuration from "../../configuration";
-import { toFindOptionsRelations } from "../../globals";
-import { Media } from "../media/media.entity";
-import { MediaService } from "../media/media.service";
-import { GameMetadata } from "../metadata/games/game.metadata.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
+const { uniq } = lodash;
 
 @Injectable()
 export class MediaGarbageCollectionService implements OnApplicationBootstrap {

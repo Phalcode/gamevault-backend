@@ -12,13 +12,13 @@ import {
 //import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
 import { Server, Socket } from "socket.io";
 
-import configuration from "../../configuration";
-import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter";
-import { ApiKeyGuard } from "../auth/guards/api-key.guard";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { ActivityState } from "./models/activity-state.enum";
-import { Activity } from "./models/activity.dto";
-import { UsersService } from "./users.service";
+import configuration from "../../configuration.js";
+import { WebsocketExceptionsFilter } from "../../filters/websocket-exceptions.filter.js";
+import { ApiKeyGuard } from "../auth/guards/api-key.guard.js";
+import { GamevaultUser } from "./gamevault-user.entity.js";
+import { ActivityState } from "./models/activity-state.enum.js";
+import { Activity } from "./models/activity.dto.js";
+import { UsersService } from "./users.service.js";
 
 // Conditionally decorate the WebSocket gateway class.
 const ConditionalWebSocketGateway = configuration.SERVER

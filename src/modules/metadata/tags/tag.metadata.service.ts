@@ -2,8 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { FindOptions, toFindOptionsRelations } from "../../../globals";
-import { TagMetadata } from "./tag.metadata.entity";
+import { FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import { TagMetadata } from "./tag.metadata.entity.js";
 
 @Injectable()
 export class TagMetadataService {

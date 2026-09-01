@@ -8,18 +8,19 @@ import {
   where,
   whereIn,
 } from "@phalcode/ts-igdb-client";
+import lodash from "lodash";
 
 import { isNumberString } from "class-validator";
-import { isEmpty, toLower } from "lodash";
-import configuration from "../../../../configuration";
-import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
-import { GameMetadata } from "../../games/game.metadata.entity";
-import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
-import { GenreMetadata } from "../../genres/genre.metadata.entity";
-import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
-import { TagMetadata } from "../../tags/tag.metadata.entity";
-import { MetadataProvider } from "../abstract.metadata-provider.service";
-import { GameVaultIgdbAgeRatingMap } from "./models/gamevault-igdb-age-rating.map";
+import configuration from "../../../../configuration.js";
+import { DeveloperMetadata } from "../../developers/developer.metadata.entity.js";
+import { GameMetadata } from "../../games/game.metadata.entity.js";
+import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
+import { GenreMetadata } from "../../genres/genre.metadata.entity.js";
+import { PublisherMetadata } from "../../publishers/publisher.metadata.entity.js";
+import { TagMetadata } from "../../tags/tag.metadata.entity.js";
+import { MetadataProvider } from "../abstract.metadata-provider.service.js";
+import { GameVaultIgdbAgeRatingMap } from "./models/gamevault-igdb-age-rating.map.js";
+const { isEmpty, toLower } = lodash;
 
 @Injectable()
 export class IgdbMetadataProviderService extends MetadataProvider {
@@ -142,7 +143,6 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     )
       .request("games")
       .pipe(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fields(this.fieldsToInclude as any),
         where("id", "=", Number(provider_data_id)),
       )
@@ -309,13 +309,8 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     try {
       const client = await this.getClient();
       const result = await client
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .request("game_time_to_beats" as any)
-        .pipe(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          fields(["normally"] as any),
-          where("game_id", "=", gameId),
-        )
+        .pipe(fields(["normally"] as any), where("game_id", "=", gameId))
         .execute();
 
       const timeToBeat = result.data?.[0] as

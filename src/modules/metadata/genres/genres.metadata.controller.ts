@@ -8,19 +8,19 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  PaginateQuery,
+  type PaginateQuery,
   Paginated,
   PaginationType,
   paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
-import { MinimumRole } from "../../../decorators/minimum-role.decorator";
-import { PaginateQueryOptions } from "../../../decorators/pagination.decorator";
-import { ApiOkResponsePaginated } from "../../../globals";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { Role } from "../../users/models/role.enum";
-import { GenreMetadata } from "./genre.metadata.entity";
+import { MinimumRole } from "../../../decorators/minimum-role.decorator.js";
+import { PaginateQueryOptions } from "../../../decorators/pagination.decorator.js";
+import { ApiOkResponsePaginated } from "../../../globals.js";
+import { GamevaultGame } from "../../games/gamevault-game.entity.js";
+import { Role } from "../../users/models/role.enum.js";
+import { GenreMetadata } from "./genre.metadata.entity.js";
 
 @Controller("genres")
 @ApiTags("genres")

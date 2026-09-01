@@ -1,9 +1,10 @@
 import { NotFoundException } from "@nestjs/common";
 
 import { igdb, twitchAccessToken } from "@phalcode/ts-igdb-client";
-import { IgdbMetadataProviderService } from "./igdb.metadata-provider.service";
+import type { Mock } from "vitest";
+import { IgdbMetadataProviderService } from "./igdb.metadata-provider.service.js";
 
-jest.mock("../../../../configuration", () => ({
+vi.mock("../../../../configuration.js", () => ({
   __esModule: true,
   default: {
     METADATA: {
@@ -19,30 +20,30 @@ jest.mock("../../../../configuration", () => ({
   },
 }));
 
-jest.mock("@phalcode/ts-igdb-client", () => ({
-  fields: jest.fn((value) => value),
-  where: jest.fn((...value) => value),
-  whereIn: jest.fn((...value) => value),
-  search: jest.fn((value) => value),
-  twitchAccessToken: jest.fn(),
-  igdb: jest.fn(),
+vi.mock("@phalcode/ts-igdb-client", () => ({
+  fields: vi.fn((value) => value),
+  where: vi.fn((...value) => value),
+  whereIn: vi.fn((...value) => value),
+  search: vi.fn((value) => value),
+  twitchAccessToken: vi.fn(),
+  igdb: vi.fn(),
   proto: {},
 }));
 
-jest.mock("../../../../logging", () => ({
+vi.mock("../../../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 describe("IgdbMetadataProviderService", () => {
@@ -95,11 +96,11 @@ describe("IgdbMetadataProviderService", () => {
 
   beforeEach(() => {
     mockMetadataService = {
-      registerProvider: jest.fn(),
+      registerProvider: vi.fn(),
     };
 
     mockMediaService = {
-      downloadByUrl: jest
+      downloadByUrl: vi
         .fn()
         .mockImplementation((url: string) => Promise.resolve(`saved:${url}`)),
     };
@@ -114,11 +115,11 @@ describe("IgdbMetadataProviderService", () => {
       mockMediaService,
     );
 
-    (twitchAccessToken as jest.Mock).mockResolvedValue("oauth-token");
+    (twitchAccessToken as Mock).mockResolvedValue("oauth-token");
 
-    (igdb as jest.Mock).mockImplementation(() => ({
+    (igdb as Mock).mockImplementation(() => ({
       request: (resource: string) => {
-        const execute = jest.fn();
+        const execute = vi.fn();
         if (resource === "games") {
           execute.mockResolvedValue({ data: gamesData });
         } else if (resource === "game_time_to_beats") {
@@ -134,7 +135,7 @@ describe("IgdbMetadataProviderService", () => {
     }));
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   describe("onModuleInit", () => {
     it("should register provider when credentials are present", async () => {
@@ -190,10 +191,10 @@ describe("IgdbMetadataProviderService", () => {
     });
 
     it("should throw NotFoundException when game does not exist", async () => {
-      (igdb as jest.Mock).mockImplementationOnce(() => ({
+      (igdb as Mock).mockImplementationOnce(() => ({
         request: (resource: string) => ({
           pipe: () => ({
-            execute: jest.fn().mockResolvedValue({
+            execute: vi.fn().mockResolvedValue({
               data: resource === "games" ? [] : [],
             }),
           }),
@@ -208,18 +209,18 @@ describe("IgdbMetadataProviderService", () => {
 
   describe("fallback behavior", () => {
     it("should return undefined average_playtime when fetching playtime fails", async () => {
-      (igdb as jest.Mock).mockImplementation(() => ({
+      (igdb as Mock).mockImplementation(() => ({
         request: (resource: string) => {
           if (resource === "games") {
             return {
               pipe: () => ({
-                execute: jest.fn().mockResolvedValue({ data: gamesData }),
+                execute: vi.fn().mockResolvedValue({ data: gamesData }),
               }),
             };
           }
           return {
             pipe: () => ({
-              execute: jest.fn().mockRejectedValue(new Error("boom")),
+              execute: vi.fn().mockRejectedValue(new Error("boom")),
             }),
           };
         },
@@ -244,12 +245,12 @@ describe("IgdbMetadataProviderService", () => {
         age_ratings: [{ rating_category: { rating: "UNKNOWN_RATING" } }],
       };
 
-      (igdb as jest.Mock).mockImplementationOnce(() => ({
+      (igdb as Mock).mockImplementationOnce(() => ({
         request: (resource: string) => {
           if (resource === "games") {
             return {
               pipe: () => ({
-                execute: jest
+                execute: vi
                   .fn()
                   .mockResolvedValue({ data: [gameWithoutMappedRatings] }),
               }),
@@ -257,7 +258,7 @@ describe("IgdbMetadataProviderService", () => {
           }
           return {
             pipe: () => ({
-              execute: jest
+              execute: vi
                 .fn()
                 .mockResolvedValue({ data: [{ normally: 3_600 }] }),
             }),

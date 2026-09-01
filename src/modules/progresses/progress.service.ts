@@ -7,7 +7,7 @@ import {
   OnApplicationBootstrap,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { readFile } from "fs-extra";
+import fsExtra from "fs-extra";
 import path from "path";
 import {
   FindOneOptions,
@@ -16,14 +16,15 @@ import {
   Or,
   Repository,
 } from "typeorm";
+const { readFile } = fsExtra;
 
-import { FindOptions, toFindOptionsRelations } from "../../globals";
-import { logProgress } from "../../logging";
-import { GamesService } from "../games/games.service";
-import { UsersService } from "../users/users.service";
-import { State } from "./models/state.enum";
-import { UpdateProgressDto } from "./models/update-progress.dto";
-import { Progress } from "./progress.entity";
+import { FindOptions, toFindOptionsRelations } from "../../globals.js";
+import { logProgress } from "../../logging.js";
+import { GamesService } from "../games/games.service.js";
+import { UsersService } from "../users/users.service.js";
+import { State } from "./models/state.enum.js";
+import { UpdateProgressDto } from "./models/update-progress.dto.js";
+import { Progress } from "./progress.entity.js";
 
 @Injectable()
 export class ProgressService implements OnApplicationBootstrap {
@@ -44,7 +45,7 @@ export class ProgressService implements OnApplicationBootstrap {
   private async readIgnoreFile() {
     try {
       const filePath = path.join(
-        __dirname,
+        import.meta.dirname,
         "../../../assets/ignored-executables.txt",
       );
       const fileContent = await readFile(filePath, "utf-8");

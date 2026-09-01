@@ -1,19 +1,20 @@
 import { ConflictException, NotFoundException } from "@nestjs/common";
 import { Repository } from "typeorm";
-import { GamesService } from "../games/games.service";
-import { GamevaultGame } from "../games/gamevault-game.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { State } from "./models/state.enum";
-import { Progress } from "./progress.entity";
-import { ProgressService } from "./progress.service";
+import type { Mocked } from "vitest";
+import { GamesService } from "../games/games.service.js";
+import { GamevaultGame } from "../games/gamevault-game.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { State } from "./models/state.enum.js";
+import { Progress } from "./progress.entity.js";
+import { ProgressService } from "./progress.service.js";
 
 describe("ProgressService", () => {
   let service: ProgressService;
-  let progressRepository: jest.Mocked<Repository<Progress>>;
-  let usersService: jest.Mocked<UsersService>;
-  let gamesService: jest.Mocked<GamesService>;
+  let progressRepository: Mocked<Repository<Progress>>;
+  let usersService: Mocked<UsersService>;
+  let gamesService: Mocked<GamesService>;
 
   const createMockUser = (): GamevaultUser => {
     const user = new GamevaultUser();
@@ -44,21 +45,19 @@ describe("ProgressService", () => {
 
   beforeEach(() => {
     progressRepository = {
-      findOneOrFail: jest.fn(),
-      save: jest.fn(),
-      softRemove: jest.fn(),
-      remove: jest.fn(),
+      findOneOrFail: vi.fn(),
+      save: vi.fn(),
+      softRemove: vi.fn(),
+      remove: vi.fn(),
     } as any;
 
     usersService = {
-      checkIfUsernameMatchesIdOrIsAdminOrThrow: jest
-        .fn()
-        .mockResolvedValue(true),
-      findOneByUserIdOrFail: jest.fn(),
+      checkIfUsernameMatchesIdOrIsAdminOrThrow: vi.fn().mockResolvedValue(true),
+      findOneByUserIdOrFail: vi.fn(),
     } as any;
 
     gamesService = {
-      findOneByGameIdOrFail: jest.fn(),
+      findOneByGameIdOrFail: vi.fn(),
     } as any;
 
     service = new ProgressService(
@@ -131,7 +130,6 @@ describe("ProgressService", () => {
 
   describe("set", () => {
     it("should update progress state", async () => {
-      const mockProgress = createMockProgress();
       progressRepository.findOneOrFail.mockRejectedValue(
         new Error("Not found"),
       );
@@ -211,12 +209,7 @@ describe("ProgressService", () => {
       progressRepository.findOneOrFail.mockResolvedValue(mockProgress);
       progressRepository.remove.mockResolvedValue(mockProgress);
 
-      const result = await service.set(
-        1,
-        1,
-        { state: State.UNPLAYED } as any,
-        "testuser",
-      );
+      await service.set(1, 1, { state: State.UNPLAYED } as any, "testuser");
       expect(progressRepository.remove).toHaveBeenCalledWith(mockProgress);
     });
 

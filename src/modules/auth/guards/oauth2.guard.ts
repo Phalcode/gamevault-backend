@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
-import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
 
 @Injectable()
 export class Oauth2Guard extends AuthGuard("oauth2") {

@@ -13,8 +13,8 @@ import {
   MinLength,
 } from "class-validator";
 
-import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
-import { Role } from "./role.enum";
+import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator.js";
+import { Role } from "./role.enum.js";
 
 export class UpdateUserDto {
   @Matches(/^\w+$/, {

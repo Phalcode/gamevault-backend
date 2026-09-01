@@ -1,8 +1,8 @@
 import { Injectable, Optional } from "@nestjs/common";
 
-import { ServerService } from "../server/server.service";
-import { StatusEnum } from "./models/status.enum";
-import { Status, StatusEntry } from "./models/status.model";
+import { ServerService } from "../server/server.service.js";
+import { StatusEnum } from "./models/status.enum.js";
+import { Status, StatusEntry } from "./models/status.model.js";
 
 @Injectable()
 export class StatusService {

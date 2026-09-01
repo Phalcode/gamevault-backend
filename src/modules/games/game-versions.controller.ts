@@ -21,14 +21,14 @@ import {
 } from "@nestjs/swagger";
 import { Response } from "express";
 
-import configuration from "../../configuration";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { OtpService } from "../otp/otp.service";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { FilesService } from "./files.service";
+import configuration from "../../configuration.js";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { OtpService } from "../otp/otp.service.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { FilesService } from "./files.service.js";
 
 @ApiBearerAuth()
 @ApiTags("game")

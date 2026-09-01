@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNotIn, Matches } from "class-validator";
 
-import globals from "../../../globals";
+import globals from "../../../globals.js";
 
 export class MinimalGameMetadataDto {
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {

@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, ManyToMany } from "typeorm";
+import { Column, Entity, Index, ManyToMany, Relation } from "typeorm";
 
-import { DatabaseEntityV12 } from "./database.v12-entity";
-import { GameV12 } from "./game.v12-entity";
+import { DatabaseEntityV12 } from "./database.v12-entity.js";
+import { GameV12 } from "./game.v12-entity.js";
 
 @Entity("v12_tag", { synchronize: false })
 export class TagV12 extends DatabaseEntityV12 {
@@ -28,5 +28,5 @@ export class TagV12 extends DatabaseEntityV12 {
     type: () => GameV12,
     isArray: true,
   })
-  games: GameV12[];
+  games: Relation<GameV12[]>;
 }

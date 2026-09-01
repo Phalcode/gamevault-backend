@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsNumberString, Matches } from "class-validator";
 
-import { GameIdDto } from "../../games/models/game-id.dto";
-import { ProviderSlugDto } from "../providers/models/provider-slug.dto";
+import { GameIdDto } from "../../games/models/game-id.dto.js";
+import { ProviderSlugDto } from "../providers/models/provider-slug.dto.js";
 
 export class MapGameParamsDto implements ProviderSlugDto, GameIdDto {
   @IsNotEmpty()

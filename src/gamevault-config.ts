@@ -1,5 +1,5 @@
 import { ConfigService } from "@nestjs/config";
-import { AppConfiguration, CONFIG_NAMESPACE } from "./configuration";
+import { type AppConfiguration, CONFIG_NAMESPACE } from "./configuration.js";
 
 export const GAMEVAULT_CONFIG = Symbol("GAMEVAULT_CONFIG");
 

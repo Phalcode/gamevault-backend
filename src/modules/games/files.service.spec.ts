@@ -4,13 +4,16 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { SchedulerRegistry } from "@nestjs/schedule";
+import * as fsExtraModule from "fs-extra";
 import { constants } from "fs-extra";
-import { MetadataService } from "../metadata/metadata.service";
-import { FilesService } from "./files.service";
-import { GamesService } from "./games.service";
+import type { Mock, Mocked } from "vitest";
+import configurationModule from "../../configuration.js";
+import { MetadataService } from "../metadata/metadata.service.js";
+import { FilesService } from "./files.service.js";
+import { GamesService } from "./games.service.js";
 
 // We need to mock configuration before importing the service
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", async () => ({
   __esModule: true,
   default: {
     TESTING: { MOCK_FILES: true },
@@ -28,8 +31,8 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../globals", () => {
-  const actual = jest.requireActual("../../globals");
+vi.mock("../../globals.js", async () => {
+  const actual = (await vi.importActual("../../globals.js")) as any;
 
   return {
     __esModule: true,
@@ -41,19 +44,27 @@ jest.mock("../../globals", () => {
   };
 });
 
-jest.mock("../../logging", () => ({
-  logGamevaultGame: jest.fn((g) => ({ id: g?.id, path: g?.file_path })),
+vi.mock("../../logging.js", async () => ({
+  logGamevaultGame: vi.fn((g) => ({ id: g?.id, path: g?.file_path })),
 }));
 
-jest.mock("fs-extra", () => ({
-  access: jest.fn(),
-  constants: { W_OK: 2 },
-  createReadStream: jest.fn(),
-  pathExists: jest.fn(),
-  rm: jest.fn(),
-  stat: jest.fn(),
-  writeFile: jest.fn(),
-}));
+vi.mock("fs-extra", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const overrides = {
+    access: vi.fn(),
+    constants: { W_OK: 2 },
+    createReadStream: vi.fn(),
+    pathExists: vi.fn(),
+    rm: vi.fn(),
+    stat: vi.fn(),
+    writeFile: vi.fn(),
+  };
+  return {
+    ...actual,
+    ...overrides,
+    default: { ...(actual as any).default, ...overrides },
+  };
+});
 
 describe("FilesService", () => {
   let service: FilesService;
@@ -66,58 +77,58 @@ describe("FilesService", () => {
       SEARCH_EXCLUDE_DIR_REGEX?: RegExp;
     };
   };
-  let gamesService: jest.Mocked<GamesService>;
-  let metadataService: jest.Mocked<MetadataService>;
-  let schedulerRegistry: jest.Mocked<SchedulerRegistry>;
+  let gamesService: Mocked<GamesService>;
+  let metadataService: Mocked<MetadataService>;
+  let schedulerRegistry: Mocked<SchedulerRegistry>;
   let gameVersionRepository: {
-    find: jest.Mock;
-    findOne: jest.Mock;
-    save: jest.Mock;
-    recover: jest.Mock;
-    softDelete: jest.Mock;
-    createQueryBuilder: jest.Mock;
+    find: Mock;
+    findOne: Mock;
+    save: Mock;
+    recover: Mock;
+    softDelete: Mock;
+    createQueryBuilder: Mock;
   };
   let fsExtra: {
-    access: jest.Mock;
-    pathExists: jest.Mock;
-    rm: jest.Mock;
-    stat: jest.Mock;
-    writeFile: jest.Mock;
+    access: Mock;
+    pathExists: Mock;
+    rm: Mock;
+    stat: Mock;
+    writeFile: Mock;
   };
 
   beforeEach(() => {
-    fsExtra = jest.requireMock("fs-extra");
-    configuration = jest.requireMock("../../configuration").default;
+    fsExtra = fsExtraModule as any;
+    configuration = configurationModule as any;
     configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = undefined;
     configuration.GAMES.SEARCH_EXCLUDE_DIR_REGEX = undefined;
 
     gamesService = {
-      findOneByGameIdOrFail: jest.fn(),
-      generateSortTitle: jest.fn((t) => t.toLowerCase()),
-      checkIfExistsInDatabase: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-      delete: jest.fn(),
-      restore: jest.fn(),
+      findOneByGameIdOrFail: vi.fn(),
+      generateSortTitle: vi.fn((t) => t.toLowerCase()),
+      checkIfExistsInDatabase: vi.fn(),
+      save: vi.fn(),
+      find: vi.fn(),
+      delete: vi.fn(),
+      restore: vi.fn(),
     } as any;
 
     metadataService = {
-      addUpdateMetadataJob: jest.fn(),
+      addUpdateMetadataJob: vi.fn(),
     } as any;
 
     schedulerRegistry = {
-      getTimeouts: jest.fn().mockReturnValue([]),
-      addTimeout: jest.fn(),
-      deleteTimeout: jest.fn(),
+      getTimeouts: vi.fn().mockReturnValue([]),
+      addTimeout: vi.fn(),
+      deleteTimeout: vi.fn(),
     } as any;
 
     gameVersionRepository = {
-      find: jest.fn().mockResolvedValue([]),
-      findOne: jest.fn(),
-      save: jest.fn(),
-      recover: jest.fn(),
-      softDelete: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      find: vi.fn().mockResolvedValue([]),
+      findOne: vi.fn(),
+      save: vi.fn(),
+      recover: vi.fn(),
+      softDelete: vi.fn(),
+      createQueryBuilder: vi.fn(),
     };
 
     service = new FilesService(
@@ -133,7 +144,7 @@ describe("FilesService", () => {
     fsExtra.stat.mockResolvedValue({ size: 1000 });
     fsExtra.writeFile.mockResolvedValue(undefined);
 
-    jest.spyOn(service as any, "index").mockResolvedValue(undefined);
+    vi.spyOn(service as any, "index").mockResolvedValue(undefined);
   });
 
   describe("upload", () => {
@@ -369,7 +380,7 @@ describe("FilesService", () => {
         },
       ] as any);
 
-      const response = { setHeader: jest.fn() } as any;
+      const response = { setHeader: vi.fn() } as any;
       const result = await service.download(
         response,
         42,
@@ -398,7 +409,7 @@ describe("FilesService", () => {
         download_count: 0,
       } as any);
 
-      const response = { setHeader: jest.fn() } as any;
+      const response = { setHeader: vi.fn() } as any;
 
       await expect(
         service.download(response, 42, 999, undefined, undefined, 18),
@@ -408,23 +419,23 @@ describe("FilesService", () => {
 
   describe("index", () => {
     it("should trigger integrity check when file stats are missing", async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const localService = new FilesService(
         gamesService,
         metadataService,
         schedulerRegistry,
         gameVersionRepository as any,
       );
-      const checkIntegritySpy = jest
+      const checkIntegritySpy = vi
         .spyOn(localService as any, "checkIntegrity")
         .mockResolvedValue([]);
 
       await (localService as any).index("/tmp/test-files/My Game.zip");
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
       await Promise.resolve();
 
       expect(checkIntegritySpy).toHaveBeenCalledTimes(1);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
   });
 
@@ -457,7 +468,7 @@ describe("FilesService", () => {
           },
         ] as any);
 
-      jest.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([
         {
           path: "/tmp/test-files/Shared Existing File.zip",
           size: 123,

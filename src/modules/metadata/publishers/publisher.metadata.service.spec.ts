@@ -1,17 +1,17 @@
 import { Repository } from "typeorm";
 
-import { PublisherMetadata } from "./publisher.metadata.entity";
-import { PublisherMetadataService } from "./publisher.metadata.service";
-
+import type { Mock, Mocked } from "vitest";
+import { PublisherMetadata } from "./publisher.metadata.entity.js";
+import { PublisherMetadataService } from "./publisher.metadata.service.js";
 describe("PublisherMetadataService", () => {
   let service: PublisherMetadataService;
-  let repo: jest.Mocked<Partial<Repository<PublisherMetadata>>>;
+  let repo: Mocked<Partial<Repository<PublisherMetadata>>>;
 
   beforeEach(() => {
     repo = {
-      find: jest.fn().mockResolvedValue([]),
-      findOneBy: jest.fn(),
-      save: jest
+      find: vi.fn().mockResolvedValue([]),
+      findOneBy: vi.fn(),
+      save: vi
         .fn()
         .mockImplementation((e) => Promise.resolve({ ...e, id: e.id ?? 1 })),
     };
@@ -42,7 +42,7 @@ describe("PublisherMetadataService", () => {
 
   describe("save", () => {
     it("should create new publisher when none exists", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue(null);
+      (repo.findOneBy as Mock).mockResolvedValue(null);
       await service.save({
         provider_slug: "igdb",
         provider_data_id: "rockstar",
@@ -55,7 +55,7 @@ describe("PublisherMetadataService", () => {
     });
 
     it("should update existing publisher", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue({
+      (repo.findOneBy as Mock).mockResolvedValue({
         id: 20,
         provider_slug: "igdb",
         provider_data_id: "rockstar",

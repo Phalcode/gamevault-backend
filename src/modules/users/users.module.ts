@@ -1,13 +1,13 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { GamesModule } from "../games/games.module";
-import { MediaModule } from "../media/media.module";
-import { ActivityGateway } from "./activity.gateway";
-import { ApiKeyService } from "./api-key.service";
-import { GamevaultUser } from "./gamevault-user.entity";
-import { UsersController } from "./users.controller";
-import { UsersService } from "./users.service";
+import { GamesModule } from "../games/games.module.js";
+import { MediaModule } from "../media/media.module.js";
+import { ActivityGateway } from "./activity.gateway.js";
+import { ApiKeyService } from "./api-key.service.js";
+import { GamevaultUser } from "./gamevault-user.entity.js";
+import { UsersController } from "./users.controller.js";
+import { UsersService } from "./users.service.js";
 
 @Module({
   imports: [

@@ -16,13 +16,13 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import { SkipGuards } from "../../../decorators/skip-guards.decorator";
-import { GamevaultUser } from "../../users/gamevault-user.entity";
-import { AuthenticationService } from "../authentication.service";
-import { RefreshTokenGuard } from "../guards/refresh-token.guard";
-import { RefreshTokenDto } from "../models/refresh-token.dto";
-import { TokenPairDto } from "../models/token-pair.dto";
-import { Session } from "../session.entity";
+import { SkipGuards } from "../../../decorators/skip-guards.decorator.js";
+import { GamevaultUser } from "../../users/gamevault-user.entity.js";
+import { AuthenticationService } from "../authentication.service.js";
+import { RefreshTokenGuard } from "../guards/refresh-token.guard.js";
+import { RefreshTokenDto } from "../models/refresh-token.dto.js";
+import { TokenPairDto } from "../models/token-pair.dto.js";
+import { Session } from "../session.entity.js";
 
 @Controller("auth")
 @ApiTags("auth")

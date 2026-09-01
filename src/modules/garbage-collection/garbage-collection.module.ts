@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { Media } from "../media/media.entity";
-import { MediaModule } from "../media/media.module";
-import { GameMetadata } from "../metadata/games/game.metadata.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { MediaGarbageCollectionService } from "./media-garbage-collection.service";
+import { Media } from "../media/media.entity.js";
+import { MediaModule } from "../media/media.module.js";
+import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { MediaGarbageCollectionService } from "./media-garbage-collection.service.js";
 
 @Module({
   imports: [

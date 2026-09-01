@@ -9,9 +9,9 @@ import {
   MinLength,
 } from "class-validator";
 
-import configuration from "../../../configuration";
-import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator";
-import { IsOptionalIf } from "../../../validators/is-optional-if.validator";
+import configuration from "../../../configuration.js";
+import { IsDateStringBeforeNow } from "../../../validators/is-date-string-before-now.validator.js";
+import { IsOptionalIf } from "../../../validators/is-optional-if.validator.js";
 
 export class RegisterUserDto {
   @Matches(/^\w+$/, {

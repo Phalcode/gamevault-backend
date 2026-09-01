@@ -1,24 +1,24 @@
 import { Repository } from "typeorm";
 
-import { DeveloperMetadata } from "./developer.metadata.entity";
-import { DeveloperMetadataService } from "./developer.metadata.service";
-
+import type { Mock, Mocked } from "vitest";
+import { DeveloperMetadata } from "./developer.metadata.entity.js";
+import { DeveloperMetadataService } from "./developer.metadata.service.js";
 describe("DeveloperMetadataService", () => {
   let service: DeveloperMetadataService;
-  let repo: jest.Mocked<Partial<Repository<DeveloperMetadata>>>;
+  let repo: Mocked<Partial<Repository<DeveloperMetadata>>>;
 
   beforeEach(() => {
     repo = {
-      find: jest.fn().mockResolvedValue([]),
-      findOneBy: jest.fn(),
-      save: jest
+      find: vi.fn().mockResolvedValue([]),
+      findOneBy: vi.fn(),
+      save: vi
         .fn()
         .mockImplementation((e) => Promise.resolve({ ...e, id: e.id ?? 1 })),
     };
     service = new DeveloperMetadataService(repo as any);
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   describe("findByProviderSlug", () => {
     it("should find by default gamevault slug", async () => {
@@ -58,7 +58,7 @@ describe("DeveloperMetadataService", () => {
 
   describe("save", () => {
     it("should create new developer when none exists", async () => {
-      (repo.findOneBy as jest.Mock).mockResolvedValue(null);
+      (repo.findOneBy as Mock).mockResolvedValue(null);
       const dev = {
         provider_slug: "igdb",
         provider_data_id: "123",
@@ -82,7 +82,7 @@ describe("DeveloperMetadataService", () => {
         provider_data_id: "123",
         name: "Old Name",
       };
-      (repo.findOneBy as jest.Mock).mockResolvedValue(existing);
+      (repo.findOneBy as Mock).mockResolvedValue(existing);
 
       const dev = {
         provider_slug: "igdb",

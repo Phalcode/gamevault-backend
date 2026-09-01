@@ -1,9 +1,10 @@
 import { BadRequestException } from "@nestjs/common";
-import configuration from "../../configuration";
+import configuration from "../../configuration.js";
 
-import { SavefileService } from "./savefile.service";
+import fileTypeCheckerMock from "file-type-checker";
+import { SavefileService } from "./savefile.service.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     TESTING: { MOCK_FILES: true },
@@ -12,25 +13,28 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 // Mock file-type-checker
-jest.mock("file-type-checker", () => ({
-  detectFile: jest.fn(),
+vi.mock("file-type-checker", () => ({
+  __esModule: true,
+  default: {
+    detectFile: vi.fn(),
+  },
 }));
 
 describe("SavefileService", () => {
@@ -40,17 +44,16 @@ describe("SavefileService", () => {
 
   beforeEach(() => {
     mockUsersService = {
-      checkIfUsernameMatchesIdOrIsAdminOrThrow: jest
+      checkIfUsernameMatchesIdOrIsAdminOrThrow: vi
         .fn()
         .mockResolvedValue(undefined),
     };
 
     service = new SavefileService(mockUsersService, configuration as any);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    fileTypeChecker = require("file-type-checker");
+    fileTypeChecker = fileTypeCheckerMock as any;
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   // ─── generateNewPath ───────────────────────────────────────────────
 

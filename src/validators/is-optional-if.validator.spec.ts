@@ -1,6 +1,6 @@
 import { IsString, validateSync } from "class-validator";
 
-import { IsOptionalIf } from "./is-optional-if.validator";
+import { IsOptionalIf } from "./is-optional-if.validator.js";
 
 class OptionalWhenTrueDto {
   @IsOptionalIf(true)

@@ -2,8 +2,9 @@
   "exclude": ["node_modules"],
   "include": ["src/**/*", ".local/plugins/**/*"],
   "compilerOptions": {
-    "types": ["node", "multer", "jest"],
-    "module": "CommonJS",
+    "types": ["node", "multer", "vitest/globals"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "declaration": true,
     "removeComments": true,

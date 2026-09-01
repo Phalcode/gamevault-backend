@@ -1,41 +1,42 @@
 import * as nestjsPaginate from "nestjs-paginate";
-import * as nestjsPaginateFilter from "nestjs-paginate/lib/filter";
+import * as nestjsPaginateFilter from "nestjs-paginate/lib/filter.js";
 import { Repository } from "typeorm";
-import configuration from "../../configuration";
-import { OtpService } from "../otp/otp.service";
-import { Progress } from "../progresses/progress.entity";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { FilesService } from "./files.service";
-import { GamesController } from "./games.controller";
-import { GamesService } from "./games.service";
-import { GamevaultGame } from "./gamevault-game.entity";
+import type { Mock, Mocked } from "vitest";
+import configuration from "../../configuration.js";
+import { OtpService } from "../otp/otp.service.js";
+import { Progress } from "../progresses/progress.entity.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { FilesService } from "./files.service.js";
+import { GamesController } from "./games.controller.js";
+import { GamesService } from "./games.service.js";
+import { GamevaultGame } from "./gamevault-game.entity.js";
 
-jest.mock("nestjs-paginate", () => {
-  const actual = jest.requireActual("nestjs-paginate");
+vi.mock("nestjs-paginate", async () => {
+  const actual = await vi.importActual("nestjs-paginate");
   return {
     ...actual,
-    paginate: jest.fn(),
+    paginate: vi.fn(),
   };
 });
 
-jest.mock("nestjs-paginate/lib/filter", () => {
-  const actual = jest.requireActual("nestjs-paginate/lib/filter");
+vi.mock("nestjs-paginate/lib/filter.js", async () => {
+  const actual = await vi.importActual("nestjs-paginate/lib/filter.js");
   return {
     ...actual,
-    addFilter: jest.fn(),
+    addFilter: vi.fn(),
   };
 });
 
 describe("GamesController", () => {
   let controller: GamesController;
-  let gamesService: jest.Mocked<GamesService>;
-  let filesService: jest.Mocked<FilesService>;
-  let gamesRepository: jest.Mocked<Repository<GamevaultGame>>;
-  let progressRepository: jest.Mocked<Repository<Progress>>;
-  let usersService: jest.Mocked<UsersService>;
-  let otpService: jest.Mocked<OtpService>;
+  let gamesService: Mocked<GamesService>;
+  let filesService: Mocked<FilesService>;
+  let gamesRepository: Mocked<Repository<GamevaultGame>>;
+  let progressRepository: Mocked<Repository<Progress>>;
+  let usersService: Mocked<UsersService>;
+  let otpService: Mocked<OtpService>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -61,36 +62,36 @@ describe("GamesController", () => {
 
   beforeEach(() => {
     gamesService = {
-      findOneByGameIdOrFail: jest.fn(),
-      findRandom: jest.fn(),
-      update: jest.fn(),
+      findOneByGameIdOrFail: vi.fn(),
+      findRandom: vi.fn(),
+      update: vi.fn(),
     } as any;
 
     filesService = {
-      indexAllFiles: jest.fn(),
-      download: jest.fn(),
-      deleteGameFile: jest.fn(),
-      upload: jest.fn(),
+      indexAllFiles: vi.fn(),
+      download: vi.fn(),
+      deleteGameFile: vi.fn(),
+      upload: vi.fn(),
     } as any;
 
     gamesRepository = {
-      find: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      find: vi.fn(),
+      createQueryBuilder: vi.fn(),
       manager: {
-        getRepository: jest.fn(),
+        getRepository: vi.fn(),
       },
     } as any;
 
     progressRepository = {
-      find: jest.fn(),
+      find: vi.fn(),
     } as any;
 
     usersService = {
-      findUserAgeByUsername: jest.fn().mockResolvedValue(undefined),
+      findUserAgeByUsername: vi.fn().mockResolvedValue(undefined),
     } as any;
 
     otpService = {
-      create: jest.fn().mockReturnValue("mock-otp"),
+      create: vi.fn().mockReturnValue("mock-otp"),
     } as any;
 
     controller = new GamesController(
@@ -102,31 +103,31 @@ describe("GamesController", () => {
       otpService,
     );
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("findGames", () => {
     it("should resolve metadata tag filters to game ids before paginate", async () => {
       const metadataQueryBuilder = {
-        select: jest.fn().mockReturnThis(),
-        distinct: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
+        select: vi.fn().mockReturnThis(),
+        distinct: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        getRawMany: vi.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
       };
 
       const metadataRepository = {
-        createQueryBuilder: jest.fn().mockReturnValue(metadataQueryBuilder),
+        createQueryBuilder: vi.fn().mockReturnValue(metadataQueryBuilder),
       };
 
-      (gamesRepository.manager.getRepository as jest.Mock).mockReturnValue(
+      (gamesRepository.manager.getRepository as Mock).mockReturnValue(
         metadataRepository,
       );
 
-      (nestjsPaginateFilter.addFilter as jest.Mock).mockImplementation(() => {
+      (nestjsPaginateFilter.addFilter as Mock).mockImplementation(() => {
         return {};
       });
 
-      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+      (nestjsPaginate.paginate as Mock).mockResolvedValue({
         data: [],
         meta: {} as any,
         links: {} as any,
@@ -174,25 +175,25 @@ describe("GamesController", () => {
 
     it("should resolve metadata tag filter expressions to game ids before paginate", async () => {
       const metadataQueryBuilder = {
-        select: jest.fn().mockReturnThis(),
-        distinct: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
+        select: vi.fn().mockReturnThis(),
+        distinct: vi.fn().mockReturnThis(),
+        innerJoin: vi.fn().mockReturnThis(),
+        getRawMany: vi.fn().mockResolvedValue([{ id: 7 }, { id: "9" }]),
       };
 
       const metadataRepository = {
-        createQueryBuilder: jest.fn().mockReturnValue(metadataQueryBuilder),
+        createQueryBuilder: vi.fn().mockReturnValue(metadataQueryBuilder),
       };
 
-      (gamesRepository.manager.getRepository as jest.Mock).mockReturnValue(
+      (gamesRepository.manager.getRepository as Mock).mockReturnValue(
         metadataRepository,
       );
 
-      (nestjsPaginateFilter.addFilter as jest.Mock).mockImplementation(() => {
+      (nestjsPaginateFilter.addFilter as Mock).mockImplementation(() => {
         return {};
       });
 
-      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+      (nestjsPaginate.paginate as Mock).mockResolvedValue({
         data: [],
         meta: {} as any,
         links: {} as any,
@@ -235,7 +236,7 @@ describe("GamesController", () => {
       parentalConfig.AGE_RESTRICTION_ENABLED = true;
       usersService.findUserAgeByUsername.mockResolvedValue(16);
 
-      (nestjsPaginate.paginate as jest.Mock).mockResolvedValue({
+      (nestjsPaginate.paginate as Mock).mockResolvedValue({
         data: [],
         meta: {} as any,
         links: {} as any,
@@ -334,7 +335,7 @@ describe("GamesController", () => {
   describe("getGameDownload", () => {
     it("should download a game and set OTP header", async () => {
       const mockUser = createMockUser();
-      const mockResponse = { setHeader: jest.fn() } as any;
+      const mockResponse = { setHeader: vi.fn() } as any;
       filesService.download.mockResolvedValue({} as any);
 
       await controller.getGameDownload(

@@ -7,12 +7,12 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
-import { AppConfiguration } from "../../../configuration";
-import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator";
-import { MINIMUM_ROLE_KEY } from "../../../decorators/minimum-role.decorator";
-import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
-import { Role } from "../../users/models/role.enum";
-import { UsersService } from "../../users/users.service";
+import type { AppConfiguration } from "../../../configuration.js";
+import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
+import { MINIMUM_ROLE_KEY } from "../../../decorators/minimum-role.decorator.js";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
+import { Role } from "../../users/models/role.enum.js";
+import { UsersService } from "../../users/users.service.js";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {

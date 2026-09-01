@@ -7,3 +7,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@nestjs/typeorm@11.0.2'
   - nestjs-paginate@15.0.1
+  - typeorm@1.1.1

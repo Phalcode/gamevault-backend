@@ -1,45 +1,46 @@
 import { UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import configuration from "../../../configuration";
+import configuration from "../../../configuration.js";
 
-import { Role } from "../../users/models/role.enum";
-import { ApiKeyGuard } from "./api-key.guard";
+import type { Mocked } from "vitest";
+import { Role } from "../../users/models/role.enum.js";
+import { ApiKeyGuard } from "./api-key.guard.js";
 
-jest.mock("../../../configuration", () => ({
+vi.mock("../../../configuration.js", () => ({
   __esModule: true,
   default: {
     TESTING: { AUTHENTICATION_DISABLED: false },
   },
 }));
 
-jest.mock("../../../logging", () => ({
+vi.mock("../../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 describe("ApiKeyGuard", () => {
   let guard: ApiKeyGuard;
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: Mocked<Reflector>;
   let mockApiKeyService: any;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: vi.fn(),
     } as any;
 
     mockApiKeyService = {
-      findUserByApiKeyOrFail: jest.fn(),
+      findUserByApiKeyOrFail: vi.fn(),
     };
 
     guard = new ApiKeyGuard(mockApiKeyService, reflector, configuration as any);
@@ -49,28 +50,28 @@ describe("ApiKeyGuard", () => {
     const req: any = { headers: {}, user: undefined };
     if (apiKey) req.headers["x-api-key"] = apiKey;
     return {
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
       getType: () => "http",
       switchToHttp: () => ({ getRequest: () => req }),
-      switchToWs: jest.fn(),
+      switchToWs: vi.fn(),
     } as any;
   }
 
   function wsContext(apiKey?: string) {
     const client: any = {
       handshake: { headers: {} },
-      emit: jest.fn(),
+      emit: vi.fn(),
       id: "ws-1",
       user: undefined,
     };
     if (apiKey) client.handshake.headers["x-api-key"] = apiKey;
     return {
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
+      getHandler: vi.fn(),
+      getClass: vi.fn(),
       getType: () => "ws",
       switchToWs: () => ({ getClient: () => client }),
-      switchToHttp: jest.fn(),
+      switchToHttp: vi.fn(),
     } as any;
   }
 

@@ -1,43 +1,44 @@
-import { PaginateQuery, PaginationType, paginate } from "nestjs-paginate";
+import { type PaginateQuery, PaginationType, paginate } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
-import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { TagMetadata } from "./tag.metadata.entity";
-import { TagsController } from "./tags.metadata.controller";
+import type { Mock, Mocked } from "vitest";
+import { GamevaultGame } from "../../games/gamevault-game.entity.js";
+import { TagMetadata } from "./tag.metadata.entity.js";
+import { TagsController } from "./tags.metadata.controller.js";
 
-jest.mock("nestjs-paginate", () => {
-  const actual = jest.requireActual("nestjs-paginate");
+vi.mock("nestjs-paginate", async () => {
+  const actual = await vi.importActual("nestjs-paginate");
 
   return {
     ...actual,
-    paginate: jest.fn(),
+    paginate: vi.fn(),
   };
 });
 
 describe("TagsController", () => {
   let controller: TagsController;
-  let tagRepository: jest.Mocked<Partial<Repository<TagMetadata>>>;
+  let tagRepository: Mocked<Partial<Repository<TagMetadata>>>;
   let queryBuilder: any;
 
   beforeEach(() => {
     queryBuilder = {
-      innerJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      addSelect: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
     };
 
     tagRepository = {
-      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      createQueryBuilder: vi.fn().mockReturnValue(queryBuilder),
     };
 
     controller = new TagsController(tagRepository as any);
-    (paginate as jest.Mock).mockReset();
+    (paginate as Mock).mockReset();
   });
 
   it("should only query tags linked to non-deleted games", async () => {
-    (paginate as jest.Mock).mockResolvedValue({
+    (paginate as Mock).mockResolvedValue({
       data: [],
       meta: {},
       links: {},
@@ -67,7 +68,7 @@ describe("TagsController", () => {
   });
 
   it("should apply default sorting by game count when sortBy is empty", async () => {
-    (paginate as jest.Mock).mockResolvedValue({
+    (paginate as Mock).mockResolvedValue({
       data: [],
       meta: {},
       links: {},

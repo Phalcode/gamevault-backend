@@ -26,15 +26,16 @@ import {
 } from "@nestjs/swagger";
 import bytes from "bytes";
 import { Response } from "express";
-import { createReadStream, stat } from "fs-extra";
+import fsExtra from "fs-extra";
+const { createReadStream, stat } = fsExtra;
 
-import configuration from "../../configuration";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { Media } from "./media.entity";
-import { MediaService } from "./media.service";
+import configuration from "../../configuration.js";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { Media } from "./media.entity.js";
+import { MediaService } from "./media.service.js";
 
 @ApiTags("media")
 @Controller("media")

@@ -1,9 +1,9 @@
 import { ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
-import { AppConfiguration } from "../../../configuration";
-import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator";
-import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator";
+import type { AppConfiguration } from "../../../configuration.js";
+import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
+import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
 
 @Injectable()
 export class AuthenticationGuard extends AuthGuard("auth") {

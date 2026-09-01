@@ -89,4 +89,4 @@ HEALTHCHECK --start-period=300s CMD curl -f http://localhost:${SERVER_PORT}/api/
 
 # Set entrypoint and default command
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["dist/src/main"]
+CMD ["dist/src/main.js"]

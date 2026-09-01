@@ -1,5 +1,5 @@
 import { validate } from "class-validator";
-import { MediaValidator } from "./media.validator";
+import { MediaValidator } from "./media.validator.js";
 
 class TestDto {
   @MediaValidator("image/")

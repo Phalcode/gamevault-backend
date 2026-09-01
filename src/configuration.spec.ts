@@ -8,7 +8,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { getCensoredConfiguration } from "./configuration";
+import { getCensoredConfiguration } from "./configuration.js";
 
 describe("Configuration", () => {
   describe("getCensoredConfiguration", () => {
@@ -73,10 +73,10 @@ describe("Configuration", () => {
 
   describe("configuration defaults", () => {
     // Test the default configuration values are reasonable
-    let config: typeof import("./configuration").default;
+    let config: typeof import("./configuration.js").default;
 
     beforeAll(async () => {
-      config = (await import("./configuration")).default;
+      config = (await import("./configuration.js")).default;
     });
 
     it("should have default server port", () => {
@@ -148,7 +148,7 @@ describe("Configuration", () => {
       tempConfigDir = mkdtempSync(join(tmpdir(), "gamevault-config-"));
       process.env.VOLUMES_CONFIG = tempConfigDir;
       delete process.env.SERVER_PORT;
-      jest.resetModules();
+      vi.resetModules();
     });
 
     afterEach(() => {
@@ -163,7 +163,7 @@ describe("Configuration", () => {
         "server:\n  port: 9191\n",
       );
 
-      const { default: config } = await import("./configuration");
+      const { default: config } = await import("./configuration.js");
 
       expect(config.SERVER.PORT).toBe(9191);
     });
@@ -175,7 +175,7 @@ describe("Configuration", () => {
       );
       process.env.SERVER_PORT = "8089";
 
-      const { default: config } = await import("./configuration");
+      const { default: config } = await import("./configuration.js");
 
       expect(config.SERVER.PORT).toBe(8089);
     });

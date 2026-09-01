@@ -9,18 +9,10 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomBytes } from "crypto";
 import { Response } from "express";
-import {
-  Stats,
-  access,
-  constants,
-  createReadStream,
-  pathExists,
-  rm,
-  stat,
-  writeFile,
-} from "fs-extra";
-import { debounce, toLower } from "lodash";
-import { add, list } from "node-7z";
+import type { Stats } from "fs-extra";
+import fsExtra from "fs-extra";
+import lodash from "lodash";
+import node7z from "node-7z";
 import path, { basename } from "path";
 import { from, lastValueFrom } from "rxjs";
 import { mergeMap } from "rxjs/operators";
@@ -29,24 +21,28 @@ import { Readable } from "stream";
 import { Throttle } from "stream-throttle";
 import { IsNull, Not, Repository } from "typeorm";
 import unidecode from "unidecode";
+const { access, constants, createReadStream, pathExists, rm, stat, writeFile } =
+  fsExtra;
+const { debounce, toLower } = lodash;
+const { add, list } = node7z;
 
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
-import configuration from "../../configuration";
-import globals, { toFindOptionsRelations } from "../../globals";
-import { logGamevaultGame } from "../../logging";
-import { MetadataService } from "../metadata/metadata.service";
-import { GameVersion } from "./game-version.entity";
-import mock from "./games.mock";
-import { GamesService } from "./games.service";
-import { GamevaultGame } from "./gamevault-game.entity";
-import { File } from "./models/file.model";
-import { GameExistence } from "./models/game-existence.enum";
-import { GameType } from "./models/game-type.enum";
-import { RangeHeader } from "./models/range-header.model";
+import configuration from "../../configuration.js";
+import globals, { toFindOptionsRelations } from "../../globals.js";
+import { logGamevaultGame } from "../../logging.js";
+import { MetadataService } from "../metadata/metadata.service.js";
+import { GameVersion } from "./game-version.entity.js";
+import mock from "./games.mock.js";
+import { GamesService } from "./games.service.js";
+import { GamevaultGame } from "./gamevault-game.entity.js";
+import { File } from "./models/file.model.js";
+import { GameExistence } from "./models/game-existence.enum.js";
+import { GameType } from "./models/game-type.enum.js";
+import { RangeHeader } from "./models/range-header.model.js";
 import {
   selectDefaultGameVersion,
   sortGameVersions,
-} from "./version-selection.util";
+} from "./version-selection.util.js";
 
 @Injectable()
 export class FilesService implements OnApplicationBootstrap {

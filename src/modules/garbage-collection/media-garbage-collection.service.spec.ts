@@ -1,6 +1,7 @@
-import { MediaGarbageCollectionService } from "./media-garbage-collection.service";
+import configuration from "../../configuration.js";
+import { MediaGarbageCollectionService } from "./media-garbage-collection.service.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     MEDIA: {
@@ -12,20 +13,20 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 describe("MediaGarbageCollectionService", () => {
@@ -37,16 +38,16 @@ describe("MediaGarbageCollectionService", () => {
 
   beforeEach(() => {
     mockMediaRepo = {
-      find: jest.fn().mockResolvedValue([]),
+      find: vi.fn().mockResolvedValue([]),
     };
     mockGameMetadataRepo = {
-      find: jest.fn().mockResolvedValue([]),
+      find: vi.fn().mockResolvedValue([]),
     };
     mockUserRepo = {
-      find: jest.fn().mockResolvedValue([]),
+      find: vi.fn().mockResolvedValue([]),
     };
     mockMediaService = {
-      delete: jest.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
     };
 
     service = new MediaGarbageCollectionService(
@@ -57,14 +58,13 @@ describe("MediaGarbageCollectionService", () => {
     );
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   // ─── garbageCollectUnusedMedia ─────────────────────────────────────
 
   describe("garbageCollectUnusedMedia", () => {
     it("should skip when GC is disabled", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const config = require("../../configuration").default;
+      const config = configuration as any;
       config.MEDIA.GC_DISABLED = true;
 
       await service.garbageCollectUnusedMedia();

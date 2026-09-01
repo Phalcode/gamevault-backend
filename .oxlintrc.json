@@ -1,0 +1,15 @@
+{
+  "plugins": ["typescript", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "no-shadow": "off",
+    "no-extraneous-class": ["off", { "allowWithDecorator": true }],
+    "no-named-as-default-member": "off",
+    "no-unassigned-import": "off",
+    "preserve-caught-error": "off"
+  },
+  "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**"]
+}

@@ -4,13 +4,15 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 
-import { GameMetadata } from "./games/game.metadata.entity";
-import { GameMetadataService } from "./games/game.metadata.service";
-import { MetadataService } from "./metadata.service";
-import { MetadataProvider } from "./providers/abstract.metadata-provider.service";
-import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception";
+import type { Mocked } from "vitest";
+import configurationModule from "../../configuration.js";
+import { GameMetadata } from "./games/game.metadata.entity.js";
+import { GameMetadataService } from "./games/game.metadata.service.js";
+import { MetadataService } from "./metadata.service.js";
+import { MetadataProvider } from "./providers/abstract.metadata-provider.service.js";
+import { ProviderNotFoundException } from "./providers/models/provider-not-found.exception.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", async () => ({
   __esModule: true,
   default: {
     METADATA: { TTL_IN_DAYS: 30 },
@@ -19,26 +21,26 @@ jest.mock("../../configuration", () => ({
   },
 }));
 
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", async () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn((g) => ({ id: g?.id })),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn((p) => ({ slug: p?.slug })),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn((g) => ({ id: g?.id })),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn((p) => ({ slug: p?.slug })),
+  logProgress: vi.fn(),
 }));
 
 // Stub out validateOrReject so registerProvider doesn't hit real async validation
-jest.mock("class-validator", () => ({
-  ...jest.requireActual("class-validator"),
-  validateOrReject: jest.fn().mockResolvedValue(undefined),
+vi.mock("class-validator", async () => ({
+  ...(await vi.importActual("class-validator")),
+  validateOrReject: vi.fn().mockResolvedValue(undefined),
 }));
 
 function createMockProvider(
@@ -50,10 +52,10 @@ function createMockProvider(
     priority: 10,
     enabled: true,
     request_interval_ms: 0,
-    search: jest.fn(),
-    getByProviderDataIdOrFail: jest.fn(),
-    getBestMatch: jest.fn(),
-    register: jest.fn(),
+    search: vi.fn(),
+    getByProviderDataIdOrFail: vi.fn(),
+    getBestMatch: vi.fn(),
+    register: vi.fn(),
     ...overrides,
   } as unknown as MetadataProvider;
 }
@@ -61,31 +63,29 @@ function createMockProvider(
 describe("MetadataService", () => {
   let service: MetadataService;
   let mockGamesService: any;
-  let mockGameMetadataService: jest.Mocked<
+  let mockGameMetadataService: Mocked<
     Pick<GameMetadataService, "save" | "deleteByGameMetadataIdOrFail">
   >;
 
   beforeEach(() => {
     mockGamesService = {
-      findOneByGameIdOrFail: jest.fn(),
-      save: jest.fn().mockImplementation((g) => Promise.resolve(g)),
-      generateSortTitle: jest.fn().mockReturnValue("sort-title"),
+      findOneByGameIdOrFail: vi.fn(),
+      save: vi.fn().mockImplementation((g) => Promise.resolve(g)),
+      generateSortTitle: vi.fn().mockReturnValue("sort-title"),
     };
     mockGameMetadataService = {
-      save: jest
-        .fn()
-        .mockImplementation((m) => Promise.resolve({ ...m, id: 1 })),
-      deleteByGameMetadataIdOrFail: jest.fn().mockResolvedValue(undefined),
+      save: vi.fn().mockImplementation((m) => Promise.resolve({ ...m, id: 1 })),
+      deleteByGameMetadataIdOrFail: vi.fn().mockResolvedValue(undefined),
     };
 
     service = new MetadataService(
       mockGamesService,
       mockGameMetadataService as any,
-      jest.requireMock("../../configuration").default,
+      configurationModule as any,
     );
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   // ─── registerProvider ──────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ describe("MetadataService", () => {
   describe("addUpdateMetadataJob", () => {
     it("should skip duplicate jobs for the same game id", async () => {
       // Disable processQueue to isolate the dedup logic
-      jest.spyOn(service as any, "processQueue").mockResolvedValue(undefined);
+      vi.spyOn(service as any, "processQueue").mockResolvedValue(undefined);
 
       const game = { id: 42, file_path: "/test.zip" } as any;
       await service.addUpdateMetadataJob(game);
@@ -183,7 +183,7 @@ describe("MetadataService", () => {
         },
       ];
       const provider = createMockProvider({
-        search: jest.fn().mockResolvedValue(results),
+        search: vi.fn().mockResolvedValue(results),
       });
       service.registerProvider(provider);
 
@@ -194,7 +194,7 @@ describe("MetadataService", () => {
 
     it("should throw InternalServerErrorException when provider search throws synchronously", async () => {
       const provider = createMockProvider({
-        search: jest.fn().mockImplementation(() => {
+        search: vi.fn().mockImplementation(() => {
           throw new Error("API down");
         }),
       });

@@ -10,16 +10,17 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import { move, pathExists, remove, writeFile } from "fs-extra";
+import fsExtra from "fs-extra";
 import { tmpdir } from "os";
 import { join } from "path";
 import { Repository } from "typeorm";
+const { move, pathExists, remove, writeFile } = fsExtra;
 
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import { logMedia } from "../../logging";
-import { UsersService } from "../users/users.service";
-import { Media } from "./media.entity";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import { logMedia } from "../../logging.js";
+import { UsersService } from "../users/users.service.js";
+import { Media } from "./media.entity.js";
 
 @Injectable()
 export class MediaService {
@@ -29,7 +30,8 @@ export class MediaService {
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
     @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    // Cyclic service reference (ESM): intentionally loosely typed to avoid design:paramtypes TDZ
+    private readonly usersService: any,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
   ) {}
 

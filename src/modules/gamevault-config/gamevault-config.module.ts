@@ -1,7 +1,10 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import { GAMEVAULT_CONFIG, getGamevaultConfig } from "../../gamevault-config";
+import {
+  GAMEVAULT_CONFIG,
+  getGamevaultConfig,
+} from "../../gamevault-config.js";
 
 @Global()
 @Module({

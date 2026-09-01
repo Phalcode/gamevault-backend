@@ -1,9 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Column, Entity, Index, JoinColumn, ManyToOne, Unique } from "typeorm";
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  Relation,
+  Unique,
+} from "typeorm";
 
-import { DatabaseEntity } from "../database/database.entity";
-import { GamevaultGame } from "./gamevault-game.entity";
-import { GameType } from "./models/game-type.enum";
+import { DatabaseEntity } from "../database/database.entity.js";
+import { GamevaultGame } from "./gamevault-game.entity.js";
+import { GameType } from "./models/game-type.enum.js";
 
 @Entity({ name: "game_version" })
 @Unique("UQ_b0b88b548562b921436bdacea35", ["game", "file_path"])
@@ -15,7 +23,7 @@ export class GameVersion extends DatabaseEntity {
     description: "game associated with this version",
     type: () => GamevaultGame,
   })
-  game: GamevaultGame;
+  game: Relation<GamevaultGame>;
 
   @Column()
   @ApiProperty({

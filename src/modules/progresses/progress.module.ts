@@ -1,11 +1,11 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { GamesModule } from "../games/games.module";
-import { UsersModule } from "../users/users.module";
-import { ProgressController } from "./progress.controller";
-import { Progress } from "./progress.entity";
-import { ProgressService } from "./progress.service";
+import { GamesModule } from "../games/games.module.js";
+import { UsersModule } from "../users/users.module.js";
+import { ProgressController } from "./progress.controller.js";
+import { Progress } from "./progress.entity.js";
+import { ProgressService } from "./progress.service.js";
 
 @Module({
   imports: [

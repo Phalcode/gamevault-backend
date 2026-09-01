@@ -3,8 +3,8 @@ import { PassportStrategy } from "@nestjs/passport";
 import { BasicStrategy } from "passport-http";
 
 import { compare } from "bcrypt";
-import { GamevaultUser } from "../../users/gamevault-user.entity";
-import { UsersService } from "../../users/users.service";
+import { GamevaultUser } from "../../users/gamevault-user.entity.js";
+import { UsersService } from "../../users/users.service.js";
 
 @Injectable()
 export class BasicAuthenticationStrategy extends PassportStrategy(

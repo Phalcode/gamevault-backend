@@ -8,17 +8,18 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  Relation,
 } from "typeorm";
 
-import globals from "../../../globals";
-import { MediaValidator } from "../../../validators/media.validator";
-import { DatabaseEntity } from "../../database/database.entity";
-import { Media } from "../../media/media.entity";
-import { DeveloperMetadata } from "../developers/developer.metadata.entity";
-import { GenreMetadata } from "../genres/genre.metadata.entity";
-import { Metadata } from "../models/metadata.interface";
-import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
-import { TagMetadata } from "../tags/tag.metadata.entity";
+import globals from "../../../globals.js";
+import { MediaValidator } from "../../../validators/media.validator.js";
+import { DatabaseEntity } from "../../database/database.entity.js";
+import { Media } from "../../media/media.entity.js";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
+import { GenreMetadata } from "../genres/genre.metadata.entity.js";
+import { Metadata } from "../models/metadata.interface.js";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity.js";
+import { TagMetadata } from "../tags/tag.metadata.entity.js";
 
 @Entity()
 @Index("UQ_GAME_METADATA", ["provider_slug", "provider_data_id"], {
@@ -125,7 +126,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     description: "cover/boxart image of the game",
     type: () => Media,
   })
-  cover?: Media;
+  cover?: Relation<Media>;
 
   @MediaValidator("image")
   @ManyToOne(() => Media, {
@@ -137,7 +138,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     description: "background image of the game",
     type: () => Media,
   })
-  background?: Media;
+  background?: Relation<Media>;
 
   @Column({ type: "simple-array", nullable: true })
   @ApiPropertyOptional({
@@ -248,7 +249,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     type: () => PublisherMetadata,
     isArray: true,
   })
-  publishers?: PublisherMetadata[];
+  publishers?: Relation<PublisherMetadata[]>;
 
   @JoinTable({
     name: "game_metadata_developers_developer_metadata",
@@ -269,7 +270,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     type: () => DeveloperMetadata,
     isArray: true,
   })
-  developers?: DeveloperMetadata[];
+  developers?: Relation<DeveloperMetadata[]>;
 
   @JoinTable({
     name: "game_metadata_tags_tag_metadata",
@@ -290,7 +291,7 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     type: () => TagMetadata,
     isArray: true,
   })
-  tags?: TagMetadata[];
+  tags?: Relation<TagMetadata[]>;
 
   @JoinTable({
     name: "game_metadata_genres_genre_metadata",
@@ -311,5 +312,5 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
     type: () => GenreMetadata,
     isArray: true,
   })
-  genres?: GenreMetadata[];
+  genres?: Relation<GenreMetadata[]>;
 }

@@ -9,15 +9,15 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { createHash } from "crypto";
 import ms, { StringValue } from "ms";
 import { LessThan, MoreThan, Repository } from "typeorm";
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { RegisterUserDto } from "../users/models/register-user.dto";
-import { UsersService } from "../users/users.service";
-import { GamevaultJwtPayload } from "./models/gamevault-jwt-payload.interface";
-import { RefreshTokenDto } from "./models/refresh-token.dto";
-import { TokenPairDto } from "./models/token-pair.dto";
-import { Session } from "./session.entity";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { RegisterUserDto } from "../users/models/register-user.dto.js";
+import { UsersService } from "../users/users.service.js";
+import { GamevaultJwtPayload } from "./models/gamevault-jwt-payload.interface.js";
+import { RefreshTokenDto } from "./models/refresh-token.dto.js";
+import { TokenPairDto } from "./models/token-pair.dto.js";
+import { Session } from "./session.entity.js";
 
 @Injectable()
 export class AuthenticationService implements OnModuleInit {

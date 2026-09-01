@@ -1,14 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { randomUUID } from "crypto";
 
-import configuration from "../../../../configuration";
-import { DeveloperMetadata } from "../../developers/developer.metadata.entity";
-import { GameMetadata } from "../../games/game.metadata.entity";
-import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto";
-import { GenreMetadata } from "../../genres/genre.metadata.entity";
-import { PublisherMetadata } from "../../publishers/publisher.metadata.entity";
-import { TagMetadata } from "../../tags/tag.metadata.entity";
-import { MetadataProvider } from "../abstract.metadata-provider.service";
+import configuration from "../../../../configuration.js";
+import { DeveloperMetadata } from "../../developers/developer.metadata.entity.js";
+import { GameMetadata } from "../../games/game.metadata.entity.js";
+import { MinimalGameMetadataDto } from "../../games/minimal-game.metadata.dto.js";
+import { GenreMetadata } from "../../genres/genre.metadata.entity.js";
+import { PublisherMetadata } from "../../publishers/publisher.metadata.entity.js";
+import { TagMetadata } from "../../tags/tag.metadata.entity.js";
+import { MetadataProvider } from "../abstract.metadata-provider.service.js";
 
 @Injectable()
 export class TestLowPriorityProviderService extends MetadataProvider {

@@ -1,7 +1,7 @@
 import { Module, forwardRef } from "@nestjs/common";
-import { GamesModule } from "../games/games.module";
-import { OtpController } from "./otp.controller";
-import { OtpService } from "./otp.service";
+import { GamesModule } from "../games/games.module.js";
+import { OtpController } from "./otp.controller.js";
+import { OtpService } from "./otp.service.js";
 
 @Module({
   imports: [forwardRef(() => GamesModule)],

@@ -19,30 +19,30 @@ import {
 import { InjectRepository } from "@nestjs/typeorm";
 import {
   Paginate,
-  PaginateQuery,
+  type PaginateQuery,
   Paginated,
   PaginationType,
   paginate,
 } from "nestjs-paginate";
 import { Repository } from "typeorm";
 
-import configuration from "../../configuration";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { PaginateQueryOptions } from "../../decorators/pagination.decorator";
+import configuration from "../../configuration.js";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { PaginateQueryOptions } from "../../decorators/pagination.decorator.js";
 import {
   ApiOkResponsePaginated,
   appendPaginateFilterExpression,
   toFindOptionsRelations,
-} from "../../globals";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto";
-import { UpdateProgressDto } from "./models/update-progress.dto";
-import { UserIdGameIdDto } from "./models/user-id-game-id.dto";
-import { Progress } from "./progress.entity";
-import { ProgressService } from "./progress.service";
+} from "../../globals.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { IncrementProgressByMinutesDto } from "./models/increment-progress-by-minutes.dto.js";
+import { UpdateProgressDto } from "./models/update-progress.dto.js";
+import { UserIdGameIdDto } from "./models/user-id-game-id.dto.js";
+import { Progress } from "./progress.entity.js";
+import { ProgressService } from "./progress.service.js";
 
 @Controller("progresses")
 @ApiTags("progress")

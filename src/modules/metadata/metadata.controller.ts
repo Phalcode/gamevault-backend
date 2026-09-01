@@ -8,12 +8,12 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Role } from "../users/models/role.enum";
-import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto";
-import { MetadataService } from "./metadata.service";
-import { MetadataProviderDto } from "./providers/models/metadata-provider.dto";
-import { ProviderSlugDto } from "./providers/models/provider-slug.dto";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { Role } from "../users/models/role.enum.js";
+import { MinimalGameMetadataDto } from "./games/minimal-game.metadata.dto.js";
+import { MetadataService } from "./metadata.service.js";
+import { MetadataProviderDto } from "./providers/models/metadata-provider.dto.js";
+import { ProviderSlugDto } from "./providers/models/provider-slug.dto.js";
 
 @Controller("metadata")
 @ApiTags("metadata")

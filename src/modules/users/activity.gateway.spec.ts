@@ -1,27 +1,27 @@
-import { ActivityGateway } from "./activity.gateway";
-import { ActivityState } from "./models/activity-state.enum";
+import { ActivityGateway } from "./activity.gateway.js";
+import { ActivityState } from "./models/activity-state.enum.js";
 
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     SERVER: { ONLINE_ACTIVITIES_DISABLED: false },
   },
 }));
 
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", () => ({
   __esModule: true,
   default: {
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  logMedia: jest.fn(),
-  logMetadata: jest.fn(),
-  logMetadataProvider: jest.fn(),
-  logProgress: jest.fn(),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  logMedia: vi.fn(),
+  logMetadata: vi.fn(),
+  logMetadataProvider: vi.fn(),
+  logProgress: vi.fn(),
 }));
 
 describe("ActivityGateway", () => {
@@ -30,7 +30,7 @@ describe("ActivityGateway", () => {
 
   beforeEach(() => {
     mockUsersService = {
-      findOneByUserIdOrFail: jest
+      findOneByUserIdOrFail: vi
         .fn()
         .mockImplementation((id) =>
           Promise.resolve({ id, username: `user${id}` }),
@@ -38,16 +38,16 @@ describe("ActivityGateway", () => {
     };
 
     gateway = new ActivityGateway(mockUsersService);
-    gateway.server = { emit: jest.fn() } as any;
+    gateway.server = { emit: vi.fn() } as any;
   });
 
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   // ─── handleConnection ──────────────────────────────────────────────
 
   describe("handleConnection", () => {
     it("should emit current activities to connected client", () => {
-      const client = { id: "socket-1", emit: jest.fn() } as any;
+      const client = { id: "socket-1", emit: vi.fn() } as any;
       gateway.handleConnection(client);
       expect(client.emit).toHaveBeenCalledWith("activities", []);
     });
@@ -60,7 +60,7 @@ describe("ActivityGateway", () => {
         state: ActivityState.ONLINE,
       } as any);
 
-      const newClient = { id: "socket-1", emit: jest.fn() } as any;
+      const newClient = { id: "socket-1", emit: vi.fn() } as any;
       gateway.handleConnection(newClient);
       expect(newClient.emit).toHaveBeenCalledWith(
         "activities",
@@ -85,7 +85,7 @@ describe("ActivityGateway", () => {
       gateway.handleDisconnect(client);
 
       // Activities should be empty after disconnect
-      const newClient = { id: "socket-2", emit: jest.fn() } as any;
+      const newClient = { id: "socket-2", emit: vi.fn() } as any;
       gateway.handleConnection(newClient);
       expect(newClient.emit).toHaveBeenCalledWith("activities", []);
     });
@@ -105,7 +105,7 @@ describe("ActivityGateway", () => {
 
       gateway.handleDisconnect(client1);
 
-      const checkClient = { id: "socket-3", emit: jest.fn() } as any;
+      const checkClient = { id: "socket-3", emit: vi.fn() } as any;
       gateway.handleConnection(checkClient);
       const activities = checkClient.emit.mock.calls[0][1];
       expect(activities).toHaveLength(1);
@@ -182,7 +182,7 @@ describe("ActivityGateway", () => {
         state: ActivityState.BUSY,
       } as any);
 
-      const checkClient = { id: "socket-2", emit: jest.fn() } as any;
+      const checkClient = { id: "socket-2", emit: vi.fn() } as any;
       gateway.handleConnection(checkClient);
       const activities = checkClient.emit.mock.calls[0][1];
       expect(activities).toHaveLength(1);
@@ -200,7 +200,7 @@ describe("ActivityGateway", () => {
         state: ActivityState.ONLINE,
       } as any);
 
-      const requestClient = { id: "socket-2", emit: jest.fn() } as any;
+      const requestClient = { id: "socket-2", emit: vi.fn() } as any;
       gateway.getActivities(requestClient);
       expect(requestClient.emit).toHaveBeenCalledWith(
         "activities",

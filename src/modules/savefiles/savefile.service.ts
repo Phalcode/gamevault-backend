@@ -8,18 +8,13 @@ import {
 import { isUUID } from "class-validator";
 import { randomUUID } from "crypto";
 import fileTypeChecker from "file-type-checker";
-import {
-  createReadStream,
-  ensureDir,
-  readdir,
-  remove,
-  stat,
-  writeFile,
-} from "fs-extra";
+import fsExtra from "fs-extra";
 import path, { basename, dirname } from "path";
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import { UsersService } from "../users/users.service";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import { UsersService } from "../users/users.service.js";
+const { createReadStream, ensureDir, readdir, remove, stat, writeFile } =
+  fsExtra;
 
 @Injectable()
 export class SavefileService {

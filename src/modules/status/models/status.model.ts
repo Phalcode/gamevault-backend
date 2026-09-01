@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import configuration from "../../../configuration";
-import { AuthenticationMethod } from "./authentication-method.enum";
-import { RegistrationFields } from "./registration-fields.enum";
-import { StatusEnum } from "./status.enum";
+import configuration from "../../../configuration.js";
+import { AuthenticationMethod } from "./authentication-method.enum.js";
+import { RegistrationFields } from "./registration-fields.enum.js";
+import { StatusEnum } from "./status.enum.js";
 
 export class StatusEntry {
   @ApiProperty({

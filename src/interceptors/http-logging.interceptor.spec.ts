@@ -1,8 +1,10 @@
 import { of, throwError } from "rxjs";
-import { HttpLoggingInterceptor } from "./http-logging.interceptor";
+
+import configuration from "../configuration.js";
+import { HttpLoggingInterceptor } from "./http-logging.interceptor.js";
 
 // Mock the configuration module
-jest.mock("../configuration", () => ({
+vi.mock("../configuration.js", () => ({
   __esModule: true,
   default: {
     TESTING: {
@@ -16,11 +18,9 @@ describe("HttpLoggingInterceptor", () => {
   let mockCallHandler: any;
 
   beforeEach(() => {
-    interceptor = new HttpLoggingInterceptor(
-      jest.requireMock("../configuration").default,
-    );
+    interceptor = new HttpLoggingInterceptor(configuration);
     mockCallHandler = {
-      handle: jest.fn().mockReturnValue(of({ data: "response" })),
+      handle: vi.fn().mockReturnValue(of({ data: "response" })),
     };
   });
 
@@ -50,65 +50,75 @@ describe("HttpLoggingInterceptor", () => {
     } as any;
   }
 
-  it("should pass through and log for a normal request", (done) => {
+  it("should pass through and log for a normal request", async () => {
     const context = createMockContext("/api/games");
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: (value) => {
-        expect(value).toEqual({ data: "response" });
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: (value) => {
+          expect(value).toEqual({ data: "response" });
+          resolve();
+        },
+      });
     });
   });
 
-  it("should skip logging for /api/status route", (done) => {
+  it("should skip logging for /api/status route", async () => {
     const context = createMockContext("/api/status");
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: () => {
-        expect(mockCallHandler.handle).toHaveBeenCalled();
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: () => {
+          expect(mockCallHandler.handle).toHaveBeenCalled();
+          resolve();
+        },
+      });
     });
   });
 
-  it("should skip logging for /api/health route", (done) => {
+  it("should skip logging for /api/health route", async () => {
     const context = createMockContext("/api/health");
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: () => {
-        expect(mockCallHandler.handle).toHaveBeenCalled();
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: () => {
+          expect(mockCallHandler.handle).toHaveBeenCalled();
+          resolve();
+        },
+      });
     });
   });
 
-  it("should handle error responses", (done) => {
+  it("should handle error responses", async () => {
     const context = createMockContext("/api/games", "POST");
     mockCallHandler.handle.mockReturnValue(
       throwError(() => ({ status: 400, message: "Bad Request" })),
     );
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      error: () => {
-        // Error is still propagated
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        error: () => {
+          // Error is still propagated
+          resolve();
+        },
+      });
     });
   });
 
-  it("should redact sensitive headers", (done) => {
+  it("should redact sensitive headers", async () => {
     const context = createMockContext("/api/users");
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: () => {
-        // The interceptor logs internally; we just verify it doesn't throw
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: () => {
+          // The interceptor logs internally; we just verify it doesn't throw
+          resolve();
+        },
+      });
     });
   });
 
-  it("should handle non-object body in sanitizeBody", (done) => {
+  it("should handle non-object body in sanitizeBody", async () => {
     const context = {
       switchToHttp: () => ({
         getRequest: () => ({
@@ -127,8 +137,10 @@ describe("HttpLoggingInterceptor", () => {
       }),
     } as any;
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: () => done(),
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: () => resolve(),
+      });
     });
   });
 });
@@ -139,22 +151,20 @@ describe("HttpLoggingInterceptor (disabled)", () => {
 
   beforeEach(() => {
     // Override the mock for this suite
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const config = require("../configuration").default;
+    const config = configuration as any;
     config.TESTING.LOG_HTTP_TRAFFIC_ENABLED = false;
     interceptor = new HttpLoggingInterceptor(config);
     mockCallHandler = {
-      handle: jest.fn().mockReturnValue(of("result")),
+      handle: vi.fn().mockReturnValue(of("result")),
     };
   });
 
   afterEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const config = require("../configuration").default;
+    const config = configuration as any;
     config.TESTING.LOG_HTTP_TRAFFIC_ENABLED = true;
   });
 
-  it("should skip logging when disabled and just pass through", (done) => {
+  it("should skip logging when disabled and just pass through", async () => {
     const context = {
       switchToHttp: () => ({
         getRequest: () => ({ url: "/api/games" }),
@@ -162,11 +172,13 @@ describe("HttpLoggingInterceptor (disabled)", () => {
       }),
     } as any;
     const result$ = interceptor.intercept(context, mockCallHandler);
-    result$.subscribe({
-      next: (value) => {
-        expect(value).toBe("result");
-        done();
-      },
+    await new Promise<void>((resolve) => {
+      result$.subscribe({
+        next: (value) => {
+          expect(value).toBe("result");
+          resolve();
+        },
+      });
     });
   });
 });

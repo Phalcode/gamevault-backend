@@ -27,13 +27,13 @@ import {
 
 import { FileInterceptor } from "@nestjs/platform-express";
 import bytes from "bytes";
-import configuration from "../../configuration";
-import { DisableApiIf } from "../../decorators/disable-api-if.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { SavefileService } from "./savefile.service";
+import configuration from "../../configuration.js";
+import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { SavefileService } from "./savefile.service.js";
 
 @Controller("savefiles")
 @ApiTags("savefile")

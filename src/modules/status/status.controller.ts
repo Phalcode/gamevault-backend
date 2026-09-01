@@ -1,11 +1,11 @@
 import { Controller, Get, Request } from "@nestjs/common";
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { SkipGuards } from "../../decorators/skip-guards.decorator";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { Status } from "./models/status.model";
-import { StatusService } from "./status.service";
+import { SkipGuards } from "../../decorators/skip-guards.decorator.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { Status } from "./models/status.model.js";
+import { StatusService } from "./status.service.js";
 
 @Controller("status")
 @ApiTags("status")

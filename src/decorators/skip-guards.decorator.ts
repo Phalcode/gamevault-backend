@@ -1,6 +1,6 @@
 import { SetMetadata } from "@nestjs/common";
-import { AuthenticationGuard } from "../modules/auth/guards/authentication.guard";
-import { AuthorizationGuard } from "../modules/auth/guards/authorization.guard";
+import { AuthenticationGuard } from "../modules/auth/guards/authentication.guard.js";
+import { AuthorizationGuard } from "../modules/auth/guards/authorization.guard.js";
 
 export const SKIP_GUARDS_KEY = "skip-guards";
 export const SkipGuards = (

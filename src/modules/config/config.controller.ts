@@ -7,14 +7,15 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
+import fsExtra from "fs-extra";
+import type { AppConfiguration } from "../../configuration.js";
+import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { Status } from "../status/models/status.model.js";
+import { Role } from "../users/models/role.enum.js";
+import { UpdateNewsDto } from "./models/update-news.dto.js";
 
-import { createReadStream, outputFile, pathExists } from "fs-extra";
-import { AppConfiguration } from "../../configuration";
-import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator";
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { Status } from "../status/models/status.model";
-import { Role } from "../users/models/role.enum";
-import { UpdateNewsDto } from "./models/update-news.dto";
+const { createReadStream, outputFile, pathExists } = fsExtra;
 
 @ApiBearerAuth()
 @Controller("config")

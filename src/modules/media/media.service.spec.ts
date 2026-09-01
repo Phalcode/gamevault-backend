@@ -1,13 +1,13 @@
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Repository } from "typeorm";
-import configuration from "../../configuration";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { UsersService } from "../users/users.service";
-import { Media } from "./media.entity";
-import { MediaService } from "./media.service";
+import configuration from "../../configuration.js";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { UsersService } from "../users/users.service.js";
+import { Media } from "./media.entity.js";
+import { MediaService } from "./media.service.js";
 
 // Mock configuration - must be before any imports that use it
-jest.mock("../../configuration", () => ({
+vi.mock("../../configuration.js", () => ({
   __esModule: true,
   default: {
     VOLUMES: { MEDIA: "/media", LOGS: "/logs" },
@@ -27,36 +27,45 @@ jest.mock("../../configuration", () => ({
 }));
 
 // Mock logging module to avoid configuration dependency chain
-jest.mock("../../logging", () => ({
+vi.mock("../../logging.js", () => ({
   __esModule: true,
-  default: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
-  logMedia: jest.fn((m) => ({ id: m?.id, file_path: m?.file_path })),
-  logGamevaultGame: jest.fn(),
-  logGamevaultUser: jest.fn(),
-  stream: { write: jest.fn() },
+  default: { log: vi.fn(), error: vi.fn(), warn: vi.fn() },
+  logMedia: vi.fn((m) => ({ id: m?.id, file_path: m?.file_path })),
+  logGamevaultGame: vi.fn(),
+  logGamevaultUser: vi.fn(),
+  stream: { write: vi.fn() },
 }));
 
 // Mock file-type-checker
-jest.mock("file-type-checker", () => ({
+vi.mock("file-type-checker", () => ({
   __esModule: true,
   default: {
-    detectFile: jest.fn(),
+    detectFile: vi.fn(),
   },
 }));
 
 // Mock fs-extra
-jest.mock("fs-extra", () => ({
-  pathExists: jest.fn().mockResolvedValue(true),
-  remove: jest.fn().mockResolvedValue(undefined),
-  writeFile: jest.fn().mockResolvedValue(undefined),
-}));
+vi.mock("fs-extra", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const overrides = {
+    pathExists: vi.fn().mockResolvedValue(true),
+    remove: vi.fn().mockResolvedValue(undefined),
+    writeFile: vi.fn().mockResolvedValue(undefined),
+  };
+  return {
+    ...actual,
+    ...overrides,
+    default: { ...(actual as any).default, ...overrides },
+  };
+});
 
 import fileTypeChecker from "file-type-checker";
+import type { Mock, Mocked } from "vitest";
 
 describe("MediaService", () => {
   let service: MediaService;
-  let mediaRepository: jest.Mocked<Repository<Media>>;
-  let usersService: jest.Mocked<UsersService>;
+  let mediaRepository: Mocked<Repository<Media>>;
+  let usersService: Mocked<UsersService>;
 
   const createMockMedia = (overrides: Partial<Media> = {}): Media => {
     const media = new Media();
@@ -69,14 +78,14 @@ describe("MediaService", () => {
 
   beforeEach(() => {
     mediaRepository = {
-      findOneByOrFail: jest.fn(),
-      findOneOrFail: jest.fn(),
-      save: jest.fn(),
-      remove: jest.fn(),
+      findOneByOrFail: vi.fn(),
+      findOneOrFail: vi.fn(),
+      save: vi.fn(),
+      remove: vi.fn(),
     } as any;
 
     usersService = {
-      findOneByUsernameOrFail: jest.fn(),
+      findOneByUsernameOrFail: vi.fn(),
     } as any;
 
     service = new MediaService(
@@ -132,7 +141,7 @@ describe("MediaService", () => {
       mockUser.username = "testuser";
       usersService.findOneByUsernameOrFail.mockResolvedValue(mockUser);
 
-      (fileTypeChecker.detectFile as jest.Mock).mockReturnValue({
+      (fileTypeChecker.detectFile as Mock).mockReturnValue({
         extension: "jpg",
         mimeType: "image/jpeg",
       });
@@ -161,7 +170,7 @@ describe("MediaService", () => {
       const mockUser = new GamevaultUser();
       usersService.findOneByUsernameOrFail.mockResolvedValue(mockUser);
 
-      (fileTypeChecker.detectFile as jest.Mock).mockReturnValue({
+      (fileTypeChecker.detectFile as Mock).mockReturnValue({
         extension: "exe",
         mimeType: "application/x-executable",
       });
@@ -182,7 +191,7 @@ describe("MediaService", () => {
       const mockUser = new GamevaultUser();
       usersService.findOneByUsernameOrFail.mockResolvedValue(mockUser);
 
-      (fileTypeChecker.detectFile as jest.Mock).mockReturnValue({
+      (fileTypeChecker.detectFile as Mock).mockReturnValue({
         extension: undefined,
         mimeType: undefined,
       });

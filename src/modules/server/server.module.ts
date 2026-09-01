@@ -1,7 +1,7 @@
 import { Global, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { GamevaultServer } from "./gamevault-server.entity";
-import { ServerService } from "./server.service";
+import { GamevaultServer } from "./gamevault-server.entity.js";
+import { ServerService } from "./server.service.js";
 
 @Global()
 @Module({

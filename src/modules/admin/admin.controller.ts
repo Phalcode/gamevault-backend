@@ -15,10 +15,10 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { MinimumRole } from "../../decorators/minimum-role.decorator";
-import { DatabaseService } from "../database/database.service";
-import { Role } from "../users/models/role.enum";
-import { WebUIService } from "../web-ui/web-ui.service";
+import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import { DatabaseService } from "../database/database.service.js";
+import { Role } from "../users/models/role.enum.js";
+import { WebUIService } from "../web-ui/web-ui.service.js";
 
 @ApiBearerAuth()
 @ApiSecurity("apikey")

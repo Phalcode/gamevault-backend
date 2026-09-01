@@ -1,17 +1,18 @@
 import { Repository } from "typeorm";
-import { GamevaultUser } from "../users/gamevault-user.entity";
-import { Role } from "../users/models/role.enum";
-import { UsersService } from "../users/users.service";
-import { State } from "./models/state.enum";
-import { ProgressController } from "./progress.controller";
-import { Progress } from "./progress.entity";
-import { ProgressService } from "./progress.service";
+import type { Mocked } from "vitest";
+import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { Role } from "../users/models/role.enum.js";
+import { UsersService } from "../users/users.service.js";
+import { State } from "./models/state.enum.js";
+import { ProgressController } from "./progress.controller.js";
+import { Progress } from "./progress.entity.js";
+import { ProgressService } from "./progress.service.js";
 
 describe("ProgressController", () => {
   let controller: ProgressController;
-  let progressService: jest.Mocked<ProgressService>;
-  let usersService: jest.Mocked<UsersService>;
-  let progressRepository: jest.Mocked<Repository<Progress>>;
+  let progressService: Mocked<ProgressService>;
+  let usersService: Mocked<UsersService>;
+  let progressRepository: Mocked<Repository<Progress>>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -36,14 +37,14 @@ describe("ProgressController", () => {
   beforeEach(() => {
     progressService = {
       ignoreList: ["file1.exe", "file2.exe"],
-      findOneByUserIdAndGameIdOrReturnEmptyProgress: jest.fn(),
-      set: jest.fn(),
-      increment: jest.fn(),
-      deleteByUserIdAndGameId: jest.fn(),
+      findOneByUserIdAndGameIdOrReturnEmptyProgress: vi.fn(),
+      set: vi.fn(),
+      increment: vi.fn(),
+      deleteByUserIdAndGameId: vi.fn(),
     } as any;
 
     usersService = {
-      findUserAgeByUsername: jest.fn().mockResolvedValue(undefined),
+      findUserAgeByUsername: vi.fn().mockResolvedValue(undefined),
     } as any;
 
     progressRepository = {} as any;

@@ -12,26 +12,27 @@ import {
   Matches,
   Min,
 } from "class-validator";
+import lodash from "lodash";
 import { stringSimilarity } from "string-similarity-js";
+import globals from "../../../globals.js";
+import { logGamevaultGame } from "../../../logging.js";
+import { GamevaultGame } from "../../games/gamevault-game.entity.js";
+import { MediaService } from "../../media/media.service.js";
+import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
+import { DeveloperMetadataService } from "../developers/developer.metadata.service.js";
+import { GameMetadata } from "../games/game.metadata.entity.js";
+import { GameMetadataService } from "../games/game.metadata.service.js";
+import { MinimalGameMetadataDto } from "../games/minimal-game.metadata.dto.js";
+import { GenreMetadata } from "../genres/genre.metadata.entity.js";
+import { GenreMetadataService } from "../genres/genre.metadata.service.js";
+import { MetadataService } from "../metadata.service.js";
+import { PublisherMetadata } from "../publishers/publisher.metadata.entity.js";
+import { PublisherMetadataService } from "../publishers/publisher.metadata.service.js";
+import { TagMetadata } from "../tags/tag.metadata.entity.js";
+import { TagMetadataService } from "../tags/tag.metadata.service.js";
+import { MetadataProviderDto } from "./models/metadata-provider.dto.js";
 
-import { kebabCase } from "lodash";
-import globals from "../../../globals";
-import { logGamevaultGame } from "../../../logging";
-import { GamevaultGame } from "../../games/gamevault-game.entity";
-import { MediaService } from "../../media/media.service";
-import { DeveloperMetadata } from "../developers/developer.metadata.entity";
-import { DeveloperMetadataService } from "../developers/developer.metadata.service";
-import { GameMetadata } from "../games/game.metadata.entity";
-import { GameMetadataService } from "../games/game.metadata.service";
-import { MinimalGameMetadataDto } from "../games/minimal-game.metadata.dto";
-import { GenreMetadata } from "../genres/genre.metadata.entity";
-import { GenreMetadataService } from "../genres/genre.metadata.service";
-import { MetadataService } from "../metadata.service";
-import { PublisherMetadata } from "../publishers/publisher.metadata.entity";
-import { PublisherMetadataService } from "../publishers/publisher.metadata.service";
-import { TagMetadata } from "../tags/tag.metadata.entity";
-import { TagMetadataService } from "../tags/tag.metadata.service";
-import { MetadataProviderDto } from "./models/metadata-provider.dto";
+const { kebabCase } = lodash;
 
 @Injectable()
 export abstract class MetadataProvider

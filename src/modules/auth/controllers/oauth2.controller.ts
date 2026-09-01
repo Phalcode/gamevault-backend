@@ -15,12 +15,12 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { Response } from "express";
-import configuration from "../../../configuration";
-import { SkipGuards } from "../../../decorators/skip-guards.decorator";
-import { GamevaultUser } from "../../users/gamevault-user.entity";
-import { AuthenticationService } from "../authentication.service";
-import { Oauth2Guard } from "../guards/oauth2.guard";
-import { TokenPairDto } from "../models/token-pair.dto";
+import configuration from "../../../configuration.js";
+import { SkipGuards } from "../../../decorators/skip-guards.decorator.js";
+import { GamevaultUser } from "../../users/gamevault-user.entity.js";
+import { AuthenticationService } from "../authentication.service.js";
+import { Oauth2Guard } from "../guards/oauth2.guard.js";
+import { TokenPairDto } from "../models/token-pair.dto.js";
 
 @Controller("auth/oauth2")
 @ApiTags("auth")

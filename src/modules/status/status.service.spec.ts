@@ -1,13 +1,14 @@
-import { StatusEnum } from "./models/status.enum";
-import { StatusService } from "./status.service";
+import type { Mock } from "vitest";
+import { StatusEnum } from "./models/status.enum.js";
+import { StatusService } from "./status.service.js";
 
 describe("StatusService", () => {
   let service: StatusService;
-  let mockServerService: { getServerUuid: jest.Mock };
+  let mockServerService: { getServerUuid: Mock };
 
   beforeEach(() => {
     mockServerService = {
-      getServerUuid: jest
+      getServerUuid: vi
         .fn()
         .mockReturnValue("550e8400-e29b-41d4-a716-446655440000"),
     };

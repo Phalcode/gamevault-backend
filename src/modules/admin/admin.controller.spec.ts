@@ -1,21 +1,22 @@
-import { DatabaseService } from "../database/database.service";
-import { WebUIService } from "../web-ui/web-ui.service";
-import { AdminController } from "./admin.controller";
+import type { Mocked } from "vitest";
+import { DatabaseService } from "../database/database.service.js";
+import { WebUIService } from "../web-ui/web-ui.service.js";
+import { AdminController } from "./admin.controller.js";
 
 describe("AdminController", () => {
   let controller: AdminController;
-  let databaseService: jest.Mocked<DatabaseService>;
-  let webUIService: jest.Mocked<WebUIService>;
+  let databaseService: Mocked<DatabaseService>;
+  let webUIService: Mocked<WebUIService>;
 
   beforeEach(() => {
     databaseService = {
-      backup: jest.fn(),
-      restore: jest.fn(),
+      backup: vi.fn(),
+      restore: vi.fn(),
     } as any;
 
     webUIService = {
-      cleanCacheExceptZip: jest.fn(),
-      prepareFrontend: jest.fn(),
+      cleanCacheExceptZip: vi.fn(),
+      prepareFrontend: vi.fn(),
     } as any;
 
     controller = new AdminController(databaseService, webUIService);

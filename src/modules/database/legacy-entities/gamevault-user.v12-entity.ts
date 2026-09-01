@@ -8,12 +8,13 @@ import {
   ManyToMany,
   OneToMany,
   OneToOne,
+  Relation,
 } from "typeorm";
-import { Role } from "../../users/models/role.enum";
-import { DatabaseEntityV12 } from "./database.v12-entity";
-import { GameV12 } from "./game.v12-entity";
-import { ImageV12 } from "./image.v12-entity";
-import { ProgressV12 } from "./progress.v12-entity";
+import { Role } from "../../users/models/role.enum.js";
+import { DatabaseEntityV12 } from "./database.v12-entity.js";
+import { GameV12 } from "./game.v12-entity.js";
+import { ImageV12 } from "./image.v12-entity.js";
+import { ProgressV12 } from "./progress.v12-entity.js";
 @Entity("v12_gamevault_user", { synchronize: false })
 export class GamevaultUserV12 extends DatabaseEntityV12 {
   @Index()
@@ -47,7 +48,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     type: () => ImageV12,
     description: "the user's profile picture",
   })
-  profile_picture?: ImageV12;
+  profile_picture?: Relation<ImageV12>;
 
   @OneToOne(() => ImageV12, {
     nullable: true,
@@ -60,7 +61,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     type: () => ImageV12,
     description: "the user's profile art (background-picture)",
   })
-  background_image?: ImageV12;
+  background_image?: Relation<ImageV12>;
 
   @Column({ unique: true, nullable: true })
   @ApiProperty({
@@ -90,7 +91,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     type: () => ProgressV12,
     isArray: true,
   })
-  progresses?: ProgressV12[];
+  progresses?: Relation<ProgressV12[]>;
 
   @Column({
     type: "simple-enum",
@@ -112,7 +113,7 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     type: () => ImageV12,
     isArray: true,
   })
-  uploaded_images?: ImageV12[];
+  uploaded_images?: Relation<ImageV12[]>;
 
   @ManyToMany(() => GameV12, (game) => game.bookmarked_users)
   @JoinTable({ name: "v12_bookmark" })
@@ -121,5 +122,5 @@ export class GamevaultUserV12 extends DatabaseEntityV12 {
     type: () => GameV12,
     isArray: true,
   })
-  bookmarked_games?: GameV12[];
+  bookmarked_games?: Relation<GameV12[]>;
 }

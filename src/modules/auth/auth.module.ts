@@ -3,20 +3,20 @@ import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { StringValue } from "ms";
-import configuration from "../../configuration";
-import { UsersModule } from "../users/users.module";
-import { AuthenticationService } from "./authentication.service";
-import { GamevaultJwtController } from "./controllers/authentication.controller";
-import { BasicAuthController } from "./controllers/basic-auth.controller";
-import { OAuth2Controller } from "./controllers/oauth2.controller";
-import { ApiKeyGuard } from "./guards/api-key.guard";
-import { AuthenticationGuard } from "./guards/authentication.guard";
-import { AuthorizationGuard } from "./guards/authorization.guard";
-import { Session } from "./session.entity";
-import { AuthenticationStrategy } from "./strategies/authentication.strategy";
-import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy";
-import { OAuth2Strategy } from "./strategies/oauth2.strategy";
-import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
+import configuration from "../../configuration.js";
+import { UsersModule } from "../users/users.module.js";
+import { AuthenticationService } from "./authentication.service.js";
+import { GamevaultJwtController } from "./controllers/authentication.controller.js";
+import { BasicAuthController } from "./controllers/basic-auth.controller.js";
+import { OAuth2Controller } from "./controllers/oauth2.controller.js";
+import { ApiKeyGuard } from "./guards/api-key.guard.js";
+import { AuthenticationGuard } from "./guards/authentication.guard.js";
+import { AuthorizationGuard } from "./guards/authorization.guard.js";
+import { Session } from "./session.entity.js";
+import { AuthenticationStrategy } from "./strategies/authentication.strategy.js";
+import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy.js";
+import { OAuth2Strategy } from "./strategies/oauth2.strategy.js";
+import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy.js";
 
 @Module({
   imports: [
