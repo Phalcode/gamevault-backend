@@ -18,7 +18,7 @@ export function IsDateStringBeforeNow(validationOptions?: ValidationOptions) {
           }
 
           const date = new Date(value);
-          if (isNaN(date.getTime())) {
+          if (Number.isNaN(date.getTime())) {
             return false;
           }
 

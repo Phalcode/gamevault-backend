@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Interval } from "@nestjs/schedule";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { type Response } from "express";
 import ms from "ms";
 import { FilesService } from "./../games/files.service.js";
@@ -14,7 +14,7 @@ import Otp from "./models/otp.model.js";
 @Injectable()
 export class OtpService {
   private readonly logger = new Logger(this.constructor.name);
-  private otps = new Map<string, Otp>();
+  private readonly otps = new Map<string, Otp>();
 
   constructor(private readonly filesService: FilesService) {}
 
@@ -61,8 +61,6 @@ export class OtpService {
       existingOtp.gameId ?? 0,
       existingOtp.versionId,
       existingOtp.xDownloadSpeedLimit,
-      undefined,
-      undefined,
     );
   }
 }

@@ -6,10 +6,10 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { isUUID } from "class-validator";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import fileTypeChecker from "file-type-checker";
 import fsExtra from "fs-extra";
-import path, { basename, dirname } from "path";
+import path, { basename, dirname } from "node:path";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import { UsersService } from "../users/users.service.js";
@@ -174,8 +174,8 @@ export class SavefileService {
         .map((file) => path.join(saveDir, file))
         .sort((a, b) => {
           return (
-            parseInt(path.basename(b, ".zip"), 10) -
-            parseInt(path.basename(a, ".zip"), 10)
+            Number.parseInt(path.basename(b, ".zip"), 10) -
+            Number.parseInt(path.basename(a, ".zip"), 10)
           );
         });
       if (paths.length === 0) {

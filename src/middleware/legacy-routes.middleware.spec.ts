@@ -12,31 +12,15 @@ describe("LegacyRoutesMiddleware", () => {
     mockRes = {};
   });
 
-  it("should replace /api/v1/ with /api/", () => {
-    const req = { url: "/api/v1/games" } as any;
+  it.each([
+    { input: "/api/v1/games", expected: "/api/games" },
+    { input: "/api/files/reindex", expected: "/api/games/reindex" },
+    { input: "/api/v1/files/reindex", expected: "/api/games/reindex" },
+    { input: "/api/games/123", expected: "/api/games/123" },
+  ])("should rewrite $input to $expected", ({ input, expected }) => {
+    const req = { url: input } as any;
     middleware.use(req, mockRes, mockNext);
-    expect(req.url).toBe("/api/games");
-    expect(mockNext).toHaveBeenCalled();
-  });
-
-  it("should redirect /api/files/reindex to /api/games/reindex", () => {
-    const req = { url: "/api/files/reindex" } as any;
-    middleware.use(req, mockRes, mockNext);
-    expect(req.url).toBe("/api/games/reindex");
-    expect(mockNext).toHaveBeenCalled();
-  });
-
-  it("should handle both v1 and files/reindex in the same URL", () => {
-    const req = { url: "/api/v1/files/reindex" } as any;
-    middleware.use(req, mockRes, mockNext);
-    expect(req.url).toBe("/api/games/reindex");
-    expect(mockNext).toHaveBeenCalled();
-  });
-
-  it("should not modify URLs that do not match legacy patterns", () => {
-    const req = { url: "/api/games/123" } as any;
-    middleware.use(req, mockRes, mockNext);
-    expect(req.url).toBe("/api/games/123");
+    expect(req.url).toBe(expected);
     expect(mockNext).toHaveBeenCalled();
   });
 

@@ -34,6 +34,7 @@ export class StatusService {
 
   set(status: StatusEnum, reason: string) {
     this.currentStatus.status = status;
-    (this.currentStatus.protocol ??= []).push(new StatusEntry(status, reason));
+    this.currentStatus.protocol ??= [];
+    this.currentStatus.protocol.push(new StatusEntry(status, reason));
   }
 }

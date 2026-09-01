@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type DeepPartial, Repository } from "typeorm";
 
-import { type FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import { DEFAULT_METADATA_OPTIONS, type FindOptions, toFindOptionsRelations } from "../../../globals.js";
 import logger from "../../../logging.js";
 import { DeveloperMetadata } from "../developers/developer.metadata.entity.js";
 import { DeveloperMetadataService } from "../developers/developer.metadata.service.js";
@@ -27,7 +27,7 @@ export class GameMetadataService {
 
   async findByProviderSlug(
     provider_slug: string = "gamevault",
-    options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
+    options: FindOptions = DEFAULT_METADATA_OPTIONS,
   ): Promise<GameMetadata[]> {
     let relationPaths: string[] = [];
 
@@ -53,7 +53,7 @@ export class GameMetadataService {
 
   async findOneByGameMetadataIdOrFail(
     id: number,
-    options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
+    options: FindOptions = DEFAULT_METADATA_OPTIONS,
   ): Promise<GameMetadata> {
     try {
       let relationPaths: string[] = [];
@@ -147,7 +147,7 @@ export class GameMetadataService {
       for (const developer of game.developers) {
         try {
           if (
-            !upsertedDevelopers.find(
+            !upsertedDevelopers.some(
               (upsertedDeveloper) =>
                 upsertedDeveloper.provider_slug === developer.provider_slug &&
                 upsertedDeveloper.provider_data_id ===
@@ -176,7 +176,7 @@ export class GameMetadataService {
       for (const publisher of game.publishers) {
         try {
           if (
-            !upsertedPublishers.find(
+            !upsertedPublishers.some(
               (upsertedPublisher) =>
                 upsertedPublisher.provider_slug === publisher.provider_slug &&
                 upsertedPublisher.provider_data_id ===
@@ -205,7 +205,7 @@ export class GameMetadataService {
       for (const tag of game.tags) {
         try {
           if (
-            !upsertedTags.find(
+            !upsertedTags.some(
               (upsertedTag) =>
                 upsertedTag.provider_slug === tag.provider_slug &&
                 upsertedTag.provider_data_id === tag.provider_data_id,
@@ -231,7 +231,7 @@ export class GameMetadataService {
       for (const genre of game.genres) {
         try {
           if (
-            !upsertedGenres.find(
+            !upsertedGenres.some(
               (upsertedGenre) =>
                 upsertedGenre.provider_slug === genre.provider_slug &&
                 upsertedGenre.provider_data_id === genre.provider_data_id,

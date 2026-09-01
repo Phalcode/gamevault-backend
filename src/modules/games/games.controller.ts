@@ -28,7 +28,6 @@ import {
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type Response } from "express";
-import lodash from "lodash";
 import {
   FilterOperator,
   Paginate,
@@ -67,8 +66,6 @@ import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
 import { GameIdDto } from "./models/game-id.dto.js";
 import { UpdateGameDto } from "./models/update-game.dto.js";
-const { isArray } = lodash;
-
 const metadataRelationNameFilters = {
   "metadata.genres.name": "genres.name",
   "metadata.tags.name": "tags.name",
@@ -222,7 +219,7 @@ export class GamesController {
     if (progressStateFilter || progressUserFilter) {
       if (progressStateFilter?.includes("UNPLAYED")) {
         let userId = request.user.id;
-        if (progressUserFilter && !isArray(progressUserFilter)) {
+        if (progressUserFilter && !Array.isArray(progressUserFilter)) {
           userId = Number(progressUserFilter.split(":").pop());
         }
 
@@ -685,7 +682,7 @@ export class GamesController {
       return;
     }
 
-    if (isArray(existingIdFilter)) {
+    if (Array.isArray(existingIdFilter)) {
       query.filter.id = [...existingIdFilter, resolvedIdFilter];
       return;
     }
@@ -742,7 +739,9 @@ export class GamesController {
       return value;
     }
 
-    const escapedValue = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    const escapedValue = value
+      .replaceAll("\\", "\\\\")
+      .replaceAll('"', '\\"');
 
     return `"${escapedValue}"`;
   }

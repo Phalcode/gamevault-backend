@@ -1,11 +1,11 @@
 import { registerAs } from "@nestjs/config";
 import bytes from "bytes";
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes } from "node:crypto";
 import * as dotenv from "dotenv";
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
-import { join } from "path";
+import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import packageJson from "../package.json" with { type: "json" };
 import globals from "./globals.js";
@@ -203,7 +203,7 @@ function parseRegExp(
   environmentVariable: string | undefined,
   defaultValue?: RegExp,
 ): RegExp | undefined {
-  return environmentVariable ? RegExp(environmentVariable) : defaultValue;
+  return environmentVariable ? new RegExp(environmentVariable) : defaultValue;
 }
 
 function safeHash(value: string | undefined): string | null {

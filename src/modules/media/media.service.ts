@@ -8,11 +8,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import fileTypeChecker from "file-type-checker";
 import fsExtra from "fs-extra";
-import { tmpdir } from "os";
-import { join } from "path";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Repository } from "typeorm";
 const { move, pathExists, remove, writeFile } = fsExtra;
 

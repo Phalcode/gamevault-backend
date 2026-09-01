@@ -6,13 +6,15 @@ import {
   StreamableFile,
   UnauthorizedException,
 } from "@nestjs/common";
-import { exec } from "child_process";
+import { exec } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
 import fsExtra from "fs-extra";
-import path from "path";
+import os from "node:os";
+import path from "node:path";
 import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
-import { promisify } from "util";
+import { promisify } from "node:util";
 const { copyFile, createReadStream, pathExists, stat, writeFile } = fsExtra;
 
 import type { AppConfiguration } from "../../configuration.js";
@@ -138,10 +140,13 @@ export class DatabaseService {
       message: "Restoring PostgreSQL Database...",
       size: file.size,
     });
+    const tempDir = await mkdtemp(path.join(os.tmpdir(), "gamevault-"));
+    const preRestorePath = path.join(tempDir, "database_pre_restore.db");
+    const restorePath = path.join(tempDir, "database_restore.db");
     try {
-      await this.backupPostgresql("/tmp/gamevault_database_pre_restore.db");
+      await this.backupPostgresql(preRestorePath);
 
-      await writeFile("/tmp/gamevault_database_restore.db", file.buffer);
+      await writeFile(restorePath, file.buffer, { mode: 0o600 });
 
       await this.execPromise(
         `dropdb --if-exists -f -w -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} ${this.config.DB.DATABASE}`,
@@ -155,7 +160,7 @@ export class DatabaseService {
 
       try {
         await this.execPromise(
-          `pg_restore -O -w -F t -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} -d ${this.config.DB.DATABASE} /tmp/gamevault_database_restore.db`,
+          `pg_restore -O -w -F t -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} -d ${this.config.DB.DATABASE} ${restorePath}`,
           { env: { PGPASSWORD: this.config.DB.PASSWORD } },
         );
 
@@ -173,7 +178,7 @@ export class DatabaseService {
         error,
       });
 
-      if (await pathExists("/tmp/gamevault_database_pre_restore.db")) {
+      if (await pathExists(preRestorePath)) {
         this.logger.log("Restoring pre-restore database.");
         try {
           await this.execPromise(
@@ -187,7 +192,7 @@ export class DatabaseService {
           );
 
           await this.execPromise(
-            `pg_restore -O -w -F t -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} -d ${this.config.DB.DATABASE} /tmp/gamevault_database_pre_restore.db`,
+            `pg_restore -O -w -F t -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} -d ${this.config.DB.DATABASE} ${preRestorePath}`,
             { env: { PGPASSWORD: this.config.DB.PASSWORD } },
           );
           this.logger.log("Restored pre-restore database.");
@@ -203,6 +208,8 @@ export class DatabaseService {
           );
         }
       }
+    } finally {
+      await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
     }
   }
 
@@ -211,9 +218,11 @@ export class DatabaseService {
       message: "Restoring SQLITE Database...",
       size: file.size,
     });
+    const tempDir = await mkdtemp(path.join(os.tmpdir(), "gamevault-"));
+    const preRestorePath = path.join(tempDir, "database_pre_restore.db");
     try {
       if (await pathExists(`${this.config.VOLUMES.SQLITEDB}/database.sqlite`)) {
-        this.backupSqlite("/tmp/gamevault_database_pre_restore.db");
+        await this.backupSqlite(preRestorePath);
       }
       await writeFile(
         `${this.config.VOLUMES.SQLITEDB}/database.sqlite`,
@@ -221,14 +230,16 @@ export class DatabaseService {
       );
     } catch (error) {
       this.logger.error({ message: "Error restoring SQLITE database", error });
-      if (await pathExists("/tmp/gamevault_database_pre_restore.db")) {
+      if (await pathExists(preRestorePath)) {
         this.logger.log("Restoring pre-restore database.");
         await copyFile(
-          "/tmp/gamevault_database_pre_restore.db",
+          preRestorePath,
           `${this.config.VOLUMES.SQLITEDB}/database.sqlite`,
         );
         this.logger.log("Restored pre-restore database.");
       }
+    } finally {
+      await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
     }
   }
 

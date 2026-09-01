@@ -158,8 +158,9 @@ describe("AuthenticationService", () => {
 
     it("should handle revoking non-existent session gracefully", async () => {
       sessionRepository.findOne.mockResolvedValue(null);
-      // Should not throw
       await service.revoke({ refresh_token: "nonexistent-token" });
+      // No session found, so no save should happen.
+      expect(sessionRepository.save).not.toHaveBeenCalled();
     });
   });
 

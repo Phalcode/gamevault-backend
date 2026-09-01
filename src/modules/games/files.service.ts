@@ -7,17 +7,17 @@ import {
   StreamableFile,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { type Response } from "express";
 import type { Stats } from "fs-extra";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
 import node7z from "node-7z";
-import path, { basename } from "path";
+import path, { basename } from "node:path";
 import { from, lastValueFrom } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import filenameSanitizer from "sanitize-filename";
-import { type Readable } from "stream";
+import { type Readable } from "node:stream";
 import { Throttle } from "stream-throttle";
 import { IsNull, Not, Repository } from "typeorm";
 import unidecode from "unidecode";
@@ -562,7 +562,7 @@ export class FilesService implements OnApplicationBootstrap {
    * regular expression.
    */
   private extractVersion(filePath: string): string | undefined {
-    const match = RegExp(/\((v[^)]+)\)/).exec(filePath);
+    const match = /\((v[^)]+)\)/.exec(filePath);
     if (match?.[1]) {
       return match[1];
     }
@@ -1298,14 +1298,14 @@ export class FilesService implements OnApplicationBootstrap {
 
       if (start) {
         const parsedStart = Number(start);
-        if (!isNaN(parsedStart) && parsedStart < fileSize) {
+        if (!Number.isNaN(parsedStart) && parsedStart < fileSize) {
           rangeStart = parsedStart;
         }
       }
 
       if (end) {
         const parsedEnd = Number(end);
-        if (!isNaN(parsedEnd) && parsedEnd < fileSize) {
+        if (!Number.isNaN(parsedEnd) && parsedEnd < fileSize) {
           rangeEnd = parsedEnd >= rangeStart ? parsedEnd : rangeEnd;
         }
       }

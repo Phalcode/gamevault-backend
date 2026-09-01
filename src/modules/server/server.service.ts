@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { Repository } from "typeorm";
 import { GamevaultServer } from "./gamevault-server.entity.js";
 

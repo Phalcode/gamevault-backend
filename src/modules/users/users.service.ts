@@ -521,7 +521,8 @@ export class UsersService implements OnApplicationBootstrap {
       .of(user)
       .add(game);
 
-    (user.bookmarked_games ??= []).push(game);
+    user.bookmarked_games ??= [];
+    user.bookmarked_games.push(game);
 
     this.logger.log({
       message: "User bookmarked game.",

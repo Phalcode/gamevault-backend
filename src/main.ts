@@ -12,10 +12,10 @@ import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import express, { type Request, type Response } from "express";
 import session from "express-session";
-import { createServer as createHttpsServer } from "https";
+import { createServer as createHttpsServer } from "node:https";
 import { AppModule } from "./app.module.js";
 import configuration, {
   getCensoredConfiguration,
@@ -38,6 +38,8 @@ async function bootstrap(): Promise<void> {
   Reflect.defineMetadata("imports", modules, AppModule);
   // Create App
   const server = express();
+  // Prevent Express from disclosing its version via the `X-Powered-By` header.
+  server.disable("x-powered-by");
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
     new ExpressAdapter(server),
@@ -281,7 +283,9 @@ async function bootstrap(): Promise<void> {
 }
 
 Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT ?? 10;
-bootstrap().catch((error) => {
+try {
+  await bootstrap();
+} catch (error) {
   logger.error({ message: "A fatal error occured", error });
   throw error;
-});
+}

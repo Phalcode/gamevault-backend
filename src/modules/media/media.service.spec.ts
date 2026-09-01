@@ -213,8 +213,7 @@ describe("MediaService", () => {
     it("should delete media (mocked files mode)", async () => {
       const media = createMockMedia();
       // In test mode with TESTING.MOCK_FILES = true, it just logs a warning
-      await service.delete(media);
-      // Should not throw
+      await expect(service.delete(media)).resolves.toBeUndefined();
     });
   });
 });

@@ -79,7 +79,7 @@ export class MediaController {
       const ifNoneMatch = req.headers.get("if-none-match");
       const ifModifiedSince = req.headers.get("if-modified-since");
       const notModified =
-        (ifNoneMatch != null && ifNoneMatch.includes(etag)) ||
+        ifNoneMatch?.includes(etag) ||
         (ifNoneMatch == null &&
           ifModifiedSince != null &&
           new Date(ifModifiedSince).getTime() >= fileStat.mtime.getTime());

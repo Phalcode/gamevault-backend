@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import configuration from "../../../../configuration.js";
 import { DeveloperMetadata } from "../../developers/developer.metadata.entity.js";

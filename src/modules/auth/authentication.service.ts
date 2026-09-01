@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { InjectRepository } from "@nestjs/typeorm";
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import ms, { type StringValue } from "ms";
 import { LessThan, MoreThan, Repository } from "typeorm";
 import type { AppConfiguration } from "../../configuration.js";

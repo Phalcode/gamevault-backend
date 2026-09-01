@@ -1,5 +1,5 @@
 import { Logger, NotImplementedException } from "@nestjs/common";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
 import { In, MigrationInterface, type QueryRunner } from "typeorm";

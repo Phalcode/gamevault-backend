@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { type VerifiedCallback } from "passport-jwt";
 import { Strategy } from "passport-oauth2";
 import type { AppConfiguration } from "../../../configuration.js";

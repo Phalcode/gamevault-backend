@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
-import { type FindOptions, toFindOptionsRelations } from "../../../globals.js";
+import { DEFAULT_METADATA_OPTIONS, type FindOptions, toFindOptionsRelations } from "../../../globals.js";
 import { GenreMetadata } from "./genre.metadata.entity.js";
 
 @Injectable()
@@ -15,7 +15,7 @@ export class GenreMetadataService {
 
   async findByProviderSlug(
     provider_slug: string = "gamevault",
-    options: FindOptions = { loadDeletedEntities: false, loadRelations: false },
+    options: FindOptions = DEFAULT_METADATA_OPTIONS,
   ): Promise<GenreMetadata[]> {
     let relationPaths: string[] = [];
 
@@ -51,11 +51,9 @@ export class GenreMetadataService {
     });
     return this.genreRepository.save({
       ...existingGenre,
-      ...{
-        provider_data_id: genre.provider_data_id,
-        provider_slug: genre.provider_slug,
-        name: genre.name,
-      },
+      provider_data_id: genre.provider_data_id,
+      provider_slug: genre.provider_slug,
+      name: genre.name,
     });
   }
 }
