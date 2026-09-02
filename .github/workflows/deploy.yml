@@ -158,7 +158,7 @@ jobs:
           args: "<@&1128857090090340382> New Release: {{ EVENT_PAYLOAD.repository.full_name }} v${{ needs.docker.outputs.version }} has been deployed. Here are the changes: https://github.com/{{ EVENT_PAYLOAD.repository.full_name }}/releases/tag/${{ needs.docker.outputs.version }}"
 
   sonarcloud:
-    needs: test
+    needs: manifest
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
