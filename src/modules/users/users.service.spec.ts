@@ -159,6 +159,19 @@ describe("UsersService", () => {
       expect(result.progresses!).toHaveLength(1);
       expect(result.progresses![0].id).toBe(1);
     });
+
+    it("should filter deleted bookmarked games", async () => {
+      const mockUser = createMockUser({
+        bookmarked_games: [
+          { id: 1, deleted_at: null } as any,
+          { id: 2, deleted_at: new Date() } as any,
+        ],
+      });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      const result = await service.findOneByUserIdOrFail(1);
+      expect(result.bookmarked_games!).toHaveLength(1);
+      expect(result.bookmarked_games![0].id).toBe(1);
+    });
   });
 
   describe("findOneByUsernameOrFail", () => {

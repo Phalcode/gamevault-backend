@@ -135,7 +135,7 @@ export class UsersService implements OnApplicationBootstrap {
           cause: error,
         });
       });
-    return this.filterDeletedProgresses(user);
+    return this.filterDeletedContent(user);
   }
 
   /** Get user by username or throw an exception if not found */
@@ -175,7 +175,7 @@ export class UsersService implements OnApplicationBootstrap {
           },
         );
       });
-    return this.filterDeletedProgresses(user);
+    return this.filterDeletedContent(user);
   }
 
   public async find(
@@ -543,7 +543,7 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
+      loadDeletedEntities: true,
     });
 
     await this.userRepository
@@ -618,11 +618,16 @@ export class UsersService implements OnApplicationBootstrap {
     }
   }
 
-  /** Filters deleted progresses from the user. */
-  private filterDeletedProgresses(user: GamevaultUser) {
+  /** Filters deleted progresses and deleted bookmarked games from the user. */
+  private filterDeletedContent(user: GamevaultUser) {
     if (user.progresses) {
       user.progresses = user.progresses.filter(
         (progress) => !progress.deleted_at,
+      );
+    }
+    if (user.bookmarked_games) {
+      user.bookmarked_games = user.bookmarked_games.filter(
+        (game) => !game.deleted_at,
       );
     }
     return user;
