@@ -538,7 +538,21 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
-    if (!(user.bookmarked_games ?? []).some((game) => game.id === gameId)) {
+
+    // The in-memory `bookmarked_games` list omits soft-deleted games (they are
+    // filtered so deleted titles stay off the "Bookmarked" shelf), so the naive
+    // `.some()` check would miss a bookmark on a game that was deleted from the
+    // server. Look the relation up through the repository (including deleted
+    // entities) so the bookmark can always be removed — even after the game is
+    // gone.
+    const userWithBookmark = await this.userRepository.findOne({
+      where: {
+        id: userId,
+        bookmarked_games: { id: gameId },
+      },
+      withDeleted: true,
+    });
+    if (!userWithBookmark) {
       return user;
     }
 

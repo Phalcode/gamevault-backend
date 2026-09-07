@@ -367,6 +367,7 @@ describe("UsersService", () => {
       const mockGame = { id: 5, title: "Test Game" } as any;
       const mockUser = createMockUser({ bookmarked_games: [mockGame] });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(mockUser);
       gamesService.findOneByGameIdOrFail.mockResolvedValue(mockGame);
       const mockQb = {
         relation: vi.fn().mockReturnThis(),
@@ -382,8 +383,34 @@ describe("UsersService", () => {
     it("should do nothing if game is not bookmarked", async () => {
       const mockUser = createMockUser({ bookmarked_games: [] });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(null);
 
       const result = await service.unbookmarkGame(1, 5);
+      expect(result.bookmarked_games).toHaveLength(0);
+    });
+
+    it("should unbookmark a game that was deleted from the server", async () => {
+      const deletedGame = {
+        id: 5,
+        title: "Test Game",
+        deleted_at: new Date(),
+      } as any;
+      // The deleted game is filtered out of the user's in-memory bookmarked
+      // list, but the bookmark row still exists in the database.
+      const mockUser = createMockUser({ bookmarked_games: [] });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(mockUser);
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(deletedGame);
+      const mockQb = {
+        relation: vi.fn().mockReturnThis(),
+        of: vi.fn().mockReturnThis(),
+        remove: vi.fn().mockResolvedValue(undefined),
+      };
+      userRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      const result = await service.unbookmarkGame(1, 5);
+      expect(userRepository.findOne).toHaveBeenCalled();
+      expect(mockQb.remove).toHaveBeenCalled();
       expect(result.bookmarked_games).toHaveLength(0);
     });
   });

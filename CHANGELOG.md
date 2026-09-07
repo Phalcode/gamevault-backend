@@ -6,6 +6,7 @@
 
 - Fixed the generated OpenAPI/Swagger API specification: endpoints that bind path parameters through a combined DTO (e.g. `GET /api/users/:user_id`, `GET /api/games/:game_id`) now declare those path parameters correctly, so the API docs and auto-generated clients work as expected.
 - Deleting a game now also hides it's associated bookmarks from users' bookmarked-games lists.
+- Fixed removing a bookmark from a game that was deleted from the server: unbookmarking now works even after the game is deleted, so a deleted game no longer leaves a stale bookmark you can't clear.
 
 ## 17.0.1
 
