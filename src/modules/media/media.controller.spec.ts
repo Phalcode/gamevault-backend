@@ -125,9 +125,12 @@ describe("MediaController", () => {
   it("delegates upload to mediaService", async () => {
     mediaService.upload.mockResolvedValue({ id: 9 });
     const req = { user: { username: "dev" } };
-    const result = await controller.postMedia(req as any, {
-      size: 1,
-    } as any);
+    const result = await controller.postMedia(
+      req as any,
+      {
+        size: 1,
+      } as any,
+    );
     expect(mediaService.upload).toHaveBeenCalled();
     expect(result).toEqual({ id: 9 });
   });

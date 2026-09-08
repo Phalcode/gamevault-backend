@@ -344,7 +344,9 @@ describe("UsersService", () => {
       userRepository.findOne.mockResolvedValue(null);
       userRepository.save.mockImplementation(async (user) => user as any);
 
-      const result = await service.update(1, { email: "new@example.com" } as any);
+      const result = await service.update(1, {
+        email: "new@example.com",
+      } as any);
       expect(result.email).toBe("new@example.com");
     });
 
@@ -377,10 +379,10 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       userRepository.save.mockImplementation(async (user) => user as any);
 
-      const result = await service.update(
-        1,
-        { first_name: "A", last_name: "B" } as any,
-      );
+      const result = await service.update(1, {
+        first_name: "A",
+        last_name: "B",
+      } as any);
       expect(result.first_name).toBe("A");
       expect(result.last_name).toBe("B");
     });
@@ -400,13 +402,13 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
       userRepository.save.mockImplementation(async (user) => user as any);
       mediaService.findOneByMediaIdOrFail
-        .mockResolvedValueOnce({ id: 5 })
-        .mockResolvedValueOnce({ id: 6 });
+        .mockResolvedValueOnce({ id: 5 } as any)
+        .mockResolvedValueOnce({ id: 6 } as any);
 
-      const result = await service.update(
-        1,
-        { avatar_id: 5, background_id: 6 } as any,
-      );
+      const result = await service.update(1, {
+        avatar_id: 5,
+        background_id: 6,
+      } as any);
       expect(result.avatar).toMatchObject({ id: 5 });
       expect(result.background).toMatchObject({ id: 6 });
     });

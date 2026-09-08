@@ -379,6 +379,28 @@ describe("GamesService", () => {
       expect(existence).toBe(GameExistence.EXISTS);
     });
 
+    it("should match a game via the normalized version path", async () => {
+      const game = createMockGame();
+      const foundGame = createMockGame({
+        deleted_at: undefined,
+        versions: [
+          {
+            id: 1,
+            file_path: "/files/Test Game (2023).zip",
+            version: "v1.0.0",
+            early_access: false,
+            release_date: undefined,
+            size: 1000n,
+          },
+        ] as any,
+      });
+      gameVersionRepository.findOne.mockResolvedValue({ game: foundGame } as any);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+      expect(existence).toBe(GameExistence.EXISTS);
+      expect(gamesRepository.findOne).not.toHaveBeenCalled();
+    });
+
     it("should return EXISTS_BUT_DELETED_IN_DATABASE for soft-deleted game", async () => {
       const game = createMockGame();
       gamesRepository.findOne.mockResolvedValueOnce(
