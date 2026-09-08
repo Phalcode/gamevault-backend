@@ -12,8 +12,8 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { hash } from "bcrypt";
-import { randomBytes } from "node:crypto";
 import lodash from "lodash";
+import { randomBytes } from "node:crypto";
 import {
   EntityNotFoundError,
   type FindManyOptions,
