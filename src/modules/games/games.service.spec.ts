@@ -394,7 +394,9 @@ describe("GamesService", () => {
           },
         ] as any,
       });
-      gameVersionRepository.findOne.mockResolvedValue({ game: foundGame } as any);
+      gameVersionRepository.findOne.mockResolvedValue({
+        game: foundGame,
+      } as any);
 
       const [existence] = await service.checkIfExistsInDatabase(game);
       expect(existence).toBe(GameExistence.EXISTS);
