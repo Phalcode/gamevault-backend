@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { hash } from "bcrypt";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import lodash from "lodash";
 import {
   EntityNotFoundError,
@@ -39,6 +39,11 @@ import { Role } from "./models/role.enum.js";
 import { type UpdateUserDto } from "./models/update-user.dto.js";
 
 const { toLower } = lodash;
+
+const DEFAULT_USER_FIND_OPTIONS: FindOptions = {
+  loadRelations: true,
+  loadDeletedEntities: true,
+};
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -97,7 +102,7 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async findOneByUserIdOrFail(
     id: number,
-    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
+    options: FindOptions = DEFAULT_USER_FIND_OPTIONS,
   ): Promise<GamevaultUser> {
     let relationPaths: string[] = [];
 
@@ -141,7 +146,7 @@ export class UsersService implements OnApplicationBootstrap {
   /** Get user by username or throw an exception if not found */
   public async findOneByUsernameOrFail(
     username: string,
-    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
+    options: FindOptions = DEFAULT_USER_FIND_OPTIONS,
   ): Promise<GamevaultUser> {
     let relationPaths: string[] = [];
 

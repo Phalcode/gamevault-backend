@@ -1,7 +1,7 @@
 import { type TypeOrmModuleOptions } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
 import pg from "pg";
-import { type TlsOptions } from "tls";
+import { type TlsOptions } from "node:tls";
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 import { type BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
 import { type PostgresDataSourceOptions } from "typeorm/driver/postgres/PostgresDataSourceOptions.js";

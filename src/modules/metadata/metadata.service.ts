@@ -567,9 +567,7 @@ export class MetadataService {
     const result = { ...obj } as Record<string, unknown>;
     for (const key of Object.keys(result)) {
       const value = result[key];
-      if (value == null) {
-        delete result[key];
-      } else if (Array.isArray(value) && value.length === 0) {
+      if (value == null || (Array.isArray(value) && value.length === 0)) {
         delete result[key];
       }
     }

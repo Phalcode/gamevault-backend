@@ -317,7 +317,8 @@ export class FilesService implements OnApplicationBootstrap {
 
       // Handle different cases of game existence
       switch (existingGameTuple[0]) {
-        case GameExistence.EXISTS: {
+        case GameExistence.EXISTS:
+        case GameExistence.EXISTS_BUT_ALTERED: {
           // Keep legacy rows normalized while preserving current default file path.
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
@@ -344,15 +345,6 @@ export class FilesService implements OnApplicationBootstrap {
           gameToIndex.type = await this.detectType(gameToIndex.file_path);
           this.metadataService.addUpdateMetadataJob(
             await this.upsertIndexedVersion(restoredGame.id, gameToIndex),
-          );
-          break;
-        }
-
-        case GameExistence.EXISTS_BUT_ALTERED: {
-          // Update or add a version for an altered duplicate
-          gameToIndex.type = await this.detectType(gameToIndex.file_path);
-          this.metadataService.addUpdateMetadataJob(
-            await this.upsertIndexedVersion(existingGame!.id, gameToIndex),
           );
           break;
         }
@@ -894,25 +886,27 @@ export class FilesService implements OnApplicationBootstrap {
           (version) => !version.deleted_at,
         );
 
-        const availablePersistedVersions =
-          activePersistedVersions.length > 0
-            ? activePersistedVersions.map((version) =>
-                Object.assign(new GameVersion(), {
-                  id: version.id,
-                  game: version.game,
-                  file_path: version.file_path,
-                  version: version.version,
-                  size: version.size,
-                  release_date: version.release_date,
-                  early_access: !!version.early_access,
-                  type: version.type || GameType.UNDETECTABLE,
-                  indexed_at:
-                    version.indexed_at || version.updated_at || new Date(),
-                }),
-              )
-            : persistedVersions.length > 0
-              ? []
-              : this.normalizeVersions(gameInDatabase);
+        let availablePersistedVersions: GameVersion[];
+        if (activePersistedVersions.length > 0) {
+          availablePersistedVersions = activePersistedVersions.map((version) =>
+            Object.assign(new GameVersion(), {
+              id: version.id,
+              game: version.game,
+              file_path: version.file_path,
+              version: version.version,
+              size: version.size,
+              release_date: version.release_date,
+              early_access: !!version.early_access,
+              type: version.type || GameType.UNDETECTABLE,
+              indexed_at:
+                version.indexed_at || version.updated_at || new Date(),
+            }),
+          );
+        } else if (persistedVersions.length > 0) {
+          availablePersistedVersions = [];
+        } else {
+          availablePersistedVersions = this.normalizeVersions(gameInDatabase);
+        }
         const existingVersions = availablePersistedVersions.filter((version) =>
           fsPaths.has(version.file_path),
         );

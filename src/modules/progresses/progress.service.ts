@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
-import path from "path";
+import path from "node:path";
 import {
   type FindOneOptions,
   IsNull,

@@ -182,7 +182,7 @@ function parseNumber(
   defaultValue?: number,
 ): number | undefined {
   const number = Number(environmentVariable);
-  if (isNaN(number) || number < 0 || number > Number.MAX_SAFE_INTEGER) {
+  if (Number.isNaN(number) || number < 0 || number > Number.MAX_SAFE_INTEGER) {
     return defaultValue ?? undefined;
   }
   return number;
@@ -193,7 +193,7 @@ function parseKibibytesToBytes(
   defaultValue?: number,
 ): number | undefined {
   const bytes = Number(environmentVariable) * 1024;
-  if (isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
+  if (Number.isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
     return defaultValue ?? undefined;
   }
   return bytes;
