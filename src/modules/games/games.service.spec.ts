@@ -141,6 +141,10 @@ describe("GamesService", () => {
     it("should not modify titles without leading articles", () => {
       expect(service.generateSortTitle("Doom Eternal")).toBe("doom eternal");
     });
+
+    it("should strip only one leading article", () => {
+      expect(service.generateSortTitle("The A Game")).toBe("a game");
+    });
   });
 
   describe("findOneByGameIdOrFail", () => {
@@ -471,6 +475,22 @@ describe("GamesService", () => {
       });
       const options = mockQb.setFindOptions.mock.calls[0][0];
       expect(options.where).toMatchObject({ metadata: expect.anything() });
+    });
+
+    it("should include deleted entities when loadDeletedEntities is true", async () => {
+      const mockGame = createMockGame();
+      const mockQb = {
+        setFindOptions: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        getOneOrFail: vi.fn().mockResolvedValue({ id: 1 }),
+      };
+      gamesRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+
+      await service.findRandom({ loadDeletedEntities: true });
+      const options = mockQb.setFindOptions.mock.calls[0][0];
+      expect(options.withDeleted).toBe(true);
     });
   });
 });

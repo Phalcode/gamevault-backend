@@ -1,4 +1,8 @@
-import { NotAcceptableException, UnauthorizedException } from "@nestjs/common";
+import {
+  InternalServerErrorException,
+  NotAcceptableException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import configuration from "../../configuration.js";
 
 import { DatabaseService } from "./database.service.js";
@@ -139,6 +143,79 @@ describe("DatabaseService", () => {
       ).rejects.toThrow(NotAcceptableException);
 
       config.TESTING.IN_MEMORY_DB = false;
+    });
+  });
+
+  describe("backup/restore routing", () => {
+    it("throws InternalServerErrorException for an unknown DB_SYSTEM", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "MYSQL";
+      try {
+        await expect(service.backup("correct-password")).rejects.toThrow(
+          InternalServerErrorException,
+        );
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+
+    it("routes POSTGRESQL backup to backupPostgresql", async () => {
+      const spy = vi
+        .spyOn(service as any, "backupPostgresql")
+        .mockResolvedValue({} as any);
+      await service.backup("correct-password");
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it("routes SQLITE backup through disconnect/backupSqlite/connect", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "SQLITE";
+      const backupSpy = vi
+        .spyOn(service as any, "backupSqlite")
+        .mockResolvedValue({} as any);
+      const disconnectSpy = vi
+        .spyOn(service as any, "disconnect")
+        .mockResolvedValue(undefined);
+      const connectSpy = vi
+        .spyOn(service as any, "connect")
+        .mockResolvedValue(undefined);
+      try {
+        await service.backup("correct-password");
+        expect(disconnectSpy).toHaveBeenCalled();
+        expect(backupSpy).toHaveBeenCalled();
+        expect(connectSpy).toHaveBeenCalled();
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+
+    it("routes SQLITE restore through disconnect/restoreSqlite/connect/migrate", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "SQLITE";
+      const restoreSpy = vi
+        .spyOn(service as any, "restoreSqlite")
+        .mockResolvedValue(undefined);
+      const disconnectSpy = vi
+        .spyOn(service as any, "disconnect")
+        .mockResolvedValue(undefined);
+      const connectSpy = vi
+        .spyOn(service as any, "connect")
+        .mockResolvedValue(undefined);
+      const migrateSpy = vi
+        .spyOn(service as any, "migrate")
+        .mockResolvedValue(undefined);
+      try {
+        await service.restore(
+          { buffer: Buffer.from("test") } as any,
+          "correct-password",
+        );
+        expect(disconnectSpy).toHaveBeenCalled();
+        expect(restoreSpy).toHaveBeenCalled();
+        expect(connectSpy).toHaveBeenCalled();
+        expect(migrateSpy).toHaveBeenCalled();
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
     });
   });
 });

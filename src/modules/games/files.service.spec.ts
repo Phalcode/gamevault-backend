@@ -11,6 +11,7 @@ import configurationModule from "../../configuration.js";
 import { MetadataService } from "../metadata/metadata.service.js";
 import { FilesService } from "./files.service.js";
 import { GamesService } from "./games.service.js";
+import { GameExistence } from "./models/game-existence.enum.js";
 import { GameType } from "./models/game-type.enum.js";
 
 // We need to mock configuration before importing the service
@@ -522,6 +523,105 @@ describe("FilesService", () => {
     });
   });
 
+  describe("pure parsers", () => {
+    it("should extract the title from a file path", () => {
+      expect((service as any).extractTitle("My Game (2023).zip")).toBe(
+        "My Game",
+      );
+      expect((service as any).extractTitle("A (v1.0.0) (2023).zip")).toBe("A");
+    });
+
+    it("should extract the version from a file path", () => {
+      expect((service as any).extractVersion("Game (v1.2.3).zip")).toBe(
+        "v1.2.3",
+      );
+      expect((service as any).extractVersion("Game.zip")).toBeUndefined();
+    });
+
+    it("should extract a valid release year", () => {
+      const date = (service as any).extractReleaseYear("Game (2023).zip");
+      expect(date).toBeInstanceOf(Date);
+      expect(date.getUTCFullYear()).toBe(2023);
+      expect((service as any).extractReleaseYear("Game.zip")).toBeUndefined();
+      expect(
+        (service as any).extractReleaseYear("Game (abcd).zip"),
+      ).toBeUndefined();
+    });
+
+    it("should extract the early access flag", () => {
+      expect((service as any).extractEarlyAccessFlag("Game (EA).zip")).toBe(
+        true,
+      );
+      expect((service as any).extractEarlyAccessFlag("Game.zip")).toBe(false);
+    });
+
+    it("should validate file paths", () => {
+      expect((service as any).isValidFilePath("Game.zip")).toBe(true);
+      expect((service as any).isValidFilePath("Game.txt")).toBe(false);
+      expect((service as any).isValidFilePath("Game:Name.zip")).toBe(false);
+    });
+
+    it("should normalize versions from a legacy game", () => {
+      const game = {
+        id: 1,
+        file_path: "/files/game.zip",
+        version: "v1.0.0",
+        size: 1000n,
+        release_date: undefined,
+        early_access: false,
+        type: GameType.WINDOWS_SETUP,
+        updated_at: undefined,
+        created_at: new Date("2026-01-01"),
+      } as any;
+      const versions = (service as any).normalizeVersions(game);
+      expect(versions).toHaveLength(1);
+      expect(versions[0].file_path).toBe(game.file_path);
+
+      const noPath = { id: 1, file_path: undefined } as any;
+      expect((service as any).normalizeVersions(noPath)).toEqual([]);
+    });
+
+    it("should apply a version to a legacy game", () => {
+      const game = {
+        id: 1,
+        file_path: "/files/game.zip",
+        version: "v1.0.0",
+        size: 1000n,
+        release_date: undefined,
+        early_access: false,
+        type: GameType.WINDOWS_SETUP,
+      } as any;
+      (service as any).applyVersionToGame(game, {
+        file_path: "/files/updated.zip",
+        version: "v2.0.0",
+        size: 1234,
+        release_date: "2023-01-01",
+        early_access: true,
+        type: "WINDOWS_SETUP",
+      });
+      expect(game.file_path).toBe("/files/updated.zip");
+      expect(game.version).toBe("v2.0.0");
+      expect(game.size.toString()).toBe("1234");
+      expect(game.early_access).toBe(true);
+    });
+
+    it("should detect windows installer executables", () => {
+      expect(
+        (service as any).detectWindowsSetupExecutable(["/a/setup.exe"]),
+      ).toBe(true);
+      expect(
+        (service as any).detectWindowsSetupExecutable(["/a/install.msi"]),
+      ).toBe(true);
+      expect(
+        (service as any).detectWindowsSetupExecutable(["/a/redist.msi"]),
+      ).toBe(false);
+      expect(
+        (service as any).detectWindowsSetupExecutable(["/a/game.exe"]),
+      ).toBe(false);
+      expect((service as any).detectWindowsSetupExecutable([])).toBe(false);
+    });
+  });
+
   describe("index", () => {
     it("should trigger integrity check when file stats are missing", async () => {
       vi.useFakeTimers();
@@ -541,6 +641,93 @@ describe("FilesService", () => {
 
       expect(checkIntegritySpy).toHaveBeenCalledTimes(1);
       vi.useRealTimers();
+    });
+  });
+
+  describe("index switch cases", () => {
+    const makeService = () =>
+      new FilesService(
+        gamesService,
+        metadataService,
+        schedulerRegistry,
+        gameVersionRepository as any,
+      );
+
+    it("handles EXISTS by upserting a version", async () => {
+      const svc = makeService();
+      gamesService.checkIfExistsInDatabase.mockResolvedValue([
+        GameExistence.EXISTS,
+        { id: 7 } as any,
+      ]);
+      vi.spyOn(svc as any, "detectType").mockResolvedValue(
+        GameType.WINDOWS_SETUP,
+      );
+      const upsertSpy = vi
+        .spyOn(svc as any, "upsertIndexedVersion")
+        .mockResolvedValue("job");
+
+      await (svc as any).index("/tmp/Game.zip", { size: 100 }, true);
+
+      expect(upsertSpy).toHaveBeenCalledWith(7, expect.any(Object));
+      expect(metadataService.addUpdateMetadataJob).toHaveBeenCalledWith("job");
+    });
+
+    it("handles DOES_NOT_EXIST by saving a new game", async () => {
+      const svc = makeService();
+      gamesService.checkIfExistsInDatabase.mockResolvedValue([
+        GameExistence.DOES_NOT_EXIST,
+        undefined,
+      ]);
+      gamesService.save.mockResolvedValue({ id: 8 } as any);
+      vi.spyOn(svc as any, "detectType").mockResolvedValue(
+        GameType.WINDOWS_SETUP,
+      );
+      const upsertSpy = vi
+        .spyOn(svc as any, "upsertIndexedVersion")
+        .mockResolvedValue("job");
+
+      await (svc as any).index("/tmp/Game.zip", { size: 100 }, true);
+
+      expect(gamesService.save).toHaveBeenCalled();
+      expect(upsertSpy).toHaveBeenCalledWith(8, expect.any(Object));
+    });
+
+    it("handles EXISTS_BUT_DELETED_IN_DATABASE by restoring", async () => {
+      const svc = makeService();
+      gamesService.checkIfExistsInDatabase.mockResolvedValue([
+        GameExistence.EXISTS_BUT_DELETED_IN_DATABASE,
+        { id: 9 } as any,
+      ]);
+      gamesService.restore.mockResolvedValue({ id: 9 } as any);
+      vi.spyOn(svc as any, "detectType").mockResolvedValue(
+        GameType.WINDOWS_SETUP,
+      );
+      const upsertSpy = vi
+        .spyOn(svc as any, "upsertIndexedVersion")
+        .mockResolvedValue("job");
+
+      await (svc as any).index("/tmp/Game.zip", { size: 100 }, true);
+
+      expect(gamesService.restore).toHaveBeenCalledWith(9);
+      expect(upsertSpy).toHaveBeenCalledWith(9, expect.any(Object));
+    });
+
+    it("handles EXISTS_BUT_ALTERED", async () => {
+      const svc = makeService();
+      gamesService.checkIfExistsInDatabase.mockResolvedValue([
+        GameExistence.EXISTS_BUT_ALTERED,
+        { id: 10 } as any,
+      ]);
+      vi.spyOn(svc as any, "detectType").mockResolvedValue(
+        GameType.WINDOWS_SETUP,
+      );
+      const upsertSpy = vi
+        .spyOn(svc as any, "upsertIndexedVersion")
+        .mockResolvedValue("job");
+
+      await (svc as any).index("/tmp/Game.zip", { size: 100 }, true);
+
+      expect(upsertSpy).toHaveBeenCalledWith(10, expect.any(Object));
     });
   });
 

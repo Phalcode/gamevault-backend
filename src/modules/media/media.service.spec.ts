@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { Repository } from "typeorm";
 import configuration from "../../configuration.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
@@ -214,6 +218,67 @@ describe("MediaService", () => {
       const media = createMockMedia();
       // In test mode with TESTING.MOCK_FILES = true, it just logs a warning
       await expect(service.delete(media)).resolves.toBeUndefined();
+    });
+
+    it("should remove media and its file in non-mock mode", async () => {
+      (configuration as any).TESTING.MOCK_FILES = false;
+      try {
+        mediaRepository.remove.mockResolvedValue(createMockMedia());
+        await service.delete(createMockMedia());
+        expect(mediaRepository.remove).toHaveBeenCalled();
+      } finally {
+        (configuration as any).TESTING.MOCK_FILES = true;
+      }
+    });
+  });
+
+  describe("downloadByUrl", () => {
+    it("downloads, validates, saves, and persists media", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => new ArrayBuffer(8),
+        }),
+      );
+      vi.spyOn(service as any, "validate").mockResolvedValue({
+        mimeType: "image/png",
+        extension: "png",
+      });
+      usersService.findOneByUsernameOrFail.mockResolvedValue({
+        username: "dev",
+      } as any);
+      mediaRepository.save.mockImplementation(async (m) => m as any);
+
+      const media = await service.downloadByUrl(
+        "https://example.com/x.png",
+        "dev",
+      );
+
+      expect(media.source_url).toBe("https://example.com/x.png");
+      expect(media.uploader).toEqual({ username: "dev" });
+      expect(media.type).toBe("image/png");
+      expect(media.file_path).toMatch(/^\/media\/.+\.png$/);
+      expect(mediaRepository.save).toHaveBeenCalled();
+    });
+
+    it("throws InternalServerErrorException when the DB save fails", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          arrayBuffer: async () => new ArrayBuffer(8),
+        }),
+      );
+      vi.spyOn(service as any, "validate").mockResolvedValue({
+        mimeType: "image/png",
+        extension: "png",
+      });
+      mediaRepository.save.mockRejectedValue(new Error("db down"));
+
+      await expect(
+        service.downloadByUrl("https://example.com/x.png"),
+      ).rejects.toThrow(InternalServerErrorException);
     });
   });
 });
