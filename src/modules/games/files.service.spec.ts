@@ -11,6 +11,7 @@ import configurationModule from "../../configuration.js";
 import { MetadataService } from "../metadata/metadata.service.js";
 import { FilesService } from "./files.service.js";
 import { GamesService } from "./games.service.js";
+import { GameType } from "./models/game-type.enum.js";
 
 // We need to mock configuration before importing the service
 vi.mock("../../configuration.js", async () => ({
@@ -414,6 +415,110 @@ describe("FilesService", () => {
       await expect(
         service.download(response, 42, 999, undefined, undefined, 18),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe("calculateRange", () => {
+    it("returns the full file when no range header is given", () => {
+      expect((service as any).calculateRange(undefined, 1000)).toEqual({
+        start: 0,
+        end: 999,
+        size: 1000,
+      });
+    });
+
+    it("parses a start-end range", () => {
+      expect((service as any).calculateRange("bytes=0-1023", 2000)).toEqual({
+        start: 0,
+        end: 1023,
+        size: 1024,
+      });
+    });
+
+    it("parses an open-ended suffix range", () => {
+      expect((service as any).calculateRange("bytes=1024-", 2000)).toEqual({
+        start: 1024,
+        end: 1999,
+        size: 976,
+      });
+    });
+
+    it("parses a suffix-only range", () => {
+      // "bytes=-100" keeps start 0 and sets end to 100 (code behavior).
+      expect((service as any).calculateRange("bytes=-100", 2000)).toEqual({
+        start: 0,
+        end: 100,
+        size: 101,
+      });
+    });
+
+    it("keeps the default end when end is before start", () => {
+      expect((service as any).calculateRange("bytes=200-100", 2000)).toEqual({
+        start: 200,
+        end: 1999,
+        size: 1800,
+      });
+    });
+
+    it("ignores an out-of-bounds start", () => {
+      expect((service as any).calculateRange("bytes=2500-", 2000)).toEqual({
+        start: 0,
+        end: 1999,
+        size: 2000,
+      });
+    });
+  });
+
+  describe("detectType", () => {
+    it("returns WINDOWS_PORTABLE for (W_P)", async () => {
+      await expect((service as any).detectType("Game (W_P).zip")).resolves.toBe(
+        GameType.WINDOWS_PORTABLE,
+      );
+    });
+
+    it("returns WINDOWS_SETUP for (W_S)", async () => {
+      await expect((service as any).detectType("Game (W_S).zip")).resolves.toBe(
+        GameType.WINDOWS_SETUP,
+      );
+    });
+
+    it("returns LINUX_PORTABLE for (L_P)", async () => {
+      await expect((service as any).detectType("Game (L_P).zip")).resolves.toBe(
+        GameType.LINUX_PORTABLE,
+      );
+    });
+
+    it("returns WINDOWS_SOFTWARE for (W_SW)", async () => {
+      await expect((service as any).detectType("Game (W_SW).zip")).resolves.toBe(
+        GameType.WINDOWS_SOFTWARE,
+      );
+    });
+
+    it("returns LINUX_SOFTWARE for (L_SW)", async () => {
+      await expect((service as any).detectType("Game (L_SW).zip")).resolves.toBe(
+        GameType.LINUX_SOFTWARE,
+      );
+    });
+
+    it("uses the MOCK_FILES failsafe", async () => {
+      configuration.TESTING.MOCK_FILES = true;
+      await expect((service as any).detectType("Game.zip")).resolves.toBe(
+        GameType.WINDOWS_SETUP,
+      );
+    });
+
+    it("detects .exe and .sh when not in mock mode", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+      await expect((service as any).detectType("Game.exe")).resolves.toBe(
+        GameType.WINDOWS_SETUP,
+      );
+      await expect((service as any).detectType("Game.sh")).resolves.toBe(
+        GameType.LINUX_PORTABLE,
+      );
+      await expect((service as any).detectType("Game.AppImage")).resolves.toBe(
+        GameType.LINUX_PORTABLE,
+      );
+      configuration.TESTING.MOCK_FILES = true;
     });
   });
 

@@ -1,5 +1,5 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
-import { Repository } from "typeorm";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import { EntityNotFoundError, Repository } from "typeorm";
 import type { Mocked } from "vitest";
 import configuration from "../../configuration.js";
 import { GamesService } from "../games/games.service.js";
@@ -337,15 +337,10 @@ describe("UsersService", () => {
 
   describe("update birth date age gate", () => {
     const restrictedService = () =>
-      new UsersService(
-        userRepository,
-        mediaService,
-        gamesService,
-        {
-          ...configuration,
-          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
-        } as any,
-      );
+      new UsersService(userRepository, mediaService, gamesService, {
+        ...configuration,
+        PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+      } as any);
 
     const minorBirthDate = () => {
       const d = new Date();
@@ -440,9 +435,9 @@ describe("UsersService", () => {
       userRepository.findOneOrFail.mockResolvedValue(
         createMockUser({ birth_date: birth, role: Role.USER }),
       );
-      await expect(
-        restricted.findUserAgeByUsername("testuser"),
-      ).resolves.toBe(20);
+      await expect(restricted.findUserAgeByUsername("testuser")).resolves.toBe(
+        20,
+      );
     });
   });
 
@@ -619,6 +614,41 @@ describe("UsersService", () => {
       await expect(
         service.findUserForAuthOrFail({ username: "testuser" }),
       ).rejects.toThrow("Authorization Failed: User is not activated");
+    });
+
+    it("should throw BadRequestException when no criteria are provided", async () => {
+      await expect(service.findUserForAuthOrFail({} as any)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should allow an inactive admin to authenticate", async () => {
+      const mockUser = createMockUser({
+        activated: false,
+        role: Role.ADMIN,
+        deleted_at: undefined,
+      });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      const result = await service.findUserForAuthOrFail({
+        username: "testuser",
+      });
+      expect(result.role).toBe(Role.ADMIN);
+    });
+
+    it("should throw UnauthorizedException when the user is not found", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(
+        new EntityNotFoundError("User", "missing"),
+      );
+      await expect(
+        service.findUserForAuthOrFail({ username: "missing" }),
+      ).rejects.toThrow("Authentication Failed: User not found");
+    });
+
+    it("should throw UnauthorizedException on unexpected errors", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(new Error("db down"));
+      await expect(
+        service.findUserForAuthOrFail({ username: "testuser" }),
+      ).rejects.toThrow("Contact an Administrator");
     });
   });
 });

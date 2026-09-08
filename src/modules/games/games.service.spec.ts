@@ -168,6 +168,23 @@ describe("GamesService", () => {
         expect.objectContaining({ withDeleted: true }),
       );
     });
+
+    it("should filter by age rating when filterByAge is set", async () => {
+      const mockGame = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+      await service.findOneByGameIdOrFail(1, {
+        loadDeletedEntities: false,
+        filterByAge: 18,
+      });
+      expect(gamesRepository.findOneOrFail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 1,
+            metadata: expect.anything(),
+          }),
+        }),
+      );
+    });
   });
 
   describe("find", () => {
@@ -187,6 +204,17 @@ describe("GamesService", () => {
       expect(gamesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
           relations: expect.objectContaining({ progresses: { user: true } }),
+        }),
+      );
+    });
+
+    it("should add the metadata relation and age filter when filterByAge is set", async () => {
+      gamesRepository.find.mockResolvedValue([]);
+      await service.find({ loadDeletedEntities: false, filterByAge: 18 });
+      expect(gamesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          relations: expect.anything(),
+          where: expect.objectContaining({ metadata: expect.anything() }),
         }),
       );
     });
@@ -341,6 +369,25 @@ describe("GamesService", () => {
       });
       expect(result).toBeDefined();
       expect(result.id).toBe(1);
+    });
+
+    it("should apply the age filter when filterByAge is set", async () => {
+      const mockGame = createMockGame();
+      const mockQb = {
+        setFindOptions: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        getOneOrFail: vi.fn().mockResolvedValue({ id: 1 }),
+      };
+      gamesRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+
+      await service.findRandom({
+        loadDeletedEntities: false,
+        filterByAge: 18,
+      });
+      const options = mockQb.setFindOptions.mock.calls[0][0];
+      expect(options.where).toMatchObject({ metadata: expect.anything() });
     });
   });
 });
