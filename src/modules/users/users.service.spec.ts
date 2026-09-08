@@ -335,6 +335,144 @@ describe("UsersService", () => {
     });
   });
 
+  describe("update birth date age gate", () => {
+    const restrictedService = () =>
+      new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
+
+    const minorBirthDate = () => {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 16);
+      return d;
+    };
+
+    it("should throw ForbiddenException when a minor updates their birth date", async () => {
+      const restricted = restrictedService();
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: minorBirthDate(), role: Role.USER }),
+      );
+
+      await expect(
+        restricted.update(1, { birth_date: "2000-01-01" } as any, false),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should allow an adult to update their birth date", async () => {
+      const restricted = restrictedService();
+      const adult = new Date();
+      adult.setFullYear(adult.getFullYear() - 20);
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: adult, role: Role.USER }),
+      );
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await restricted.update(
+        1,
+        { birth_date: "2000-01-01" } as any,
+        false,
+      );
+      expect(result.birth_date?.getUTCFullYear()).toBe(2000);
+    });
+
+    it("should allow an admin to update a minor's birth date", async () => {
+      const restricted = restrictedService();
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: minorBirthDate(), role: Role.ADMIN }),
+      );
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await restricted.update(
+        1,
+        { birth_date: "2000-01-01" } as any,
+        false,
+      );
+      expect(result.birth_date?.getUTCFullYear()).toBe(2000);
+    });
+  });
+
+  describe("findUserAgeByUsername", () => {
+    it("should return undefined when age restriction is disabled", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: new Date() }),
+      );
+      await expect(
+        service.findUserAgeByUsername("testuser"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("should return undefined for an admin user", async () => {
+      const restricted = new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.ADMIN }),
+      );
+      await expect(
+        restricted.findUserAgeByUsername("testuser"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("should return the calculated age for a non-admin user", async () => {
+      const restricted = new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
+      const birth = new Date();
+      birth.setFullYear(birth.getFullYear() - 20);
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: birth, role: Role.USER }),
+      );
+      await expect(
+        restricted.findUserAgeByUsername("testuser"),
+      ).resolves.toBe(20);
+    });
+  });
+
+  describe("checkIfUsernameIsAtLeastRole", () => {
+    it("should return true when the user has at least the required role", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.ADMIN }),
+      );
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("testuser", Role.ADMIN),
+      ).resolves.toBe(true);
+    });
+
+    it("should return false when the user has a lower role", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.USER }),
+      );
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("testuser", Role.ADMIN),
+      ).resolves.toBe(false);
+    });
+
+    it("should return false when the user is not found", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(new Error("not found"));
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("missing", Role.ADMIN),
+      ).resolves.toBe(false);
+    });
+  });
+
   describe("bookmarkGame", () => {
     it("should bookmark a game for a user", async () => {
       const mockUser = createMockUser({ bookmarked_games: [] });

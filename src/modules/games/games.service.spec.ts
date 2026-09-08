@@ -215,6 +215,21 @@ describe("GamesService", () => {
     });
   });
 
+  describe("restore", () => {
+    it("should recover the game, merge metadata, and return the reloaded game", async () => {
+      const game = createMockGame({ id: 5 });
+      gamesRepository.recover.mockResolvedValue({ id: 5 } as any);
+      metadataService.merge.mockResolvedValue(game);
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+
+      const result = await service.restore(5);
+
+      expect(gamesRepository.recover).toHaveBeenCalledWith({ id: 5 });
+      expect(metadataService.merge).toHaveBeenCalledWith(5);
+      expect(result).toEqual(game);
+    });
+  });
+
   describe("checkIfExistsInDatabase", () => {
     it("should return DOES_NOT_EXIST when game is new", async () => {
       const game = createMockGame();
