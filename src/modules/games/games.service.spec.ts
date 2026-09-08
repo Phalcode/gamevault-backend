@@ -258,6 +258,65 @@ describe("GamesService", () => {
     });
   });
 
+  describe("update", () => {
+    it("should handle mapping requests with and without provider data", async () => {
+      const game = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+      gamesRepository.save.mockImplementation(async (g) => g as any);
+      metadataService.merge.mockResolvedValue(game);
+
+      await service.update(1, {
+        mapping_requests: [
+          {
+            provider_slug: "igdb",
+            provider_data_id: "123",
+            provider_priority: 1,
+          },
+          { provider_slug: "steam" },
+        ],
+      } as any);
+
+      expect(metadataService.map).toHaveBeenCalledWith(1, "igdb", "123", 1);
+      expect(metadataService.unmap).toHaveBeenCalledWith(1, "steam");
+      expect(metadataService.merge).toHaveBeenCalledWith(1);
+    });
+
+    it("should map user metadata fields and relation names", async () => {
+      const game = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+      gameMetadataService.save.mockImplementation(
+        async (m) => ({ ...m, id: 1 }) as any,
+      );
+      gamesRepository.save.mockImplementation(async (g) => g as any);
+      metadataService.merge.mockResolvedValue(game);
+
+      const result = await service.update(1, {
+        user_metadata: {
+          title: "New Title",
+          sort_title: "new title",
+          release_date: "2020-01-01",
+          rating: 90,
+          tags: ["Action", "RPG"],
+          genres: ["RPG"],
+          developers: ["Studio"],
+          publishers: ["Pub"],
+        },
+      } as any);
+
+      expect(result).toBe(game);
+      expect(game.sort_title).toBe("new title");
+      expect(game.user_metadata).toMatchObject({
+        title: "New Title",
+        rating: 90,
+        tags: expect.arrayContaining([
+          expect.objectContaining({ name: "Action", provider_slug: "user" }),
+        ]),
+      });
+      expect(gameMetadataService.save).toHaveBeenCalled();
+      expect(metadataService.merge).toHaveBeenCalledWith(1);
+    });
+  });
+
   describe("checkIfExistsInDatabase", () => {
     it("should return DOES_NOT_EXIST when game is new", async () => {
       const game = createMockGame();

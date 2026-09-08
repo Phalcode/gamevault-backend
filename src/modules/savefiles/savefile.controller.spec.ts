@@ -18,12 +18,7 @@ describe("SavefileController", () => {
     const params = { user_id: 1, game_id: 2 } as any;
     const req = { user: { username: "dev" } } as any;
     const file = { originalname: "save.zip" } as any;
-    await controller.postSavefileByUserIdAndGameId(
-      params,
-      req,
-      "inst-1",
-      file,
-    );
+    await controller.postSavefileByUserIdAndGameId(params, req, "inst-1", file);
     expect(savefileService.upload).toHaveBeenCalledWith(
       1,
       2,

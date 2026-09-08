@@ -489,15 +489,15 @@ describe("FilesService", () => {
     });
 
     it("returns WINDOWS_SOFTWARE for (W_SW)", async () => {
-      await expect((service as any).detectType("Game (W_SW).zip")).resolves.toBe(
-        GameType.WINDOWS_SOFTWARE,
-      );
+      await expect(
+        (service as any).detectType("Game (W_SW).zip"),
+      ).resolves.toBe(GameType.WINDOWS_SOFTWARE);
     });
 
     it("returns LINUX_SOFTWARE for (L_SW)", async () => {
-      await expect((service as any).detectType("Game (L_SW).zip")).resolves.toBe(
-        GameType.LINUX_SOFTWARE,
-      );
+      await expect(
+        (service as any).detectType("Game (L_SW).zip"),
+      ).resolves.toBe(GameType.LINUX_SOFTWARE);
     });
 
     it("uses the MOCK_FILES failsafe", async () => {

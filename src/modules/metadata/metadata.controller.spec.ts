@@ -29,7 +29,9 @@ describe("MetadataController", () => {
       { provider_slug: "igdb" } as any,
       "zelda",
     );
-    expect(metadataService.getProviderBySlugOrFail).toHaveBeenCalledWith("igdb");
+    expect(metadataService.getProviderBySlugOrFail).toHaveBeenCalledWith(
+      "igdb",
+    );
     expect(search).toHaveBeenCalledWith("zelda");
     expect(result).toEqual([{ id: 1 }]);
   });

@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import { EntityNotFoundError, Repository } from "typeorm";
 import type { Mocked } from "vitest";
 import configuration from "../../configuration.js";
@@ -332,6 +336,87 @@ describe("UsersService", () => {
 
       const result = await service.update(1, { activated: true } as any, true);
       expect(result.activated).toBe(true);
+    });
+
+    it("should update email", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(null);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(1, { email: "new@example.com" } as any);
+      expect(result.email).toBe("new@example.com");
+    });
+
+    it("should reject a duplicate username", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(
+        createMockUser({ username: "newname" }),
+      );
+
+      await expect(
+        service.update(1, { username: "newname" } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should reject a duplicate email", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(
+        createMockUser({ username: "other", email: "new@example.com" }),
+      );
+
+      await expect(
+        service.update(1, { email: "new@example.com" } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should update first_name and last_name", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(
+        1,
+        { first_name: "A", last_name: "B" } as any,
+      );
+      expect(result.first_name).toBe("A");
+      expect(result.last_name).toBe("B");
+    });
+
+    it("should hash a new password", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(1, { password: "newpass" } as any);
+      expect(result.password).not.toBe("hashedpassword");
+      expect(result.password).toMatch(/^\$2/);
+    });
+
+    it("should set avatar and background via mediaService", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+      mediaService.findOneByMediaIdOrFail
+        .mockResolvedValueOnce({ id: 5 })
+        .mockResolvedValueOnce({ id: 6 });
+
+      const result = await service.update(
+        1,
+        { avatar_id: 5, background_id: 6 } as any,
+      );
+      expect(result.avatar).toMatchObject({ id: 5 });
+      expect(result.background).toMatchObject({ id: 6 });
+    });
+  });
+
+  describe("throwIfAlreadyExists", () => {
+    it("should throw BadRequestException when neither username nor email is given", async () => {
+      await expect(
+        (service as any).throwIfAlreadyExists(undefined, undefined),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
