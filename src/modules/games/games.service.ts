@@ -312,6 +312,18 @@ export class GamesService {
           dto.user_metadata.uninstaller_executable;
       }
 
+      if (dto.user_metadata.umu_game_id != null) {
+        updatedUserMetadata.umu_game_id = dto.user_metadata.umu_game_id;
+      }
+
+      if (dto.user_metadata.umu_store != null) {
+        updatedUserMetadata.umu_store = dto.user_metadata.umu_store;
+      }
+
+      if (dto.user_metadata.umu_proton_path != null) {
+        updatedUserMetadata.umu_proton_path = dto.user_metadata.umu_proton_path;
+      }
+
       if (dto.user_metadata.url_screenshots != null) {
         updatedUserMetadata.url_screenshots = dto.user_metadata.url_screenshots;
       }

@@ -181,6 +181,35 @@ export class UpdateGameUserMetadataDto {
   })
   uninstaller_executable?: string;
 
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      "Default umu-launcher GAMEID for the game (used on Linux to apply the matching protonfixes).",
+    example: "umu-12345",
+  })
+  umu_game_id?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Default umu-launcher STORE for the game.",
+    example: "egs",
+  })
+  umu_store?: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  @ApiPropertyOptional({
+    description:
+      "Default umu-launcher PROTONPATH for the game, i.e. the Proton build folder name inside compatibilitytools.d.",
+    example: "GE-Proton9-5",
+  })
+  umu_proton_path?: string;
+
   @IsArray()
   @IsOptional()
   @IsUrl(undefined, { each: true })
