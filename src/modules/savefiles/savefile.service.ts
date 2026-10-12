@@ -12,9 +12,12 @@ import { randomUUID } from "node:crypto";
 import path, { basename, dirname } from "node:path";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
+import {
+  discardStreamedUpload,
+  readFileHeader,
+} from "../../uploads/streamed-upload.js";
 import { UsersService } from "../users/users.service.js";
-const { createReadStream, ensureDir, readdir, remove, stat, writeFile } =
-  fsExtra;
+const { createReadStream, ensureDir, move, readdir, remove, stat } = fsExtra;
 
 @Injectable()
 export class SavefileService {
@@ -42,23 +45,33 @@ export class SavefileService {
     executorUsername: string,
     installationId?: string,
   ) {
-    this.logger.log(`User uploading save file for a game`, {
-      userId,
-      gameId,
-    });
-    await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
-      userId,
-      executorUsername,
-    );
-    if (installationId && !isUUID(installationId, 4)) {
-      throw new BadRequestException("Installation ID must be a valid UUID v4.");
+    try {
+      this.logger.log(`User uploading save file for a game`, {
+        userId,
+        gameId,
+      });
+      await this.usersService.checkIfUsernameMatchesIdOrIsAdminOrThrow(
+        userId,
+        executorUsername,
+      );
+      if (installationId && !isUUID(installationId, 4)) {
+        throw new BadRequestException(
+          "Installation ID must be a valid UUID v4.",
+        );
+      }
+      // The upload was streamed to disk, so validation reads only the header of
+      // the temporary file instead of the whole file being held in memory.
+      await this.validate(await readFileHeader(file.path));
+      await this.saveToFileSystem(
+        this.generateNewPath(userId, gameId, installationId),
+        file.path,
+      );
+      await this.cleanupOldSaves(userId, gameId, executorUsername);
+    } finally {
+      // On success the temporary file has been moved to its final location; on
+      // failure (permissions, validation, ...) whatever is left is removed.
+      await discardStreamedUpload(file.path, this.logger);
     }
-    await this.validate(file.buffer);
-    await this.saveToFileSystem(
-      this.generateNewPath(userId, gameId, installationId),
-      file.buffer,
-    );
-    await this.cleanupOldSaves(userId, gameId, executorUsername);
   }
 
   /**
@@ -197,14 +210,15 @@ export class SavefileService {
   }
 
   /**
-   * Saves a file buffer to the filesystem
+   * Moves an upload that was streamed to disk to its final location.
+   *
    * @param path - Target path to save the file
-   * @param savefileBuffer - Buffer containing the file data
+   * @param tempPath - Temporary file the upload was streamed to
    * @remarks Will not save files if TESTING.MOCK_FILES is true
    */
   private async saveToFileSystem(
     path: string,
-    savefileBuffer: Buffer,
+    tempPath: string,
   ): Promise<void> {
     if (this.config.TESTING.MOCK_FILES) {
       this.logger.warn({
@@ -214,7 +228,7 @@ export class SavefileService {
       return;
     }
     await ensureDir(dirname(path));
-    await writeFile(path, savefileBuffer);
+    await move(tempPath, path, { overwrite: true });
     this.logger.debug({
       message: "Savefile successfully saved to filesystem.",
       path,

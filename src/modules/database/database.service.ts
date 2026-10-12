@@ -8,14 +8,14 @@ import {
 } from "@nestjs/common";
 import fsExtra from "fs-extra";
 import { exec } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { chmod, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import filenameSanitizer from "sanitize-filename";
 import { DataSource } from "typeorm";
 import unidecode from "unidecode";
-const { copyFile, createReadStream, pathExists, stat, writeFile } = fsExtra;
+const { copyFile, createReadStream, pathExists, stat } = fsExtra;
 
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
@@ -57,33 +57,42 @@ export class DatabaseService {
   }
 
   async restore(file: Express.Multer.File, password: string) {
-    if (this.config.TESTING.IN_MEMORY_DB) {
-      throw new NotAcceptableException(
-        "This server can't restore backups as it uses an in-memory database.",
-      );
-    }
-
-    this.validatePassword(password);
-
-    switch (this.config.DB.SYSTEM) {
-      case "POSTGRESQL":
-        await this.restorePostgresql(file);
-        break;
-      case "SQLITE":
-        await this.disconnect();
-        try {
-          await this.restoreSqlite(file);
-        } finally {
-          await this.connect();
-        }
-        break;
-      default:
-        throw new InternalServerErrorException(
-          "This server's DB_SYSTEM environment variable is set to an unknown value.",
+    try {
+      if (this.config.TESTING.IN_MEMORY_DB) {
+        throw new NotAcceptableException(
+          "This server can't restore backups as it uses an in-memory database.",
         );
-    }
+      }
 
-    await this.migrate();
+      this.validatePassword(password);
+
+      switch (this.config.DB.SYSTEM) {
+        case "POSTGRESQL":
+          await this.restorePostgresql(file);
+          break;
+        case "SQLITE":
+          await this.disconnect();
+          try {
+            await this.restoreSqlite(file);
+          } finally {
+            await this.connect();
+          }
+          break;
+        default:
+          throw new InternalServerErrorException(
+            "This server's DB_SYSTEM environment variable is set to an unknown value.",
+          );
+      }
+
+      await this.migrate();
+    } finally {
+      // The upload was streamed to a temporary file; remove it again. This runs
+      // even when the restore is rejected (wrong password, in-memory database,
+      // ...) so no partial dump is left behind.
+      if (file?.path) {
+        await rm(file.path, { force: true }).catch(() => undefined);
+      }
+    }
   }
 
   async connect() {
@@ -140,13 +149,15 @@ export class DatabaseService {
       message: "Restoring PostgreSQL Database...",
       size: file.size,
     });
+    const restorePath = file.path;
     const tempDir = await mkdtemp(path.join(os.tmpdir(), "gamevault-"));
     const preRestorePath = path.join(tempDir, "database_pre_restore.db");
-    const restorePath = path.join(tempDir, "database_restore.db");
     try {
       await this.backupPostgresql(preRestorePath);
 
-      await writeFile(restorePath, file.buffer, { mode: 0o600 });
+      // The dump was streamed to this file; restrict its permissions as it
+      // contains the complete database.
+      await chmod(restorePath, 0o600);
 
       await this.execPromise(
         `dropdb --if-exists -f -w -h ${this.config.DB.HOST} -p ${this.config.DB.PORT} -U ${this.config.DB.USERNAME} ${this.config.DB.DATABASE}`,
@@ -222,22 +233,18 @@ export class DatabaseService {
     });
     const tempDir = await mkdtemp(path.join(os.tmpdir(), "gamevault-"));
     const preRestorePath = path.join(tempDir, "database_pre_restore.db");
+    const databasePath = `${this.config.VOLUMES.SQLITEDB}/database.sqlite`;
     try {
-      if (await pathExists(`${this.config.VOLUMES.SQLITEDB}/database.sqlite`)) {
+      if (await pathExists(databasePath)) {
         await this.backupSqlite(preRestorePath);
       }
-      await writeFile(
-        `${this.config.VOLUMES.SQLITEDB}/database.sqlite`,
-        file.buffer,
-      );
+      // The upload was streamed to a temporary file; copy it over the database.
+      await copyFile(file.path, databasePath);
     } catch (error) {
       this.logger.error({ message: "Error restoring SQLITE database", error });
       if (await pathExists(preRestorePath)) {
         this.logger.log("Restoring pre-restore database.");
-        await copyFile(
-          preRestorePath,
-          `${this.config.VOLUMES.SQLITEDB}/database.sqlite`,
-        );
+        await copyFile(preRestorePath, databasePath);
         this.logger.log("Restored pre-restore database.");
       }
     } finally {

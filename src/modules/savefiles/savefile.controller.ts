@@ -1,13 +1,10 @@
 import {
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
   Headers,
   Logger,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Post,
   Request,
   StreamableFile,
@@ -26,13 +23,17 @@ import {
 } from "@nestjs/swagger";
 
 import { FileInterceptor } from "@nestjs/platform-express";
-import bytes from "bytes";
 import configuration from "../../configuration.js";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import {
+  REQUIRED_UPLOAD_FILE_PIPE,
+  UPLOAD_FIELD_NAME,
+} from "../../uploads/streamed-upload.js";
 import { UserIdGameIdDto } from "../progresses/models/user-id-game-id.dto.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
+import { savefileUploadMulterOptions } from "./savefile-upload.multer.js";
 import { SavefileService } from "./savefile.service.js";
 
 @Controller("savefiles")
@@ -69,7 +70,9 @@ export class SavefileController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor(UPLOAD_FIELD_NAME, savefileUploadMulterOptions),
+  )
   @MinimumRole(Role.USER)
   @DisableApiIf(
     configuration.SERVER.DEMO_MODE_ENABLED || !configuration.SAVEFILES.ENABLED,
@@ -78,28 +81,10 @@ export class SavefileController {
     @Param() params: UserIdGameIdDto,
     @Request() req: { user: GamevaultUser },
     @Headers("X-Installation-Id") installationId: string,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize:
-              configuration.SAVEFILES.MAX_SIZE ??
-              bytes("200mb") ??
-              Number.MAX_SAFE_INTEGER,
-            message: `File exceeds maximum allowed size of ${bytes(
-              configuration.SAVEFILES.MAX_SIZE ??
-                bytes("200mb") ??
-                Number.MAX_SAFE_INTEGER,
-              {
-                unit: "MB",
-                thousandsSeparator: ".",
-              },
-            )}.`,
-          }),
-          new FileTypeValidator({ fileType: "application/zip" }),
-        ],
-      }),
-    )
+    // The interceptor above streams the upload to a temporary file on disk; the
+    // savefile service validates the content and moves it into the savefiles
+    // volume.
+    @UploadedFile(REQUIRED_UPLOAD_FILE_PIPE)
     file: Express.Multer.File,
   ) {
     return this.savefileService.upload(

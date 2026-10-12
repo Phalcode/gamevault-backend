@@ -21,7 +21,7 @@ import filenameSanitizer from "sanitize-filename";
 import { Throttle } from "stream-throttle";
 import { IsNull, Not, Repository } from "typeorm";
 import unidecode from "unidecode";
-const { access, constants, createReadStream, pathExists, rm, stat, writeFile } =
+const { access, constants, createReadStream, move, pathExists, rm, stat } =
   fsExtra;
 const { debounce, toLower } = lodash;
 const { add, list } = node7z;
@@ -30,6 +30,7 @@ import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import configuration from "../../configuration.js";
 import globals, { toFindOptionsRelations } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
+import { discardStreamedUpload } from "../../uploads/streamed-upload.js";
 import { MetadataService } from "../metadata/metadata.service.js";
 import { GameVersion } from "./game-version.entity.js";
 import { GamesService } from "./games.service.js";
@@ -245,11 +246,22 @@ export class FilesService implements OnApplicationBootstrap {
    * Uploads a game file to the files volume.
    * Only supported file formats are accepted. The filename must be valid.
    * Write permissions on the files volume are required.
+   *
+   * The interceptor streams the upload to a temporary file on disk, so the
+   * whole game is never buffered in memory. This method validates the upload
+   * and moves the temporary file to its final location.
    */
   public async upload(file: Express.Multer.File): Promise<{ path: string }> {
+    const tempPath = file.path;
+
+    // The upload has already been streamed to a temporary file by the time this
+    // method runs, so every early return has to clean it up again.
+    const discardTempFile = () => discardStreamedUpload(tempPath, this.logger);
+
     const filename = filenameSanitizer(file.originalname);
 
     if (!filename) {
+      await discardTempFile();
       throw new BadRequestException(
         "The uploaded file has an invalid filename.",
       );
@@ -257,6 +269,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     const ext = toLower(path.extname(filename));
     if (!this.supportedFormatsSet.has(ext)) {
+      await discardTempFile();
       throw new BadRequestException(
         `Unsupported file format "${ext}". Supported formats: ${Array.from(this.supportedFormatsSet).join(", ")}`,
       );
@@ -266,6 +279,7 @@ export class FilesService implements OnApplicationBootstrap {
     try {
       await access(configuration.VOLUMES.FILES, constants.W_OK);
     } catch {
+      await discardTempFile();
       throw new BadRequestException(
         `The server does not have write permissions on the files volume "${configuration.VOLUMES.FILES}". Game upload requires write access.`,
       );
@@ -275,12 +289,23 @@ export class FilesService implements OnApplicationBootstrap {
 
     // Prevent overwriting existing files
     if (await pathExists(targetPath)) {
+      await discardTempFile();
       throw new BadRequestException(
         `A file named "${filename}" already exists in the game library.`,
       );
     }
 
-    await writeFile(targetPath, file.buffer);
+    // Move the streamed temporary file to its final location. `overwrite: false`
+    // keeps a concurrent upload from silently replacing the file.
+    try {
+      await move(tempPath, targetPath, { overwrite: false });
+    } catch (error) {
+      await discardTempFile();
+      throw new BadRequestException(
+        `Failed to store the uploaded game file "${filename}".`,
+        { cause: error },
+      );
+    }
 
     this.logger.log({
       message: "Game file uploaded successfully.",

@@ -80,4 +80,32 @@ describe("LoggingExceptionFilter", () => {
       expect.objectContaining({ message: "Validation failed" }),
     );
   });
+
+  it("maps a Multer file size error to 413 Payload Too Large", () => {
+    const error = Object.assign(new Error("File too large"), {
+      name: "MulterError",
+      code: "LIMIT_FILE_SIZE",
+    });
+    filter.catch(error, mockHost as any);
+    expect(mockResponse.status).toHaveBeenCalledWith(413);
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("maximum allowed upload size"),
+      }),
+    );
+  });
+
+  it("maps other Multer errors to 400 Bad Request", () => {
+    const error = Object.assign(new Error("Unexpected field"), {
+      name: "MulterError",
+      code: "LIMIT_UNEXPECTED_FILE",
+    });
+    filter.catch(error, mockHost as any);
+    expect(mockResponse.status).toHaveBeenCalledWith(400);
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining("LIMIT_UNEXPECTED_FILE"),
+      }),
+    );
+  });
 });

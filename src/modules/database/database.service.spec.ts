@@ -3,6 +3,16 @@ import {
   NotAcceptableException,
   UnauthorizedException,
 } from "@nestjs/common";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import configuration from "../../configuration.js";
 
 import { DatabaseService } from "./database.service.js";
@@ -215,6 +225,75 @@ describe("DatabaseService", () => {
         expect(migrateSpy).toHaveBeenCalled();
       } finally {
         (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+  });
+
+  describe("restore from the streamed temporary dump", () => {
+    it("removes the temporary dump even when the restore is rejected", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-restore-"));
+      const tempDump = join(directory, "dump.tmp");
+      writeFileSync(tempDump, "dump");
+      try {
+        await expect(
+          service.restore({ path: tempDump } as any, "wrong-password"),
+        ).rejects.toThrow(UnauthorizedException);
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    });
+
+    it("restores SQLite by copying from the temporary dump", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-sqlite-"));
+      const tempDump = join(directory, "dump.tmp");
+      const sqliteDirectory = join(directory, "db");
+      mkdirSync(sqliteDirectory, { recursive: true });
+      writeFileSync(tempDump, "sqlite-bytes");
+
+      const config = configuration as any;
+      const previousSystem = config.DB.SYSTEM;
+      const previousVolumes = config.VOLUMES;
+      config.DB.SYSTEM = "SQLITE";
+      config.VOLUMES = { ...previousVolumes, SQLITEDB: sqliteDirectory };
+      vi.spyOn(service as any, "backupSqlite").mockResolvedValue(undefined);
+      try {
+        await service.restore({ path: tempDump } as any, "correct-password");
+
+        expect(
+          readFileSync(join(sqliteDirectory, "database.sqlite"), "utf8"),
+        ).toBe("sqlite-bytes");
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        config.DB.SYSTEM = previousSystem;
+        config.VOLUMES = previousVolumes;
+        rmSync(directory, { recursive: true, force: true });
+      }
+    });
+
+    it("restores PostgreSQL from the temporary dump", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-pg-"));
+      const tempDump = join(directory, "dump.tmp");
+      writeFileSync(tempDump, "pg-dump");
+
+      const config = configuration as any;
+      const previousSystem = config.DB.SYSTEM;
+      config.DB.SYSTEM = "POSTGRESQL";
+      vi.spyOn(service as any, "backupPostgresql").mockResolvedValue(undefined);
+      const execSpy = vi
+        .spyOn(service as any, "execPromise")
+        .mockResolvedValue({ stdout: "", stderr: "" });
+      try {
+        await service.restore({ path: tempDump } as any, "correct-password");
+
+        const pgRestoreCall = execSpy.mock.calls.find((call) =>
+          String(call[0]).includes("pg_restore"),
+        );
+        expect(pgRestoreCall?.[0]).toContain(tempDump);
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        config.DB.SYSTEM = previousSystem;
+        rmSync(directory, { recursive: true, force: true });
       }
     });
   });

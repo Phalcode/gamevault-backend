@@ -19,6 +19,10 @@ const { move, pathExists, remove, writeFile } = fsExtra;
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import { logMedia } from "../../logging.js";
+import {
+  discardStreamedUpload,
+  readFileHeader,
+} from "../../uploads/streamed-upload.js";
 import { UsersService } from "../users/users.service.js";
 import { Media } from "./media.entity.js";
 
@@ -209,10 +213,29 @@ export class MediaService {
     file: Express.Multer.File,
     username: string,
   ): Promise<Media> {
-    const media = await this.createFromUpload(file, username);
+    const tempPath = file.path;
+
+    // Validation failures are the caller's fault, so let the BadRequestException
+    // through unchanged, but always clean up the streamed temporary file.
+    let media: Media;
+    try {
+      media = await this.createFromUpload(file, username);
+    } catch (error) {
+      await discardStreamedUpload(tempPath, this.logger);
+      throw error;
+    }
 
     try {
-      await this.saveToFileSystem(media.file_path ?? "", file.buffer);
+      await this.persistUploadedFile(tempPath, media.file_path ?? "");
+    } catch (error) {
+      await discardStreamedUpload(tempPath, this.logger);
+      throw new InternalServerErrorException(
+        "Error uploading media. Please retry or use a different file.",
+        { cause: error },
+      );
+    }
+
+    try {
       const uploadedMedia = await this.mediaRepository.save(media);
       this.logger.log({
         message: "Media successfully uploaded.",
@@ -226,6 +249,33 @@ export class MediaService {
         { cause: error },
       );
     }
+  }
+
+  /**
+   * Moves an upload that was streamed to disk to its final location in the
+   * media volume.
+   *
+   * @param tempPath - The temporary file the upload was streamed to.
+   * @param finalPath - The final path within the media volume.
+   */
+  private async persistUploadedFile(
+    tempPath: string,
+    finalPath: string,
+  ): Promise<void> {
+    if (this.config.TESTING.MOCK_FILES) {
+      this.logger.warn({
+        message: "Not saving media to the filesystem.",
+        reason: "TESTING_MOCK_FILES is set to true.",
+      });
+      await discardStreamedUpload(tempPath, this.logger);
+      return;
+    }
+
+    await move(tempPath, finalPath, { overwrite: true });
+    this.logger.debug({
+      message: "Media successfully saved to filesystem.",
+      path: finalPath,
+    });
   }
 
   private async validate(mediaBuffer: Buffer) {
@@ -256,7 +306,8 @@ export class MediaService {
     file: Express.Multer.File,
     username?: string,
   ): Promise<Media> {
-    const fileType = await this.validate(file.buffer);
+    const header = await readFileHeader(file.path);
+    const fileType = await this.validate(header);
     const media = new Media();
     media.type = fileType.mimeType;
 

@@ -56,10 +56,11 @@ vi.mock("fs-extra", async (importOriginal) => {
     access: vi.fn(),
     constants: { W_OK: 2 },
     createReadStream: vi.fn(),
+    move: vi.fn(),
     pathExists: vi.fn(),
+    remove: vi.fn(),
     rm: vi.fn(),
     stat: vi.fn(),
-    writeFile: vi.fn(),
   };
   return {
     ...actual,
@@ -93,9 +94,10 @@ describe("FilesService", () => {
   let fsExtra: {
     access: Mock;
     pathExists: Mock;
+    remove: Mock;
     rm: Mock;
     stat: Mock;
-    writeFile: Mock;
+    move: Mock;
   };
 
   beforeEach(() => {
@@ -142,78 +144,87 @@ describe("FilesService", () => {
 
     fsExtra.access.mockResolvedValue(undefined);
     fsExtra.pathExists.mockResolvedValue(false);
+    fsExtra.remove.mockResolvedValue(undefined);
     fsExtra.rm.mockResolvedValue(undefined);
     fsExtra.stat.mockResolvedValue({ size: 1000 });
-    fsExtra.writeFile.mockResolvedValue(undefined);
+    fsExtra.move.mockResolvedValue(undefined);
 
     vi.spyOn(service as any, "index").mockResolvedValue(undefined);
   });
 
   describe("upload", () => {
+    const tempPath = "/tmp/test-files/.gamevault-upload-temp";
+
+    const createUploadFile = (
+      originalname: string,
+      overrides: Partial<Express.Multer.File> = {},
+    ) =>
+      ({
+        originalname,
+        path: tempPath,
+        size: 4,
+        ...overrides,
+      }) as unknown as Express.Multer.File;
+
     it("should reject invalid sanitized filename", async () => {
-      await expect(
-        service.upload({
-          originalname: "///",
-          buffer: Buffer.from("test"),
-          size: 4,
-        } as any),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.upload(createUploadFile("///"))).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(fsExtra.remove).toHaveBeenCalledWith(tempPath);
     });
 
     it("should reject unsupported file formats", async () => {
       await expect(
-        service.upload({
-          originalname: "game.txt",
-          buffer: Buffer.from("test"),
-          size: 4,
-        } as any),
+        service.upload(createUploadFile("game.txt")),
       ).rejects.toThrow(BadRequestException);
+      expect(fsExtra.remove).toHaveBeenCalledWith(tempPath);
     });
 
     it("should reject upload when files volume is not writable", async () => {
       fsExtra.access.mockRejectedValueOnce(new Error("permission denied"));
 
       await expect(
-        service.upload({
-          originalname: "game.zip",
-          buffer: Buffer.from("test"),
-          size: 4,
-        } as any),
+        service.upload(createUploadFile("game.zip")),
       ).rejects.toThrow(BadRequestException);
+      expect(fsExtra.remove).toHaveBeenCalledWith(tempPath);
     });
 
     it("should reject upload when target file already exists", async () => {
       fsExtra.pathExists.mockResolvedValueOnce(true);
 
       await expect(
-        service.upload({
-          originalname: "game.zip",
-          buffer: Buffer.from("test"),
-          size: 4,
-        } as any),
+        service.upload(createUploadFile("game.zip")),
       ).rejects.toThrow(BadRequestException);
+      expect(fsExtra.remove).toHaveBeenCalledWith(tempPath);
     });
 
-    it("should persist uploaded file and trigger indexing", async () => {
-      const result = await service.upload({
-        originalname: "My Game.zip",
-        buffer: Buffer.from("payload"),
-        size: 7,
-      } as any);
+    it("should move the streamed upload to its final location and trigger indexing", async () => {
+      const result = await service.upload(createUploadFile("My Game.zip"));
 
       expect(fsExtra.access).toHaveBeenCalledWith(
         "/tmp/test-files",
         constants.W_OK,
       );
-      expect(fsExtra.writeFile).toHaveBeenCalledWith(
+      expect(fsExtra.move).toHaveBeenCalledWith(
+        tempPath,
         "/tmp/test-files/My Game.zip",
-        expect.any(Buffer),
+        { overwrite: false },
       );
+      expect(fsExtra.remove).not.toHaveBeenCalled();
       expect((service as any).index).toHaveBeenCalledWith(
         "/tmp/test-files/My Game.zip",
         expect.any(Object),
       );
       expect(result).toEqual({ path: "/tmp/test-files/My Game.zip" });
+    });
+
+    it("should discard the temporary file when moving fails", async () => {
+      fsExtra.move.mockRejectedValueOnce(new Error("disk full"));
+
+      await expect(
+        service.upload(createUploadFile("game.zip")),
+      ).rejects.toThrow(BadRequestException);
+      expect(fsExtra.remove).toHaveBeenCalledWith(tempPath);
     });
   });
 

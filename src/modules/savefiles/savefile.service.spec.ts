@@ -1,4 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
+import fsExtra from "fs-extra";
 import configuration from "../../configuration.js";
 
 import fileTypeCheckerMock from "file-type-checker";
@@ -36,6 +37,30 @@ vi.mock("file-type-checker", () => ({
     detectFile: vi.fn(),
   },
 }));
+
+// The upload is streamed to disk, so validation reads the header of the
+// temporary file instead of an in-memory buffer.
+vi.mock("../../uploads/streamed-upload.js", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  return {
+    ...actual,
+    readFileHeader: vi.fn().mockResolvedValue(Buffer.from("PK\x03\x04")),
+  };
+});
+
+vi.mock("fs-extra", async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  const overrides = {
+    ensureDir: vi.fn().mockResolvedValue(undefined),
+    move: vi.fn().mockResolvedValue(undefined),
+    remove: vi.fn().mockResolvedValue(undefined),
+  };
+  return {
+    ...actual,
+    ...overrides,
+    default: { ...(actual as any).default, ...overrides },
+  };
+});
 
 describe("SavefileService", () => {
   let service: SavefileService;
@@ -134,7 +159,7 @@ describe("SavefileService", () => {
       await service.upload(
         1,
         42,
-        { buffer: Buffer.from("PK\x03\x04") } as any,
+        { path: "/savefiles/.gamevault-upload-temp" } as any,
         "testuser",
       );
 
@@ -153,11 +178,47 @@ describe("SavefileService", () => {
         service.upload(
           1,
           42,
-          { buffer: Buffer.from("PK\x03\x04") } as any,
+          { path: "/savefiles/.gamevault-upload-temp" } as any,
           "testuser",
           "not-a-uuid",
         ),
       ).rejects.toThrow(BadRequestException);
+      expect(vi.mocked(fsExtra.remove)).toHaveBeenCalledWith(
+        "/savefiles/.gamevault-upload-temp",
+      );
+    });
+
+    it("should move the streamed upload to its generated path", async () => {
+      fileTypeChecker.detectFile.mockReturnValue({
+        extension: "zip",
+        mimeType: "application/zip",
+      });
+
+      const config = configuration as any;
+      const previousMockFiles = config.TESTING.MOCK_FILES;
+      config.TESTING.MOCK_FILES = false;
+      const installationId = "11111111-1111-4111-8111-111111111111";
+      try {
+        await service.upload(
+          1,
+          42,
+          { path: "/savefiles/.gamevault-upload-temp" } as any,
+          "testuser",
+          installationId,
+        );
+
+        expect(vi.mocked(fsExtra.move)).toHaveBeenCalledWith(
+          "/savefiles/.gamevault-upload-temp",
+          expect.stringMatching(
+            new RegExp(
+              `^/savefiles/users/1/games/42/\\d+_${installationId}\\.zip$`,
+            ),
+          ),
+          { overwrite: true },
+        );
+      } finally {
+        config.TESTING.MOCK_FILES = previousMockFiles;
+      }
     });
   });
 
