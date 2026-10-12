@@ -330,6 +330,46 @@ describe("GamesService", () => {
       expect(existence).toBe(GameExistence.DOES_NOT_EXIST);
     });
 
+    it("should match title candidates by the normalized sort title", async () => {
+      const game = createMockGame({
+        title: "The Roottrees are Dead",
+        sort_title: "roottrees are dead",
+      });
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([]);
+
+      await service.checkIfExistsInDatabase(game);
+
+      expect(gamesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: [
+            { title: "The Roottrees are Dead" },
+            { sort_title: "roottrees are dead" },
+          ],
+        }),
+      );
+    });
+
+    it("should merge a same-title file that only differs in casing", async () => {
+      const game = createMockGame({
+        title: "The Roottrees Are Dead",
+        sort_title: "roottrees are dead",
+      });
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([
+        createMockGame({
+          id: 2,
+          title: "The Roottrees are Dead",
+          sort_title: "roottrees are dead",
+          deleted_at: undefined,
+        }),
+      ]);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+
+      expect(existence).not.toBe(GameExistence.DOES_NOT_EXIST);
+    });
+
     it("should not merge year-tagged games across different years", async () => {
       const game = createMockGame({
         release_date: new Date("2025-01-01T00:00:00.000Z"),

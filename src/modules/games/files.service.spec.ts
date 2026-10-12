@@ -742,6 +742,126 @@ describe("FilesService", () => {
     });
   });
 
+  describe("mergeDuplicateGames", () => {
+    it("should merge games with the same normalized title and release year", async () => {
+      const canonical = {
+        id: 1,
+        title: "The Roottrees are Dead",
+        sort_title: "roottrees are dead",
+        release_date: undefined,
+        download_count: 5,
+        file_path: "/tmp/test-files/A.7z",
+      } as any;
+      const duplicate = {
+        id: 2,
+        title: "The Roottrees Are Dead",
+        sort_title: "roottrees are dead",
+        release_date: undefined,
+        download_count: 3,
+        file_path: "/tmp/test-files/B.rar",
+      } as any;
+
+      gamesService.find.mockResolvedValueOnce([canonical, duplicate]);
+      gameVersionRepository.find.mockResolvedValueOnce([
+        { id: 20, game: { id: 2 }, file_path: "/tmp/test-files/B.rar" },
+      ] as any);
+      gamesService.findOneByGameIdOrFail.mockResolvedValueOnce(canonical);
+      vi.spyOn(
+        service as any,
+        "listAvailableVersionsFromStorage",
+      ).mockResolvedValue([
+        { file_path: "/tmp/test-files/A.7z", indexed_at: new Date() },
+        { file_path: "/tmp/test-files/B.rar", indexed_at: new Date() },
+      ]);
+
+      const merged = await service.mergeDuplicateGames();
+
+      expect(merged).toBe(1);
+      expect(gameVersionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ game: { id: 1 } }),
+      );
+      expect(gamesService.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 2,
+          file_path: expect.stringContaining("merged:2:"),
+        }),
+      );
+      expect(gamesService.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 1, download_count: 8 }),
+      );
+      expect(gamesService.delete).toHaveBeenCalledWith(2);
+    });
+
+    it("should not merge games that share a title but not the release year", async () => {
+      gamesService.find.mockResolvedValueOnce([
+        {
+          id: 1,
+          sort_title: "game",
+          release_date: new Date("2001-01-01"),
+          download_count: 0,
+        },
+        {
+          id: 2,
+          sort_title: "game",
+          release_date: new Date("2021-01-01"),
+          download_count: 0,
+        },
+      ] as any);
+
+      const merged = await service.mergeDuplicateGames();
+
+      expect(merged).toBe(0);
+      expect(gamesService.delete).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when there are no duplicate titles", async () => {
+      gamesService.find.mockResolvedValueOnce([
+        { id: 1, sort_title: "alpha", download_count: 0 },
+        { id: 2, sort_title: "beta", download_count: 0 },
+      ] as any);
+
+      await expect(service.mergeDuplicateGames()).resolves.toBe(0);
+      expect(gamesService.delete).not.toHaveBeenCalled();
+    });
+
+    it("should migrate legacy games that have no normalized version rows", async () => {
+      const canonical = {
+        id: 1,
+        sort_title: "game",
+        file_path: "/tmp/test-files/A.zip",
+        download_count: 0,
+      } as any;
+      const duplicate = {
+        id: 2,
+        sort_title: "game",
+        file_path: "/tmp/test-files/B.zip",
+        size: 10n,
+        download_count: 0,
+      } as any;
+
+      gamesService.find.mockResolvedValueOnce([canonical, duplicate]);
+      gameVersionRepository.find.mockResolvedValueOnce([]); // no version rows
+      gamesService.findOneByGameIdOrFail.mockResolvedValueOnce(canonical);
+      vi.spyOn(
+        service as any,
+        "listAvailableVersionsFromStorage",
+      ).mockResolvedValue([
+        { file_path: "/tmp/test-files/A.zip", indexed_at: new Date() },
+        { file_path: "/tmp/test-files/B.zip", indexed_at: new Date() },
+      ]);
+
+      const merged = await service.mergeDuplicateGames();
+
+      expect(merged).toBe(1);
+      expect(gameVersionRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          game: { id: 1 },
+          file_path: "/tmp/test-files/B.zip",
+        }),
+      );
+    });
+  });
+
   describe("checkIntegrity", () => {
     it("should delete migrated games that only have soft-deleted version history", async () => {
       configuration.TESTING.MOCK_FILES = false;

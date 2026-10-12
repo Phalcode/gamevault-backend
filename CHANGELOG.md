@@ -10,6 +10,7 @@
 - Game metadata now supports umu-launcher defaults for Linux clients: `umu_game_id` (GAMEID), `umu_store` (STORE) and `umu_proton_path` (PROTONPATH) can be set once per game and are inherited by every client that installs the game.
 - Fixed uploaded games disappearing from the library until the next scan
 - Fixed file uploads consuming excessive memory
+- Fixed games whose titles only differ by capitalization
 
 ## 17.0.1
 

@@ -454,12 +454,19 @@ export class GamesService {
     }
 
     if (!foundGame) {
+      // Match on the normalized sort title as well, so titles that only differ
+      // in casing, punctuation or a leading article (e.g. "The Roottrees are
+      // Dead" vs "The Roottrees Are Dead") resolve to the same game and become
+      // versions of it instead of separate games.
+      const sortTitle =
+        game.sort_title || this.generateSortTitle(game.title ?? "");
+
       const titleCandidates =
         (await this.gamesRepository.find({
           relationLoadStrategy: "query",
-          where: {
-            title: game.title,
-          },
+          where: sortTitle
+            ? [{ title: game.title }, { sort_title: sortTitle }]
+            : { title: game.title },
           relations: this.defaultRelations,
           withDeleted: true,
         })) || [];

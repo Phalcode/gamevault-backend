@@ -164,6 +164,197 @@ export class FilesService implements OnApplicationBootstrap {
 
     this.runDebouncedIntegrityCheck.cancel();
     await this.checkIntegrity(files);
+    await this.mergeDuplicateGames();
+  }
+
+  /**
+   * Merges active games that resolve to the same normalized title and release
+   * year into one game, moving their files across as versions.
+   *
+   * Files whose titles only differ in casing, punctuation or a leading article
+   * used to be indexed as separate games (e.g. "The Roottrees are Dead" and
+   * "The Roottrees Are Dead", one Linux and one Windows build). This
+   * consolidates such games so they show up as a single game with multiple
+   * versions. It is a no-op once no duplicates remain.
+   *
+   * @returns The number of duplicate games that were merged away.
+   */
+  public async mergeDuplicateGames(): Promise<number> {
+    const games = await this.gamesService.find({
+      loadDeletedEntities: false,
+      loadRelations: false,
+      select: [
+        "id",
+        "title",
+        "sort_title",
+        "release_date",
+        "download_count",
+        "file_path",
+        "version",
+        "size",
+        "early_access",
+        "type",
+      ],
+    });
+
+    const buckets = new Map<string, GamevaultGame[]>();
+    for (const game of games) {
+      const sortTitle =
+        game.sort_title ||
+        this.gamesService.generateSortTitle(game.title ?? "");
+      if (!sortTitle) {
+        continue;
+      }
+      const key = `${sortTitle}::${this.getReleaseYearKey(game.release_date)}`;
+      const bucket = buckets.get(key);
+      if (bucket) {
+        bucket.push(game);
+      } else {
+        buckets.set(key, [game]);
+      }
+    }
+
+    let mergedCount = 0;
+    for (const bucket of buckets.values()) {
+      if (bucket.length > 1) {
+        mergedCount += await this.mergeGameBucket(bucket);
+      }
+    }
+
+    if (mergedCount > 0) {
+      this.logger.log({
+        message: "Merged duplicate games into single games.",
+        count: mergedCount,
+      });
+    }
+
+    return mergedCount;
+  }
+
+  /** Bucket key component for a game's release year. */
+  private getReleaseYearKey(releaseDate?: Date | null): string {
+    if (!releaseDate) {
+      return "none";
+    }
+    const year = new Date(releaseDate).getUTCFullYear();
+    return Number.isNaN(year) ? "none" : String(year);
+  }
+
+  /** Merges one bucket of same-title games into its oldest game. */
+  private async mergeGameBucket(bucket: GamevaultGame[]): Promise<number> {
+    const [canonical, ...duplicates] = [...bucket].sort((a, b) => a.id - b.id);
+    let mergedCount = 0;
+
+    for (const duplicate of duplicates) {
+      try {
+        await this.moveVersionsToGame(duplicate, canonical);
+
+        // `gamevault_game.file_path` is NOT NULL + UNIQUE and survives soft
+        // deletes, so release it with a unique tombstone before deleting the
+        // merged-away game. Otherwise the surviving game could not claim the
+        // same path as its migrated version.
+        if (duplicate.file_path) {
+          await this.gamesService.save(
+            Object.assign(new GamevaultGame(), {
+              id: duplicate.id,
+              file_path: `merged:${duplicate.id}:${duplicate.file_path}`,
+            }),
+          );
+        }
+
+        canonical.download_count =
+          (canonical.download_count ?? 0) + (duplicate.download_count ?? 0);
+        await this.gamesService.save(
+          Object.assign(new GamevaultGame(), {
+            id: canonical.id,
+            download_count: canonical.download_count,
+          }),
+        );
+
+        await this.gamesService.delete(duplicate.id);
+        mergedCount++;
+
+        this.logger.log({
+          message: "Merged duplicate game into another game.",
+          canonicalGameId: canonical.id,
+          mergedGameId: duplicate.id,
+        });
+      } catch (error) {
+        this.logger.error({
+          message: "Failed to merge duplicate game.",
+          canonicalGameId: canonical.id,
+          mergedGameId: duplicate.id,
+          error,
+        });
+      }
+    }
+
+    if (mergedCount > 0) {
+      try {
+        await this.refreshDefaultVersion(canonical.id);
+      } catch (error) {
+        this.logger.error({
+          message: "Failed to refresh the default version after merging.",
+          canonicalGameId: canonical.id,
+          error,
+        });
+      }
+    }
+
+    return mergedCount;
+  }
+
+  /** Repoints every version of one game to another game. */
+  private async moveVersionsToGame(
+    from: GamevaultGame,
+    to: GamevaultGame,
+  ): Promise<void> {
+    const versions = await this.gameVersionRepository.find({
+      where: { game: { id: from.id } },
+      relationLoadStrategy: "query",
+      relations: toFindOptionsRelations<GameVersion>(["game"]),
+      withDeleted: false,
+    });
+
+    for (const version of versions) {
+      version.game = { id: to.id } as GamevaultGame;
+      await this.gameVersionRepository.save(version);
+    }
+
+    // Legacy games may not have normalized version rows yet; migrate the file
+    // over so the merge also works for libraries that were never re-indexed.
+    if (versions.length === 0 && from.file_path) {
+      await this.gameVersionRepository.save(
+        Object.assign(new GameVersion(), {
+          game: { id: to.id } as GamevaultGame,
+          file_path: from.file_path,
+          version: from.version,
+          size: from.size ?? 0n,
+          release_date: from.release_date,
+          early_access: !!from.early_access,
+          type: from.type || GameType.UNDETECTABLE,
+          indexed_at: from.updated_at || new Date(),
+        }),
+      );
+    }
+  }
+
+  /** Recomputes the legacy top-level version fields of a game. */
+  private async refreshDefaultVersion(gameId: number): Promise<void> {
+    const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
+      loadDeletedEntities: false,
+    });
+    const availableVersions = sortGameVersions(
+      await this.listAvailableVersionsFromStorage(game),
+    );
+    if (availableVersions.length === 0) {
+      return;
+    }
+
+    const selectedVersion = selectDefaultGameVersion(availableVersions);
+    const gamePatch = Object.assign(new GamevaultGame(), { id: gameId });
+    this.applyVersionToGame(gamePatch, selectedVersion);
+    await this.gamesService.save(gamePatch);
   }
 
   /**
