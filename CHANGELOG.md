@@ -11,6 +11,7 @@
 - Fixed uploaded games disappearing from the library until the next scan
 - Fixed file uploads consuming excessive memory
 - Fixed games whose titles only differ by capitalization
+- Fixed OAuth2/SSO login always returning to the server's own address: the flow now returns the session to the app that started it (e.g. the desktop client), with the return address validated against trusted origins.
 
 ## 17.0.1
 
