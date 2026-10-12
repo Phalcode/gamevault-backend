@@ -8,6 +8,7 @@
 - Deleting a game now also hides it's associated bookmarks from users' bookmarked-games lists.
 - Fixed removing a bookmark from a game that was deleted from the server: unbookmarking now works even after the game is deleted, so a deleted game no longer leaves a stale bookmark you can't clear.
 - Game metadata now supports umu-launcher defaults for Linux clients: `umu_game_id` (GAMEID), `umu_store` (STORE) and `umu_proton_path` (PROTONPATH) can be set once per game and are inherited by every client that installs the game.
+- Fixed uploaded games disappearing from the library until the next scan
 
 ## 17.0.1
 

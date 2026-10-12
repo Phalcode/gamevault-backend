@@ -772,6 +772,188 @@ describe("FilesService", () => {
       expect(gameVersionRepository.softDelete).toHaveBeenCalledWith([900]);
       expect(gamesService.delete).toHaveBeenCalledWith(77);
     });
+
+    it("should keep a version file that was indexed while the scan was running", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+
+      gamesService.find.mockResolvedValueOnce([
+        {
+          id: 1294,
+          file_path: "/tmp/test-files/Order of the Sinking Star.rar",
+        },
+      ] as any);
+
+      gameVersionRepository.find
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 501,
+            game: { id: 1294 },
+            file_path: "/tmp/test-files/Order of the Sinking Star.rar",
+            version: "1.0",
+            deleted_at: undefined,
+          },
+        ] as any);
+
+      // The scan ran before the file was uploaded, so its snapshot is stale and
+      // knows nothing about the version that the watcher just indexed.
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([]);
+      // The file is of course still in storage.
+      fsExtra.pathExists.mockResolvedValue(true);
+
+      await (service as any).checkIntegrity();
+
+      expect(gameVersionRepository.softDelete).not.toHaveBeenCalled();
+      expect(gamesService.delete).not.toHaveBeenCalled();
+    });
+
+    it("should still delete a game whose version file is gone from storage", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+
+      gamesService.find.mockResolvedValueOnce([
+        { id: 1294, file_path: "/tmp/test-files/ZED ZONE.rar" },
+      ] as any);
+
+      gameVersionRepository.find
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 502,
+            game: { id: 1294 },
+            file_path: "/tmp/test-files/ZED ZONE.rar",
+            version: "1.0",
+            deleted_at: undefined,
+          },
+        ] as any);
+
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([]);
+      fsExtra.pathExists.mockImplementation(
+        async (filePath: string) => filePath === "/tmp/test-files",
+      );
+
+      await (service as any).checkIntegrity();
+
+      expect(gameVersionRepository.softDelete).toHaveBeenCalledWith([502]);
+      expect(gamesService.delete).toHaveBeenCalledWith(1294);
+    });
+
+    it("should not delete the whole library when the files volume is unreachable", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+
+      gamesService.find.mockResolvedValueOnce([
+        { id: 1, file_path: "/tmp/test-files/Game.zip" },
+      ] as any);
+
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([]);
+      // Neither the volume root nor any file is reachable.
+      fsExtra.pathExists.mockResolvedValue(false);
+
+      await (service as any).checkIntegrity();
+
+      expect(gameVersionRepository.softDelete).not.toHaveBeenCalled();
+      expect(gamesService.delete).not.toHaveBeenCalled();
+    });
+
+    it("should still delete version files that the scan configuration excludes", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+      configuration.GAMES.SEARCH_EXCLUDE_FILE_REGEX = /\.rar$/;
+
+      gamesService.find.mockResolvedValueOnce([
+        { id: 1295, file_path: "/tmp/test-files/Excluded.rar" },
+      ] as any);
+
+      gameVersionRepository.find
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 503,
+            game: { id: 1295 },
+            file_path: "/tmp/test-files/Excluded.rar",
+            version: "1.0",
+            deleted_at: undefined,
+          },
+        ] as any);
+
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([]);
+      // Present on disk, but the indexer no longer wants it in the library.
+      fsExtra.pathExists.mockResolvedValue(true);
+
+      await (service as any).checkIntegrity();
+
+      expect(gamesService.delete).toHaveBeenCalledWith(1295);
+    });
+
+    it("should only soft-delete the versions that are really gone", async () => {
+      configuration.TESTING.MOCK_FILES = false;
+
+      gamesService.find.mockResolvedValueOnce([
+        { id: 42, file_path: "/tmp/test-files/Kept.zip" },
+      ] as any);
+
+      gameVersionRepository.find
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            id: 1,
+            game: { id: 42 },
+            file_path: "/tmp/test-files/Kept.zip",
+            version: "1.0",
+            deleted_at: undefined,
+          },
+          {
+            id: 2,
+            game: { id: 42 },
+            file_path: "/tmp/test-files/Uploaded While Scanning.rar",
+            version: "1.1",
+            deleted_at: undefined,
+          },
+          {
+            id: 3,
+            game: { id: 42 },
+            file_path: "/tmp/test-files/Removed From Disk.zip",
+            version: "1.2",
+            deleted_at: undefined,
+          },
+        ] as any);
+
+      vi.spyOn(service as any, "readAllFiles").mockResolvedValueOnce([
+        { path: "/tmp/test-files/Kept.zip", size: 1 },
+      ]);
+      fsExtra.pathExists.mockImplementation(
+        async (filePath: string) =>
+          filePath === "/tmp/test-files" ||
+          filePath.includes("Uploaded While Scanning"),
+      );
+
+      await (service as any).checkIntegrity();
+
+      expect(gameVersionRepository.softDelete).toHaveBeenCalledWith([3]);
+      expect(gamesService.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("runScheduledIndex", () => {
+    it("should not start a second scan while one is still running", async () => {
+      const indexSpy = vi
+        .spyOn(service, "indexAllFiles")
+        .mockResolvedValue(undefined as any);
+      (service as any).fullIndexInProgress = true;
+
+      await (service as any).runScheduledIndex();
+
+      expect(indexSpy).not.toHaveBeenCalled();
+    });
+
+    it("should start a scan when none is running", async () => {
+      const indexSpy = vi
+        .spyOn(service, "indexAllFiles")
+        .mockResolvedValue(undefined as any);
+      (service as any).fullIndexInProgress = false;
+
+      await (service as any).runScheduledIndex();
+
+      expect(indexSpy).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("upsertReleaseRecord", () => {

@@ -54,6 +54,10 @@ export class FilesService implements OnApplicationBootstrap {
     await this.checkIntegrity();
   }, 5000);
 
+  /** True while a full filesystem scan is running, so the interval scan never
+   *  starts a second one over the same volume. */
+  private fullIndexInProgress = false;
+
   constructor(
     private readonly gamesService: GamesService,
     private readonly metadataService: MetadataService,
@@ -101,8 +105,39 @@ export class FilesService implements OnApplicationBootstrap {
         configuration.TESTING.MOCK_FILES,
     },
   )
+  /**
+   * Runs the interval scan, unless a full scan is still running.
+   *
+   * A scan can outlive its own interval on large libraries. Two scans running at
+   * the same time would each compare their own (older) file snapshot against
+   * the versions the other one just indexed, so the interval never starts a
+   * second scan. Files uploaded in the meantime are picked up by the watcher,
+   * and the running scan already covers the whole volume.
+   */
+  private async runScheduledIndex() {
+    if (this.fullIndexInProgress) {
+      this.logger.warn({
+        message: "Skipping scheduled file index.",
+        reason: "A full file index is still running.",
+      });
+      return;
+    }
+
+    await this.indexAllFiles();
+  }
+
   /** Scans the filesystem for all games and indexes them. */
   public async indexAllFiles() {
+    this.fullIndexInProgress = true;
+    try {
+      await this.performFullIndex();
+    } finally {
+      this.fullIndexInProgress = false;
+    }
+  }
+
+  /** Walks the files volume, indexes every file found and verifies the result. */
+  private async performFullIndex() {
     const files = await this.readAllFiles();
     this.logger.log({
       message: "Starting full file index.",
@@ -835,6 +870,51 @@ export class FilesService implements OnApplicationBootstrap {
   }
 
   /**
+   * Checks whether a version file that the file scan did not report is still
+   * part of the indexed storage.
+   *
+   * A scan is only a snapshot of the filesystem: a file uploaded while it runs
+   * can be indexed by the file watcher without ever appearing in that snapshot,
+   * and an interrupted scan reports just the files it saw until then. Treating
+   * those files as deleted soft-deleted perfectly fine games, which then
+   * reappeared on the next scan.
+   *
+   * Files the scan would skip right now are deliberately *not* rescued, so
+   * removing a file from the scan (an exclude pattern, or moving it out of the
+   * files volume) still removes it from the library.
+   */
+  private async isStillInStorage(filePath: string): Promise<boolean> {
+    const relativePath = path.relative(configuration.VOLUMES.FILES, filePath);
+    if (
+      !relativePath ||
+      relativePath.startsWith("..") ||
+      path.isAbsolute(relativePath)
+    ) {
+      return false;
+    }
+
+    const segments = relativePath.split(path.sep);
+    const filename = segments.pop() ?? "";
+    if (
+      !this.shouldIncludeFile(filename) ||
+      segments.some((segment) => !this.shouldIncludeDirectory(segment))
+    ) {
+      return false;
+    }
+
+    try {
+      return await pathExists(filePath);
+    } catch (error) {
+      this.logger.warn({
+        message: "Failed to check whether a version file still exists.",
+        path: filePath,
+        error,
+      });
+      return false;
+    }
+  }
+
+  /**
    * This method performs an integrity check by comparing the games in the file
    * system with the games in the database, marking the deleted games as deleted
    * in the database. Then returns the updated games in the database.
@@ -864,6 +944,22 @@ export class FilesService implements OnApplicationBootstrap {
       });
       return gamesInDatabase;
     }
+
+    // A scan that could not read the files volume at all (unmounted volume,
+    // changed `VOLUMES_FILES`, missing permissions) would mark the whole library
+    // as deleted. Refuse that instead of soft-deleting everything.
+    if (
+      gamesInFileSystem.length === 0 &&
+      !(await pathExists(configuration.VOLUMES.FILES))
+    ) {
+      this.logger.error({
+        message: "Skipping Integrity Check.",
+        reason: "The files volume is not accessible.",
+        path: configuration.VOLUMES.FILES,
+      });
+      return gamesInDatabase;
+    }
+
     this.logger.log({
       message: "Started Game Integrity Check.",
       count: gamesInDatabase.length,
@@ -873,6 +969,7 @@ export class FilesService implements OnApplicationBootstrap {
 
     const fsPaths = new Set(gamesInFileSystem.map((f) => f.path));
     const checkedGames: GamevaultGame[] = [];
+    const rescuedVersions: string[] = [];
     for (const gameInDatabase of gamesInDatabase) {
       try {
         const persistedVersions = await this.gameVersionRepository.find({
@@ -907,9 +1004,25 @@ export class FilesService implements OnApplicationBootstrap {
         } else {
           availablePersistedVersions = this.normalizeVersions(gameInDatabase);
         }
-        const existingVersions = availablePersistedVersions.filter((version) =>
-          fsPaths.has(version.file_path),
-        );
+        const existingVersions: GameVersion[] = [];
+        const missingVersions: GameVersion[] = [];
+        for (const version of availablePersistedVersions) {
+          if (fsPaths.has(version.file_path)) {
+            existingVersions.push(version);
+            continue;
+          }
+
+          // Not in the scan snapshot: it may still be on disk (see
+          // isStillInStorage), in which case the snapshot was incomplete and
+          // the version must not be treated as deleted.
+          if (await this.isStillInStorage(version.file_path)) {
+            existingVersions.push(version);
+            rescuedVersions.push(version.file_path);
+            continue;
+          }
+
+          missingVersions.push(version);
+        }
 
         // If none of the versions are available anymore, mark game as deleted.
         if (existingVersions.length === 0) {
@@ -936,9 +1049,9 @@ export class FilesService implements OnApplicationBootstrap {
           existingVersions.length !== availablePersistedVersions.length;
 
         if (versionsChanged) {
-          const staleVersionIds = activePersistedVersions
-            .filter((version) => !fsPaths.has(version.file_path))
-            .map((version) => version.id);
+          const staleVersionIds = missingVersions
+            .map((version) => version.id)
+            .filter((id): id is number => Number.isFinite(id));
 
           if (staleVersionIds.length > 0) {
             await this.gameVersionRepository.softDelete(staleVersionIds);
@@ -964,6 +1077,15 @@ export class FilesService implements OnApplicationBootstrap {
           error,
         });
       }
+    }
+    if (rescuedVersions.length > 0) {
+      this.logger.warn({
+        message: "File scan snapshot was incomplete.",
+        reason:
+          "Version files were found in storage that the file scan did not report. They were kept, but the scan should be inspected.",
+        count: rescuedVersions.length,
+        paths: rescuedVersions.slice(0, 20),
+      });
     }
     this.logger.log({
       message: "Finished Game Integrity Check.",
