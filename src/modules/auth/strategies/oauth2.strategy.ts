@@ -227,16 +227,14 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
       this.validateProfile(mergedProfile);
 
     // 4) Look up the user in the database or register a new user.
-    let user = await this.usersService
-      .findUserForAuthOrFail({
-        username: validatedProfile.preferred_username,
-        email: validatedProfile.emails?.[0]?.value,
-        idp_id: validatedProfile.id,
-      })
-      .then((user) => this.usersService.findOneByUsernameOrFail(user.username))
-      .catch(() => null);
+    let user = await this.usersService.findUserForAuth({
+      username: validatedProfile.preferred_username,
+      email: validatedProfile.emails?.[0]?.value,
+      idp_id: validatedProfile.id,
+    });
 
     if (user) {
+      user = await this.usersService.findOneByUsernameOrFail(user.username);
       this.logger.debug({
         message: "OAuth2 user found in database.",
         profile: validatedProfile,
@@ -260,6 +258,11 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
         birth_date: birth_date ?? undefined,
         // TODO: We could also store the idp_id in the database to make it possible to find users if they changed their email address.
       });
+
+      // A freshly registered user still has to pass the normal activation
+      // gate. Issuing tokens here would leave the client half logged in and
+      // every follow-up request would fail with 406.
+      this.usersService.assertUserCanAuthenticate(user);
     }
 
     req.user = user;

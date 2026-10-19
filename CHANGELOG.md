@@ -12,6 +12,7 @@
 - Fixed file uploads consuming excessive memory
 - Fixed games whose titles only differ by capitalization
 - Fixed OAuth2/SSO login always returning to the server's own address: the flow now returns the session to the app that started it (e.g. the desktop client), with the return address validated against trusted origins.
+- Fixed OAuth2/SSO logins failing with a duplicate-user error on the second attempt: newly registered SSO users now respect the account activation setting, and existing but inactive or deleted users report their real state instead of triggering another registration.
 - The desktop app origins (`http://tauri.localhost` and `tauri://localhost`) are now always allowed by CORS, even when `SERVER_CORS_ALLOWED_ORIGINS` is set, so restricting CORS no longer breaks the new desktop client.
 
 ## 17.0.1

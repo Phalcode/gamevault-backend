@@ -228,13 +228,20 @@ export class UsersService implements OnApplicationBootstrap {
     return registeredUser;
   }
 
-  /** Logs in a user with the provided username and password. */
-  public async findUserForAuthOrFail(searchBy: {
+  /**
+   * Looks up a user for authentication.
+   *
+   * Returns `null` when no user matches the given criteria. A matching user
+   * that may not authenticate (deleted or not activated) still throws, so
+   * OAuth2 can tell "new user" apart from "existing user awaiting
+   * activation".
+   */
+  public async findUserForAuth(searchBy: {
     id?: number;
     username?: string;
     email?: string;
     idp_id?: string; // TODO: Could Implement search for idp_id
-  }): Promise<GamevaultUser> {
+  }): Promise<GamevaultUser | null> {
     const where: FindOptionsWhere<GamevaultUser>[] = [];
 
     if (searchBy.id != null) {
@@ -269,11 +276,7 @@ export class UsersService implements OnApplicationBootstrap {
         loadEagerRelations: false,
       })
       .catch((error) => {
-        if (error instanceof EntityNotFoundError) {
-          throw new UnauthorizedException(
-            `Authentication Failed: User not found. If you are a new user, please register first.`,
-          );
-        }
+        if (error instanceof EntityNotFoundError) return null;
         throw new UnauthorizedException(
           "Authentication Failed: Contact an Administrator to check the server logs for more information.",
           {
@@ -281,6 +284,34 @@ export class UsersService implements OnApplicationBootstrap {
           },
         );
       });
+
+    if (!user) return null;
+
+    this.assertUserCanAuthenticate(user);
+    return user;
+  }
+
+  /** Logs in a user with the provided username and password. */
+  public async findUserForAuthOrFail(searchBy: {
+    id?: number;
+    username?: string;
+    email?: string;
+    idp_id?: string;
+  }): Promise<GamevaultUser> {
+    const user = await this.findUserForAuth(searchBy);
+    if (!user) {
+      throw new UnauthorizedException(
+        `Authentication Failed: User not found. If you are a new user, please register first.`,
+      );
+    }
+    return user;
+  }
+
+  /**
+   * Throws when a matching user may not authenticate. Admins are exempt from
+   * the activation requirement.
+   */
+  public assertUserCanAuthenticate(user: GamevaultUser): void {
     if (user.deleted_at) {
       throw new UnauthorizedException(
         "Authentication Failed: User has been deleted. Contact an Administrator to recover the User.",
@@ -291,7 +322,6 @@ export class UsersService implements OnApplicationBootstrap {
         "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
       );
     }
-    return user;
   }
 
   public cleanConfidentialUser(user: GamevaultUser): GamevaultUser {

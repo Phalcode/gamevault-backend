@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  NotAcceptableException,
   NotFoundException,
 } from "@nestjs/common";
 import { EntityNotFoundError, Repository } from "typeorm";
@@ -667,6 +668,30 @@ describe("UsersService", () => {
       await expect(
         service.checkIfUsernameMatchesIdOrIsAdminOrThrow(1, "otheruser"),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe("findUserForAuth", () => {
+    it("returns null when no user matches", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(
+        new EntityNotFoundError("User", "missing"),
+      );
+      await expect(
+        service.findUserForAuth({ username: "missing" }),
+      ).resolves.toBeNull();
+    });
+
+    it("throws for an existing inactive user instead of returning null", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({
+          activated: false,
+          role: Role.USER,
+          deleted_at: undefined,
+        }),
+      );
+      await expect(
+        service.findUserForAuth({ username: "testuser" }),
+      ).rejects.toThrow(NotAcceptableException);
     });
   });
 
