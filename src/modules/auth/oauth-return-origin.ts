@@ -1,22 +1,5 @@
 import type { AppConfiguration } from "../../configuration.js";
-
-/**
- * Origins that the GameVault desktop (Tauri) shell can load its bundled Web UI
- * from. They are fixed by the desktop runtime and never derived from user
- * input, so they are always safe to hand OAuth2 tokens back to:
- *
- * - `http://tauri.localhost` on Windows / Android
- * - `tauri://localhost` on macOS / Linux (custom protocol)
- *
- * The desktop app starts the OAuth2 flow from one of these origins and needs to
- * be redirected back to it. Returning to the GameVault server origin instead
- * (the historic behaviour) strands the desktop WebView on a remote origin where
- * the Tauri IPC / ACL is unavailable.
- */
-export const TAURI_APP_ORIGINS = [
-  "http://tauri.localhost",
-  "tauri://localhost",
-] as const;
+import { TAURI_APP_ORIGINS } from "../../tauri-app-origins.js";
 
 /**
  * Canonicalise a user-supplied origin string. Only `http`/`https` origins and

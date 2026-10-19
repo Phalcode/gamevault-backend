@@ -21,6 +21,7 @@ import configuration, {
   getCensoredConfiguration,
   getMaxBodySizeInBytes,
 } from "./configuration.js";
+import { resolveCorsOriginAllowlist } from "./cors-origins.js";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
 import logger, { stream } from "./logging.js";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
@@ -54,11 +55,13 @@ async function bootstrap(): Promise<void> {
   if (process.env.NODE_ENV !== "production") {
     app.set("json spaces", 2);
   }
-  // CORS Configuration
+  // CORS Configuration. The desktop app origins are always allowed on top of
+  // SERVER_CORS_ALLOWED_ORIGINS, so restricting CORS cannot lock the desktop
+  // client out of the server.
   app.enableCors({
-    origin: configuration.SERVER.CORS_ALLOWED_ORIGINS.length
-      ? configuration.SERVER.CORS_ALLOWED_ORIGINS
-      : true,
+    origin: resolveCorsOriginAllowlist(
+      configuration.SERVER.CORS_ALLOWED_ORIGINS,
+    ),
     credentials: true,
     methods: "*",
     allowedHeaders: "*",
