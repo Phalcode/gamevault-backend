@@ -12,6 +12,7 @@ import { OAuth2Controller } from "./controllers/oauth2.controller.js";
 import { ApiKeyGuard } from "./guards/api-key.guard.js";
 import { AuthenticationGuard } from "./guards/authentication.guard.js";
 import { AuthorizationGuard } from "./guards/authorization.guard.js";
+import { Oauth2Guard } from "./guards/oauth2.guard.js";
 import { Session } from "./session.entity.js";
 import { AuthenticationStrategy } from "./strategies/authentication.strategy.js";
 import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy.js";
@@ -59,7 +60,7 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy.js";
       useClass: AuthorizationGuard,
     },
     ...(configuration.AUTH.BASIC_AUTH.ENABLED ? [BasicAuthStrategy] : []),
-    ...(configuration.AUTH.OAUTH2.ENABLED ? [OAuth2Strategy] : []),
+    ...(configuration.AUTH.OAUTH2.ENABLED ? [OAuth2Strategy, Oauth2Guard] : []),
   ],
   exports: [AuthenticationService],
 })

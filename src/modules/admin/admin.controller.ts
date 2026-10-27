@@ -16,9 +16,14 @@ import {
 } from "@nestjs/swagger";
 
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import {
+  REQUIRED_UPLOAD_FILE_PIPE,
+  UPLOAD_FIELD_NAME,
+} from "../../uploads/streamed-upload.js";
 import { DatabaseService } from "../database/database.service.js";
 import { Role } from "../users/models/role.enum.js";
 import { WebUIService } from "../web-ui/web-ui.service.js";
+import { databaseRestoreMulterOptions } from "./database-restore.multer.js";
 
 @ApiBearerAuth()
 @ApiSecurity("apikey")
@@ -63,10 +68,14 @@ export class AdminController {
       "This header should include the database password. Without the correct password, your request will be denied.",
     example: "SecretPassword123",
   })
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(
+    FileInterceptor(UPLOAD_FIELD_NAME, databaseRestoreMulterOptions),
+  )
   @MinimumRole(Role.ADMIN)
   async postAdminDatabaseRestore(
-    @UploadedFile()
+    // The interceptor streams the dump to a temporary file on disk; the database
+    // service reads it directly and cleans it up afterwards.
+    @UploadedFile(REQUIRED_UPLOAD_FILE_PIPE)
     file: Express.Multer.File,
     @Headers("X-Database-Password") password: string,
   ) {

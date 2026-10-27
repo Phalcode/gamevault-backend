@@ -87,7 +87,7 @@ describe("StatusService", () => {
       const initialLength = service.getExtensive().protocol!.length;
       service.set(StatusEnum.UNHEALTHY, "Something went wrong");
       const result = service.getExtensive();
-      expect(result.protocol!.length).toBe(initialLength + 1);
+      expect(result.protocol!).toHaveLength(initialLength + 1);
     });
 
     it("should record the reason in protocol", () => {

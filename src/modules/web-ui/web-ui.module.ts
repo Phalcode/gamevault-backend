@@ -1,6 +1,6 @@
 import { Logger, Module, OnModuleInit } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
-import { join, resolve } from "path";
+import { join, resolve } from "node:path";
 import configuration from "../../configuration.js";
 import { WebUIService } from "./web-ui.service.js";
 

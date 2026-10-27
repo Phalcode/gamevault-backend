@@ -230,6 +230,29 @@ export class GameMetadata extends DatabaseEntity implements Metadata {
   })
   uninstaller_executable?: string;
 
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description:
+      "Default umu-launcher GAMEID for the game (used on Linux to apply the matching protonfixes).",
+    example: "umu-12345",
+  })
+  umu_game_id?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description: "Default umu-launcher STORE for the game.",
+    example: "egs",
+  })
+  umu_store?: string;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
+    description:
+      "Default umu-launcher PROTONPATH for the game, i.e. the Proton build folder name inside compatibilitytools.d.",
+    example: "GE-Proton9-5",
+  })
+  umu_proton_path?: string;
+
   @JoinTable({
     name: "game_metadata_publishers_publisher_metadata",
     joinColumn: {

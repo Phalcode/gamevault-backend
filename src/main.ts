@@ -12,15 +12,16 @@ import helmet from "helmet";
 import morgan from "morgan";
 //import { AsyncApiDocumentBuilder, AsyncApiModule } from "nestjs-asyncapi";
 
-import { createHash } from "crypto";
 import express, { type Request, type Response } from "express";
 import session from "express-session";
-import { createServer as createHttpsServer } from "https";
+import { createHash } from "node:crypto";
+import { createServer as createHttpsServer } from "node:https";
 import { AppModule } from "./app.module.js";
 import configuration, {
   getCensoredConfiguration,
   getMaxBodySizeInBytes,
 } from "./configuration.js";
+import { resolveCorsOriginAllowlist } from "./cors-origins.js";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
 import logger, { stream } from "./logging.js";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
@@ -38,6 +39,8 @@ async function bootstrap(): Promise<void> {
   Reflect.defineMetadata("imports", modules, AppModule);
   // Create App
   const server = express();
+  // Prevent Express from disclosing its version via the `X-Powered-By` header.
+  server.disable("x-powered-by");
   const app = await NestFactory.create<NestExpressApplication>(
     AppModule,
     new ExpressAdapter(server),
@@ -52,11 +55,13 @@ async function bootstrap(): Promise<void> {
   if (process.env.NODE_ENV !== "production") {
     app.set("json spaces", 2);
   }
-  // CORS Configuration
+  // CORS Configuration. The desktop app origins are always allowed on top of
+  // SERVER_CORS_ALLOWED_ORIGINS, so restricting CORS cannot lock the desktop
+  // client out of the server.
   app.enableCors({
-    origin: configuration.SERVER.CORS_ALLOWED_ORIGINS.length
-      ? configuration.SERVER.CORS_ALLOWED_ORIGINS
-      : true,
+    origin: resolveCorsOriginAllowlist(
+      configuration.SERVER.CORS_ALLOWED_ORIGINS,
+    ),
     credentials: true,
     methods: "*",
     allowedHeaders: "*",
@@ -281,7 +286,9 @@ async function bootstrap(): Promise<void> {
 }
 
 Error.stackTraceLimit = configuration.SERVER.STACK_TRACE_LIMIT ?? 10;
-bootstrap().catch((error) => {
+try {
+  await bootstrap();
+} catch (error) {
   logger.error({ message: "A fatal error occured", error });
   throw error;
-});
+}

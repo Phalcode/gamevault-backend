@@ -1,11 +1,26 @@
 # GameVault Backend Server Changelog
 
+## 17.1.0
+
+### Changes
+
+- Fixed the generated OpenAPI/Swagger API specification: endpoints that bind path parameters through a combined DTO (e.g. `GET /api/users/:user_id`, `GET /api/games/:game_id`) now declare those path parameters correctly, so the API docs and auto-generated clients work as expected.
+- Deleting a game now also hides it's associated bookmarks from users' bookmarked-games lists.
+- Fixed removing a bookmark from a game that was deleted from the server: unbookmarking now works even after the game is deleted, so a deleted game no longer leaves a stale bookmark you can't clear.
+- Game metadata now supports umu-launcher defaults for Linux clients: `umu_game_id` (GAMEID), `umu_store` (STORE) and `umu_proton_path` (PROTONPATH) can be set once per game and are inherited by every client that installs the game.
+- Fixed uploaded games disappearing from the library until the next scan
+- Fixed file uploads consuming excessive memory
+- Fixed games whose titles only differ by capitalization
+- Fixed OAuth2/SSO login always returning to the server's own address: the flow now returns the session to the app that started it (e.g. the desktop client), with the return address validated against trusted origins.
+- Fixed OAuth2/SSO logins failing with a duplicate-user error on the second attempt: newly registered SSO users now respect the account activation setting, and existing but inactive or deleted users report their real state instead of triggering another registration.
+- The desktop app origins (`http://tauri.localhost` and `tauri://localhost`) are now always allowed by CORS, even when `SERVER_CORS_ALLOWED_ORIGINS` is set, so restricting CORS no longer breaks the new desktop client.
+
 ## 17.0.1
 
 ### Changes
 
 - Fixed re-indexing overwriting user-defined game titles and sort titles: the indexer now only derives `title`/`sort_title` from the file name when the user has not overridden them, so custom sort titles survive every re-index (startup, scheduled index, integrity checks).
-- Fixed progress deletion authorization: the permission check now verifies the *requesting* user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
+- Fixed progress deletion authorization: the permission check now verifies the _requesting_ user's role, so administrators can delete progress entries of other users (previously only the target user's own role was evaluated, which incorrectly blocked admins).
 - The server now shuts down gracefully on `SIGTERM`/`SIGINT`, draining in-flight requests and closing the HTTP/HTTPS servers cleanly.
 
 ### Thanks
@@ -19,6 +34,7 @@
 - [#236](https://github.com/Phalcode/gamevault-backend/issues/236) Introduced support for multiple game versions -> **Existing game rows are migrated automatically.**
 - Deprecated top-level game version fields (`version`, `file_path`, `size`, `release_date`, `early_access`, `type`) in favor of the new `game_version` table. -> **If you rely on these fields, update your clients to use the new version structure before migrating.**
 - Duplicate handling now merges files with the same title into one game entity more consistently (year-tagged files merge by matching release year, untagged files merge into a no-year bucket first). -> **If you previously relied on same-title duplicates as separate game entries, rename titles explicitly (e.g. with square brackets) to keep them separate.**
+- The backend now requires plugins to be compiled as ESM: plugins built for the pre-ESM (CommonJS) backend no longer load, and relative imports must include explicit `.js` extensions. -> **Rebuild any custom plugins together with the backend (`pnpm build`), fix relative imports to include `.js`, and use `export default` for the plugin module class. See example plugin for details.**
 
 ### Changes
 

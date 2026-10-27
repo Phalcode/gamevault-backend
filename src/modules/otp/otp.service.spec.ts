@@ -48,8 +48,6 @@ describe("OtpService", () => {
         42,
         7,
         1024,
-        undefined,
-        undefined,
       );
     });
 
@@ -99,8 +97,6 @@ describe("OtpService", () => {
         99,
         undefined,
         2048,
-        undefined,
-        undefined,
       );
     });
 
@@ -116,8 +112,6 @@ describe("OtpService", () => {
         101,
         33,
         4096,
-        undefined,
-        undefined,
       );
     });
   });

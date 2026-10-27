@@ -12,8 +12,8 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { hash } from "bcrypt";
-import { randomBytes } from "crypto";
 import lodash from "lodash";
+import { randomBytes } from "node:crypto";
 import {
   EntityNotFoundError,
   type FindManyOptions,
@@ -39,6 +39,11 @@ import { Role } from "./models/role.enum.js";
 import { type UpdateUserDto } from "./models/update-user.dto.js";
 
 const { toLower } = lodash;
+
+const DEFAULT_USER_FIND_OPTIONS: FindOptions = {
+  loadRelations: true,
+  loadDeletedEntities: true,
+};
 
 @Injectable()
 export class UsersService implements OnApplicationBootstrap {
@@ -97,7 +102,7 @@ export class UsersService implements OnApplicationBootstrap {
    */
   public async findOneByUserIdOrFail(
     id: number,
-    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
+    options: FindOptions = DEFAULT_USER_FIND_OPTIONS,
   ): Promise<GamevaultUser> {
     let relationPaths: string[] = [];
 
@@ -135,13 +140,13 @@ export class UsersService implements OnApplicationBootstrap {
           cause: error,
         });
       });
-    return this.filterDeletedProgresses(user);
+    return this.filterDeletedContent(user);
   }
 
   /** Get user by username or throw an exception if not found */
   public async findOneByUsernameOrFail(
     username: string,
-    options: FindOptions = { loadRelations: true, loadDeletedEntities: true },
+    options: FindOptions = DEFAULT_USER_FIND_OPTIONS,
   ): Promise<GamevaultUser> {
     let relationPaths: string[] = [];
 
@@ -175,7 +180,7 @@ export class UsersService implements OnApplicationBootstrap {
           },
         );
       });
-    return this.filterDeletedProgresses(user);
+    return this.filterDeletedContent(user);
   }
 
   public async find(
@@ -223,13 +228,20 @@ export class UsersService implements OnApplicationBootstrap {
     return registeredUser;
   }
 
-  /** Logs in a user with the provided username and password. */
-  public async findUserForAuthOrFail(searchBy: {
+  /**
+   * Looks up a user for authentication.
+   *
+   * Returns `null` when no user matches the given criteria. A matching user
+   * that may not authenticate (deleted or not activated) still throws, so
+   * OAuth2 can tell "new user" apart from "existing user awaiting
+   * activation".
+   */
+  public async findUserForAuth(searchBy: {
     id?: number;
     username?: string;
     email?: string;
     idp_id?: string; // TODO: Could Implement search for idp_id
-  }): Promise<GamevaultUser> {
+  }): Promise<GamevaultUser | null> {
     const where: FindOptionsWhere<GamevaultUser>[] = [];
 
     if (searchBy.id != null) {
@@ -264,11 +276,7 @@ export class UsersService implements OnApplicationBootstrap {
         loadEagerRelations: false,
       })
       .catch((error) => {
-        if (error instanceof EntityNotFoundError) {
-          throw new UnauthorizedException(
-            `Authentication Failed: User not found. If you are a new user, please register first.`,
-          );
-        }
+        if (error instanceof EntityNotFoundError) return null;
         throw new UnauthorizedException(
           "Authentication Failed: Contact an Administrator to check the server logs for more information.",
           {
@@ -276,6 +284,34 @@ export class UsersService implements OnApplicationBootstrap {
           },
         );
       });
+
+    if (!user) return null;
+
+    this.assertUserCanAuthenticate(user);
+    return user;
+  }
+
+  /** Logs in a user with the provided username and password. */
+  public async findUserForAuthOrFail(searchBy: {
+    id?: number;
+    username?: string;
+    email?: string;
+    idp_id?: string;
+  }): Promise<GamevaultUser> {
+    const user = await this.findUserForAuth(searchBy);
+    if (!user) {
+      throw new UnauthorizedException(
+        `Authentication Failed: User not found. If you are a new user, please register first.`,
+      );
+    }
+    return user;
+  }
+
+  /**
+   * Throws when a matching user may not authenticate. Admins are exempt from
+   * the activation requirement.
+   */
+  public assertUserCanAuthenticate(user: GamevaultUser): void {
     if (user.deleted_at) {
       throw new UnauthorizedException(
         "Authentication Failed: User has been deleted. Contact an Administrator to recover the User.",
@@ -286,7 +322,6 @@ export class UsersService implements OnApplicationBootstrap {
         "Authorization Failed: User is not activated. Contact an Administrator to activate the User.",
       );
     }
-    return user;
   }
 
   public cleanConfidentialUser(user: GamevaultUser): GamevaultUser {
@@ -521,7 +556,8 @@ export class UsersService implements OnApplicationBootstrap {
       .of(user)
       .add(game);
 
-    (user.bookmarked_games ??= []).push(game);
+    user.bookmarked_games ??= [];
+    user.bookmarked_games.push(game);
 
     this.logger.log({
       message: "User bookmarked game.",
@@ -537,12 +573,26 @@ export class UsersService implements OnApplicationBootstrap {
       loadDeletedEntities: false,
       loadRelations: ["bookmarked_games"],
     });
-    if (!(user.bookmarked_games ?? []).some((game) => game.id === gameId)) {
+
+    // The in-memory `bookmarked_games` list omits soft-deleted games (they are
+    // filtered so deleted titles stay off the "Bookmarked" shelf), so the naive
+    // `.some()` check would miss a bookmark on a game that was deleted from the
+    // server. Look the relation up through the repository (including deleted
+    // entities) so the bookmark can always be removed — even after the game is
+    // gone.
+    const userWithBookmark = await this.userRepository.findOne({
+      where: {
+        id: userId,
+        bookmarked_games: { id: gameId },
+      },
+      withDeleted: true,
+    });
+    if (!userWithBookmark) {
       return user;
     }
 
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
-      loadDeletedEntities: false,
+      loadDeletedEntities: true,
     });
 
     await this.userRepository
@@ -617,11 +667,16 @@ export class UsersService implements OnApplicationBootstrap {
     }
   }
 
-  /** Filters deleted progresses from the user. */
-  private filterDeletedProgresses(user: GamevaultUser) {
+  /** Filters deleted progresses and deleted bookmarked games from the user. */
+  private filterDeletedContent(user: GamevaultUser) {
     if (user.progresses) {
       user.progresses = user.progresses.filter(
         (progress) => !progress.deleted_at,
+      );
+    }
+    if (user.bookmarked_games) {
+      user.bookmarked_games = user.bookmarked_games.filter(
+        (game) => !game.deleted_at,
       );
     }
     return user;

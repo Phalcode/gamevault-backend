@@ -527,4 +527,131 @@ describe("MetadataService", () => {
       expect(result).toBe(game);
     });
   });
+
+  describe("updateMetadata", () => {
+    it("throws NotFoundException for an undefined game", async () => {
+      await expect((service as any).updateMetadata(undefined)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it("skips (NC) games without merging", async () => {
+      service.registerProvider(createMockProvider({ enabled: true }));
+      const game = {
+        id: 1,
+        file_path: "/files/Game(NC).zip",
+        provider_metadata: [],
+        versions: [],
+      } as any;
+      const mergeSpy = vi
+        .spyOn(service as any, "merge")
+        .mockResolvedValue(undefined);
+      await (service as any).updateMetadata(game);
+      expect(mergeSpy).not.toHaveBeenCalled();
+    });
+
+    it("skips providers whose metadata is still fresh", async () => {
+      service.registerProvider(createMockProvider({ enabled: true }));
+      const game = {
+        id: 1,
+        file_path: "/files/Game.zip",
+        provider_metadata: [
+          {
+            provider_slug: "test-provider",
+            provider_data_id: "123",
+            updated_at: new Date(),
+          },
+        ],
+        versions: [],
+      } as any;
+      const mapSpy = vi
+        .spyOn(service as any, "map")
+        .mockResolvedValue(undefined);
+      const findSpy = vi
+        .spyOn(service as any, "findMetadata")
+        .mockResolvedValue(undefined);
+      const mergeSpy = vi
+        .spyOn(service as any, "merge")
+        .mockResolvedValue(undefined);
+
+      await (service as any).updateMetadata(game);
+
+      expect(mapSpy).not.toHaveBeenCalled();
+      expect(findSpy).not.toHaveBeenCalled();
+      expect(mergeSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("maps when existing provider metadata is stale", async () => {
+      service.registerProvider(createMockProvider({ enabled: true }));
+      const stale = new Date(Date.now() - 1000 * 60 * 60 * 24 * 60);
+      const game = {
+        id: 1,
+        file_path: "/files/Game.zip",
+        provider_metadata: [
+          {
+            provider_slug: "test-provider",
+            provider_data_id: "123",
+            updated_at: stale,
+          },
+        ],
+        versions: [],
+      } as any;
+      const mapSpy = vi
+        .spyOn(service as any, "map")
+        .mockResolvedValue(undefined);
+      const mergeSpy = vi
+        .spyOn(service as any, "merge")
+        .mockResolvedValue(undefined);
+
+      await (service as any).updateMetadata(game);
+
+      expect(mapSpy).toHaveBeenCalledWith(1, "test-provider", "123");
+      expect(mergeSpy).toHaveBeenCalledWith(1);
+    });
+
+    it("calls findMetadata when there is no existing provider metadata", async () => {
+      service.registerProvider(createMockProvider({ enabled: true }));
+      const game = {
+        id: 1,
+        file_path: "/files/Game.zip",
+        provider_metadata: [],
+        versions: [],
+      } as any;
+      const findSpy = vi
+        .spyOn(service as any, "findMetadata")
+        .mockResolvedValue(undefined);
+      const mergeSpy = vi
+        .spyOn(service as any, "merge")
+        .mockResolvedValue(undefined);
+
+      await (service as any).updateMetadata(game);
+
+      expect(findSpy).toHaveBeenCalledWith(game, expect.anything());
+      expect(mergeSpy).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("processQueue", () => {
+    it("processes each job and isolates errors", async () => {
+      service.registerProvider(createMockProvider({ enabled: true }));
+      const game = {
+        id: 1,
+        file_path: "/files/Game.zip",
+        provider_metadata: [],
+        versions: [],
+      } as any;
+      const updateSpy = vi
+        .spyOn(service as any, "updateMetadata")
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error("boom"));
+
+      (service as any).metadataJobs.set(1, game);
+      (service as any).metadataJobs.set(2, { ...game, id: 2 });
+
+      await (service as any).processQueue();
+
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect((service as any).metadataJobs.size).toBe(0);
+    });
+  });
 });

@@ -1,11 +1,8 @@
 import {
   Controller,
-  FileTypeValidator,
   Get,
   Logger,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Post,
   Req,
   Request,
@@ -24,7 +21,6 @@ import {
   ApiSecurity,
   ApiTags,
 } from "@nestjs/swagger";
-import bytes from "bytes";
 import { type Response } from "express";
 import fsExtra from "fs-extra";
 const { createReadStream, stat } = fsExtra;
@@ -32,8 +28,13 @@ const { createReadStream, stat } = fsExtra;
 import configuration from "../../configuration.js";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
+import {
+  REQUIRED_UPLOAD_FILE_PIPE,
+  UPLOAD_FIELD_NAME,
+} from "../../uploads/streamed-upload.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
+import { mediaUploadMulterOptions } from "./media-upload.multer.js";
 import { Media } from "./media.entity.js";
 import { MediaService } from "./media.service.js";
 
@@ -79,7 +80,7 @@ export class MediaController {
       const ifNoneMatch = req.headers.get("if-none-match");
       const ifModifiedSince = req.headers.get("if-modified-since");
       const notModified =
-        (ifNoneMatch != null && ifNoneMatch.includes(etag)) ||
+        ifNoneMatch?.includes(etag) ||
         (ifNoneMatch == null &&
           ifModifiedSince != null &&
           new Date(ifModifiedSince).getTime() >= fileStat.mtime.getTime());
@@ -139,30 +140,14 @@ export class MediaController {
     type: () => Media,
     description: "The uploaded media",
   })
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor(UPLOAD_FIELD_NAME, mediaUploadMulterOptions))
   @MinimumRole(Role.USER)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   postMedia(
     @Request() req: { user: GamevaultUser },
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize:
-              configuration.MEDIA.MAX_SIZE ??
-              bytes("100mb") ??
-              Number.MAX_SAFE_INTEGER,
-            message: `File exceeds maximum allowed size of ${bytes(
-              configuration.MEDIA.MAX_SIZE ??
-                bytes("100mb") ??
-                Number.MAX_SAFE_INTEGER,
-              { unit: "MB", thousandsSeparator: "." },
-            )}.`,
-          }),
-          new FileTypeValidator({ fileType: /^(image|video|audio)\/.*/ }),
-        ],
-      }),
-    )
+    // The interceptor above streams the upload to a temporary file on disk; the
+    // media service validates the content and moves it into the media volume.
+    @UploadedFile(REQUIRED_UPLOAD_FILE_PIPE)
     file: Express.Multer.File,
   ) {
     return this.mediaService.upload(file, req.user.username);

@@ -56,6 +56,16 @@ describe("AuthenticationService", () => {
     );
   });
 
+  describe("cleanupOldSessions", () => {
+    it("deletes sessions whose expiry is older than 3x the refresh lifetime", async () => {
+      sessionRepository.delete.mockResolvedValue({ affected: 5 } as any);
+      await (service as any).cleanupOldSessions();
+      expect(sessionRepository.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ expires_at: expect.anything() }),
+      );
+    });
+  });
+
   describe("login", () => {
     it("should return access and refresh tokens on successful login", async () => {
       const mockUser = createMockUser();
@@ -158,8 +168,9 @@ describe("AuthenticationService", () => {
 
     it("should handle revoking non-existent session gracefully", async () => {
       sessionRepository.findOne.mockResolvedValue(null);
-      // Should not throw
       await service.revoke({ refresh_token: "nonexistent-token" });
+      // No session found, so no save should happen.
+      expect(sessionRepository.save).not.toHaveBeenCalled();
     });
   });
 

@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import fs from "fs-extra";
 import node7z from "node-7z";
+import { join } from "node:path";
+import { Readable } from "node:stream";
 import * as streamWeb from "node:stream/web";
-import { join } from "path";
 import * as semver from "semver";
-import { Readable } from "stream";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 const { extractFull } = node7z;
@@ -48,12 +48,12 @@ export class WebUIService {
     await fs.ensureDir(this.cachePath);
 
     try {
-      this.compatibleVersion = forcedVersion
-        ? forcedVersion
-        : this.getCompatibleOrFallbackRelease(
-            serverVersion,
-            await this.fetchReleases(),
-          ).tag_name;
+      this.compatibleVersion =
+        forcedVersion ||
+        this.getCompatibleOrFallbackRelease(
+          serverVersion,
+          await this.fetchReleases(),
+        ).tag_name;
 
       if (await this.isCached(this.compatibleVersion)) {
         this.logger.log({

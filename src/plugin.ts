@@ -1,8 +1,8 @@
 import fsExtra from "fs-extra";
-import path, { join, resolve } from "path";
+import path, { join, resolve } from "node:path";
 import configuration from "./configuration.js";
 import { type GameVaultPluginModule } from "./globals.js";
-import { default as logger } from "./logging.js";
+import logger from "./logging.js";
 const { copy, mkdir, readdir } = fsExtra;
 
 export default async function loadPlugins() {

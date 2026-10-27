@@ -283,12 +283,12 @@ export class IgdbMetadataProviderService extends MetadataProvider {
     releaseDate:
       igdbModels.IGame["first_release_date"] | number | null | undefined,
   ): Date | undefined {
-    const seconds =
-      typeof releaseDate === "number"
-        ? releaseDate
-        : typeof releaseDate?.seconds === "number"
-          ? releaseDate.seconds
-          : undefined;
+    let seconds: number | undefined;
+    if (typeof releaseDate === "number") {
+      seconds = releaseDate;
+    } else if (typeof releaseDate?.seconds === "number") {
+      seconds = releaseDate.seconds;
+    }
 
     if (seconds === undefined) {
       return undefined;

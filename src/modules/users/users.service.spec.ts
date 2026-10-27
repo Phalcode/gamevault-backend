@@ -1,5 +1,10 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
-import { Repository } from "typeorm";
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotAcceptableException,
+  NotFoundException,
+} from "@nestjs/common";
+import { EntityNotFoundError, Repository } from "typeorm";
 import type { Mocked } from "vitest";
 import configuration from "../../configuration.js";
 import { GamesService } from "../games/games.service.js";
@@ -158,6 +163,19 @@ describe("UsersService", () => {
       const result = await service.findOneByUserIdOrFail(1);
       expect(result.progresses!).toHaveLength(1);
       expect(result.progresses![0].id).toBe(1);
+    });
+
+    it("should filter deleted bookmarked games", async () => {
+      const mockUser = createMockUser({
+        bookmarked_games: [
+          { id: 1, deleted_at: null } as any,
+          { id: 2, deleted_at: new Date() } as any,
+        ],
+      });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      const result = await service.findOneByUserIdOrFail(1);
+      expect(result.bookmarked_games!).toHaveLength(1);
+      expect(result.bookmarked_games![0].id).toBe(1);
     });
   });
 
@@ -320,6 +338,222 @@ describe("UsersService", () => {
       const result = await service.update(1, { activated: true } as any, true);
       expect(result.activated).toBe(true);
     });
+
+    it("should update email", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(null);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(1, {
+        email: "new@example.com",
+      } as any);
+      expect(result.email).toBe("new@example.com");
+    });
+
+    it("should reject a duplicate username", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(
+        createMockUser({ username: "newname" }),
+      );
+
+      await expect(
+        service.update(1, { username: "newname" } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should reject a duplicate email", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(
+        createMockUser({ username: "other", email: "new@example.com" }),
+      );
+
+      await expect(
+        service.update(1, { email: "new@example.com" } as any),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should update first_name and last_name", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(1, {
+        first_name: "A",
+        last_name: "B",
+      } as any);
+      expect(result.first_name).toBe("A");
+      expect(result.last_name).toBe("B");
+    });
+
+    it("should hash a new password", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await service.update(1, { password: "newpass" } as any);
+      expect(result.password).not.toBe("hashedpassword");
+      expect(result.password).toMatch(/^\$2/);
+    });
+
+    it("should set avatar and background via mediaService", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+      mediaService.findOneByMediaIdOrFail
+        .mockResolvedValueOnce({ id: 5 } as any)
+        .mockResolvedValueOnce({ id: 6 } as any);
+
+      const result = await service.update(1, {
+        avatar_id: 5,
+        background_id: 6,
+      } as any);
+      expect(result.avatar).toMatchObject({ id: 5 });
+      expect(result.background).toMatchObject({ id: 6 });
+    });
+  });
+
+  describe("throwIfAlreadyExists", () => {
+    it("should throw BadRequestException when neither username nor email is given", async () => {
+      await expect(
+        (service as any).throwIfAlreadyExists(undefined, undefined),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe("update birth date age gate", () => {
+    const restrictedService = () =>
+      new UsersService(userRepository, mediaService, gamesService, {
+        ...configuration,
+        PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+      } as any);
+
+    const minorBirthDate = () => {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 16);
+      return d;
+    };
+
+    it("should throw ForbiddenException when a minor updates their birth date", async () => {
+      const restricted = restrictedService();
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: minorBirthDate(), role: Role.USER }),
+      );
+
+      await expect(
+        restricted.update(1, { birth_date: "2000-01-01" } as any, false),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("should allow an adult to update their birth date", async () => {
+      const restricted = restrictedService();
+      const adult = new Date();
+      adult.setFullYear(adult.getFullYear() - 20);
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: adult, role: Role.USER }),
+      );
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await restricted.update(
+        1,
+        { birth_date: "2000-01-01" } as any,
+        false,
+      );
+      expect(result.birth_date?.getUTCFullYear()).toBe(2000);
+    });
+
+    it("should allow an admin to update a minor's birth date", async () => {
+      const restricted = restrictedService();
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: minorBirthDate(), role: Role.ADMIN }),
+      );
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      const result = await restricted.update(
+        1,
+        { birth_date: "2000-01-01" } as any,
+        false,
+      );
+      expect(result.birth_date?.getUTCFullYear()).toBe(2000);
+    });
+  });
+
+  describe("findUserAgeByUsername", () => {
+    it("should return undefined when age restriction is disabled", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: new Date() }),
+      );
+      await expect(
+        service.findUserAgeByUsername("testuser"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("should return undefined for an admin user", async () => {
+      const restricted = new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.ADMIN }),
+      );
+      await expect(
+        restricted.findUserAgeByUsername("testuser"),
+      ).resolves.toBeUndefined();
+    });
+
+    it("should return the calculated age for a non-admin user", async () => {
+      const restricted = new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
+      const birth = new Date();
+      birth.setFullYear(birth.getFullYear() - 20);
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ birth_date: birth, role: Role.USER }),
+      );
+      await expect(restricted.findUserAgeByUsername("testuser")).resolves.toBe(
+        20,
+      );
+    });
+  });
+
+  describe("checkIfUsernameIsAtLeastRole", () => {
+    it("should return true when the user has at least the required role", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.ADMIN }),
+      );
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("testuser", Role.ADMIN),
+      ).resolves.toBe(true);
+    });
+
+    it("should return false when the user has a lower role", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({ role: Role.USER }),
+      );
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("testuser", Role.ADMIN),
+      ).resolves.toBe(false);
+    });
+
+    it("should return false when the user is not found", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(new Error("not found"));
+      await expect(
+        service.checkIfUsernameIsAtLeastRole("missing", Role.ADMIN),
+      ).resolves.toBe(false);
+    });
   });
 
   describe("bookmarkGame", () => {
@@ -354,6 +588,7 @@ describe("UsersService", () => {
       const mockGame = { id: 5, title: "Test Game" } as any;
       const mockUser = createMockUser({ bookmarked_games: [mockGame] });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(mockUser);
       gamesService.findOneByGameIdOrFail.mockResolvedValue(mockGame);
       const mockQb = {
         relation: vi.fn().mockReturnThis(),
@@ -369,8 +604,34 @@ describe("UsersService", () => {
     it("should do nothing if game is not bookmarked", async () => {
       const mockUser = createMockUser({ bookmarked_games: [] });
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(null);
 
       const result = await service.unbookmarkGame(1, 5);
+      expect(result.bookmarked_games).toHaveLength(0);
+    });
+
+    it("should unbookmark a game that was deleted from the server", async () => {
+      const deletedGame = {
+        id: 5,
+        title: "Test Game",
+        deleted_at: new Date(),
+      } as any;
+      // The deleted game is filtered out of the user's in-memory bookmarked
+      // list, but the bookmark row still exists in the database.
+      const mockUser = createMockUser({ bookmarked_games: [] });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.findOne.mockResolvedValue(mockUser);
+      gamesService.findOneByGameIdOrFail.mockResolvedValue(deletedGame);
+      const mockQb = {
+        relation: vi.fn().mockReturnThis(),
+        of: vi.fn().mockReturnThis(),
+        remove: vi.fn().mockResolvedValue(undefined),
+      };
+      userRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      const result = await service.unbookmarkGame(1, 5);
+      expect(userRepository.findOne).toHaveBeenCalled();
+      expect(mockQb.remove).toHaveBeenCalled();
       expect(result.bookmarked_games).toHaveLength(0);
     });
   });
@@ -410,6 +671,30 @@ describe("UsersService", () => {
     });
   });
 
+  describe("findUserForAuth", () => {
+    it("returns null when no user matches", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(
+        new EntityNotFoundError("User", "missing"),
+      );
+      await expect(
+        service.findUserForAuth({ username: "missing" }),
+      ).resolves.toBeNull();
+    });
+
+    it("throws for an existing inactive user instead of returning null", async () => {
+      userRepository.findOneOrFail.mockResolvedValue(
+        createMockUser({
+          activated: false,
+          role: Role.USER,
+          deleted_at: undefined,
+        }),
+      );
+      await expect(
+        service.findUserForAuth({ username: "testuser" }),
+      ).rejects.toThrow(NotAcceptableException);
+    });
+  });
+
   describe("findUserForAuthOrFail", () => {
     it("should return user for valid credentials", async () => {
       const mockUser = createMockUser({
@@ -441,6 +726,41 @@ describe("UsersService", () => {
       await expect(
         service.findUserForAuthOrFail({ username: "testuser" }),
       ).rejects.toThrow("Authorization Failed: User is not activated");
+    });
+
+    it("should throw BadRequestException when no criteria are provided", async () => {
+      await expect(service.findUserForAuthOrFail({} as any)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it("should allow an inactive admin to authenticate", async () => {
+      const mockUser = createMockUser({
+        activated: false,
+        role: Role.ADMIN,
+        deleted_at: undefined,
+      });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      const result = await service.findUserForAuthOrFail({
+        username: "testuser",
+      });
+      expect(result.role).toBe(Role.ADMIN);
+    });
+
+    it("should throw UnauthorizedException when the user is not found", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(
+        new EntityNotFoundError("User", "missing"),
+      );
+      await expect(
+        service.findUserForAuthOrFail({ username: "missing" }),
+      ).rejects.toThrow("Authentication Failed: User not found");
+    });
+
+    it("should throw UnauthorizedException on unexpected errors", async () => {
+      userRepository.findOneOrFail.mockRejectedValue(new Error("db down"));
+      await expect(
+        service.findUserForAuthOrFail({ username: "testuser" }),
+      ).rejects.toThrow("Contact an Administrator");
     });
   });
 });

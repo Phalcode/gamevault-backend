@@ -1,4 +1,18 @@
-import { NotAcceptableException, UnauthorizedException } from "@nestjs/common";
+import {
+  InternalServerErrorException,
+  NotAcceptableException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import configuration from "../../configuration.js";
 
 import { DatabaseService } from "./database.service.js";
@@ -139,6 +153,148 @@ describe("DatabaseService", () => {
       ).rejects.toThrow(NotAcceptableException);
 
       config.TESTING.IN_MEMORY_DB = false;
+    });
+  });
+
+  describe("backup/restore routing", () => {
+    it("throws InternalServerErrorException for an unknown DB_SYSTEM", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "MYSQL";
+      try {
+        await expect(service.backup("correct-password")).rejects.toThrow(
+          InternalServerErrorException,
+        );
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+
+    it("routes POSTGRESQL backup to backupPostgresql", async () => {
+      const spy = vi
+        .spyOn(service as any, "backupPostgresql")
+        .mockResolvedValue({} as any);
+      await service.backup("correct-password");
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it("routes SQLITE backup through disconnect/backupSqlite/connect", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "SQLITE";
+      const backupSpy = vi
+        .spyOn(service as any, "backupSqlite")
+        .mockResolvedValue({} as any);
+      const disconnectSpy = vi
+        .spyOn(service as any, "disconnect")
+        .mockResolvedValue(undefined);
+      const connectSpy = vi
+        .spyOn(service as any, "connect")
+        .mockResolvedValue(undefined);
+      try {
+        await service.backup("correct-password");
+        expect(disconnectSpy).toHaveBeenCalled();
+        expect(backupSpy).toHaveBeenCalled();
+        expect(connectSpy).toHaveBeenCalled();
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+
+    it("routes SQLITE restore through disconnect/restoreSqlite/connect/migrate", async () => {
+      const prev = (configuration as any).DB.SYSTEM;
+      (configuration as any).DB.SYSTEM = "SQLITE";
+      const restoreSpy = vi
+        .spyOn(service as any, "restoreSqlite")
+        .mockResolvedValue(undefined);
+      const disconnectSpy = vi
+        .spyOn(service as any, "disconnect")
+        .mockResolvedValue(undefined);
+      const connectSpy = vi
+        .spyOn(service as any, "connect")
+        .mockResolvedValue(undefined);
+      const migrateSpy = vi
+        .spyOn(service as any, "migrate")
+        .mockResolvedValue(undefined);
+      try {
+        await service.restore(
+          { buffer: Buffer.from("test") } as any,
+          "correct-password",
+        );
+        expect(disconnectSpy).toHaveBeenCalled();
+        expect(restoreSpy).toHaveBeenCalled();
+        expect(connectSpy).toHaveBeenCalled();
+        expect(migrateSpy).toHaveBeenCalled();
+      } finally {
+        (configuration as any).DB.SYSTEM = prev;
+      }
+    });
+  });
+
+  describe("restore from the streamed temporary dump", () => {
+    it("removes the temporary dump even when the restore is rejected", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-restore-"));
+      const tempDump = join(directory, "dump.tmp");
+      writeFileSync(tempDump, "dump");
+      try {
+        await expect(
+          service.restore({ path: tempDump } as any, "wrong-password"),
+        ).rejects.toThrow(UnauthorizedException);
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        rmSync(directory, { recursive: true, force: true });
+      }
+    });
+
+    it("restores SQLite by copying from the temporary dump", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-sqlite-"));
+      const tempDump = join(directory, "dump.tmp");
+      const sqliteDirectory = join(directory, "db");
+      mkdirSync(sqliteDirectory, { recursive: true });
+      writeFileSync(tempDump, "sqlite-bytes");
+
+      const config = configuration as any;
+      const previousSystem = config.DB.SYSTEM;
+      const previousVolumes = config.VOLUMES;
+      config.DB.SYSTEM = "SQLITE";
+      config.VOLUMES = { ...previousVolumes, SQLITEDB: sqliteDirectory };
+      vi.spyOn(service as any, "backupSqlite").mockResolvedValue(undefined);
+      try {
+        await service.restore({ path: tempDump } as any, "correct-password");
+
+        expect(
+          readFileSync(join(sqliteDirectory, "database.sqlite"), "utf8"),
+        ).toBe("sqlite-bytes");
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        config.DB.SYSTEM = previousSystem;
+        config.VOLUMES = previousVolumes;
+        rmSync(directory, { recursive: true, force: true });
+      }
+    });
+
+    it("restores PostgreSQL from the temporary dump", async () => {
+      const directory = mkdtempSync(join(tmpdir(), "gv-pg-"));
+      const tempDump = join(directory, "dump.tmp");
+      writeFileSync(tempDump, "pg-dump");
+
+      const config = configuration as any;
+      const previousSystem = config.DB.SYSTEM;
+      config.DB.SYSTEM = "POSTGRESQL";
+      vi.spyOn(service as any, "backupPostgresql").mockResolvedValue(undefined);
+      const execSpy = vi
+        .spyOn(service as any, "execPromise")
+        .mockResolvedValue({ stdout: "", stderr: "" });
+      try {
+        await service.restore({ path: tempDump } as any, "correct-password");
+
+        const pgRestoreCall = execSpy.mock.calls.find((call) =>
+          String(call[0]).includes("pg_restore"),
+        );
+        expect(pgRestoreCall?.[0]).toContain(tempDump);
+        expect(existsSync(tempDump)).toBe(false);
+      } finally {
+        config.DB.SYSTEM = previousSystem;
+        rmSync(directory, { recursive: true, force: true });
+      }
     });
   });
 });

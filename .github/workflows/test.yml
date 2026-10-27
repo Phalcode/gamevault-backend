@@ -15,13 +15,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: "pnpm"
@@ -34,8 +34,48 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
           retention-days: 14
+
+  postgres-migrations:
+    name: Postgres migrations
+    runs-on: ubuntu-latest
+
+    # The unit/e2e suite only executes the SQLite migrations (in-memory DB), so
+    # the Postgres ones are verified separately against a real server.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: gamevault
+          POSTGRES_PASSWORD: gamevault
+          POSTGRES_DB: gamevault
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Postgres migrations
+        run: pnpm migration:run:postgres

@@ -141,6 +141,10 @@ describe("GamesService", () => {
     it("should not modify titles without leading articles", () => {
       expect(service.generateSortTitle("Doom Eternal")).toBe("doom eternal");
     });
+
+    it("should strip only one leading article", () => {
+      expect(service.generateSortTitle("The A Game")).toBe("a game");
+    });
   });
 
   describe("findOneByGameIdOrFail", () => {
@@ -168,6 +172,23 @@ describe("GamesService", () => {
         expect.objectContaining({ withDeleted: true }),
       );
     });
+
+    it("should filter by age rating when filterByAge is set", async () => {
+      const mockGame = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+      await service.findOneByGameIdOrFail(1, {
+        loadDeletedEntities: false,
+        filterByAge: 18,
+      });
+      expect(gamesRepository.findOneOrFail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 1,
+            metadata: expect.anything(),
+          }),
+        }),
+      );
+    });
   });
 
   describe("find", () => {
@@ -187,6 +208,17 @@ describe("GamesService", () => {
       expect(gamesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
           relations: expect.objectContaining({ progresses: { user: true } }),
+        }),
+      );
+    });
+
+    it("should add the metadata relation and age filter when filterByAge is set", async () => {
+      gamesRepository.find.mockResolvedValue([]);
+      await service.find({ loadDeletedEntities: false, filterByAge: 18 });
+      expect(gamesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          relations: expect.anything(),
+          where: expect.objectContaining({ metadata: expect.anything() }),
         }),
       );
     });
@@ -215,6 +247,80 @@ describe("GamesService", () => {
     });
   });
 
+  describe("restore", () => {
+    it("should recover the game, merge metadata, and return the reloaded game", async () => {
+      const game = createMockGame({ id: 5 });
+      gamesRepository.recover.mockResolvedValue({ id: 5 } as any);
+      metadataService.merge.mockResolvedValue(game);
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+
+      const result = await service.restore(5);
+
+      expect(gamesRepository.recover).toHaveBeenCalledWith({ id: 5 });
+      expect(metadataService.merge).toHaveBeenCalledWith(5);
+      expect(result).toEqual(game);
+    });
+  });
+
+  describe("update", () => {
+    it("should handle mapping requests with and without provider data", async () => {
+      const game = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+      gamesRepository.save.mockImplementation(async (g) => g as any);
+      metadataService.merge.mockResolvedValue(game);
+
+      await service.update(1, {
+        mapping_requests: [
+          {
+            provider_slug: "igdb",
+            provider_data_id: "123",
+            provider_priority: 1,
+          },
+          { provider_slug: "steam" },
+        ],
+      } as any);
+
+      expect(metadataService.map).toHaveBeenCalledWith(1, "igdb", "123", 1);
+      expect(metadataService.unmap).toHaveBeenCalledWith(1, "steam");
+      expect(metadataService.merge).toHaveBeenCalledWith(1);
+    });
+
+    it("should map user metadata fields and relation names", async () => {
+      const game = createMockGame();
+      gamesRepository.findOneOrFail.mockResolvedValue(game);
+      gameMetadataService.save.mockImplementation(
+        async (m) => ({ ...m, id: 1 }) as any,
+      );
+      gamesRepository.save.mockImplementation(async (g) => g as any);
+      metadataService.merge.mockResolvedValue(game);
+
+      const result = await service.update(1, {
+        user_metadata: {
+          title: "New Title",
+          sort_title: "new title",
+          release_date: "2020-01-01",
+          rating: 90,
+          tags: ["Action", "RPG"],
+          genres: ["RPG"],
+          developers: ["Studio"],
+          publishers: ["Pub"],
+        },
+      } as any);
+
+      expect(result).toBe(game);
+      expect(game.sort_title).toBe("new title");
+      expect(game.user_metadata).toMatchObject({
+        title: "New Title",
+        rating: 90,
+        tags: expect.arrayContaining([
+          expect.objectContaining({ name: "Action", provider_slug: "user" }),
+        ]),
+      });
+      expect(gameMetadataService.save).toHaveBeenCalled();
+      expect(metadataService.merge).toHaveBeenCalledWith(1);
+    });
+  });
+
   describe("checkIfExistsInDatabase", () => {
     it("should return DOES_NOT_EXIST when game is new", async () => {
       const game = createMockGame();
@@ -222,6 +328,46 @@ describe("GamesService", () => {
       gamesRepository.find.mockResolvedValueOnce([]); // by title candidates
       const [existence] = await service.checkIfExistsInDatabase(game);
       expect(existence).toBe(GameExistence.DOES_NOT_EXIST);
+    });
+
+    it("should match title candidates by the normalized sort title", async () => {
+      const game = createMockGame({
+        title: "The Roottrees are Dead",
+        sort_title: "roottrees are dead",
+      });
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([]);
+
+      await service.checkIfExistsInDatabase(game);
+
+      expect(gamesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: [
+            { title: "The Roottrees are Dead" },
+            { sort_title: "roottrees are dead" },
+          ],
+        }),
+      );
+    });
+
+    it("should merge a same-title file that only differs in casing", async () => {
+      const game = createMockGame({
+        title: "The Roottrees Are Dead",
+        sort_title: "roottrees are dead",
+      });
+      gamesRepository.findOne.mockResolvedValueOnce(null); // by file_path
+      gamesRepository.find.mockResolvedValueOnce([
+        createMockGame({
+          id: 2,
+          title: "The Roottrees are Dead",
+          sort_title: "roottrees are dead",
+          deleted_at: undefined,
+        }),
+      ]);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+
+      expect(existence).not.toBe(GameExistence.DOES_NOT_EXIST);
     });
 
     it("should not merge year-tagged games across different years", async () => {
@@ -277,6 +423,30 @@ describe("GamesService", () => {
       expect(existence).toBe(GameExistence.EXISTS);
     });
 
+    it("should match a game via the normalized version path", async () => {
+      const game = createMockGame();
+      const foundGame = createMockGame({
+        deleted_at: undefined,
+        versions: [
+          {
+            id: 1,
+            file_path: "/files/Test Game (2023).zip",
+            version: "v1.0.0",
+            early_access: false,
+            release_date: undefined,
+            size: 1000n,
+          },
+        ] as any,
+      });
+      gameVersionRepository.findOne.mockResolvedValue({
+        game: foundGame,
+      } as any);
+
+      const [existence] = await service.checkIfExistsInDatabase(game);
+      expect(existence).toBe(GameExistence.EXISTS);
+      expect(gamesRepository.findOne).not.toHaveBeenCalled();
+    });
+
     it("should return EXISTS_BUT_DELETED_IN_DATABASE for soft-deleted game", async () => {
       const game = createMockGame();
       gamesRepository.findOne.mockResolvedValueOnce(
@@ -326,6 +496,41 @@ describe("GamesService", () => {
       });
       expect(result).toBeDefined();
       expect(result.id).toBe(1);
+    });
+
+    it("should apply the age filter when filterByAge is set", async () => {
+      const mockGame = createMockGame();
+      const mockQb = {
+        setFindOptions: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        getOneOrFail: vi.fn().mockResolvedValue({ id: 1 }),
+      };
+      gamesRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+
+      await service.findRandom({
+        loadDeletedEntities: false,
+        filterByAge: 18,
+      });
+      const options = mockQb.setFindOptions.mock.calls[0][0];
+      expect(options.where).toMatchObject({ metadata: expect.anything() });
+    });
+
+    it("should include deleted entities when loadDeletedEntities is true", async () => {
+      const mockGame = createMockGame();
+      const mockQb = {
+        setFindOptions: vi.fn().mockReturnThis(),
+        orderBy: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        getOneOrFail: vi.fn().mockResolvedValue({ id: 1 }),
+      };
+      gamesRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+      gamesRepository.findOneOrFail.mockResolvedValue(mockGame);
+
+      await service.findRandom({ loadDeletedEntities: true });
+      const options = mockQb.setFindOptions.mock.calls[0][0];
+      expect(options.withDeleted).toBe(true);
     });
   });
 });

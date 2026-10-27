@@ -5,9 +5,7 @@ import {
   Header,
   Headers,
   Logger,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   Post,
   Put,
   Request,
@@ -28,7 +26,6 @@ import {
 } from "@nestjs/swagger";
 import { InjectRepository } from "@nestjs/typeorm";
 import { type Response } from "express";
-import lodash from "lodash";
 import {
   FilterOperator,
   Paginate,
@@ -40,7 +37,6 @@ import {
 import { In, Not, Repository } from "typeorm";
 
 import { FileInterceptor } from "@nestjs/platform-express";
-import bytes from "bytes";
 import {
   parseFilterExpression,
   type FilterExpression,
@@ -55,6 +51,10 @@ import {
   appendPaginateFilterExpression,
   toFindOptionsRelations,
 } from "../../globals.js";
+import {
+  REQUIRED_UPLOAD_FILE_PIPE,
+  UPLOAD_FIELD_NAME,
+} from "../../uploads/streamed-upload.js";
 import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
 import { OtpService } from "../otp/otp.service.js";
 import { State } from "../progresses/models/state.enum.js";
@@ -63,12 +63,11 @@ import { GamevaultUser } from "../users/gamevault-user.entity.js";
 import { Role } from "../users/models/role.enum.js";
 import { UsersService } from "../users/users.service.js";
 import { FilesService } from "./files.service.js";
+import { gameUploadMulterOptions } from "./game-upload.multer.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
-import { type GameIdDto } from "./models/game-id.dto.js";
+import { GameIdDto } from "./models/game-id.dto.js";
 import { UpdateGameDto } from "./models/update-game.dto.js";
-const { isArray } = lodash;
-
 const metadataRelationNameFilters = {
   "metadata.genres.name": "genres.name",
   "metadata.tags.name": "tags.name",
@@ -136,28 +135,15 @@ export class GamesController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor(UPLOAD_FIELD_NAME, gameUploadMulterOptions))
   @MinimumRole(Role.ADMIN)
   @DisableApiIf(configuration.SERVER.DEMO_MODE_ENABLED)
   async postGameUpload(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize:
-              configuration.GAMES.MAX_UPLOAD_SIZE ??
-              bytes("100gb") ??
-              Number.MAX_SAFE_INTEGER,
-            message: `File exceeds maximum allowed upload size of ${bytes(
-              configuration.GAMES.MAX_UPLOAD_SIZE ??
-                bytes("100gb") ??
-                Number.MAX_SAFE_INTEGER,
-              { unit: "GB", thousandsSeparator: "." },
-            )}.`,
-          }),
-        ],
-      }),
-    )
+    // The interceptor above streams the upload straight to a temporary file on
+    // disk (see gameUploadMulterOptions), so the whole game is never held in
+    // memory. The maximum upload size is enforced there via multer's
+    // `limits.fileSize`, which aborts the request before the file is complete.
+    @UploadedFile(REQUIRED_UPLOAD_FILE_PIPE)
     file: Express.Multer.File,
   ) {
     return this.filesService.upload(file);
@@ -222,7 +208,7 @@ export class GamesController {
     if (progressStateFilter || progressUserFilter) {
       if (progressStateFilter?.includes("UNPLAYED")) {
         let userId = request.user.id;
-        if (progressUserFilter && !isArray(progressUserFilter)) {
+        if (progressUserFilter && !Array.isArray(progressUserFilter)) {
           userId = Number(progressUserFilter.split(":").pop());
         }
 
@@ -685,7 +671,7 @@ export class GamesController {
       return;
     }
 
-    if (isArray(existingIdFilter)) {
+    if (Array.isArray(existingIdFilter)) {
       query.filter.id = [...existingIdFilter, resolvedIdFilter];
       return;
     }
@@ -742,7 +728,7 @@ export class GamesController {
       return value;
     }
 
-    const escapedValue = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    const escapedValue = value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 
     return `"${escapedValue}"`;
   }

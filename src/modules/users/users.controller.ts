@@ -21,12 +21,12 @@ import {
 import configuration from "../../configuration.js";
 import { DisableApiIf } from "../../decorators/disable-api-if.decorator.js";
 import { MinimumRole } from "../../decorators/minimum-role.decorator.js";
-import { type GameIdDto } from "../games/models/game-id.dto.js";
+import { GameIdDto } from "../games/models/game-id.dto.js";
 import { ApiKeyService } from "./api-key.service.js";
 import { GamevaultUser } from "./gamevault-user.entity.js";
 import { Role } from "./models/role.enum.js";
 import { UpdateUserDto } from "./models/update-user.dto.js";
-import { type UserIdDto } from "./models/user-id.dto.js";
+import { UserIdDto } from "./models/user-id.dto.js";
 import { UsersService } from "./users.service.js";
 
 @ApiBearerAuth()

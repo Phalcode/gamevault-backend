@@ -1,11 +1,11 @@
 import { registerAs } from "@nestjs/config";
 import bytes from "bytes";
-import { createHash, randomBytes } from "crypto";
 import * as dotenv from "dotenv";
-import { existsSync } from "fs";
 import fsExtra from "fs-extra";
 import lodash from "lodash";
-import { join } from "path";
+import { createHash, randomBytes } from "node:crypto";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import packageJson from "../package.json" with { type: "json" };
 import globals from "./globals.js";
@@ -182,7 +182,7 @@ function parseNumber(
   defaultValue?: number,
 ): number | undefined {
   const number = Number(environmentVariable);
-  if (isNaN(number) || number < 0 || number > Number.MAX_SAFE_INTEGER) {
+  if (Number.isNaN(number) || number < 0 || number > Number.MAX_SAFE_INTEGER) {
     return defaultValue ?? undefined;
   }
   return number;
@@ -193,7 +193,7 @@ function parseKibibytesToBytes(
   defaultValue?: number,
 ): number | undefined {
   const bytes = Number(environmentVariable) * 1024;
-  if (isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
+  if (Number.isNaN(bytes) || bytes <= 0 || bytes > Number.MAX_SAFE_INTEGER) {
     return defaultValue ?? undefined;
   }
   return bytes;
@@ -203,7 +203,7 @@ function parseRegExp(
   environmentVariable: string | undefined,
   defaultValue?: RegExp,
 ): RegExp | undefined {
-  return environmentVariable ? RegExp(environmentVariable) : defaultValue;
+  return environmentVariable ? new RegExp(environmentVariable) : defaultValue;
 }
 
 function safeHash(value: string | undefined): string | null {
