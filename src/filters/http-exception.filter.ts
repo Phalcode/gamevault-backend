@@ -26,6 +26,12 @@ export class LoggingExceptionFilter implements ExceptionFilter {
 
     if (httpException) {
       const httpStatusCode = httpException.getStatus();
+      // RFC 6750: a rejected bearer token must advertise the scheme. Only the
+      // Bearer challenge is sent, so browsers never show a Basic credentials
+      // prompt for API requests.
+      if (httpStatusCode === 401) {
+        response.setHeader("WWW-Authenticate", 'Bearer realm="gamevault"');
+      }
       if (httpStatusCode >= 400 && httpStatusCode < 500) {
         this.logger.warn({
           message: `${httpException.name} occurred.`,

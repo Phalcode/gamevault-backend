@@ -7,4 +7,6 @@ export interface GamevaultJwtPayload {
   email: string;
   birthdate: string;
   role: string;
+  /** Session the token was issued for. Enforced only when configured. */
+  sid?: string;
 }

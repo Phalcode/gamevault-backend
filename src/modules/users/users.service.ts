@@ -11,7 +11,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { hash } from "bcrypt";
+import { getRounds, hash } from "bcrypt";
 import lodash from "lodash";
 import { randomBytes } from "node:crypto";
 import {
@@ -37,6 +37,9 @@ import { GamevaultUser } from "./gamevault-user.entity.js";
 import { type RegisterUserDto } from "./models/register-user.dto.js";
 import { Role } from "./models/role.enum.js";
 import { type UpdateUserDto } from "./models/update-user.dto.js";
+
+/** bcrypt cost factor used for all stored password hashes. */
+export const PASSWORD_HASH_COST = 12;
 
 const { toLower } = lodash;
 
@@ -209,7 +212,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     const user = new GamevaultUser();
     user.username = dto.username;
-    user.password = await hash(dto.password, 10);
+    user.password = await hash(dto.password, PASSWORD_HASH_COST);
     user.api_key = randomBytes(32).toString("hex");
     user.first_name = dto.first_name || undefined;
     user.last_name = dto.last_name || undefined;
@@ -308,6 +311,34 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   /**
+   * Upgrades a stored password hash to the current cost factor after a
+   * successful login. Failures are swallowed: a working login must never break
+   * because the upgrade could not be persisted.
+   */
+  public async rehashPasswordIfNeeded(
+    user: GamevaultUser,
+    plaintextPassword: string,
+  ): Promise<void> {
+    if (!user.password) return;
+    try {
+      if (getRounds(user.password) >= PASSWORD_HASH_COST) return;
+      await this.userRepository.update(user.id, {
+        password: await hash(plaintextPassword, PASSWORD_HASH_COST),
+      });
+      this.logger.debug({
+        message: "Upgraded password hash to current cost factor.",
+        user_id: user.id,
+      });
+    } catch (error) {
+      this.logger.warn({
+        message: "Failed to upgrade password hash.",
+        user_id: user.id,
+        error,
+      });
+    }
+  }
+
+  /**
    * Throws when a matching user may not authenticate. Admins are exempt from
    * the activation requirement.
    */
@@ -395,7 +426,7 @@ export class UsersService implements OnApplicationBootstrap {
 
     if (dto.password != null) {
       logUpdate("password", user.password, "**REDACTED**");
-      user.password = await hash(dto.password, 10);
+      user.password = await hash(dto.password, PASSWORD_HASH_COST);
     }
 
     if (dto.avatar_id != null) {

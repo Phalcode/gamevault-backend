@@ -1,15 +1,17 @@
 import { type ExecutionContext, Injectable, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { AuthGuard } from "@nestjs/passport";
+import { randomBytes } from "node:crypto";
 import { type AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
 import { resolveOAuthReturnOrigin } from "../oauth-return-origin.js";
+import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 
 /** The subset of the Express request this guard relies on. */
 interface OAuth2Request {
   query?: Record<string, unknown>;
-  session?: { oauth2ReturnOrigin?: string };
+  session?: { oauth2ReturnOrigin?: string; oauth2Nonce?: string };
 }
 
 @Injectable()
@@ -18,6 +20,7 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
   constructor(
     private readonly reflector: Reflector,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
+    private readonly tokenVerifier: OidcTokenVerifierService,
   ) {
     super();
   }
@@ -67,6 +70,23 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
       }
     }
 
-    return super.getAuthenticateOptions(context);
+    const options = super.getAuthenticateOptions(context) as Record<
+      string,
+      unknown
+    >;
+
+    // A nonce only exists when id_token verification is active, so the flow is
+    // untouched for installations that did not configure it.
+    if (
+      this.tokenVerifier.requireNonce &&
+      isInitialRequest &&
+      request?.session
+    ) {
+      const nonce = randomBytes(24).toString("base64url");
+      request.session.oauth2Nonce = nonce;
+      return { ...options, nonce };
+    }
+
+    return options;
   }
 }

@@ -56,6 +56,7 @@
     "file-type-checker": "^1.1.7",
     "fs-extra": "^11.4.0",
     "helmet": "^8.3.0",
+    "jose": "^6.2.13",
     "lodash": "^4.18.1",
     "mime": "^4.1.0",
     "morgan": "^1.12.0",

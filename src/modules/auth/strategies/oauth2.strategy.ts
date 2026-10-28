@@ -15,6 +15,7 @@ import { GamevaultUser } from "../../users/gamevault-user.entity.js";
 import { UsersService } from "../../users/users.service.js";
 import { type OidcUserInfo } from "../models/oidc-user-info.interface.js";
 import PassportUserProfile from "../models/passport-user-profile.interface.js";
+import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 
 @Injectable()
 export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
@@ -24,6 +25,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly tokenVerifier: OidcTokenVerifierService,
     @InjectGamevaultConfig() config: AppConfiguration,
   ) {
     const { AUTH } = config;
@@ -49,6 +51,15 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
       state: true,
     });
     this.configuration = config;
+  }
+
+  /**
+   * Sends the nonce that the guard stored for this login attempt. Passing it
+   * here is safe: passport-oauth2 adds `scope`, `state` and `redirect_uri`
+   * after this hook.
+   */
+  override authorizationParams(options: { nonce?: string }): object {
+    return options?.nonce ? { nonce: options.nonce } : {};
   }
 
   /**
@@ -130,7 +141,10 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
   }
 
   async validate(
-    req: { user: GamevaultUser },
+    req: {
+      user?: GamevaultUser;
+      session?: { oauth2Nonce?: string };
+    },
     accessToken: string,
     refreshToken: string,
     params: any,
@@ -159,16 +173,38 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
 
     // 1) Retrieve additional user info if available.
 
-    const profileFromAccessToken: Partial<PassportUserProfile> =
-      this.convertOidcUserInfoToPassportProfile(
-        this.jwtService.decode(accessToken),
-      );
-
-    const profileFromIdToken: Partial<PassportUserProfile> = params.id_token
-      ? this.convertOidcUserInfoToPassportProfile(
+    let profileFromIdToken: Partial<PassportUserProfile> = {};
+    if (params.id_token) {
+      if (this.tokenVerifier.enabled) {
+        const claims = await this.tokenVerifier.verify(
+          params.id_token as string,
+          req.session?.oauth2Nonce,
+        );
+        // The nonce is single use.
+        if (req.session) delete req.session.oauth2Nonce;
+        profileFromIdToken = this.convertOidcUserInfoToPassportProfile(
+          claims as unknown as OidcUserInfo,
+        );
+      } else {
+        profileFromIdToken = this.convertOidcUserInfoToPassportProfile(
           this.jwtService.decode(params.id_token),
-        )
-      : {};
+        );
+      }
+    } else if (this.tokenVerifier.enabled) {
+      this.logger.warn({
+        message:
+          "id_token verification is enabled, but the identity provider returned no id_token. Falling back to decoded claims.",
+      });
+    }
+
+    // Verified id_token claims are authoritative; access token claims are only
+    // used as a fallback when there is nothing verified to rely on.
+    const profileFromAccessToken: Partial<PassportUserProfile> =
+      this.tokenVerifier.enabled && params.id_token
+        ? {}
+        : this.convertOidcUserInfoToPassportProfile(
+            this.jwtService.decode(accessToken),
+          );
 
     const profileFromUserInfoEndpoint: Partial<PassportUserProfile> =
       await this.fetchUserInfo(accessToken);

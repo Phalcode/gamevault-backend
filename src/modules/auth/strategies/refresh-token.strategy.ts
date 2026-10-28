@@ -23,6 +23,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.AUTH.REFRESH_TOKEN.SECRET,
+      algorithms: ["HS256"],
       ignoreExpiration: false,
       passReqToCallback: true,
     });

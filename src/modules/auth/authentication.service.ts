@@ -16,6 +16,7 @@ import { type RegisterUserDto } from "../users/models/register-user.dto.js";
 import { UsersService } from "../users/users.service.js";
 import { type GamevaultJwtPayload } from "./models/gamevault-jwt-payload.interface.js";
 import { type RefreshTokenDto } from "./models/refresh-token.dto.js";
+import { type SessionResponseDto } from "./models/session-response.dto.js";
 import { type TokenPairDto } from "./models/token-pair.dto.js";
 import { Session } from "./session.entity.js";
 
@@ -93,6 +94,12 @@ export class AuthenticationService implements OnModuleInit {
     session.user_agent = userAgent;
     await this.sessionRepository.save(session);
 
+    // Bind the access token to its session so revocation can reach it. The
+    // claim is always present; whether it is enforced is configurable.
+    if (session.id != null) {
+      payload.sid = session.id.toString();
+    }
+
     const loginDto: TokenPairDto = {
       access_token: this.jwtService.sign({ payload }),
       refresh_token: refreshToken,
@@ -160,6 +167,10 @@ export class AuthenticationService implements OnModuleInit {
     );
     await this.sessionRepository.save(session);
 
+    if (session.id != null) {
+      payload.sid = session.id.toString();
+    }
+
     return {
       access_token: this.jwtService.sign({ payload }),
       refresh_token: newRefreshToken,
@@ -216,8 +227,24 @@ export class AuthenticationService implements OnModuleInit {
     return !session;
   }
 
-  async getUserSessions(user: GamevaultUser): Promise<Session[]> {
-    return this.sessionRepository.find({
+  /**
+   * Whether the session behind an access token may still be used. Access tokens
+   * carry the session id, so revoking a session also invalidates the access
+   * tokens issued for it.
+   */
+  async isSessionActive(sessionId: number): Promise<boolean> {
+    const session = await this.sessionRepository.findOne({
+      where: {
+        id: sessionId,
+        revoked: false,
+        expires_at: MoreThan(new Date()),
+      },
+    });
+    return !!session;
+  }
+
+  async getUserSessions(user: GamevaultUser): Promise<SessionResponseDto[]> {
+    const sessions = await this.sessionRepository.find({
       where: {
         user: { id: user.id },
         revoked: false,
@@ -227,6 +254,14 @@ export class AuthenticationService implements OnModuleInit {
         created_at: "DESC",
       },
     });
+    return sessions.map((session) => ({
+      id: session.id,
+      created_at: session.created_at,
+      expires_at: session.expires_at,
+      revoked: session.revoked,
+      ip_address: session.ip_address,
+      user_agent: session.user_agent,
+    }));
   }
 
   async revokeAllUserSessions(user: GamevaultUser): Promise<void> {

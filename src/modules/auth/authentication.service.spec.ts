@@ -207,6 +207,50 @@ describe("AuthenticationService", () => {
       const result = await service.getUserSessions(mockUser);
       expect(result).toHaveLength(2);
     });
+
+    it("should not expose the stored refresh token hash", async () => {
+      const mockUser = createMockUser();
+      sessionRepository.find.mockResolvedValue([
+        {
+          id: 7,
+          revoked: false,
+          expires_at: new Date(Date.now() + 86400000),
+          created_at: new Date(),
+          ip_address: "203.0.113.7",
+          user_agent: "GameVault/1.17.6",
+          refresh_token_hash: "hash-that-must-not-leak",
+        },
+      ] as unknown as Session[]);
+
+      const [session] = await service.getUserSessions(mockUser);
+
+      expect(session).toEqual({
+        id: 7,
+        revoked: false,
+        expires_at: expect.any(Date),
+        created_at: expect.any(Date),
+        ip_address: "203.0.113.7",
+        user_agent: "GameVault/1.17.6",
+      });
+      expect(session).not.toHaveProperty("refresh_token_hash");
+    });
+  });
+
+  describe("isSessionActive", () => {
+    it("returns true for an existing, unrevoked and unexpired session", async () => {
+      sessionRepository.findOne.mockResolvedValue({ id: 7 } as Session);
+
+      await expect(service.isSessionActive(7)).resolves.toBe(true);
+      expect(sessionRepository.findOne).toHaveBeenCalledWith({
+        where: expect.objectContaining({ id: 7, revoked: false }),
+      });
+    });
+
+    it("returns false when the session is gone or revoked", async () => {
+      sessionRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.isSessionActive(7)).resolves.toBe(false);
+    });
   });
 
   describe("revokeAllUserSessions", () => {

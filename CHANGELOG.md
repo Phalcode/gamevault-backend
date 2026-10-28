@@ -5,6 +5,16 @@
 ### Changes
 
 - Fixed OAuth2/SSO login in the legacy desktop client (1.17.x): the callback page no longer leaves the login window hanging, so the client picks up its new session again. The web UI and the new desktop app keep using the validated return address.
+- Failed password logins are now rate limited per client address and username (`AUTH_RATE_LIMIT_ENABLED`, `AUTH_RATE_LIMIT_MAX_ATTEMPTS`, `AUTH_RATE_LIMIT_WINDOW_SECONDS`). Successful logins, token refreshes and SSO logins are not affected.
+- Login errors no longer reveal whether a username exists, and both cases take the same amount of time.
+- Password hashes now use bcrypt cost 12 and existing hashes are upgraded on the next successful login.
+- `GET /api/auth/sessions` no longer returns the stored refresh token hash.
+- Rejected bearer tokens now return a `WWW-Authenticate` header, and token responses are marked as non-cacheable.
+- The OAuth2 client secret and the default archive password are no longer included in the startup log.
+- OIDC `id_token`s can be verified against the identity provider's JWKS (`AUTH_OAUTH2_ISSUER_URL`, `AUTH_OAUTH2_JWKS_URL`, `AUTH_OAUTH2_VERIFY_ID_TOKEN`, `AUTH_OAUTH2_REQUIRE_NONCE`). Disabled by default.
+- Access tokens can be bound to their session (`AUTH_ACCESS_TOKEN_SESSION_BINDING_ENABLED`), so revoking a session also revokes its access tokens. Disabled by default.
+- The served Web UI can send a Content-Security-Policy (`WEB_UI_CSP_MODE`). Disabled by default.
+- OAuth2 callback sessions now use `SameSite=Lax`, `HttpOnly` and `Secure` on HTTPS, and expire after 24 hours instead of living in memory until a restart.
 
 ## 17.1.0
 

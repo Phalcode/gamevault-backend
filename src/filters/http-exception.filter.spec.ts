@@ -12,6 +12,7 @@ describe("LoggingExceptionFilter", () => {
     mockResponse = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
+      setHeader: vi.fn(),
     };
     mockRequest = { url: "/api/test" };
     mockHost = {
@@ -44,6 +45,24 @@ describe("LoggingExceptionFilter", () => {
     filter.catch(exception, mockHost as any);
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith(exception.getResponse());
+  });
+
+  it("advertises the Bearer scheme on 401 responses", () => {
+    const exception = new HttpException(
+      "Authentication Failed: Incorrect username or password",
+      HttpStatus.UNAUTHORIZED,
+    );
+    filter.catch(exception, mockHost as any);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      "WWW-Authenticate",
+      'Bearer realm="gamevault"',
+    );
+  });
+
+  it("does not advertise a challenge on non-401 responses", () => {
+    const exception = new HttpException("Forbidden", HttpStatus.FORBIDDEN);
+    filter.catch(exception, mockHost as any);
+    expect(mockResponse.setHeader).not.toHaveBeenCalled();
   });
 
   it("should handle non-HttpException errors with 500 status", () => {

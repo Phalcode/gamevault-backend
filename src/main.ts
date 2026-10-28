@@ -25,6 +25,7 @@ import { resolveCorsOriginAllowlist } from "./cors-origins.js";
 import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
 import logger, { stream } from "./logging.js";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
+import { AuthRateLimiter } from "./modules/auth/auth-rate-limit.middleware.js";
 import loadPlugins from "./plugin.js";
 const { readFileSync } = fsExtra;
 
@@ -84,12 +85,32 @@ async function bootstrap(): Promise<void> {
   // Security Measurements
   app.use(helmet({ contentSecurityPolicy: false }));
 
+  // Limits repeated failed password logins. Successful logins, token refreshes
+  // and SSO round trips are not affected.
+  app.use(
+    new AuthRateLimiter({
+      enabled: configuration.AUTH.RATE_LIMIT.ENABLED,
+      maxAttempts: configuration.AUTH.RATE_LIMIT.MAX_ATTEMPTS ?? 10,
+      windowSeconds: configuration.AUTH.RATE_LIMIT.WINDOW_SECONDS ?? 300,
+    }).use,
+  );
+
   // Sessions
   app.use(
     session({
       secret: createHash("sha256")
         .update(configuration.AUTH.SEED)
         .digest("hex"),
+      resave: false,
+      saveUninitialized: false,
+      // Only used for the OAuth2 round trip. `secure: "auto"` keeps plain-HTTP
+      // deployments working, `sameSite: "lax"` matches the browser default.
+      cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: "auto",
+        maxAge: 24 * 60 * 60 * 1000,
+      },
     }),
   );
 

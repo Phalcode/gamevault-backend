@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpStatus,
   Logger,
   MethodNotAllowedException,
@@ -50,6 +51,7 @@ export class BasicAuthController {
     description:
       "User is not activated. Contact an Administrator to activate the User.",
   })
+  @Header("Cache-Control", "no-store")
   async getAuthBasicLogin(
     @Request()
     request: {
