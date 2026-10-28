@@ -15,6 +15,7 @@
 - Access tokens can be bound to their session (`AUTH_ACCESS_TOKEN_SESSION_BINDING_ENABLED`), so revoking a session also revokes its access tokens. Disabled by default.
 - The served Web UI can send a Content-Security-Policy (`WEB_UI_CSP_MODE`). Disabled by default.
 - OAuth2 callback sessions now use `SameSite=Lax`, `HttpOnly` and `Secure` on HTTPS, and expire after 24 hours instead of living in memory until a restart.
+- Fixed the server-wide download bandwidth limit (`SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS`) having no effect: the configured value was converted to bytes twice, and clients that did not send their own limit bypassed it entirely. The server value is now enforced as a cap that clients can only lower.
 
 ## 17.1.0
 

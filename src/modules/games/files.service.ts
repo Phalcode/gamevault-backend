@@ -32,6 +32,7 @@ import globals, { toFindOptionsRelations } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
 import { discardStreamedUpload } from "../../uploads/streamed-upload.js";
 import { MetadataService } from "../metadata/metadata.service.js";
+import { resolveDownloadSpeedLimit } from "./download-speed-limit.js";
 import { GameVersion } from "./game-version.entity.js";
 import { GamesService } from "./games.service.js";
 import { GamevaultGame } from "./gamevault-game.entity.js";
@@ -1517,12 +1518,12 @@ export class FilesService implements OnApplicationBootstrap {
     rangeHeader?: string,
     filterByAge?: number,
   ): Promise<StreamableFile> {
-    // Set the download speed limit if provided, otherwise use the default value from configuration.
-    speedlimitHeader =
-      speedlimitHeader ??
-      configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS ??
-      0;
-    speedlimitHeader *= 1024;
+    // The client header is in KB/s, the configured server limit is already in
+    // bytes/s. The server value is a cap, so a client can only lower it.
+    const speedLimitInBytes = resolveDownloadSpeedLimit(
+      speedlimitHeader,
+      configuration.SERVER.MAX_DOWNLOAD_BANDWIDTH_IN_KBPS,
+    );
 
     // Find the game by ID.
     const game = await this.gamesService.findOneByGameIdOrFail(gameId, {
@@ -1589,8 +1590,8 @@ export class FilesService implements OnApplicationBootstrap {
 
     response.setHeader("X-Download-Size", range.size);
 
-    if (speedlimitHeader) {
-      file = file.pipe(new Throttle({ rate: speedlimitHeader }));
+    if (speedLimitInBytes) {
+      file = file.pipe(new Throttle({ rate: speedLimitInBytes }));
     }
 
     // Increment the download count.
