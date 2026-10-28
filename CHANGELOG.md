@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 17.1.1
+
+### Changes
+
+- Fixed OAuth2/SSO login in the legacy desktop client (1.17.x): the callback page no longer leaves the login window hanging, so the client picks up its new session again. The web UI and the new desktop app keep using the validated return address.
+
 ## 17.1.0
 
 ### Changes
