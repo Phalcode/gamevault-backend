@@ -1,12 +1,15 @@
+import { lookup } from "node:dns/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AnalyticsService } from "./analytics.service.js";
+import { AnalyticsService, describeFetchError } from "./analytics.service.js";
 
-function createService(enabled = true) {
+vi.mock("node:dns/promises", () => ({ lookup: vi.fn() }));
+
+function createService(enabled = true, endpoint = "https://analytics.test") {
   const config = {
     ANALYTICS: {
       ENABLED: enabled,
       PROJECT_ID: "test-pid",
-      ENDPOINT: "https://analytics.test/log",
+      ENDPOINT: endpoint,
     },
     SERVER: { VERSION: "9.9.9" },
   } as any;
@@ -22,6 +25,9 @@ describe("AnalyticsService", () => {
       Promise.resolve(new Response("{}", { status: 200 })),
     );
     vi.stubGlobal("fetch", fetchMock);
+    vi.mocked(lookup).mockResolvedValue([
+      { address: "152.53.2.208", family: 4 },
+    ] as any);
   });
 
   afterEach(() => {
@@ -197,5 +203,101 @@ describe("AnalyticsService", () => {
     const service = createService(false);
     service.reportError(new Error("boom"), { service: "process" });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("describes the underlying fetch failure", () => {
+    const refused = new TypeError("fetch failed", {
+      cause: Object.assign(new Error("connect ECONNREFUSED 1.2.3.4:443"), {
+        code: "ECONNREFUSED",
+      }),
+    });
+    expect(describeFetchError(refused)).toContain("ECONNREFUSED");
+
+    const dns = new TypeError("fetch failed", {
+      cause: Object.assign(new Error("getaddrinfo EAI_AGAIN"), {
+        code: "EAI_AGAIN",
+      }),
+    });
+    expect(describeFetchError(dns)).toContain("EAI_AGAIN");
+
+    const aggregate = new TypeError("fetch failed", {
+      cause: new AggregateError([
+        Object.assign(new Error("connect ENETUNREACH"), {
+          code: "ENETUNREACH",
+        }),
+      ]),
+    });
+    expect(describeFetchError(aggregate)).toContain("ENETUNREACH");
+  });
+
+  it("pauses after repeated transport failures", async () => {
+    const failure = () =>
+      Promise.reject(
+        new TypeError("fetch failed", {
+          cause: Object.assign(new Error("connect ECONNREFUSED"), {
+            code: "ECONNREFUSED",
+          }),
+        }),
+      );
+    fetchMock.mockImplementation(failure);
+    const service = createService();
+
+    service.emit("a");
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    service.emit("b");
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    service.emit("c");
+    await vi.waitFor(() =>
+      expect((service as any).pausedUntil).toBeGreaterThan(Date.now()),
+    );
+
+    // Paused: further events must not reach the network.
+    service.emit("d");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("stays disabled when the collector host is blocked by DNS", async () => {
+    vi.mocked(lookup).mockResolvedValue([
+      { address: "0.0.0.0", family: 4 },
+    ] as any);
+    const service = createService();
+
+    await service.onModuleInit();
+    expect(service.enabled).toBe(false);
+    expect((service as any).flushTimer).toBeNull();
+
+    service.emit("server_started", {});
+    service.count("api_request", { route: "/api/games" });
+    await service.flush();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("stays disabled when the collector host does not resolve", async () => {
+    vi.mocked(lookup).mockRejectedValue(
+      Object.assign(new Error("getaddrinfo EAI_AGAIN"), { code: "EAI_AGAIN" }),
+    );
+    const service = createService();
+
+    await service.onModuleInit();
+    expect(service.enabled).toBe(false);
+    expect((service as any).heartbeatTimer).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("treats the endpoint as a domain and appends the API paths", async () => {
+    const service = createService();
+    service.emit("server_started", {});
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "https://analytics.test/log/custom",
+    );
+
+    const legacy = createService(true, "https://analytics.test/log");
+    legacy.emit("server_started", {});
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      "https://analytics.test/log/custom",
+    );
   });
 });

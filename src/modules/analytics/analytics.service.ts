@@ -4,6 +4,7 @@ import {
   OnApplicationShutdown,
   OnModuleInit,
 } from "@nestjs/common";
+import { lookup } from "node:dns/promises";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import { ServerService } from "../server/server.service.js";
@@ -25,6 +26,10 @@ const FLUSH_INTERVAL_MS = 60_000;
 const ERROR_SAMPLE_RATE = 0.2;
 /** Same error name and route: reported at most once in this window. */
 const ERROR_DEDUPE_MS = 10 * 60_000;
+/** After this many failed requests in a row, pause sending for a while. */
+const FAILURE_THRESHOLD = 3;
+/** How long to stay quiet after the collector was unreachable. */
+const FAILURE_BACKOFF_MS = 15 * 60_000;
 /** Upper bound for the dedupe map, so a pathological loop cannot grow it. */
 const ERROR_DEDUPE_LIMIT = 200;
 
@@ -55,6 +60,16 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   private sessionOpen = false;
   /** Last report per error key, for {@link reportError}. */
   private readonly reportedErrors = new Map<string, number>();
+  /** Consecutive transport failures, see {@link post}. */
+  private consecutiveFailures = 0;
+  /** No request is attempted before this timestamp. */
+  private pausedUntil = 0;
+  /**
+   * Set when the collector host does not resolve at startup. A DNS blocker that
+   * answers with `0.0.0.0` never recovers on its own, so the whole module stays
+   * quiet for the lifetime of the process instead of retrying forever.
+   */
+  private disabledByDns = false;
 
   constructor(
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
@@ -62,11 +77,24 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   ) {}
 
   get enabled(): boolean {
-    return this.config.ANALYTICS.ENABLED;
+    return this.config.ANALYTICS.ENABLED && !this.disabledByDns;
   }
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
     if (!this.enabled) return;
+
+    // One resolution at startup is enough: if the host is blocked (a DNS
+    // blackhole answers with 0.0.0.0) nothing will ever reach the collector.
+    const resolution = await this.resolveCollector();
+    if (!resolution.ok) {
+      this.disabledByDns = true;
+      this.logger.warn(
+        `Analytics disabled for this run: ${resolution.detail}. ` +
+          "Fix the DNS resolution or set ANALYTICS_ENABLED=false to silence this message.",
+      );
+      return;
+    }
+
     this.flushTimer = setInterval(() => void this.flush(), FLUSH_INTERVAL_MS);
     // Do not keep the process alive just for analytics.
     this.flushTimer.unref?.();
@@ -78,6 +106,39 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
       HEARTBEAT_INTERVAL_MS,
     );
     this.heartbeatTimer.unref?.();
+  }
+
+  /**
+   * Resolves the collector host and rejects answers that cannot be a real
+   * endpoint (a blocker maps blocked domains to `0.0.0.0` or `::`).
+   */
+  private async resolveCollector(): Promise<{
+    ok: boolean;
+    detail: string;
+  }> {
+    const hostname = hostOf(this.config.ANALYTICS.ENDPOINT);
+    if (!hostname) {
+      return { ok: false, detail: "the analytics endpoint has no host name" };
+    }
+
+    try {
+      const addresses = await lookup(hostname, { all: true });
+      if (addresses.length === 0) {
+        return { ok: false, detail: `${hostname} has no DNS records` };
+      }
+      if (addresses.every((entry) => isBlackhole(entry.address))) {
+        return {
+          ok: false,
+          detail: `${hostname} resolves to ${addresses[0].address}, which is a DNS block`,
+        };
+      }
+      return { ok: true, detail: `${addresses.length} address(es)` };
+    } catch (error) {
+      return {
+        ok: false,
+        detail: `${hostname} does not resolve: ${describeFetchError(error)}`,
+      };
+    }
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -131,7 +192,7 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
    */
   private async openSession(): Promise<void> {
     const { locale, timeZone } = resolvedLocale();
-    const ok = await this.post(this.baseEndpoint(), {
+    const ok = await this.post(this.apiRoot(), {
       pid: this.config.ANALYTICS.PROJECT_ID,
       pg: "/",
       lc: locale,
@@ -148,7 +209,7 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
       await this.openSession();
       return;
     }
-    const ok = await this.post(`${this.baseEndpoint()}/hb`, {
+    const ok = await this.post(`${this.apiRoot()}/hb`, {
       pid: this.config.ANALYTICS.PROJECT_ID,
       profileId: this.serverService.getServerUuid(),
     });
@@ -187,7 +248,7 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
 
     const { locale, timeZone } = resolvedLocale();
     const message = error instanceof Error ? error.message : String(error);
-    void this.post(`${this.baseEndpoint()}/error`, {
+    void this.post(`${this.apiRoot()}/error`, {
       pid: this.config.ANALYTICS.PROJECT_ID,
       name,
       message: sanitizeText(message, 500),
@@ -209,12 +270,25 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
     });
   }
 
-  private baseEndpoint(): string {
-    return this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "");
+  /**
+   * Collector root without any API path, e.g.
+   * `https://analytics.platform.phalco.de`. A value that still carries the old
+   * `/log` suffix is accepted so existing deployments keep working.
+   */
+  private collectorRoot(): string {
+    return this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "").replace(
+      /\/log$/,
+      "",
+    );
+  }
+
+  /** Swetrix API root, `<collector>/log`. */
+  private apiRoot(): string {
+    return `${this.collectorRoot()}/log`;
   }
 
   private async send(event: string, meta: AnalyticsMeta): Promise<void> {
-    await this.post(`${this.baseEndpoint()}/custom`, {
+    await this.post(`${this.apiRoot()}/custom`, {
       pid: this.config.ANALYTICS.PROJECT_ID,
       ev: event,
       meta: { ...meta, server_version: this.config.SERVER.VERSION },
@@ -224,6 +298,10 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
 
   /** Fire-and-forget POST. Returns whether the collector accepted it. */
   private async post(path: string, body: unknown): Promise<boolean> {
+    // A collector that cannot be reached (no outbound network, DNS, TLS) must
+    // not fill the log with one line per flush.
+    if (Date.now() < this.pausedUntil) return false;
+
     try {
       const response = await fetch(path, {
         method: "POST",
@@ -237,17 +315,26 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(5_000),
       });
-      if (!response.ok) {
+      if (response.ok) {
+        this.consecutiveFailures = 0;
+      } else {
         this.logger.debug(
           `Analytics request to ${path} was rejected (${response.status}).`,
         );
       }
       return response.ok;
     } catch (error) {
-      // Analytics must never surface as an application error.
-      this.logger.debug(
-        `Analytics request to ${path} failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.consecutiveFailures += 1;
+      const reason = describeFetchError(error);
+      this.logger.debug(`Analytics request to ${path} failed: ${reason}`);
+
+      if (this.consecutiveFailures >= FAILURE_THRESHOLD) {
+        this.consecutiveFailures = 0;
+        this.pausedUntil = Date.now() + FAILURE_BACKOFF_MS;
+        this.logger.warn(
+          `Analytics collector is unreachable, pausing reports for 15 minutes: ${reason}`,
+        );
+      }
       return false;
     }
   }
@@ -314,4 +401,42 @@ export function sanitizeStack(stack: string | undefined): string | undefined {
     )
     .join("\n")
     .slice(0, 3_000);
+}
+
+/**
+ * Undici hides the real reason of a network problem in `cause` and only says
+ * `fetch failed` on top. Without the cause the log line says nothing about
+ * whether DNS, TLS, a refused connection or a timeout failed.
+ */ export function describeFetchError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const cause = (error as { cause?: unknown }).cause;
+  if (cause === undefined) return error.message;
+  const detail =
+    cause instanceof AggregateError
+      ? cause.errors.map(describeCause).join(", ")
+      : describeCause(cause);
+  return `${error.message}: ${detail}`;
+}
+
+function describeCause(cause: unknown): string {
+  if (!(cause instanceof Error)) return String(cause);
+  const code = (cause as { code?: string }).code;
+  return code ? `${code} ${cause.message}` : cause.message;
+}
+
+/** Host name of a URL, or `undefined` when it cannot be parsed. */
+function hostOf(endpoint: string): string | undefined {
+  try {
+    return new URL(endpoint).hostname || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Addresses a DNS blocker answers with instead of a real endpoint. Anything
+ * routed to one of these can never be reached.
+ */
+function isBlackhole(address: string): boolean {
+  return address === "" || address === "0.0.0.0" || address === "::";
 }
