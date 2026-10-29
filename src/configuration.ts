@@ -295,10 +295,21 @@ const configuration = {
     // Fixed: server reports always go into the GameVault Server project, not
     // the client one. Not configurable on purpose.
     PROJECT_ID: "ZBCe4DOOi1l8",
-    /** Collector domain only, the API paths are appended by AnalyticsService. */
-    ENDPOINT:
-      resolveEnv("ANALYTICS_ENDPOINT") ||
-      "https://analytics.platform.phalco.de",
+    /**
+     * Collector domains in priority order; the first reachable one is used.
+     * Domains only, the API paths are appended by AnalyticsService.
+     * `ANALYTICS_ENDPOINT` (single value) is still accepted.
+     */
+    ENDPOINTS: parseList(
+      resolveEnv("ANALYTICS_ENDPOINTS") || resolveEnv("ANALYTICS_ENDPOINT"),
+      [
+        "https://api.swetrix.com",
+        "https://analytics.platform.phalco.de",
+        "https://anal.phalco.de",
+        "https://track.phalco.de",
+        "https://your-dns-provider-is-pissing-me-off.phalco.de",
+      ],
+    ),
   } as const,
   VOLUMES: {
     CONFIG: parsePath(resolveEnv("VOLUMES_CONFIG"), "/config"),

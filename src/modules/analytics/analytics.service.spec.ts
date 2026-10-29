@@ -4,12 +4,16 @@ import { AnalyticsService, describeFetchError } from "./analytics.service.js";
 
 vi.mock("node:dns/promises", () => ({ lookup: vi.fn() }));
 
-function createService(enabled = true, endpoint = "https://analytics.test") {
+function createService(
+  enabled = true,
+  endpoints: string | string[] = "https://analytics.test",
+) {
+  const endpointsList = Array.isArray(endpoints) ? endpoints : [endpoints];
   const config = {
     ANALYTICS: {
       ENABLED: enabled,
       PROJECT_ID: "test-pid",
-      ENDPOINT: endpoint,
+      ENDPOINTS: endpointsList,
     },
     SERVER: { VERSION: "9.9.9" },
   } as any;
@@ -64,7 +68,11 @@ describe("AnalyticsService", () => {
       pid: "test-pid",
       ev: "user_registered",
       profileId: "server-uuid",
-      meta: { role: "USER", server_version: "9.9.9" },
+      meta: {
+        role: "USER",
+        server_version: "9.9.9",
+        collector: "analytics.test",
+      },
     });
   });
 
@@ -299,5 +307,42 @@ describe("AnalyticsService", () => {
     expect(fetchMock.mock.calls[1][0]).toBe(
       "https://analytics.test/log/custom",
     );
+  });
+
+  it("falls back to the next collector when the first is blocked", async () => {
+    vi.mocked(lookup).mockImplementation((host: string) =>
+      host === "api.swetrix.test"
+        ? Promise.resolve([{ address: "0.0.0.0", family: 4 }] as any)
+        : Promise.resolve([{ address: "152.53.2.208", family: 4 }] as any),
+    );
+    const service = createService(true, [
+      "https://api.swetrix.test",
+      "https://analytics.test",
+    ]);
+
+    await service.onModuleInit();
+    expect(service.enabled).toBe(true);
+
+    service.emit("server_started", {});
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      "https://analytics.test/log/custom",
+    );
+    const init = fetchMock.mock.calls[1][1] as { body: string };
+    expect(JSON.parse(init.body).meta.collector).toBe("analytics.test");
+  });
+
+  it("stays disabled when no collector is reachable", async () => {
+    vi.mocked(lookup).mockResolvedValue([
+      { address: "0.0.0.0", family: 4 },
+    ] as any);
+    const service = createService(true, [
+      "https://api.swetrix.test",
+      "https://analytics.test",
+    ]);
+
+    await service.onModuleInit();
+    expect(service.enabled).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

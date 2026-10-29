@@ -65,11 +65,13 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   /** No request is attempted before this timestamp. */
   private pausedUntil = 0;
   /**
-   * Set when the collector host does not resolve at startup. A DNS blocker that
-   * answers with `0.0.0.0` never recovers on its own, so the whole module stays
-   * quiet for the lifetime of the process instead of retrying forever.
+   * Set when no collector host resolves at startup. A DNS blocker that answers
+   * with `0.0.0.0` never recovers on its own, so the whole module stays quiet
+   * for the lifetime of the process instead of retrying forever.
    */
   private disabledByDns = false;
+  /** Collector chosen at startup, first entry that resolves wins. */
+  private activeEndpoint: string | null = null;
 
   constructor(
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
@@ -109,36 +111,52 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   }
 
   /**
-   * Resolves the collector host and rejects answers that cannot be a real
-   * endpoint (a blocker maps blocked domains to `0.0.0.0` or `::`).
+   * Walks the configured collectors in order and returns the first one whose
+   * host resolves to a real address. A blocked domain (`0.0.0.0`) is skipped so
+   * the next candidate gets a chance.
    */
   private async resolveCollector(): Promise<{
     ok: boolean;
     detail: string;
   }> {
-    const hostname = hostOf(this.config.ANALYTICS.ENDPOINT);
-    if (!hostname) {
-      return { ok: false, detail: "the analytics endpoint has no host name" };
+    const endpoints = this.config.ANALYTICS.ENDPOINTS;
+    if (endpoints.length === 0) {
+      return { ok: false, detail: "no analytics endpoint is configured" };
     }
 
-    try {
-      const addresses = await lookup(hostname, { all: true });
-      if (addresses.length === 0) {
-        return { ok: false, detail: `${hostname} has no DNS records` };
+    const failures: string[] = [];
+    for (const endpoint of endpoints) {
+      const hostname = hostOf(endpoint);
+      if (!hostname) {
+        failures.push(`${endpoint}: no host name`);
+        continue;
       }
-      if (addresses.every((entry) => isBlackhole(entry.address))) {
-        return {
-          ok: false,
-          detail: `${hostname} resolves to ${addresses[0].address}, which is a DNS block`,
-        };
+
+      try {
+        const addresses = await lookup(hostname, { all: true });
+        if (addresses.length === 0) {
+          failures.push(`${hostname}: no DNS records`);
+          continue;
+        }
+        if (addresses.every((entry) => isBlackhole(entry.address))) {
+          failures.push(
+            `${hostname}: resolves to ${addresses[0].address}, which is a DNS block`,
+          );
+          continue;
+        }
+
+        this.activeEndpoint = endpoint.replace(/\/+$/, "");
+        this.logger.debug(
+          `Analytics collector: ${this.activeEndpoint} ` +
+            `(${addresses.length} address(es))`,
+        );
+        return { ok: true, detail: this.activeEndpoint };
+      } catch (error) {
+        failures.push(`${hostname}: ${describeFetchError(error)}`);
       }
-      return { ok: true, detail: `${addresses.length} address(es)` };
-    } catch (error) {
-      return {
-        ok: false,
-        detail: `${hostname} does not resolve: ${describeFetchError(error)}`,
-      };
     }
+
+    return { ok: false, detail: failures.join("; ") };
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -266,6 +284,7 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
           ? `${Math.floor(context.status / 100)}xx`
           : "unknown",
         service: context.service ?? "unknown",
+        collector: this.collectorHost(),
       },
     });
   }
@@ -276,10 +295,9 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
    * `/log` suffix is accepted so existing deployments keep working.
    */
   private collectorRoot(): string {
-    return this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "").replace(
-      /\/log$/,
-      "",
-    );
+    const endpoint =
+      this.activeEndpoint ?? this.config.ANALYTICS.ENDPOINTS[0] ?? "";
+    return endpoint.replace(/\/+$/, "").replace(/\/log$/, "");
   }
 
   /** Swetrix API root, `<collector>/log`. */
@@ -291,9 +309,18 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
     await this.post(`${this.apiRoot()}/custom`, {
       pid: this.config.ANALYTICS.PROJECT_ID,
       ev: event,
-      meta: { ...meta, server_version: this.config.SERVER.VERSION },
+      meta: {
+        ...meta,
+        server_version: this.config.SERVER.VERSION,
+        collector: this.collectorHost(),
+      },
       profileId: this.serverService.getServerUuid(),
     });
+  }
+
+  /** Host of the collector in use, e.g. `api.swetrix.com`. */
+  private collectorHost(): string {
+    return hostOf(this.collectorRoot()) ?? "unknown";
   }
 
   /** Fire-and-forget POST. Returns whether the collector accepted it. */
