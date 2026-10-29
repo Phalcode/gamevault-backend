@@ -138,4 +138,59 @@ describe("AnalyticsService", () => {
     expect(fetchMock.mock.calls[1][0]).toBe("https://analytics.test/log");
     await service.onApplicationShutdown();
   });
+
+  it("reports errors to /error with sanitized message and stack", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const service = createService();
+    const error = new Error(
+      "Savefile for user admin@example.com at /home/alfagun74/git/app/x.zip failed (id 123456)",
+    );
+    error.stack =
+      "Error: boom\n    at FilesService.download (/home/alfagun74/git/app/src/files.js:42:7)";
+
+    service.reportError(error, {
+      route: "/api/game/:game_id/versions/:version_id",
+      method: "GET",
+      status: 500,
+      service: "http",
+    });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, { body: string }];
+    expect(url).toBe("https://analytics.test/log/error");
+    const body = JSON.parse(init.body);
+    expect(body.name).toBe("Error");
+    expect(body.message).not.toContain("admin@example.com");
+    expect(body.message).not.toContain("/home/alfagun74");
+    expect(body.stackTrace).toContain("files.js:42:7");
+    expect(body.stackTrace).not.toContain("/home/alfagun74");
+    expect(body.meta).toMatchObject({
+      service: "http",
+      method: "GET",
+      status_class: "5xx",
+    });
+  });
+
+  it("samples errors and reports the same error only once", async () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const service = createService();
+    service.reportError(new Error("boom"), { route: "/api/games" });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    random.mockReturnValue(0);
+    service.reportError(new Error("boom"), { route: "/api/games" });
+    service.reportError(new Error("boom"), { route: "/api/games" });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    // A different route counts as a different error.
+    service.reportError(new Error("boom"), { route: "/api/users" });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+  });
+
+  it("does not report errors when analytics is disabled", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const service = createService(false);
+    service.reportError(new Error("boom"), { service: "process" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

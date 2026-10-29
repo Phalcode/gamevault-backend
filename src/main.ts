@@ -22,7 +22,6 @@ import configuration, {
   getMaxBodySizeInBytes,
 } from "./configuration.js";
 import { resolveCorsOriginAllowlist } from "./cors-origins.js";
-import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
 import logger, { stream } from "./logging.js";
 import { LegacyRoutesMiddleware } from "./middleware/legacy-routes.middleware.js";
 import { AuthRateLimiter } from "./modules/auth/auth-rate-limit.middleware.js";
@@ -135,8 +134,8 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-  // Logs HTTP 4XX and 5XX as warns and errors
-  app.useGlobalFilters(new LoggingExceptionFilter());
+  // Logs HTTP 4XX and 5XX as warns and errors. Registered through APP_FILTER in
+  // AppModule, so it can receive the optional analytics service.
 
   // Basepath
   app.setGlobalPrefix("api");

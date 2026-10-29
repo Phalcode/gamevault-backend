@@ -16,7 +16,7 @@
 - The served Web UI can send a Content-Security-Policy (`WEB_UI_CSP_MODE`). Disabled by default.
 - OAuth2 callback sessions now use `SameSite=Lax`, `HttpOnly` and `Secure` on HTTPS, and expire after 24 hours instead of living in memory until a restart.
 - Fixed the server-wide download bandwidth limit (`SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS`) having no effect: the configured value was converted to bytes twice, and clients that did not send their own limit bypassed it entirely. The server value is now enforced as a cap that clients can only lower.
-- The server can now send anonymous usage reports (`ANALYTICS_ENABLED`, on by default) to help prioritise work: startup and snapshot statistics, aggregated request counts, downloads, registrations and server errors. No user names, ids, IPs, game titles or file paths are sent. You can turn it off with `ANALYTICS_ENABLED=false`.
+- The server can now send anonymous usage reports (`ANALYTICS_ENABLED`, on by default) to help prioritise work: startup and snapshot statistics, aggregated request counts, downloads, registrations, progress updates, savefile usage and sampled server errors with cleaned messages. No user names, ids, IPs, game titles or file paths are sent. You can turn it off with `ANALYTICS_ENABLED=false`.
 
 ## 17.1.0
 

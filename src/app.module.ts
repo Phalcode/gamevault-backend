@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule as NestConfigModule } from "@nestjs/config";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import configuration, { gamevaultConfiguration } from "./configuration.js";
+import { LoggingExceptionFilter } from "./filters/http-exception.filter.js";
 import { AnalyticsInterceptor } from "./interceptors/analytics.interceptor.js";
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor.js";
 import { HttpLoggingInterceptor } from "./interceptors/http-logging.interceptor.js";
@@ -52,6 +53,10 @@ import { WebUIModule } from "./modules/web-ui/web-ui.module.js";
     ...(configuration.ANALYTICS.ENABLED ? [AnalyticsModule] : []),
   ],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: LoggingExceptionFilter,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: DisableApiIfInterceptor,

@@ -4,6 +4,7 @@ import { GameVersion } from "../games/game-version.entity.js";
 import { GamevaultGame } from "../games/gamevault-game.entity.js";
 import { ServerModule } from "../server/server.module.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
+import { AnalyticsProcessErrorsService } from "./analytics-process-errors.service.js";
 import { AnalyticsSnapshotService } from "./analytics-snapshot.service.js";
 import { AnalyticsService } from "./analytics.service.js";
 
@@ -21,7 +22,11 @@ import { AnalyticsService } from "./analytics.service.js";
     TypeOrmModule.forFeature([GamevaultGame, GameVersion, GamevaultUser]),
     ServerModule,
   ],
-  providers: [AnalyticsService, AnalyticsSnapshotService],
+  providers: [
+    AnalyticsService,
+    AnalyticsSnapshotService,
+    AnalyticsProcessErrorsService,
+  ],
   exports: [AnalyticsService],
 })
 export class AnalyticsModule {}

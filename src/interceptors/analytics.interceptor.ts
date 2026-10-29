@@ -72,6 +72,7 @@ export class AnalyticsInterceptor implements NestInterceptor {
     if (status >= 500) {
       this.analytics.emit("server_error", {
         ...meta,
+        service: context.getClass().name,
         duration_ms: bucketDuration(Date.now() - startedAt),
       });
     }

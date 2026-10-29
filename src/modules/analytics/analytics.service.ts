@@ -21,6 +21,12 @@ interface PendingCounter {
 const HEARTBEAT_INTERVAL_MS = 28_000;
 /** How often aggregated request counters are sent. */
 const FLUSH_INTERVAL_MS = 60_000;
+/** Share of errors that is reported. Server errors can repeat endlessly. */
+const ERROR_SAMPLE_RATE = 0.2;
+/** Same error name and route: reported at most once in this window. */
+const ERROR_DEDUPE_MS = 10 * 60_000;
+/** Upper bound for the dedupe map, so a pathological loop cannot grow it. */
+const ERROR_DEDUPE_LIMIT = 200;
 
 /**
  * Anonymous usage reports for the GameVault Server.
@@ -47,6 +53,8 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   private heartbeatTimer: NodeJS.Timeout | null = null;
   /** True once the session pageview was accepted by the collector. */
   private sessionOpen = false;
+  /** Last report per error key, for {@link reportError}. */
+  private readonly reportedErrors = new Map<string, number>();
 
   constructor(
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
@@ -147,6 +155,60 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
     if (!ok) this.sessionOpen = false;
   }
 
+  /**
+   * Reports a server-side error to the collector's `/error` endpoint.
+   *
+   * Sampling and deduplication keep a repeating error (a broken cronjob, a
+   * failing query on every request) from flooding the dashboard. Message and
+   * stack are sanitized: emails, absolute paths and ids are replaced before
+   * anything leaves the server.
+   */
+  reportError(
+    error: unknown,
+    context: {
+      route?: string;
+      method?: string;
+      status?: number;
+      service?: string;
+    } = {},
+  ): void {
+    if (!this.enabled) return;
+    if (Math.random() > ERROR_SAMPLE_RATE) return;
+
+    const name = error instanceof Error ? error.name : "UnknownError";
+    const key = `${name}|${context.route ?? ""}|${context.service ?? ""}`;
+    const now = Date.now();
+    const lastReported = this.reportedErrors.get(key) ?? 0;
+    if (now - lastReported < ERROR_DEDUPE_MS) return;
+    if (this.reportedErrors.size >= ERROR_DEDUPE_LIMIT) {
+      this.reportedErrors.clear();
+    }
+    this.reportedErrors.set(key, now);
+
+    const { locale, timeZone } = resolvedLocale();
+    const message = error instanceof Error ? error.message : String(error);
+    void this.post(`${this.baseEndpoint()}/error`, {
+      pid: this.config.ANALYTICS.PROJECT_ID,
+      name,
+      message: sanitizeText(message, 500),
+      stackTrace: sanitizeStack(
+        error instanceof Error ? error.stack : undefined,
+      ),
+      lc: locale,
+      tz: timeZone,
+      pg: context.route ? `route:${context.route}` : "server",
+      profileId: this.serverService.getServerUuid(),
+      meta: {
+        server_version: this.config.SERVER.VERSION,
+        method: context.method ?? "unknown",
+        status_class: context.status
+          ? `${Math.floor(context.status / 100)}xx`
+          : "unknown",
+        service: context.service ?? "unknown",
+      },
+    });
+  }
+
   private baseEndpoint(): string {
     return this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "");
   }
@@ -213,4 +275,39 @@ export function countBucket(value: number): string {
   if (value < 1000) return "100_999";
   if (value < 10000) return "1k_10k";
   return "gt_10k";
+}
+
+/**
+ * Removes anything from an error text that could identify a user or a host:
+ * email addresses, absolute paths, UUIDs and long numbers.
+ */
+export function sanitizeText(
+  value: string | undefined,
+  maxLength: number,
+): string | undefined {
+  if (!value) return undefined;
+  const cleaned = value
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "<email>")
+    .replace(/[A-Za-z]:\\[^\s"']+/g, "<path>")
+    .replace(/\/(?:[\w.-]+\/)+[\w.-]+/g, "<path>")
+    .replace(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+      "<uuid>",
+    )
+    .replace(/\b\d{4,}\b/g, "<n>");
+  return cleaned.slice(0, maxLength);
+}
+
+/**
+ * Keeps the useful part of a stack (function and file:line) and drops the
+ * directory prefix, which would reveal how the host is laid out.
+ */
+export function sanitizeStack(stack: string | undefined): string | undefined {
+  if (!stack) return undefined;
+  return stack
+    .split("\n")
+    .slice(0, 15)
+    .map((line) => line.replace(/[^\s()]*[\\/]([^\\/():]+:\d+(?::\d+)?)/g, "$1"))
+    .join("\n")
+    .slice(0, 3_000);
 }
