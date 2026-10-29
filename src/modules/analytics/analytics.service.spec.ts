@@ -19,7 +19,9 @@ describe("AnalyticsService", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    fetchMock = vi.fn(() => Promise.resolve(new Response("{}", { status: 200 })));
+    fetchMock = vi.fn(() =>
+      Promise.resolve(new Response("{}", { status: 200 })),
+    );
     vi.stubGlobal("fetch", fetchMock);
   });
 
@@ -67,7 +69,9 @@ describe("AnalyticsService", () => {
     const counts = fetchMock.mock.calls.map(([, init]: any) =>
       JSON.parse(init.body),
     );
-    const games = counts.find((entry: any) => entry.meta.route === "/api/games");
+    const games = counts.find(
+      (entry: any) => entry.meta.route === "/api/games",
+    );
     expect(games.meta.count).toBe(2);
   });
 
