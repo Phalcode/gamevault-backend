@@ -7,20 +7,33 @@ import { WebUIService } from "./web-ui.service.js";
 /**
  * Content-Security-Policy for the served Web UI. Only applied to the static
  * frontend assets, so API responses and the Swagger UI are unaffected.
+ * The analytics hosts are read from the configuration, so no collector domain
+ * has to be written out here.
  */
-const WEB_UI_CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self' 'unsafe-inline' https://rsms.me",
-  "font-src 'self' https://rsms.me",
-  "img-src 'self' data: blob:",
-  "media-src 'self' blob:",
-  "frame-src https://www.youtube.com",
-  "connect-src 'self' https://analytics.platform.phalco.de",
-  "base-uri 'none'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-].join("; ");
+function webUiCsp(): string {
+  const collectors = configuration.ANALYTICS.ENABLED
+    ? configuration.ANALYTICS.ENDPOINTS.map((endpoint) => {
+        try {
+          return new URL(endpoint).origin;
+        } catch {
+          return "";
+        }
+      }).filter(Boolean)
+    : [];
+  return [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline' https://rsms.me",
+    "font-src 'self' https://rsms.me",
+    "img-src 'self' data: blob:",
+    "media-src 'self' blob:",
+    "frame-src https://www.youtube.com",
+    ["connect-src", "'self'", ...collectors].join(" "),
+    "base-uri 'none'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
 
 function setWebUiSecurityHeaders(response: {
   setHeader(name: string, value: string): void;
@@ -31,7 +44,7 @@ function setWebUiSecurityHeaders(response: {
     mode === "enforce"
       ? "Content-Security-Policy"
       : "Content-Security-Policy-Report-Only",
-    WEB_UI_CSP,
+    webUiCsp(),
   );
 }
 

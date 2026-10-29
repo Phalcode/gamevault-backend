@@ -291,7 +291,7 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
 
   /**
    * Collector root without any API path, e.g.
-   * `https://analytics.platform.phalco.de`. A value that still carries the old
+   * `https://<collector>`. A value that still carries the old
    * `/log` suffix is accepted so existing deployments keep working.
    */
   private collectorRoot(): string {

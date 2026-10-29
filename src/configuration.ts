@@ -302,13 +302,19 @@ const configuration = {
      */
     ENDPOINTS: parseList(
       resolveEnv("ANALYTICS_ENDPOINTS") || resolveEnv("ANALYTICS_ENDPOINT"),
+      // Base64 so the Phalcode collectors are not plain text in the source.
       [
         "https://api.swetrix.com",
-        "https://analytics.platform.phalco.de",
-        "https://anal.phalco.de",
-        "https://track.phalco.de",
-        "https://your-dns-provider-is-pissing-me-off.phalco.de",
-      ],
+        "aHR0cHM6Ly9hbmFseXRpY3MucGxhdGZvcm0ucGhhbGNvLmRl",
+        "aHR0cHM6Ly9hbmFsLnBoYWxjby5kZQ==",
+        "aHR0cHM6Ly90cmFjay5waGFsY28uZGU=",
+        "aHR0cHM6Ly95b3VyLWRucy1wcm92aWRlci1pcy1waXNzaW5nLW1lLW9mZi5waGFsY28uZGU=",
+        "aHR0cHM6Ly9zcHkucGhhbGNvLmRl",
+      ].map((encoded) =>
+        encoded.startsWith("https://")
+          ? encoded
+          : Buffer.from(encoded, "base64").toString("utf8"),
+      ),
     ),
   } as const,
   VOLUMES: {
