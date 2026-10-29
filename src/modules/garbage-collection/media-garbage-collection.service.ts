@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnApplicationBootstrap,
+  Optional,
+} from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import { isUUID } from "class-validator";
@@ -7,6 +12,10 @@ import { join } from "node:path";
 import { Repository } from "typeorm";
 import configuration from "../../configuration.js";
 import { toFindOptionsRelations } from "../../globals.js";
+import {
+  AnalyticsService,
+  countBucket,
+} from "../analytics/analytics.service.js";
 import { Media } from "../media/media.entity.js";
 import { MediaService } from "../media/media.service.js";
 import { GameMetadata } from "../metadata/games/game.metadata.entity.js";
@@ -25,6 +34,7 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
     @InjectRepository(GamevaultUser)
     private readonly userRepository: Repository<GamevaultUser>,
     private readonly mediaService: MediaService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   onApplicationBootstrap() {
@@ -78,6 +88,10 @@ export class MediaGarbageCollectionService implements OnApplicationBootstrap {
           `Deleted ${fsRemovedCount} unused media files from ${configuration.VOLUMES.MEDIA}.`,
         );
       }
+      this.analytics?.emit("media_gc_run", {
+        db_removed: countBucket(dbRemovedCount),
+        files_removed: countBucket(fsRemovedCount),
+      });
     } catch (error) {
       this.logger.error({
         message: "Error garbage collecting unused media.",

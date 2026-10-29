@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
   StreamableFile,
 } from "@nestjs/common";
 import { isUUID } from "class-validator";
@@ -16,6 +17,7 @@ import {
   discardStreamedUpload,
   readFileHeader,
 } from "../../uploads/streamed-upload.js";
+import { AnalyticsService } from "../analytics/analytics.service.js";
 import { UsersService } from "../users/users.service.js";
 const { createReadStream, ensureDir, move, readdir, remove, stat } = fsExtra;
 
@@ -26,6 +28,7 @@ export class SavefileService {
   constructor(
     private readonly usersService: UsersService,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   /**
@@ -67,6 +70,7 @@ export class SavefileService {
         file.path,
       );
       await this.cleanupOldSaves(userId, gameId, executorUsername);
+      this.analytics?.emit("savefile_used", { action: "upload" });
     } finally {
       // On success the temporary file has been moved to its final location; on
       // failure (permissions, validation, ...) whatever is left is removed.
@@ -105,6 +109,7 @@ export class SavefileService {
       gameId,
     });
     const { default: mime } = await import("mime");
+    this.analytics?.emit("savefile_used", { action: "download" });
     return new StreamableFile(file, {
       disposition: `attachment; filename="${basename(path)}"`,
       length: (await stat(path)).size,
@@ -152,6 +157,7 @@ export class SavefileService {
         userId,
         gameId,
       });
+      this.analytics?.emit("savefile_used", { action: "delete" });
     } catch (error) {
       this.logger.error({
         message: "Error deleting savefile.",

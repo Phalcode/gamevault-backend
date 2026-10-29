@@ -201,3 +201,16 @@ function resolvedLocale(): { locale: string; timeZone: string } {
     return { locale: "en-US", timeZone: "UTC" };
   }
 }
+
+/**
+ * Coarse buckets for counts: an exact number would fingerprint a specific
+ * library or user base.
+ */
+export function countBucket(value: number): string {
+  if (value <= 0) return "0";
+  if (value < 10) return "1_9";
+  if (value < 100) return "10_99";
+  if (value < 1000) return "100_999";
+  if (value < 10000) return "1k_10k";
+  return "gt_10k";
+}

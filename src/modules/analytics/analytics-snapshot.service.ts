@@ -8,7 +8,7 @@ import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.
 import { GameVersion } from "../games/game-version.entity.js";
 import { GamevaultGame } from "../games/gamevault-game.entity.js";
 import { GamevaultUser } from "../users/gamevault-user.entity.js";
-import { AnalyticsService } from "./analytics.service.js";
+import { AnalyticsService, countBucket } from "./analytics.service.js";
 
 /**
  * Installation-level reports: one at startup and a light snapshot every six
@@ -56,10 +56,10 @@ export class AnalyticsSnapshotService implements OnApplicationBootstrap {
 
       this.analytics.emit("server_snapshot", {
         ...this.featureFlags(),
-        games: bucket(games),
-        versions: bucket(versions),
-        users: bucket(users),
-        uptime_hours: bucket(
+        games: countBucket(games),
+        versions: countBucket(versions),
+        users: countBucket(users),
+        uptime_hours: countBucket(
           Math.round((Date.now() - this.startedAt) / 3_600_000),
         ),
       });
@@ -82,16 +82,4 @@ export class AnalyticsSnapshotService implements OnApplicationBootstrap {
       registration_disabled: this.config.SERVER.REGISTRATION_DISABLED,
     };
   }
-}
-
-/**
- * Coarse buckets: exact counts would fingerprint a specific library.
- */
-function bucket(value: number): string {
-  if (value <= 0) return "0";
-  if (value < 10) return "1_9";
-  if (value < 100) return "10_99";
-  if (value < 1000) return "100_999";
-  if (value < 10000) return "1k_10k";
-  return "gt_10k";
 }

@@ -5,9 +5,11 @@ import {
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
+  Optional,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
+import { AnalyticsService } from "../analytics/analytics.service.js";
 import path from "node:path";
 import {
   type FindOneOptions,
@@ -36,6 +38,7 @@ export class ProgressService implements OnApplicationBootstrap {
     private readonly progressRepository: Repository<Progress>,
     private readonly usersService: UsersService,
     private readonly gamesService: GamesService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   onApplicationBootstrap() {
@@ -264,7 +267,14 @@ export class ProgressService implements OnApplicationBootstrap {
       message: `Updating progress.`,
       progress: logProgress(progress),
     });
-    return this.progressRepository.save(progress);
+    const saved = await this.progressRepository.save(progress);
+    if (updateProgressDto.state != null) {
+      this.analytics?.emit("progress_changed", {
+        state: updateProgressDto.state,
+        has_minutes: updateProgressDto.minutes_played != null,
+      });
+    }
+    return saved;
   }
 
   public async increment(
