@@ -112,9 +112,7 @@ describe("AnalyticsService", () => {
   it("sends heartbeats to /hb once the session is open", async () => {
     const service = createService();
     service.onModuleInit();
-    await vi.waitFor(() =>
-      expect((service as any).sessionOpen).toBe(true),
-    );
+    await vi.waitFor(() => expect((service as any).sessionOpen).toBe(true));
 
     await (service as any).heartbeat();
 
@@ -133,9 +131,7 @@ describe("AnalyticsService", () => {
     );
     const service = createService();
     service.onModuleInit();
-    await vi.waitFor(() =>
-      expect((service as any).sessionOpen).toBe(false),
-    );
+    await vi.waitFor(() => expect((service as any).sessionOpen).toBe(false));
 
     // Not open yet, so the next tick retries the pageview instead of /hb.
     await (service as any).heartbeat();
