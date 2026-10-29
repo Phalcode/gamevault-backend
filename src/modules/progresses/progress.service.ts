@@ -9,7 +9,6 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import fsExtra from "fs-extra";
-import { AnalyticsService } from "../analytics/analytics.service.js";
 import path from "node:path";
 import {
   type FindOneOptions,
@@ -18,6 +17,7 @@ import {
   Or,
   Repository,
 } from "typeorm";
+import { AnalyticsService } from "../analytics/analytics.service.js";
 const { readFile } = fsExtra;
 
 import { type FindOptions, toFindOptionsRelations } from "../../globals.js";

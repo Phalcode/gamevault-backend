@@ -307,7 +307,9 @@ export function sanitizeStack(stack: string | undefined): string | undefined {
   return stack
     .split("\n")
     .slice(0, 15)
-    .map((line) => line.replace(/[^\s()]*[\\/]([^\\/():]+:\d+(?::\d+)?)/g, "$1"))
+    .map((line) =>
+      line.replace(/[^\s()]*[\\/]([^\\/():]+:\d+(?::\d+)?)/g, "$1"),
+    )
     .join("\n")
     .slice(0, 3_000);
 }
