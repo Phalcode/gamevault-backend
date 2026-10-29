@@ -44,10 +44,15 @@ describe("AnalyticsService", () => {
 
     const [url, init] = fetchMock.mock.calls[0] as [
       string,
-      { body: string; method: string },
+      {
+        body: string;
+        method: string;
+        headers: Record<string, string>;
+      },
     ];
     expect(url).toBe("https://analytics.test/log/custom");
     expect(init.method).toBe("POST");
+    expect(init.headers["User-Agent"]).toBe("GameVaultBackend/1.9.9.9");
     const body = JSON.parse(init.body);
     expect(body).toMatchObject({
       pid: "test-pid",

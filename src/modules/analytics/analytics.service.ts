@@ -230,7 +230,9 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "User-Agent": `GameVault/${this.config.SERVER.VERSION}`,
+          // Server reports identify themselves separately from the clients, so
+          // the collector can tell installations and app versions apart.
+          "User-Agent": `GameVaultBackend/1.${this.config.SERVER.VERSION}`,
         },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(5_000),
