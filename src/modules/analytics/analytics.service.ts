@@ -8,6 +8,7 @@ import { lookup } from "node:dns/promises";
 import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 import { ServerService } from "../server/server.service.js";
+import { collectorUserAgent } from "./collector-user-agent.js";
 
 /** Primitive metadata only, the analytics API rejects nested objects. */
 export type AnalyticsMeta = Record<string, string | number | boolean>;
@@ -58,6 +59,8 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   private heartbeatTimer: NodeJS.Timeout | null = null;
   /** True once the session pageview was accepted by the collector. */
   private sessionOpen = false;
+  /** The bot-protection warning is worth one line per process, not per event. */
+  private botDropWarned = false;
   /** Last report per error key, for {@link reportError}. */
   private readonly reportedErrors = new Map<string, number>();
   /** Consecutive transport failures, see {@link post}. */
@@ -323,6 +326,16 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
     return hostOf(this.collectorRoot()) ?? "unknown";
   }
 
+  private warnAboutBotDrop(path: string): void {
+    if (this.botDropWarned) return;
+    this.botDropWarned = true;
+    this.logger.warn(
+      `The analytics collector dropped a request to ${path} as bot traffic. ` +
+        "On a self-hosted collector, whitelist the server's egress IP in the " +
+        "project's bot protection settings or lower its protection level.",
+    );
+  }
+
   /** Fire-and-forget POST. Returns whether the collector accepted it. */
   private async post(path: string, body: unknown): Promise<boolean> {
     // A collector that cannot be reached (no outbound network, DNS, TLS) must
@@ -335,14 +348,19 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          // Server reports identify themselves separately from the clients, so
-          // the collector can tell installations and app versions apart.
-          "User-Agent": `GameVaultBackend/1.${this.config.SERVER.VERSION}`,
+          "Accept-Language": "en-US,en;q=0.9",
+          "User-Agent": collectorUserAgent(this.config.SERVER.VERSION),
         },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(5_000),
       });
       if (response.ok) {
+        // A dropped request is answered with a 2xx and a message, so `ok`
+        // alone does not mean the event (or the session pageview) was stored.
+        if (await isDroppedAsBot(response)) {
+          this.warnAboutBotDrop(path);
+          return false;
+        }
         this.consecutiveFailures = 0;
       } else {
         this.logger.debug(
@@ -364,6 +382,30 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
       }
       return false;
     }
+  }
+}
+
+/**
+ * Swetrix answers a request dropped by bot protection with a 2xx status and
+ * `{ message: "Bot traffic detected, request is ignored" }` instead of an
+ * error status, so the body has to be inspected.
+ */
+async function isDroppedAsBot(response: Response): Promise<boolean> {
+  const text = await response.text().catch(() => "");
+  if (!text) return false;
+
+  try {
+    const body = JSON.parse(text) as {
+      message?: unknown;
+      isBot?: unknown;
+    };
+    if (body.isBot === true) return true;
+    return (
+      typeof body.message === "string" &&
+      body.message.toLowerCase().includes("bot traffic")
+    );
+  } catch {
+    return false;
   }
 }
 

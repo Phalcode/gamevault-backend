@@ -62,7 +62,9 @@ describe("AnalyticsService", () => {
     ];
     expect(url).toBe("https://analytics.test/log/custom");
     expect(init.method).toBe("POST");
-    expect(init.headers["User-Agent"]).toBe("GameVaultBackend/1.9.9.9");
+    // Swetrix drops a bare `GameVault/…` token as bot traffic, the platform
+    // token in parentheses is what makes it read as a browser.
+    expect(init.headers["User-Agent"]).toMatch(/^GameVault\/1\.9\.9\.9 \(.+\)$/);
     const body = JSON.parse(init.body);
     expect(body).toMatchObject({
       pid: "test-pid",
@@ -153,6 +155,31 @@ describe("AnalyticsService", () => {
     await vi.waitFor(() => expect((service as any).sessionOpen).toBe(false));
 
     // Not open yet, so the next tick retries the pageview instead of /hb.
+    await (service as any).heartbeat();
+    expect(fetchMock.mock.calls[1][0]).toBe("https://analytics.test/log");
+    await service.onApplicationShutdown();
+  });
+
+  it("keeps the session closed when the pageview is dropped as bot traffic", async () => {
+    // Swetrix answers dropped requests with 200, so the body is the only
+    // signal that no session was created.
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            message: "Bot traffic detected, request is ignored",
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+    const service = createService();
+    service.onModuleInit();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    expect((service as any).sessionOpen).toBe(false);
+    expect((service as any).botDropWarned).toBe(true);
+
     await (service as any).heartbeat();
     expect(fetchMock.mock.calls[1][0]).toBe("https://analytics.test/log");
     await service.onApplicationShutdown();
