@@ -7,7 +7,6 @@ function createService(enabled = true) {
       ENABLED: enabled,
       PROJECT_ID: "test-pid",
       ENDPOINT: "https://analytics.test/log",
-      FLUSH_INTERVAL_SECONDS: 60,
     },
     SERVER: { VERSION: "9.9.9" },
   } as any;
@@ -88,5 +87,59 @@ describe("AnalyticsService", () => {
     const service = createService();
     expect(() => service.emit("server_started", {})).not.toThrow();
     await expect(service.flush()).resolves.toBeUndefined();
+  });
+
+  it("opens a session with a pageview on / at startup", async () => {
+    const service = createService();
+    service.onModuleInit();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    const [url, init] = fetchMock.mock.calls[0] as [
+      string,
+      { body: string; method: string },
+    ];
+    expect(url).toBe("https://analytics.test/log");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toMatchObject({
+      pid: "test-pid",
+      pg: "/",
+      unique: false,
+      profileId: "server-uuid",
+    });
+    await service.onApplicationShutdown();
+  });
+
+  it("sends heartbeats to /hb once the session is open", async () => {
+    const service = createService();
+    service.onModuleInit();
+    await vi.waitFor(() =>
+      expect((service as any).sessionOpen).toBe(true),
+    );
+
+    await (service as any).heartbeat();
+
+    const [url, init] = fetchMock.mock.calls[1] as [string, { body: string }];
+    expect(url).toBe("https://analytics.test/log/hb");
+    expect(JSON.parse(init.body)).toMatchObject({
+      pid: "test-pid",
+      profileId: "server-uuid",
+    });
+    await service.onApplicationShutdown();
+  });
+
+  it("reopens the session when the collector rejects the pageview", async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(new Response("{}", { status: 500 })),
+    );
+    const service = createService();
+    service.onModuleInit();
+    await vi.waitFor(() =>
+      expect((service as any).sessionOpen).toBe(false),
+    );
+
+    // Not open yet, so the next tick retries the pageview instead of /hb.
+    await (service as any).heartbeat();
+    expect(fetchMock.mock.calls[1][0]).toBe("https://analytics.test/log");
+    await service.onApplicationShutdown();
   });
 });

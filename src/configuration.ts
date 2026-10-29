@@ -298,10 +298,6 @@ const configuration = {
     ENDPOINT:
       resolveEnv("ANALYTICS_ENDPOINT") ||
       "https://analytics.platform.phalco.de/log",
-    FLUSH_INTERVAL_SECONDS: parseNumber(
-      resolveEnv("ANALYTICS_FLUSH_INTERVAL_SECONDS"),
-      60,
-    ),
   } as const,
   VOLUMES: {
     CONFIG: parsePath(resolveEnv("VOLUMES_CONFIG"), "/config"),

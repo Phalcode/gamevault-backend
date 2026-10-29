@@ -17,14 +17,22 @@ interface PendingCounter {
   count: number;
 }
 
+/** Swetrix sends a heartbeat every 28s while a session is open. */
+const HEARTBEAT_INTERVAL_MS = 28_000;
+/** How often aggregated request counters are sent. */
+const FLUSH_INTERVAL_MS = 60_000;
+
 /**
  * Anonymous usage reports for the GameVault Server.
  *
- * Two shapes:
+ * Shapes:
  * - {@link emit} sends a single event for a rare action (a registration, a
  *   download, a migration).
  * - {@link count} aggregates frequent actions (HTTP requests per route) and
  *   flushes one event per bucket with a `count` field.
+ * - A pageview on `/` opens a session at startup and the heartbeat keeps it
+ *   alive, exactly like the desktop client does, so server uptime shows up in
+ *   the same dashboards.
  *
  * Requests are fire-and-forget with a short timeout: analytics must never
  * delay or break a request. No user id, name, email, IP, game title or file
@@ -36,6 +44,9 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
   private readonly logger = new Logger(AnalyticsService.name);
   private readonly counters = new Map<string, PendingCounter>();
   private flushTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: NodeJS.Timeout | null = null;
+  /** True once the session pageview was accepted by the collector. */
+  private sessionOpen = false;
 
   constructor(
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
@@ -48,19 +59,27 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
 
   onModuleInit(): void {
     if (!this.enabled) return;
-    const seconds = Math.max(
-      10,
-      this.config.ANALYTICS.FLUSH_INTERVAL_SECONDS ?? 60,
-    );
-    this.flushTimer = setInterval(() => void this.flush(), seconds * 1000);
+    this.flushTimer = setInterval(() => void this.flush(), FLUSH_INTERVAL_MS);
     // Do not keep the process alive just for analytics.
     this.flushTimer.unref?.();
+
+    // A pageview on "/" opens the session; the heartbeat continues it.
+    void this.openSession();
+    this.heartbeatTimer = setInterval(
+      () => void this.heartbeat(),
+      HEARTBEAT_INTERVAL_MS,
+    );
+    this.heartbeatTimer.unref?.();
   }
 
   async onApplicationShutdown(): Promise<void> {
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
       this.flushTimer = null;
+    }
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
     await this.flush();
   }
@@ -98,36 +117,87 @@ export class AnalyticsService implements OnModuleInit, OnApplicationShutdown {
     }
   }
 
+  /**
+   * Opens the analytics session with a pageview on `/`, like the client SDK's
+   * `trackViews()` does on mount. Retried by {@link heartbeat} until accepted.
+   */
+  private async openSession(): Promise<void> {
+    const { locale, timeZone } = resolvedLocale();
+    const ok = await this.post(this.baseEndpoint(), {
+      pid: this.config.ANALYTICS.PROJECT_ID,
+      pg: "/",
+      lc: locale,
+      tz: timeZone,
+      unique: false,
+      profileId: this.serverService.getServerUuid(),
+    });
+    this.sessionOpen = ok;
+  }
+
+  /** Keeps the session alive. Restores it if the pageview never landed. */
+  private async heartbeat(): Promise<void> {
+    if (!this.sessionOpen) {
+      await this.openSession();
+      return;
+    }
+    const ok = await this.post(`${this.baseEndpoint()}/hb`, {
+      pid: this.config.ANALYTICS.PROJECT_ID,
+      profileId: this.serverService.getServerUuid(),
+    });
+    if (!ok) this.sessionOpen = false;
+  }
+
+  private baseEndpoint(): string {
+    return this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "");
+  }
+
   private async send(event: string, meta: AnalyticsMeta): Promise<void> {
+    await this.post(`${this.baseEndpoint()}/custom`, {
+      pid: this.config.ANALYTICS.PROJECT_ID,
+      ev: event,
+      meta: { ...meta, server_version: this.config.SERVER.VERSION },
+      profileId: this.serverService.getServerUuid(),
+    });
+  }
+
+  /** Fire-and-forget POST. Returns whether the collector accepted it. */
+  private async post(path: string, body: unknown): Promise<boolean> {
     try {
-      const response = await fetch(
-        `${this.config.ANALYTICS.ENDPOINT.replace(/\/+$/, "")}/custom`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "User-Agent": `GameVault/${this.config.SERVER.VERSION}`,
-          },
-          body: JSON.stringify({
-            pid: this.config.ANALYTICS.PROJECT_ID,
-            ev: event,
-            meta: { ...meta, server_version: this.config.SERVER.VERSION },
-            profileId: this.serverService.getServerUuid(),
-          }),
-          signal: AbortSignal.timeout(5_000),
+      const response = await fetch(path, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": `GameVault/${this.config.SERVER.VERSION}`,
         },
-      );
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(5_000),
+      });
       if (!response.ok) {
         this.logger.debug(
-          `Analytics event ${event} was rejected (${response.status}).`,
+          `Analytics request to ${path} was rejected (${response.status}).`,
         );
       }
+      return response.ok;
     } catch (error) {
       // Analytics must never surface as an application error.
       this.logger.debug(
-        `Analytics event ${event} could not be sent: ${error instanceof Error ? error.message : String(error)}`,
+        `Analytics request to ${path} failed: ${error instanceof Error ? error.message : String(error)}`,
       );
+      return false;
     }
+  }
+}
+
+/**
+ * Locale and timezone of the server process, in the format the collector
+ * expects (IETF tag and IANA timezone).
+ */
+function resolvedLocale(): { locale: string; timeZone: string } {
+  try {
+    const resolved = Intl.DateTimeFormat().resolvedOptions();
+    return { locale: resolved.locale, timeZone: resolved.timeZone };
+  } catch {
+    return { locale: "en-US", timeZone: "UTC" };
   }
 }
