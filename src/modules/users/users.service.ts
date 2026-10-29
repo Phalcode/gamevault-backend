@@ -8,6 +8,7 @@ import {
   NotAcceptableException,
   NotFoundException,
   OnApplicationBootstrap,
+  Optional,
   UnauthorizedException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -31,6 +32,7 @@ import {
   toFindOptionsSelect,
 } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
+import { AnalyticsService } from "../analytics/analytics.service.js";
 import { GamesService } from "../games/games.service.js";
 import { MediaService } from "../media/media.service.js";
 import { GamevaultUser } from "./gamevault-user.entity.js";
@@ -61,6 +63,7 @@ export class UsersService implements OnApplicationBootstrap {
     @Inject(forwardRef(() => GamesService))
     private readonly gamesService: GamesService,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -224,6 +227,11 @@ export class UsersService implements OnApplicationBootstrap {
     const registeredUser = await this.userRepository.save(user);
     registeredUser.password = "**REDACTED**";
     registeredUser.api_key = "**REDACTED**";
+    this.analytics?.emit("user_registered", {
+      role: registeredUser.role,
+      first_user: isFirstUser,
+      activated: isActivated,
+    });
     this.logger.log({
       message: `User has been registered.`,
       user: registeredUser,

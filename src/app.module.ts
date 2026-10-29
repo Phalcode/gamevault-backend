@@ -4,9 +4,11 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { ScheduleModule } from "@nestjs/schedule";
 import configuration, { gamevaultConfiguration } from "./configuration.js";
+import { AnalyticsInterceptor } from "./interceptors/analytics.interceptor.js";
 import { DisableApiIfInterceptor } from "./interceptors/disable-api-if.interceptor.js";
 import { HttpLoggingInterceptor } from "./interceptors/http-logging.interceptor.js";
 import { AdminModule } from "./modules/admin/admin.module.js";
+import { AnalyticsModule } from "./modules/analytics/analytics.module.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { ConfigModule as ApiConfigModule } from "./modules/config/config.module.js";
 import { DatabaseModule } from "./modules/database/database.module.js";
@@ -47,6 +49,7 @@ import { WebUIModule } from "./modules/web-ui/web-ui.module.js";
     ServerModule,
     StatusModule,
     ...(configuration.WEB_UI.ENABLED ? [WebUIModule] : []),
+    ...(configuration.ANALYTICS.ENABLED ? [AnalyticsModule] : []),
   ],
   providers: [
     {
@@ -57,6 +60,14 @@ import { WebUIModule } from "./modules/web-ui/web-ui.module.js";
       provide: APP_INTERCEPTOR,
       useClass: HttpLoggingInterceptor,
     },
+    ...(configuration.ANALYTICS.ENABLED
+      ? [
+          {
+            provide: APP_INTERCEPTOR,
+            useClass: AnalyticsInterceptor,
+          },
+        ]
+      : []),
   ],
 })
 export class AppModule {}

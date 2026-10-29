@@ -4,6 +4,7 @@ import {
   Logger,
   NotFoundException,
   OnApplicationBootstrap,
+  Optional,
   StreamableFile,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -31,6 +32,7 @@ import configuration from "../../configuration.js";
 import globals, { toFindOptionsRelations } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
 import { discardStreamedUpload } from "../../uploads/streamed-upload.js";
+import { AnalyticsService } from "../analytics/analytics.service.js";
 import { MetadataService } from "../metadata/metadata.service.js";
 import { resolveDownloadSpeedLimit } from "./download-speed-limit.js";
 import { GameVersion } from "./game-version.entity.js";
@@ -66,6 +68,7 @@ export class FilesService implements OnApplicationBootstrap {
     private readonly schedulerRegistry: SchedulerRegistry,
     @InjectRepository(GameVersion)
     private readonly gameVersionRepository: Repository<GameVersion>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   /** Initializes the file watcher and starts the initial indexing. */
@@ -1597,6 +1600,12 @@ export class FilesService implements OnApplicationBootstrap {
     // Increment the download count.
     game.download_count++;
     await this.gamesService.save(game);
+    this.analytics?.emit("game_downloaded", {
+      game_type: game.type ?? "unknown",
+      size: bucketSize(range.size),
+      range_started: range.start > 0,
+      versioned: true,
+    });
 
     const originalFilename = path.basename(fileDownloadPath);
     const downloadFilename = globals.ARCHIVE_FORMATS.includes(
@@ -1651,4 +1660,18 @@ export class FilesService implements OnApplicationBootstrap {
       size: rangeSize,
     };
   }
+}
+
+/**
+ * Coarse size buckets for anonymous download statistics: an exact size would
+ * identify a game, a bucket only says how large libraries tend to be.
+ */
+function bucketSize(bytes: number): string {
+  const megabytes = bytes / (1024 * 1024);
+  if (megabytes < 100) return "lt_100mb";
+  if (megabytes < 500) return "100mb_500mb";
+  if (megabytes < 1024) return "500mb_1gb";
+  if (megabytes < 5 * 1024) return "1gb_5gb";
+  if (megabytes < 20 * 1024) return "5gb_20gb";
+  return "gt_20gb";
 }

@@ -290,6 +290,19 @@ const configuration = {
     VERSION: resolveEnv("WEB_UI_VERSION") || undefined,
     CSP_MODE: parseCspMode(resolveEnv("WEB_UI_CSP_MODE")),
   } as const,
+  ANALYTICS: {
+    ENABLED: parseBooleanEnvVariable(resolveEnv("ANALYTICS_ENABLED"), true),
+    // Fixed: server reports always go into the GameVault Server project, not
+    // the client one. Not configurable on purpose.
+    PROJECT_ID: "ZBCe4DOOi1l8",
+    ENDPOINT:
+      resolveEnv("ANALYTICS_ENDPOINT") ||
+      "https://analytics.platform.phalco.de/log",
+    FLUSH_INTERVAL_SECONDS: parseNumber(
+      resolveEnv("ANALYTICS_FLUSH_INTERVAL_SECONDS"),
+      60,
+    ),
+  } as const,
   VOLUMES: {
     CONFIG: parsePath(resolveEnv("VOLUMES_CONFIG"), "/config"),
     FILES: parsePath(resolveEnv("VOLUMES_FILES"), "/files"),
