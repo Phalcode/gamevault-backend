@@ -64,7 +64,9 @@ describe("AnalyticsService", () => {
     expect(init.method).toBe("POST");
     // Swetrix drops a bare `GameVault/…` token as bot traffic, the platform
     // token in parentheses is what makes it read as a browser.
-    expect(init.headers["User-Agent"]).toMatch(/^GameVault\/1\.9\.9\.9 \(.+\)$/);
+    expect(init.headers["User-Agent"]).toMatch(
+      /^GameVault\/1\.9\.9\.9 \(.+\)$/,
+    );
     const body = JSON.parse(init.body);
     expect(body).toMatchObject({
       pid: "test-pid",

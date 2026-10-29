@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { collectorUserAgent, platformTokenFor } from "./collector-user-agent.js";
+import {
+  collectorUserAgent,
+  platformTokenFor,
+} from "./collector-user-agent.js";
 
 describe("collectorUserAgent", () => {
   it("reports the server in the desktop client's user agent shape", () => {
