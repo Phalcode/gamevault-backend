@@ -9,8 +9,21 @@ import type { AppConfiguration } from "../../configuration.js";
 import { InjectGamevaultConfig } from "../../decorators/inject-gamevault-config.decorator.js";
 const { extractFull } = node7z;
 
+/** Moving release tags that are not stable semver releases. */
+const PRE_RELEASE_TAGS = ["unstable", "early-access"] as const;
+
+/** Maps a `WEB_UI_VERSION` value to a moving pre-release tag, if it is one. */
+function resolvePreReleaseTag(
+  version: string,
+): (typeof PRE_RELEASE_TAGS)[number] | null {
+  const normalized = version.trim().toLowerCase();
+  return PRE_RELEASE_TAGS.find((tag) => tag === normalized) ?? null;
+}
+
 interface GitHubRelease {
   tag_name: string;
+  prerelease?: boolean;
+  draft?: boolean;
 }
 
 /**
@@ -32,7 +45,11 @@ export class WebUIService {
   }
 
   /**
-   * Prepares the frontend for serving based on unstable mode and cache status.
+   * Prepares the frontend for serving based on the selected version and cache status.
+   *
+   * A server that cannot reach GitHub or cannot find a suitable release keeps
+   * serving the build that is already cached. It never replaces a working Web
+   * UI with a development build on its own.
    */
   async prepareFrontend(): Promise<void> {
     const serverVersion = this.config.SERVER.VERSION;
@@ -48,31 +65,36 @@ export class WebUIService {
     await fs.ensureDir(this.cachePath);
 
     try {
-      this.compatibleVersion =
-        forcedVersion ||
-        this.getCompatibleOrFallbackRelease(
+      const version = await this.resolveVersion();
+      if (!version) {
+        this.logger.error({
+          message:
+            "No usable Web UI release found and no cached build available. The Web UI stays unavailable until the next restart or admin restart.",
           serverVersion,
-          await this.fetchReleases(),
-        ).tag_name;
+        });
+        return;
+      }
 
-      if (await this.isCached(this.compatibleVersion)) {
+      this.compatibleVersion = version;
+
+      if (await this.isCached(version)) {
         this.logger.log({
           message: "Using cached frontend version",
-          version: this.compatibleVersion,
+          version,
           cachePath: this.cachePath,
         });
       } else {
         this.logger.log({
           message: "Cached frontend not found, downloading",
-          version: this.compatibleVersion,
+          version,
           cachePath: this.cachePath,
         });
-        await this.ensureFrontendCached(this.compatibleVersion);
+        await this.ensureFrontendCached(version);
       }
 
       this.logger.log({
         message: "Frontend is ready",
-        version: this.compatibleVersion,
+        version,
         cachePath: this.cachePath,
       });
     } catch (error) {
@@ -82,95 +104,119 @@ export class WebUIService {
   }
 
   /**
-   * Fetches all releases from GitHub, including 'unstable' or any non-semver releases,
-   * then returns a sorted list with semver-valid releases first followed by non-semver releases.
+   * Fetches the stable releases from GitHub, newest first.
+   *
+   * Returns `null` when the list cannot be read (network error, GitHub down,
+   * API rate limit), so callers can fall back to the cached build instead of
+   * silently selecting a development release.
    */
-  private async fetchReleases(): Promise<GitHubRelease[]> {
-    const defaultReleases = [{ tag_name: "unstable" }];
-    const response = await fetch(this.githubApiUrl, {
-      headers: { "User-Agent": "GameVault-Backend" },
-    });
-    if (!response.ok) {
-      this.logger.error({
-        message:
-          "Error fetching releases from GitHub. Falling back to unstable release.",
-        status: response.status,
-        statusText: response.statusText,
+  private async fetchReleases(): Promise<GitHubRelease[] | null> {
+    try {
+      const response = await fetch(this.githubApiUrl, {
+        headers: {
+          "User-Agent": "GameVault-Backend",
+          Accept: "application/vnd.github+json",
+        },
       });
-      return defaultReleases;
-    }
-
-    const rawReleases: GitHubRelease[] = await response.json();
-
-    // Separate semver-valid and non-semver releases
-    const semverReleases = rawReleases.filter(
-      (r) => semver.valid(r.tag_name) !== null,
-    );
-    const nonSemverReleases = rawReleases.filter(
-      (r) => semver.valid(r.tag_name) === null,
-    );
-
-    // Sort semver releases descending
-    semverReleases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
-    // Optionally, keep non-semver releases (e.g., 'unstable') at end or start - here appended after semver releases
-    const combinedReleases = [...semverReleases, ...nonSemverReleases];
-
-    return combinedReleases;
-  }
-
-  /**
-   * Selects the most compatible stable release for the given server version,
-   * or falls back to the latest unstable release.
-   */
-  private getCompatibleOrFallbackRelease(
-    serverVersion: string,
-    releases: GitHubRelease[],
-  ): GitHubRelease {
-    const compatible = this.selectCompatibleRelease(serverVersion, releases);
-    if (!compatible) {
-      const nearestNewer = this.selectNearestNewerRelease(
-        serverVersion,
-        releases,
-      );
-      if (nearestNewer) {
+      if (!response.ok) {
         this.logger.warn({
           message:
-            "No compatible stable release found, falling back to nearest newer stable release",
-          release: nearestNewer.tag_name,
+            "Error fetching releases from GitHub. Keeping the cached frontend.",
+          status: response.status,
+          statusText: response.statusText,
         });
-        return nearestNewer;
+        return null;
       }
 
-      this.logger.warn(
-        "No compatible stable release found, falling back to latest unstable",
+      const rawReleases: unknown = await response.json();
+      if (!Array.isArray(rawReleases)) {
+        this.logger.warn({
+          message:
+            "Unexpected release list from GitHub. Keeping the cached frontend.",
+        });
+        return null;
+      }
+
+      // Drafts, prereleases and non-semver tags (`unstable`, `early-access`)
+      // are not part of the stable channel, even if they are valid semver.
+      const stableReleases = (rawReleases as GitHubRelease[]).filter(
+        (release) =>
+          !release.draft &&
+          !release.prerelease &&
+          semver.valid(release.tag_name) !== null,
       );
-      const fallback = releases.find((r) => r.tag_name === "unstable");
-      if (!fallback) throw new Error("No unstable release found");
-      return fallback;
+
+      stableReleases.sort((a, b) => semver.rcompare(a.tag_name, b.tag_name));
+      return stableReleases;
+    } catch (error) {
+      this.logger.warn({
+        message:
+          "Failed to fetch releases from GitHub. Keeping the cached frontend.",
+        error: String(error),
+      });
+      return null;
     }
-    return compatible;
   }
 
   /**
-   * Finds the most compatible stable release based on major, minor, and patch version.
+   * Resolves the Web UI version to serve.
    *
-   * Selection matrix (when `WEB_UI.VERSION` is not forced):
-   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
-   * | Case                         | Server | Frontend releases (desc)            | Selected | Why                                           |
-   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
-   * | Same minor latest patch      | 2.4.0  | 3.0.0, 2.5.0, 2.4.7, unstable       | 2.4.7    | Same major+minor picks the latest patch.      |
-   * | Only newer stable releases   | 2.4.0  | 3.0.0, 2.5.0, unstable              | 2.5.0    | No compatible stable; nearest newer is used.  |
-   * | Lower minor compatibility    | 2.4.0  | 2.3.9, 2.3.1, unstable              | 2.3.9    | Lower minor is compatible; first match wins.  |
-   * | No stable releases available | 2.4.0  | unstable                            | unstable | No stable candidate exists, so unstable wins. |
-   * +------------------------------+--------+-------------------------------------+----------+-----------------------------------------------+
+   * Order of precedence:
+   * 1. `WEB_UI_VERSION` set to `unstable` or `early-access` serves that moving
+   *    pre-release tag, every other value is used as an exact release tag.
+   * 2. Newest stable release with the same major version as the server.
+   * 3. The last build that is already cached, when the release list or a
+   *    suitable release is unavailable.
    *
-   * Rule summary:
-   * - `WEB_UI.VERSION` set: always use forced version directly (no compatibility check).
-   * - Auto mode: pick first stable release where major matches and
-   *   `release.minor <= server.minor`.
-   * - Because releases are sorted descending, same major+minor always picks the
-   *   latest available patch.
-   * - If no compatible stable match is found, use the nearest newer stable release.
+   * Returns `null` only when nothing can be served at all.
+   */
+  private async resolveVersion(): Promise<string | null> {
+    const forcedVersion = this.config.WEB_UI.VERSION?.trim();
+    if (forcedVersion) {
+      const preReleaseTag = resolvePreReleaseTag(forcedVersion);
+      if (preReleaseTag) {
+        this.logger.warn({
+          message: "Serving an opted-in Web UI pre-release",
+          version: preReleaseTag,
+        });
+        return preReleaseTag;
+      }
+      return forcedVersion;
+    }
+
+    const serverVersion = this.config.SERVER.VERSION;
+    const releases = await this.fetchReleases();
+
+    if (releases) {
+      const compatible = this.selectCompatibleRelease(serverVersion, releases);
+      if (compatible) return compatible.tag_name;
+      this.logger.warn({
+        message: "No stable Web UI release found for this server version",
+        serverVersion,
+      });
+    }
+
+    const cachedVersion = await this.getCachedVersion();
+    if (cachedVersion) {
+      this.logger.warn({
+        message: "Falling back to the last working Web UI build from the cache",
+        cachedVersion,
+      });
+      return cachedVersion;
+    }
+
+    return null;
+  }
+
+  /**
+   * Finds the newest stable release with the same major version as the server.
+   *
+   * The major version is the compatibility boundary: the desktop client talks
+   * to every server of the same major, so the Web UI does too. Minor versions
+   * are not compared, which lets a new feature release reach the Web UI without
+   * a matching server release.
+   *
+   * The release list is already sorted newest first, so the first match wins.
    */
   private selectCompatibleRelease(
     serverVersion: string,
@@ -181,17 +227,12 @@ export class WebUIService {
       this.logger.warn({ message: "Invalid server semver", serverVersion });
       return null;
     }
-    for (const release of releases) {
-      if (release.tag_name === "unstable" || !semver.valid(release.tag_name))
-        continue;
 
+    for (const release of releases) {
       const parsedRelease = semver.parse(release.tag_name);
       if (!parsedRelease) continue;
 
-      const isCompatibleMajor = parsedRelease.major === parsedServer.major;
-      const isCompatibleVersion = parsedRelease.minor <= parsedServer.minor;
-
-      if (isCompatibleMajor && isCompatibleVersion) {
+      if (parsedRelease.major === parsedServer.major) {
         this.logger.debug({
           message: "Compatible frontend release selected",
           release: release.tag_name,
@@ -199,26 +240,30 @@ export class WebUIService {
         return release;
       }
     }
+
     this.logger.warn("No compatible frontend release found");
     return null;
   }
 
-  /**
-   * Finds the nearest newer stable release (smallest semver greater than server).
-   */
-  private selectNearestNewerRelease(
-    serverVersion: string,
-    releases: GitHubRelease[],
-  ): GitHubRelease | null {
-    const parsedServer = semver.parse(serverVersion);
-    if (!parsedServer) return null;
+  /** Version of the unpacked build in the cache, or `null` when there is none. */
+  private async getCachedVersion(): Promise<string | null> {
+    const indexPath = join(this.cachePath, "dist", "index.html");
+    const versionFilePath = join(this.cachePath, ".version");
 
-    const newerStableReleases = releases
-      .filter((release) => semver.valid(release.tag_name) !== null)
-      .filter((release) => semver.gt(release.tag_name, parsedServer.version))
-      .sort((a, b) => semver.compare(a.tag_name, b.tag_name));
+    const [indexExists, versionExists] = await Promise.all([
+      fs.pathExists(indexPath),
+      fs.pathExists(versionFilePath),
+    ]);
+    if (!indexExists || !versionExists) {
+      this.logger.debug("Cache missing index or version file", {
+        indexExists,
+        versionExists,
+      });
+      return null;
+    }
 
-    return newerStableReleases[0] ?? null;
+    const cachedVersion = (await fs.readFile(versionFilePath, "utf-8")).trim();
+    return cachedVersion || null;
   }
 
   /**
@@ -302,24 +347,10 @@ export class WebUIService {
    * Checks if the frontend cache is valid for the given version.
    */
   private async isCached(version: string): Promise<boolean> {
-    const indexPath = join(this.cachePath, "dist", "index.html");
-    const versionFilePath = join(this.cachePath, ".version");
+    const cachedVersion = await this.getCachedVersion();
+    if (!cachedVersion) return false;
 
-    const indexExists = await fs.pathExists(indexPath);
-    const versionExists = await fs.pathExists(versionFilePath);
-
-    if (!indexExists || !versionExists) {
-      this.logger.debug(
-        "Cache missing index or version file",
-        indexExists,
-        versionExists,
-      );
-      return false;
-    }
-
-    const cachedVersion = (await fs.readFile(versionFilePath, "utf-8")).trim();
     const matches = cachedVersion === version;
-
     this.logger.debug({
       message: "Cache version validation",
       cachedVersion,

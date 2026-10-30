@@ -1,6 +1,6 @@
 # GameVault Backend Server Changelog
 
-## 17.1.1
+## 17.2.0
 
 ### Changes
 
@@ -17,6 +17,7 @@
 - OAuth2 callback sessions now use `SameSite=Lax`, `HttpOnly` and `Secure` on HTTPS, and expire after 24 hours instead of living in memory until a restart.
 - Fixed the server-wide download bandwidth limit (`SERVER_MAX_DOWNLOAD_BANDWIDTH_IN_KBPS`) having no effect: the configured value was converted to bytes twice, and clients that did not send their own limit bypassed it entirely. The server value is now enforced as a cap that clients can only lower.
 - The server can now send anonymous usage reports (`ANALYTICS_ENABLED`, on by default) to help prioritise work: startup and snapshot statistics, aggregated request counts, downloads, registrations, progress updates, savefile usage and sampled server errors with cleaned messages. No user names, ids, IPs, game titles or file paths are sent. The reports go to the first reachable collector from `ANALYTICS_ENDPOINTS`. You can turn it off with `ANALYTICS_ENABLED=false`.
+- The served Web UI now always uses the newest stable release of the server's major version, so a new Web UI feature no longer waits for a server release. When GitHub cannot be reached or no matching release exists, the server keeps the build it already cached instead of switching to the `unstable` development build. Pre-release builds are opt-in with `WEB_UI_VERSION=unstable` or `WEB_UI_VERSION=early-access`, and any other value pins an exact release.
 
 ## 17.1.0
 
