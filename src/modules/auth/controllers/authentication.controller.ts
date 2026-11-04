@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Logger,
   Post,
   Request,
@@ -21,8 +22,8 @@ import { GamevaultUser } from "../../users/gamevault-user.entity.js";
 import { AuthenticationService } from "../authentication.service.js";
 import { RefreshTokenGuard } from "../guards/refresh-token.guard.js";
 import { RefreshTokenDto } from "../models/refresh-token.dto.js";
+import { SessionResponseDto } from "../models/session-response.dto.js";
 import { TokenPairDto } from "../models/token-pair.dto.js";
-import { Session } from "../session.entity.js";
 
 @Controller("auth")
 @ApiTags("auth")
@@ -35,6 +36,7 @@ export class GamevaultJwtController {
   @Post("refresh")
   @UseGuards(RefreshTokenGuard)
   @SkipGuards()
+  @Header("Cache-Control", "no-store")
   @ApiOperation({
     summary: "Refreshes the access token and extends the refresh token",
     description:
@@ -84,10 +86,10 @@ export class GamevaultJwtController {
       "Returns a list of all active sessions for the authenticated user. A session is considered active if it is not revoked and not expired. Each session includes information about the device (IP address and user agent) where it was created.",
     operationId: "getAuthSessions",
   })
-  @ApiOkResponse({ type: () => Session, isArray: true })
+  @ApiOkResponse({ type: () => SessionResponseDto, isArray: true })
   async getAuthSessions(
     @Request() req: { user: GamevaultUser },
-  ): Promise<Session[]> {
+  ): Promise<SessionResponseDto[]> {
     return this.authService.getUserSessions(req.user);
   }
 

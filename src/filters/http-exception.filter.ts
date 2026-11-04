@@ -5,13 +5,17 @@ import {
   ExceptionFilter,
   HttpException,
   Logger,
+  Optional,
   PayloadTooLargeException,
 } from "@nestjs/common";
 import { type Request, type Response } from "express";
+import { AnalyticsService } from "../modules/analytics/analytics.service.js";
 
 @Catch()
 export class LoggingExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(this.constructor.name);
+
+  constructor(@Optional() private readonly analytics?: AnalyticsService) {}
 
   /** Handles exceptions that occur during request processing. */
   catch(error: Error, host: ArgumentsHost) {
@@ -26,6 +30,12 @@ export class LoggingExceptionFilter implements ExceptionFilter {
 
     if (httpException) {
       const httpStatusCode = httpException.getStatus();
+      // RFC 6750: a rejected bearer token must advertise the scheme. Only the
+      // Bearer challenge is sent, so browsers never show a Basic credentials
+      // prompt for API requests.
+      if (httpStatusCode === 401) {
+        response.setHeader("WWW-Authenticate", 'Bearer realm="gamevault"');
+      }
       if (httpStatusCode >= 400 && httpStatusCode < 500) {
         this.logger.warn({
           message: `${httpException.name} occurred.`,
@@ -40,6 +50,12 @@ export class LoggingExceptionFilter implements ExceptionFilter {
           response: httpException.getResponse(),
           error,
         });
+        this.analytics?.reportError(error, {
+          route: request.route?.path,
+          method: request.method,
+          status: httpStatusCode,
+          service: "http",
+        });
       }
       response.status(httpStatusCode).json(httpException.getResponse());
       return;
@@ -50,6 +66,12 @@ export class LoggingExceptionFilter implements ExceptionFilter {
       message: `Unhandled ${error.name} occurred.`,
       path: request.url,
       error,
+    });
+    this.analytics?.reportError(error, {
+      route: request.route?.path,
+      method: request.method,
+      status: 500,
+      service: "http",
     });
     response.status(500).json({
       message:

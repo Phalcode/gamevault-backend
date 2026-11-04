@@ -56,6 +56,24 @@ describe("Configuration", () => {
       }
     });
 
+    it("should redact the OAuth2 client secret", async () => {
+      vi.resetModules();
+      vi.stubEnv("AUTH_OAUTH2_CLIENT_SECRET", "idp-client-secret");
+      const { getCensoredConfiguration: censored } =
+        await import("./configuration.js");
+      expect(censored().AUTH.OAUTH2.CLIENT_SECRET).toBe("**REDACTED**");
+      vi.unstubAllEnvs();
+    });
+
+    it("should redact the default archive password", async () => {
+      vi.resetModules();
+      vi.stubEnv("GAMES_DEFAULT_ARCHIVE_PASSWORD", "archive-password");
+      const { getCensoredConfiguration: censored } =
+        await import("./configuration.js");
+      expect(censored().GAMES.DEFAULT_ARCHIVE_PASSWORD).toBe("**REDACTED**");
+      vi.unstubAllEnvs();
+    });
+
     it("should not modify non-sensitive values", () => {
       const config = getCensoredConfiguration();
       expect(typeof config.SERVER.PORT).toBe("number");

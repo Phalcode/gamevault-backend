@@ -50,6 +50,10 @@ describe("WebUIService", () => {
   beforeEach(() => {
     service = new WebUIService(configurationModule);
     vi.restoreAllMocks();
+
+    const config = configurationModule as any;
+    config.SERVER.VERSION = "16.3.0";
+    config.WEB_UI.VERSION = undefined;
   });
 
   describe("prepareFrontend", () => {
@@ -95,12 +99,12 @@ describe("WebUIService", () => {
       expect(ensureSpy).toHaveBeenCalledWith("16.3.0");
     });
 
-    it("should fallback to nearest newer stable when no compatible stable release is found", async () => {
+    it("should keep the cached build when no release for the server major exists", async () => {
       const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
 
-      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      vi.spyOn(service as any, "isCached").mockResolvedValue(true);
       const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
@@ -110,13 +114,18 @@ describe("WebUIService", () => {
         json: async () => [{ tag_name: "17.0.0" }, { tag_name: "unstable" }],
       } as Response);
 
+      const cachedSpy = vi
+        .spyOn(service as any, "getCachedVersion")
+        .mockResolvedValue("16.2.1");
+
       await service.prepareFrontend();
 
-      expect((service as any).compatibleVersion).toBe("17.0.0");
-      expect(ensureSpy).toHaveBeenCalledWith("17.0.0");
+      expect(cachedSpy).toHaveBeenCalled();
+      expect((service as any).compatibleVersion).toBe("16.2.1");
+      expect(ensureSpy).not.toHaveBeenCalled();
     });
 
-    it("should fallback to unstable when no stable releases are available", async () => {
+    it("should never fall back to unstable when only pre-releases exist", async () => {
       const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
       config.SERVER.VERSION = "16.3.0";
@@ -128,20 +137,21 @@ describe("WebUIService", () => {
 
       vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
-        json: async () => [{ tag_name: "unstable" }],
+        json: async () => [{ tag_name: "unstable", prerelease: true }],
       } as Response);
+      vi.spyOn(service as any, "getCachedVersion").mockResolvedValue(null);
 
       await service.prepareFrontend();
 
-      expect((service as any).compatibleVersion).toBe("unstable");
-      expect(ensureSpy).toHaveBeenCalledWith("unstable");
+      expect((service as any).compatibleVersion).toBe("");
+      expect(ensureSpy).not.toHaveBeenCalled();
     });
 
-    it("should fallback to unstable default list when GitHub API fails", async () => {
+    it("should keep the cached build when the GitHub API fails", async () => {
       const config = configurationModule as any;
       config.WEB_UI.VERSION = undefined;
 
-      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      vi.spyOn(service as any, "isCached").mockResolvedValue(true);
       const ensureSpy = vi
         .spyOn(service as any, "ensureFrontendCached")
         .mockResolvedValue(undefined);
@@ -151,11 +161,46 @@ describe("WebUIService", () => {
         status: 500,
         statusText: "Internal Server Error",
       } as Response);
+      vi.spyOn(service as any, "getCachedVersion").mockResolvedValue("16.2.1");
 
       await service.prepareFrontend();
 
+      expect((service as any).compatibleVersion).toBe("16.2.1");
+      expect(ensureSpy).not.toHaveBeenCalled();
+    });
+
+    it("should serve the unstable tag when pinned via WEB_UI_VERSION", async () => {
+      const config = configurationModule as any;
+      config.WEB_UI.VERSION = " Unstable ";
+
+      const fetchSpy = vi.spyOn(global, "fetch" as any);
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
+        .spyOn(service as any, "ensureFrontendCached")
+        .mockResolvedValue(undefined);
+
+      await service.prepareFrontend();
+
+      expect(fetchSpy).not.toHaveBeenCalled();
       expect((service as any).compatibleVersion).toBe("unstable");
       expect(ensureSpy).toHaveBeenCalledWith("unstable");
+    });
+
+    it("should serve the early-access tag when pinned via WEB_UI_VERSION", async () => {
+      const config = configurationModule as any;
+      config.WEB_UI.VERSION = " early-access ";
+
+      const fetchSpy = vi.spyOn(global, "fetch" as any);
+      vi.spyOn(service as any, "isCached").mockResolvedValue(false);
+      const ensureSpy = vi
+        .spyOn(service as any, "ensureFrontendCached")
+        .mockResolvedValue(undefined);
+
+      await service.prepareFrontend();
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect((service as any).compatibleVersion).toBe("early-access");
+      expect(ensureSpy).toHaveBeenCalledWith("early-access");
     });
   });
 
@@ -194,13 +239,16 @@ describe("WebUIService", () => {
       expect(result).toBe(false);
     });
 
-    it("should sort semver releases before non-semver releases", async () => {
+    it("should only return stable semver releases, newest first", async () => {
       vi.spyOn(global, "fetch" as any).mockResolvedValue({
         ok: true,
         json: async () => [
-          { tag_name: "unstable" },
+          { tag_name: "unstable", prerelease: true },
           { tag_name: "16.2.0" },
           { tag_name: "16.3.0" },
+          { tag_name: "16.4.0-rc.1", prerelease: true },
+          { tag_name: "16.5.0", draft: true },
+          { tag_name: "early-access", prerelease: true },
         ],
       } as Response);
 
@@ -208,8 +256,17 @@ describe("WebUIService", () => {
       expect(releases.map((r: any) => r.tag_name)).toEqual([
         "16.3.0",
         "16.2.0",
-        "unstable",
       ]);
+    });
+
+    it("should return null when the release list cannot be read", async () => {
+      vi.spyOn(global, "fetch" as any).mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: "rate limited",
+      } as Response);
+
+      await expect((service as any).fetchReleases()).resolves.toBeNull();
     });
 
     it("should return null compatible release for invalid server semver", () => {
@@ -231,12 +288,23 @@ describe("WebUIService", () => {
       expect(release).toEqual({ tag_name: "16.3.9" });
     });
 
-    it("should throw when fallback unstable release is missing", () => {
-      expect(() =>
-        (service as any).getCompatibleOrFallbackRelease("16.3.0", [
-          { tag_name: "15.9.0" },
-        ]),
-      ).toThrow("No unstable release found");
+    it("should pick the newest release of the server's major version", () => {
+      const release = (service as any).selectCompatibleRelease("16.0.0", [
+        { tag_name: "17.0.0" },
+        { tag_name: "16.3.0" },
+        { tag_name: "16.2.9" },
+      ]);
+
+      expect(release).toEqual({ tag_name: "16.3.0" });
+    });
+
+    it("should ignore releases of other major versions", () => {
+      const release = (service as any).selectCompatibleRelease("17.1.1", [
+        { tag_name: "18.0.0" },
+        { tag_name: "16.3.0" },
+      ]);
+
+      expect(release).toBeNull();
     });
 
     it("should skip frontend download when cached and not force redownload", async () => {

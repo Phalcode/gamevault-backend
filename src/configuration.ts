@@ -199,6 +199,23 @@ function parseKibibytesToBytes(
   return bytes;
 }
 
+/** Content-Security-Policy mode for the served Web UI. */
+function parseCspMode(
+  environmentVariable: string | undefined,
+): "off" | "report-only" | "enforce" {
+  switch ((environmentVariable ?? "").trim().toLowerCase()) {
+    case "report":
+    case "report-only":
+    case "report_only":
+      return "report-only";
+    case "enforce":
+    case "enforce-deny":
+      return "enforce";
+    default:
+      return "off";
+  }
+}
+
 function parseRegExp(
   environmentVariable: string | undefined,
   defaultValue?: RegExp,
@@ -271,6 +288,34 @@ const configuration = {
       true,
     ),
     VERSION: resolveEnv("WEB_UI_VERSION") || undefined,
+    CSP_MODE: parseCspMode(resolveEnv("WEB_UI_CSP_MODE")),
+  } as const,
+  ANALYTICS: {
+    ENABLED: parseBooleanEnvVariable(resolveEnv("ANALYTICS_ENABLED"), true),
+    // Fixed: server reports always go into the GameVault Server project, not
+    // the client one. Not configurable on purpose.
+    PROJECT_ID: "ZBCe4DOOi1l8",
+    /**
+     * Collector domains in priority order; the first reachable one is used.
+     * Domains only, the API paths are appended by AnalyticsService.
+     * `ANALYTICS_ENDPOINT` (single value) is still accepted.
+     */
+    ENDPOINTS: parseList(
+      resolveEnv("ANALYTICS_ENDPOINTS") || resolveEnv("ANALYTICS_ENDPOINT"),
+      // Base64 so the Phalcode collectors are not plain text in the source.
+      [
+        "https://api.swetrix.com",
+        "aHR0cHM6Ly9hbmFseXRpY3MucGxhdGZvcm0ucGhhbGNvLmRl",
+        "aHR0cHM6Ly9hbmFsLnBoYWxjby5kZQ==",
+        "aHR0cHM6Ly90cmFjay5waGFsY28uZGU=",
+        "aHR0cHM6Ly95b3VyLWRucy1wcm92aWRlci1pcy1waXNzaW5nLW1lLW9mZi5waGFsY28uZGU=",
+        "aHR0cHM6Ly9zcHkucGhhbGNvLmRl",
+      ].map((encoded) =>
+        encoded.startsWith("https://")
+          ? encoded
+          : Buffer.from(encoded, "base64").toString("utf8"),
+      ),
+    ),
   } as const,
   VOLUMES: {
     CONFIG: parsePath(resolveEnv("VOLUMES_CONFIG"), "/config"),
@@ -416,6 +461,13 @@ const configuration = {
           .digest("hex");
       },
       EXPIRES_IN: resolveEnv("AUTH_ACCESS_TOKEN_EXPIRES_IN") || "5m",
+      // Bind access tokens to their session so revoking a session also revokes
+      // its access tokens. Off by default: it changes how quickly revocation
+      // takes effect for existing clients.
+      SESSION_BINDING_ENABLED: parseBooleanEnvVariable(
+        resolveEnv("AUTH_ACCESS_TOKEN_SESSION_BINDING_ENABLED"),
+        false,
+      ),
     } as const,
     REFRESH_TOKEN: {
       get SECRET() {
@@ -427,6 +479,17 @@ const configuration = {
     } as const,
     API_KEY: {
       ENABLED: parseBooleanEnvVariable(resolveEnv("AUTH_API_KEY_ENABLED")),
+    } as const,
+    RATE_LIMIT: {
+      ENABLED: parseBooleanEnvVariable(
+        resolveEnv("AUTH_RATE_LIMIT_ENABLED"),
+        true,
+      ),
+      MAX_ATTEMPTS: parseNumber(resolveEnv("AUTH_RATE_LIMIT_MAX_ATTEMPTS"), 10),
+      WINDOW_SECONDS: parseNumber(
+        resolveEnv("AUTH_RATE_LIMIT_WINDOW_SECONDS"),
+        300,
+      ),
     } as const,
     OAUTH2: {
       ENABLED: parseBooleanEnvVariable(resolveEnv("AUTH_OAUTH2_ENABLED")),
@@ -441,6 +504,18 @@ const configuration = {
       USERINFO_URL: resolveEnv("AUTH_OAUTH2_USERINFO_URL") || undefined,
       CLIENT_ID: resolveEnv("AUTH_OAUTH2_CLIENT_ID") || undefined,
       CLIENT_SECRET: resolveEnv("AUTH_OAUTH2_CLIENT_SECRET") || undefined,
+      // Optional: when an issuer or a JWKS URL is configured, the id_token of
+      // the identity provider can be verified instead of only being decoded.
+      ISSUER_URL: resolveEnv("AUTH_OAUTH2_ISSUER_URL") || undefined,
+      JWKS_URL: resolveEnv("AUTH_OAUTH2_JWKS_URL") || undefined,
+      VERIFY_ID_TOKEN: parseBooleanEnvVariable(
+        resolveEnv("AUTH_OAUTH2_VERIFY_ID_TOKEN"),
+        false,
+      ),
+      REQUIRE_NONCE: parseBooleanEnvVariable(
+        resolveEnv("AUTH_OAUTH2_REQUIRE_NONCE"),
+        true,
+      ),
     } as const,
     BASIC_AUTH: {
       ENABLED: parseBooleanEnvVariable(
@@ -482,6 +557,14 @@ export function getCensoredConfiguration() {
     ? "**REDACTED**"
     : null;
   censoredConfig.AUTH.SEED = censoredConfig.AUTH.SEED ? "**REDACTED**" : null;
+  censoredConfig.AUTH.OAUTH2.CLIENT_SECRET = censoredConfig.AUTH.OAUTH2
+    .CLIENT_SECRET
+    ? "**REDACTED**"
+    : null;
+  censoredConfig.GAMES.DEFAULT_ARCHIVE_PASSWORD = censoredConfig.GAMES
+    .DEFAULT_ARCHIVE_PASSWORD
+    ? "**REDACTED**"
+    : null;
   return censoredConfig;
 }
 

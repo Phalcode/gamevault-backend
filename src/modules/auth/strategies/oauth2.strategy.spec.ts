@@ -4,6 +4,7 @@ import type { AppConfiguration } from "../../../configuration.js";
 import { GamevaultUser } from "../../users/gamevault-user.entity.js";
 import { Role } from "../../users/models/role.enum.js";
 import { UsersService } from "../../users/users.service.js";
+import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 import { OAuth2Strategy } from "./oauth2.strategy.js";
 
 function buildConfig(): AppConfiguration {
@@ -67,6 +68,7 @@ describe("OAuth2Strategy", () => {
     strategy = new OAuth2Strategy(
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
+      new OidcTokenVerifierService(buildConfig()),
       buildConfig(),
     );
   });
