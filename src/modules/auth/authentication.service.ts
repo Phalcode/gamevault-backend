@@ -263,21 +263,4 @@ export class AuthenticationService implements OnModuleInit {
       user_agent: session.user_agent,
     }));
   }
-
-  async revokeAllUserSessions(user: GamevaultUser): Promise<void> {
-    await this.sessionRepository.update(
-      {
-        user: { id: user.id },
-        revoked: false,
-        expires_at: MoreThan(new Date()),
-      },
-      {
-        revoked: true,
-      },
-    );
-    this.logger.debug({
-      message: "All active sessions revoked for user",
-      user_id: user.id,
-    });
-  }
 }

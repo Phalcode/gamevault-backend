@@ -252,18 +252,4 @@ describe("AuthenticationService", () => {
       await expect(service.isSessionActive(7)).resolves.toBe(false);
     });
   });
-
-  describe("revokeAllUserSessions", () => {
-    it("should revoke all sessions for a user", async () => {
-      const mockUser = createMockUser();
-      await service.revokeAllUserSessions(mockUser);
-      expect(sessionRepository.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          user: { id: mockUser.id },
-          revoked: false,
-        }),
-        { revoked: true },
-      );
-    });
-  });
 });

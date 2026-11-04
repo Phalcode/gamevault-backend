@@ -1,6 +1,7 @@
 import { forwardRef, Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
+import { SessionsModule } from "../auth/sessions.module.js";
 import { GamesModule } from "../games/games.module.js";
 import { MediaModule } from "../media/media.module.js";
 import { ActivityGateway } from "./activity.gateway.js";
@@ -14,6 +15,7 @@ import { UsersService } from "./users.service.js";
     TypeOrmModule.forFeature([GamevaultUser]),
     forwardRef(() => MediaModule),
     forwardRef(() => GamesModule),
+    SessionsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, ApiKeyService, ActivityGateway],

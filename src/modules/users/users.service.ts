@@ -33,6 +33,7 @@ import {
 } from "../../globals.js";
 import { logGamevaultGame } from "../../logging.js";
 import { AnalyticsService } from "../analytics/analytics.service.js";
+import { SessionService } from "../auth/session.service.js";
 import { GamesService } from "../games/games.service.js";
 import { MediaService } from "../media/media.service.js";
 import { GamevaultUser } from "./gamevault-user.entity.js";
@@ -62,6 +63,7 @@ export class UsersService implements OnApplicationBootstrap {
     private readonly mediaService: any,
     @Inject(forwardRef(() => GamesService))
     private readonly gamesService: GamesService,
+    private readonly sessionService: SessionService,
     @InjectGamevaultConfig() private readonly config: AppConfiguration,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {}
@@ -88,6 +90,9 @@ export class UsersService implements OnApplicationBootstrap {
           password: this.config.SERVER.ADMIN_PASSWORD || undefined,
         },
         true,
+        // The recovery re-hashes the configured password on every boot, which
+        // is not a user-driven credential change and must not log the admin out.
+        { revokeSessions: false },
       );
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -374,6 +379,7 @@ export class UsersService implements OnApplicationBootstrap {
     id: number,
     dto: UpdateUserDto,
     isAdmin = false,
+    { revokeSessions = true }: { revokeSessions?: boolean } = {},
   ): Promise<GamevaultUser> {
     const user = await this.findOneByUserIdOrFail(id, { loadRelations: false });
     const logUpdate = (
@@ -432,9 +438,12 @@ export class UsersService implements OnApplicationBootstrap {
       await this.updateBirthDate(dto, user, isAdmin);
     }
 
+    let passwordChanged = false;
+
     if (dto.password != null) {
       logUpdate("password", user.password, "**REDACTED**");
       user.password = await hash(dto.password, PASSWORD_HASH_COST);
+      passwordChanged = true;
     }
 
     if (dto.avatar_id != null) {
@@ -457,7 +466,15 @@ export class UsersService implements OnApplicationBootstrap {
       user.background = image;
     }
 
-    return this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+
+    // A password change must not leave refresh sessions behind that were
+    // issued with the old password, so every session of that user is revoked.
+    if (passwordChanged && revokeSessions) {
+      await this.sessionService.revokeAllUserSessions(updatedUser);
+    }
+
+    return updatedUser;
   }
 
   private async updateUsername(

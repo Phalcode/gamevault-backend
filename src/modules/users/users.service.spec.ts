@@ -7,6 +7,7 @@ import {
 import { EntityNotFoundError, Repository } from "typeorm";
 import type { Mocked } from "vitest";
 import configuration from "../../configuration.js";
+import { SessionService } from "../auth/session.service.js";
 import { GamesService } from "../games/games.service.js";
 import { MediaService } from "../media/media.service.js";
 import { GamevaultUser } from "./gamevault-user.entity.js";
@@ -18,6 +19,7 @@ describe("UsersService", () => {
   let userRepository: Mocked<Repository<GamevaultUser>>;
   let mediaService: Mocked<MediaService>;
   let gamesService: Mocked<GamesService>;
+  let sessionService: Mocked<SessionService>;
 
   const createMockUser = (
     overrides: Partial<GamevaultUser> = {},
@@ -55,6 +57,10 @@ describe("UsersService", () => {
       findOneByGameIdOrFail: vi.fn(),
     } as any;
 
+    sessionService = {
+      revokeAllUserSessions: vi.fn(),
+    } as any;
+
     const testConfiguration = {
       ...configuration,
       TESTING: {
@@ -67,6 +73,7 @@ describe("UsersService", () => {
       userRepository,
       mediaService,
       gamesService,
+      sessionService,
       testConfiguration as any,
     );
   });
@@ -398,6 +405,52 @@ describe("UsersService", () => {
       expect(result.password).toMatch(/^\$2/);
     });
 
+    it("should revoke all sessions when the password changes", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      await service.update(1, { password: "newpass" } as any);
+
+      expect(sessionService.revokeAllUserSessions).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockUser.id }),
+      );
+    });
+
+    it("should revoke sessions for an admin changing another user's password", async () => {
+      const mockUser = createMockUser({ id: 2 });
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      await service.update(2, { password: "admin-forced" } as any, true);
+
+      expect(sessionService.revokeAllUserSessions).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 2 }),
+      );
+    });
+
+    it("should not revoke sessions for updates without a password", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      await service.update(1, { first_name: "A" } as any);
+
+      expect(sessionService.revokeAllUserSessions).not.toHaveBeenCalled();
+    });
+
+    it("should not revoke sessions when revocation is disabled explicitly", async () => {
+      const mockUser = createMockUser();
+      userRepository.findOneOrFail.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation(async (user) => user as any);
+
+      await service.update(1, { password: "newpass" } as any, true, {
+        revokeSessions: false,
+      });
+
+      expect(sessionService.revokeAllUserSessions).not.toHaveBeenCalled();
+    });
+
     it("should set avatar and background via mediaService", async () => {
       const mockUser = createMockUser();
       userRepository.findOneOrFail.mockResolvedValue(mockUser);
@@ -425,10 +478,16 @@ describe("UsersService", () => {
 
   describe("update birth date age gate", () => {
     const restrictedService = () =>
-      new UsersService(userRepository, mediaService, gamesService, {
-        ...configuration,
-        PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
-      } as any);
+      new UsersService(
+        userRepository,
+        mediaService,
+        gamesService,
+        sessionService,
+        {
+          ...configuration,
+          PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
+        } as any,
+      );
 
     const minorBirthDate = () => {
       const d = new Date();
@@ -495,6 +554,7 @@ describe("UsersService", () => {
         userRepository,
         mediaService,
         gamesService,
+        sessionService,
         {
           ...configuration,
           PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },
@@ -513,6 +573,7 @@ describe("UsersService", () => {
         userRepository,
         mediaService,
         gamesService,
+        sessionService,
         {
           ...configuration,
           PARENTAL: { AGE_RESTRICTION_ENABLED: true, AGE_OF_MAJORITY: 18 },

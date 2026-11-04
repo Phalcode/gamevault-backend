@@ -24,6 +24,7 @@ import { RefreshTokenGuard } from "../guards/refresh-token.guard.js";
 import { RefreshTokenDto } from "../models/refresh-token.dto.js";
 import { SessionResponseDto } from "../models/session-response.dto.js";
 import { TokenPairDto } from "../models/token-pair.dto.js";
+import { SessionService } from "../session.service.js";
 
 @Controller("auth")
 @ApiTags("auth")
@@ -31,7 +32,10 @@ import { TokenPairDto } from "../models/token-pair.dto.js";
 @ApiSecurity("apikey")
 export class GamevaultJwtController {
   private readonly logger = new Logger(this.constructor.name);
-  constructor(private readonly authService: AuthenticationService) {}
+  constructor(
+    private readonly authService: AuthenticationService,
+    private readonly sessionService: SessionService,
+  ) {}
 
   @Post("refresh")
   @UseGuards(RefreshTokenGuard)
@@ -103,6 +107,6 @@ export class GamevaultJwtController {
   async postAuthRevokeAll(
     @Request() req: { user: GamevaultUser },
   ): Promise<void> {
-    return this.authService.revokeAllUserSessions(req.user);
+    return this.sessionService.revokeAllUserSessions(req.user);
   }
 }

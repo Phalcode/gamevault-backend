@@ -1,5 +1,11 @@
 # GameVault Backend Server Changelog
 
+## 17.2.1
+
+### Changes
+
+- Changing a password now revokes all refresh sessions of that user, so a refresh token issued before the change stops working. This covers `PUT /api/users/me` and an admin changing another user's password with `PUT /api/users/:user_id`. Your own session ends as well, so log in again with the new password.
+
 ## 17.2.0
 
 ### Changes

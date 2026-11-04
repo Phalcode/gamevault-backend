@@ -15,6 +15,7 @@ import { AuthorizationGuard } from "./guards/authorization.guard.js";
 import { Oauth2Guard } from "./guards/oauth2.guard.js";
 import { OidcTokenVerifierService } from "./oidc-token-verifier.service.js";
 import { Session } from "./session.entity.js";
+import { SessionsModule } from "./sessions.module.js";
 import { AuthenticationStrategy } from "./strategies/authentication.strategy.js";
 import { BasicAuthenticationStrategy as BasicAuthStrategy } from "./strategies/basic-auth.strategy.js";
 import { OAuth2Strategy } from "./strategies/oauth2.strategy.js";
@@ -24,6 +25,7 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy.js";
   imports: [
     UsersModule,
     TypeOrmModule.forFeature([Session]),
+    SessionsModule,
     JwtModule.register({
       global: true,
       secret: configuration.AUTH.ACCESS_TOKEN.SECRET,
