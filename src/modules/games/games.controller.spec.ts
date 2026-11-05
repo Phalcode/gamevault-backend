@@ -261,6 +261,47 @@ describe("GamesController", () => {
         parentalConfig.AGE_RESTRICTION_ENABLED = originalAgeRestrictionEnabled;
       }
     });
+
+    it("should keep the UNPLAYED filter in the pagination links", async () => {
+      progressRepository.find.mockResolvedValue([
+        { game: { id: 3 } } as Progress,
+      ]);
+
+      (nestjsPaginate.paginate as Mock).mockResolvedValue({
+        data: [],
+        meta: { filter: {} },
+        links: {
+          current: "http://localhost/api/games?page=1&limit=50",
+          next: "http://localhost/api/games?page=2&limit=50",
+        },
+      });
+
+      const result = await controller.findGames({ user: createMockUser() }, {
+        filter: {
+          "progresses.state": "$eq:UNPLAYED",
+          "progresses.user.id": "$eq:1",
+        },
+        sortBy: [],
+        path: "api/games",
+      } as any);
+
+      const nextParams = new URLSearchParams(result.links.next!.split("?")[1]);
+      expect(nextParams.getAll("filter.progresses.state")).toEqual([
+        "$eq:UNPLAYED",
+      ]);
+      expect(nextParams.getAll("filter.progresses.user.id")).toEqual(["$eq:1"]);
+      expect(result.meta.filter).toMatchObject({
+        "progresses.state": "$eq:UNPLAYED",
+        "progresses.user.id": "$eq:1",
+      });
+      expect(nestjsPaginate.paginate).toHaveBeenCalledWith(
+        expect.objectContaining({ filter: {} }),
+        gamesRepository,
+        expect.objectContaining({
+          where: expect.objectContaining({ id: expect.anything() }),
+        }),
+      );
+    });
   });
 
   describe("putFilesReindex", () => {

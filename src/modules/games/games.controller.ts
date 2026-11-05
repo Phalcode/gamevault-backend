@@ -204,6 +204,9 @@ export class GamesController {
     // Instead, we pre-query the game IDs where this user has a non-UNPLAYED
     // progress and exclude them via PaginateConfig.where.
     let unplayedWhereCondition = undefined;
+    // These filters are removed from the query below, so they have to be put
+    // back into the pagination links manually (see restoreFilterLinks).
+    let unplayedLinkFilters: Record<string, string | string[]> | undefined;
 
     if (progressStateFilter || progressUserFilter) {
       if (progressStateFilter?.includes("UNPLAYED")) {
@@ -228,6 +231,13 @@ export class GamesController {
         if (excludedGameIds.length > 0) {
           unplayedWhereCondition = { id: Not(In(excludedGameIds)) };
         }
+
+        unplayedLinkFilters = {
+          "progresses.state": progressStateFilter,
+          ...(progressUserFilter != null
+            ? { "progresses.user.id": progressUserFilter }
+            : {}),
+        };
 
         // Remove progress filters — handled by the pre-query above
         delete query.filter?.["progresses.state"];
@@ -263,70 +273,73 @@ export class GamesController {
       }
     }
 
-    return paginate(query, this.gamesRepository, {
-      paginationType: PaginationType.TAKE_AND_SKIP,
-      where: unplayedWhereCondition,
-      defaultLimit: 100,
-      defaultSortBy: [["sort_title", "ASC"]],
-      maxLimit: -1,
-      nullSort: "last",
-      relations: toFindOptionsRelations<GamevaultGame>(relationPaths),
-      sortableColumns: [
-        "id",
-        "title",
-        "sort_title",
-        "created_at",
-        "size",
-        "type",
-        "download_count",
-        "bookmarked_users.id",
-        "metadata.title",
-        "metadata.early_access",
-        "metadata.release_date",
-        "metadata.average_playtime",
-        "metadata.age_rating",
-        "metadata.rating",
-      ] as any,
-      loadEagerRelations: false,
-      searchableColumns: [
-        "id",
-        "title",
-        "file_path",
-        "metadata.title",
-        "metadata.description",
-      ],
-      filterableColumns: {
-        id: true,
-        title: true,
-        file_path: true,
-        created_at: true,
-        updated_at: true,
-        size: true,
-        metacritic_rating: true,
-        average_playtime: true,
-        type: true,
-        download_count: true,
-        "bookmarked_users.id": true,
-        "metadata.genres.name": true,
-        "metadata.tags.name": true,
-        "metadata.developers.name": true,
-        "metadata.publishers.name": true,
-        "metadata.release_date": true,
-        "metadata.early_access": true,
-        "metadata.age_rating": true,
-        "progresses.state": [
-          FilterOperator.EQ,
-          FilterOperator.NULL,
-          FilterSuffix.NOT,
+    return this.restoreFilterLinks(
+      await paginate(query, this.gamesRepository, {
+        paginationType: PaginationType.TAKE_AND_SKIP,
+        where: unplayedWhereCondition,
+        defaultLimit: 100,
+        defaultSortBy: [["sort_title", "ASC"]],
+        maxLimit: -1,
+        nullSort: "last",
+        relations: toFindOptionsRelations<GamevaultGame>(relationPaths),
+        sortableColumns: [
+          "id",
+          "title",
+          "sort_title",
+          "created_at",
+          "size",
+          "type",
+          "download_count",
+          "bookmarked_users.id",
+          "metadata.title",
+          "metadata.early_access",
+          "metadata.release_date",
+          "metadata.average_playtime",
+          "metadata.age_rating",
+          "metadata.rating",
+        ] as any,
+        loadEagerRelations: false,
+        searchableColumns: [
+          "id",
+          "title",
+          "file_path",
+          "metadata.title",
+          "metadata.description",
         ],
-        "progresses.user.id": [
-          FilterOperator.EQ,
-          FilterOperator.NULL,
-          FilterSuffix.NOT,
-        ],
-      },
-      withDeleted: false,
-    });
+        filterableColumns: {
+          id: true,
+          title: true,
+          file_path: true,
+          created_at: true,
+          updated_at: true,
+          size: true,
+          metacritic_rating: true,
+          average_playtime: true,
+          type: true,
+          download_count: true,
+          "bookmarked_users.id": true,
+          "metadata.genres.name": true,
+          "metadata.tags.name": true,
+          "metadata.developers.name": true,
+          "metadata.publishers.name": true,
+          "metadata.release_date": true,
+          "metadata.early_access": true,
+          "metadata.age_rating": true,
+          "progresses.state": [
+            FilterOperator.EQ,
+            FilterOperator.NULL,
+            FilterSuffix.NOT,
+          ],
+          "progresses.user.id": [
+            FilterOperator.EQ,
+            FilterOperator.NULL,
+            FilterSuffix.NOT,
+          ],
+        },
+        withDeleted: false,
+      }),
+      unplayedLinkFilters,
+    );
   }
 
   /** Retrieves a random game */
@@ -677,6 +690,45 @@ export class GamesController {
     }
 
     query.filter.id = [existingIdFilter, resolvedIdFilter];
+  }
+
+  /**
+   * Puts filters that were resolved here and removed from `query.filter` back
+   * into the pagination links. nestjs-paginate builds the links from
+   * `query.filter` only, so without this a client following `links.next` would
+   * request the next page without the filter.
+   */
+  private restoreFilterLinks<T>(
+    result: Paginated<T>,
+    filters?: Record<string, string | string[]>,
+  ): Paginated<T> {
+    if (!filters) {
+      return result;
+    }
+
+    const params = Object.entries(filters).flatMap(([column, value]) =>
+      (Array.isArray(value) ? value : [value]).map(
+        (entry) => `filter.${column}=${encodeURIComponent(entry)}`,
+      ),
+    );
+
+    if (params.length === 0) {
+      return result;
+    }
+
+    const suffix = `&${params.join("&")}`;
+    for (const key of Object.keys(
+      result.links,
+    ) as (keyof Paginated<T>["links"])[]) {
+      const link = result.links[key];
+      if (link) {
+        result.links[key] = `${link}${suffix}`;
+      }
+    }
+
+    result.meta.filter = { ...result.meta.filter, ...filters };
+
+    return result;
   }
 
   private async resolveGameIdsForMetadataFilter(

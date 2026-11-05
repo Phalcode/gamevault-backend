@@ -5,6 +5,11 @@
 ### Changes
 
 - Changing a password now revokes all refresh sessions of that user, so a refresh token issued before the change stops working. This covers `PUT /api/users/me` and an admin changing another user's password with `PUT /api/users/:user_id`. Your own session ends as well, so log in again with the new password.
+- [#421](https://github.com/Phalcode/gamevault-backend/issues/421) Filtering games by unplayed state now applies to every page, so loading more results no longer starts showing games marked as played.
+
+### Thanks
+
+- @larva
 
 ## 17.2.0
 
