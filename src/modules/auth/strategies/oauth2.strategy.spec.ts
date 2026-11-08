@@ -144,4 +144,31 @@ describe("OAuth2Strategy", () => {
     await expect(runValidate()).rejects.toBeInstanceOf(NotAcceptableException);
     expect(usersService.register).toHaveBeenCalled();
   });
+
+  it("names the missing environment variables when the configuration is incomplete", () => {
+    const config = buildConfig();
+    const incompleteConfig = {
+      ...config,
+      AUTH: {
+        ...config.AUTH,
+        OAUTH2: {
+          ...config.AUTH.OAUTH2,
+          CALLBACK_URL: undefined,
+          CLIENT_SECRET: undefined,
+        },
+      },
+    } as AppConfiguration;
+
+    expect(
+      () =>
+        new OAuth2Strategy(
+          usersService as unknown as UsersService,
+          {} as JwtService,
+          new OidcTokenVerifierService(incompleteConfig),
+          incompleteConfig,
+        ),
+    ).toThrow(
+      "Missing or empty environment variables: AUTH_OAUTH2_CALLBACK_URL, AUTH_OAUTH2_CLIENT_SECRET.",
+    );
+  });
 });

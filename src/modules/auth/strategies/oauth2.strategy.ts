@@ -17,6 +17,46 @@ import { type OidcUserInfo } from "../models/oidc-user-info.interface.js";
 import PassportUserProfile from "../models/passport-user-profile.interface.js";
 import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 
+type OAuth2Configuration = AppConfiguration["AUTH"]["OAUTH2"];
+
+/**
+ * Configuration options OAuth2 cannot work without, each paired with the
+ * environment variable it is read from. Users need the variable names in the
+ * error message, so they are written out instead of derived from the config.
+ */
+const REQUIRED_OAUTH2_OPTIONS = [
+  ["AUTH_URL", "AUTH_OAUTH2_AUTH_URL"],
+  ["TOKEN_URL", "AUTH_OAUTH2_TOKEN_URL"],
+  ["CALLBACK_URL", "AUTH_OAUTH2_CALLBACK_URL"],
+  ["CLIENT_ID", "AUTH_OAUTH2_CLIENT_ID"],
+  ["CLIENT_SECRET", "AUTH_OAUTH2_CLIENT_SECRET"],
+] as const satisfies readonly (readonly [keyof OAuth2Configuration, string])[];
+
+function findMissingOAuth2EnvVars(oauth2: OAuth2Configuration): string[] {
+  return REQUIRED_OAUTH2_OPTIONS.filter(([option]) => !oauth2[option]).map(
+    ([, envVar]) => envVar,
+  );
+}
+
+function assertOAuth2ConfigurationComplete(
+  oauth2: OAuth2Configuration,
+): asserts oauth2 is OAuth2Configuration & {
+  AUTH_URL: string;
+  TOKEN_URL: string;
+  CALLBACK_URL: string;
+  CLIENT_ID: string;
+  CLIENT_SECRET: string;
+} {
+  const missingEnvVars = findMissingOAuth2EnvVars(oauth2);
+  if (missingEnvVars.length > 0) {
+    throw new BadRequestException(
+      `Failed to initialize OAuth2Strategy. Missing or empty environment variables: ${missingEnvVars.join(", ")}. ` +
+        `Add them to your environment (.env or docker-compose) and restart the server. ` +
+        `See https://gamevau.lt/docs/server/configuration#auth`,
+    );
+  }
+}
+
 @Injectable()
 export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
   private readonly logger = new Logger(this.constructor.name);
@@ -28,26 +68,16 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, "oauth2", 6) {
     private readonly tokenVerifier: OidcTokenVerifierService,
     @InjectGamevaultConfig() config: AppConfiguration,
   ) {
-    const { AUTH } = config;
-    if (
-      !AUTH.OAUTH2.AUTH_URL ||
-      !AUTH.OAUTH2.TOKEN_URL ||
-      !AUTH.OAUTH2.CALLBACK_URL ||
-      !AUTH.OAUTH2.CLIENT_ID ||
-      !AUTH.OAUTH2.CLIENT_SECRET
-    ) {
-      throw new BadRequestException(
-        "Failed to initialize OAuth2Strategy. Please configure all necessary options.",
-      );
-    }
+    const oauth2 = config.AUTH.OAUTH2;
+    assertOAuth2ConfigurationComplete(oauth2);
     super({
       passReqToCallback: true,
-      authorizationURL: AUTH.OAUTH2.AUTH_URL,
-      tokenURL: AUTH.OAUTH2.TOKEN_URL,
-      clientID: AUTH.OAUTH2.CLIENT_ID,
-      clientSecret: AUTH.OAUTH2.CLIENT_SECRET,
-      callbackURL: AUTH.OAUTH2.CALLBACK_URL,
-      scope: AUTH.OAUTH2.SCOPES,
+      authorizationURL: oauth2.AUTH_URL,
+      tokenURL: oauth2.TOKEN_URL,
+      clientID: oauth2.CLIENT_ID,
+      clientSecret: oauth2.CLIENT_SECRET,
+      callbackURL: oauth2.CALLBACK_URL,
+      scope: oauth2.SCOPES,
       state: true,
     });
     this.configuration = config;

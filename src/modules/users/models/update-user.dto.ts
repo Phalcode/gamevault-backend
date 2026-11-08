@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
   IsAlpha,
   IsBoolean,
@@ -101,6 +102,7 @@ export class UpdateUserDto {
   })
   activated?: boolean;
 
+  @Type(() => Number)
   @IsEnum(Role)
   @IsOptional()
   @ApiPropertyOptional({
