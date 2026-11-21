@@ -4,9 +4,15 @@ import { resolveOAuthReturnOrigin } from "./oauth-return-origin.js";
 function buildConfig(options?: {
   callbackUrl?: string;
   corsOrigins?: string[];
+  loopbackReturn?: boolean;
 }): AppConfiguration {
   return {
-    AUTH: { OAUTH2: { CALLBACK_URL: options?.callbackUrl } },
+    AUTH: {
+      OAUTH2: {
+        CALLBACK_URL: options?.callbackUrl,
+        LOOPBACK_RETURN_ENABLED: options?.loopbackReturn ?? true,
+      },
+    },
     SERVER: { CORS_ALLOWED_ORIGINS: options?.corsOrigins ?? [] },
   } as unknown as AppConfiguration;
 }
@@ -92,5 +98,107 @@ describe("resolveOAuthReturnOrigin", () => {
     expect(
       resolveOAuthReturnOrigin("http://tauri.localhost", withoutCallback),
     ).toBe("http://tauri.localhost");
+  });
+
+  describe("loopback return origins", () => {
+    it("allows the IPv4 loopback address on any port", () => {
+      expect(resolveOAuthReturnOrigin("http://127.0.0.1:49152", config)).toBe(
+        "http://127.0.0.1:49152",
+      );
+      expect(resolveOAuthReturnOrigin("http://127.0.0.1:8080/", config)).toBe(
+        "http://127.0.0.1:8080",
+      );
+    });
+
+    it("allows the IPv6 loopback address on any port", () => {
+      expect(resolveOAuthReturnOrigin("http://[::1]:49152", config)).toBe(
+        "http://[::1]:49152",
+      );
+    });
+
+    it("allows them without a callback URL or CORS entry", () => {
+      expect(
+        resolveOAuthReturnOrigin("http://127.0.0.1:49152", buildConfig()),
+      ).toBe("http://127.0.0.1:49152");
+    });
+
+    it("returns the canonical form of alternative loopback spellings", () => {
+      expect(resolveOAuthReturnOrigin("http://127.1:49152", config)).toBe(
+        "http://127.0.0.1:49152",
+      );
+      expect(
+        resolveOAuthReturnOrigin("http://[0:0:0:0:0:0:0:1]:49152", config),
+      ).toBe("http://[::1]:49152");
+    });
+
+    it("rejects localhost", () => {
+      expect(
+        resolveOAuthReturnOrigin("http://localhost:49152", config),
+      ).toBeNull();
+    });
+
+    it("rejects https on a loopback address", () => {
+      expect(
+        resolveOAuthReturnOrigin("https://127.0.0.1:49152", config),
+      ).toBeNull();
+      expect(
+        resolveOAuthReturnOrigin("https://[::1]:49152", config),
+      ).toBeNull();
+    });
+
+    it("rejects hosts that merely resemble a loopback address", () => {
+      for (const origin of [
+        "http://127.0.0.1.evil.example:49152",
+        "http://127.0.0.1@evil.example:49152",
+        "http://127.0.0.1:49152@evil.example",
+        "http://evil.example#127.0.0.1:49152",
+        "http://evil.example/127.0.0.1:49152",
+      ]) {
+        expect(resolveOAuthReturnOrigin(origin, config)).toBeNull();
+      }
+    });
+
+    it("rejects other loopback, private and unspecified addresses", () => {
+      for (const origin of [
+        "http://127.0.0.2:49152",
+        "http://0.0.0.0:49152",
+        "http://10.0.0.1:49152",
+        "http://172.16.0.1:49152",
+        "http://192.168.1.10:49152",
+        "http://169.254.1.1:49152",
+        "http://[::]:49152",
+        "http://[::ffff:127.0.0.1]:49152",
+        "http://[fe80::1]:49152",
+        "http://[fd00::1]:49152",
+      ]) {
+        expect(resolveOAuthReturnOrigin(origin, config)).toBeNull();
+      }
+    });
+
+    it("rejects loopback addresses when the option is turned off", () => {
+      const disabled = buildConfig({
+        callbackUrl: "https://demo.gamevau.lt/api/auth/oauth2/login",
+        loopbackReturn: false,
+      });
+      expect(
+        resolveOAuthReturnOrigin("http://127.0.0.1:49152", disabled),
+      ).toBeNull();
+      expect(
+        resolveOAuthReturnOrigin("http://[::1]:49152", disabled),
+      ).toBeNull();
+    });
+
+    it("still allows a loopback origin listed in CORS when the option is off", () => {
+      const disabled = buildConfig({
+        corsOrigins: ["http://127.0.0.1:5173"],
+        loopbackReturn: false,
+      });
+      expect(resolveOAuthReturnOrigin("http://127.0.0.1:5173", disabled)).toBe(
+        "http://127.0.0.1:5173",
+      );
+      expect(
+        resolveOAuthReturnOrigin("http://127.0.0.1:49152", disabled),
+      ).toBeNull();
+    });
   });
 });

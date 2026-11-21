@@ -28,6 +28,22 @@ function normalizeOrigin(raw: string): string | null {
 }
 
 /**
+ * Whether an already normalised origin is plain `http` on a loopback IP
+ * literal, on any port. This is the redirect target of a native app that opens
+ * the login in the system browser and waits on a local listener (RFC 8252,
+ * section 7.3).
+ *
+ * `localhost` is deliberately not accepted: it is a name and may resolve to
+ * something other than the loopback interface (RFC 8252, section 8.3).
+ */
+function isLoopbackOrigin(origin: string): boolean {
+  const { protocol, hostname } = new URL(origin);
+  return (
+    protocol === "http:" && (hostname === "127.0.0.1" || hostname === "[::1]")
+  );
+}
+
+/**
  * Resolve the origin an OAuth2 login should return its tokens to.
  *
  * The value originates from an untrusted `client_origin` query parameter and is
@@ -35,8 +51,11 @@ function normalizeOrigin(raw: string): string | null {
  *
  * - the GameVault server itself (derived from the configured callback URL),
  * - any origin listed in `SERVER_CORS_ALLOWED_ORIGINS` (e.g. a separately
- *   hosted Web UI), or
- * - the fixed Tauri desktop origins above.
+ *   hosted Web UI),
+ * - the fixed Tauri desktop origins above, or
+ * - a loopback address (`http://127.0.0.1:<port>` or `http://[::1]:<port>`),
+ *   unless `AUTH_OAUTH2_LOOPBACK_RETURN_ENABLED` is turned off. Only a process
+ *   on the user's own device can receive such a redirect.
  *
  * Anything else returns `null`, which makes the caller fall back to the
  * server's own origin. This prevents the endpoint from becoming an open
@@ -49,6 +68,10 @@ export function resolveOAuthReturnOrigin(
   if (typeof rawOrigin !== "string") return null;
   const origin = normalizeOrigin(rawOrigin);
   if (!origin) return null;
+
+  if (config.AUTH.OAUTH2.LOOPBACK_RETURN_ENABLED && isLoopbackOrigin(origin)) {
+    return origin;
+  }
 
   const allowed = new Set<string>(TAURI_APP_ORIGINS);
   if (config.AUTH.OAUTH2.CALLBACK_URL) {

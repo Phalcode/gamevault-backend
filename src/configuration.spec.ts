@@ -137,6 +137,10 @@ describe("Configuration", () => {
       expect(config.AUTH.SEED.length).toBeGreaterThan(0);
     });
 
+    it("should allow OAuth2 loopback return origins by default", () => {
+      expect(config.AUTH.OAUTH2.LOOPBACK_RETURN_ENABLED).toBe(true);
+    });
+
     it("should have computed access token secret", () => {
       expect(config.AUTH.ACCESS_TOKEN.SECRET).toBeDefined();
       expect(typeof config.AUTH.ACCESS_TOKEN.SECRET).toBe("string");

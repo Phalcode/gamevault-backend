@@ -9,6 +9,7 @@ vi.mock("../../../configuration.js", () => ({
       OAUTH2: {
         SCOPES: [],
         CALLBACK_URL: "https://gamevault.example.com/api/auth/oauth2/login",
+        LOOPBACK_RETURN_ENABLED: true,
       },
     },
     SERVER: { CORS_ALLOWED_ORIGINS: [] },
@@ -144,6 +145,15 @@ describe("OAuth2Controller handoff page", () => {
     });
 
     expect(html).toContain('var returnOrigin = "http://tauri.localhost";');
+    expect(html).toContain('window.location.replace(target + "/" + query)');
+  });
+
+  it("redirects a native app to its loopback listener", async () => {
+    const { html } = await renderHandoff({
+      returnOrigin: "http://127.0.0.1:49152",
+    });
+
+    expect(html).toContain('var returnOrigin = "http://127.0.0.1:49152";');
     expect(html).toContain('window.location.replace(target + "/" + query)');
   });
 

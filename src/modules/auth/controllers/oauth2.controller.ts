@@ -93,15 +93,16 @@ export class OAuth2Controller {
     }
 
     // Tokens are only ever handed to `returnOrigin` (a fixed Tauri origin, the
-    // server itself, or an explicitly allowed Web UI origin). Three delivery
-    // modes are supported:
+    // server itself, an explicitly allowed Web UI origin, or a loopback
+    // listener of a native app). Three delivery modes are supported:
     //  - page text: the legacy desktop client (1.17.x) reads the rendered text
     //    of this page while it loads and parses it as the token response.
     //  - popup (web): post the tokens to the opener window and close, so the
     //    main window never navigates away and tokens never touch the URL.
-    //  - redirect (Tauri desktop, or when popups are blocked): bounce the
-    //    current window back to `returnOrigin`, which is the desktop app's own
-    //    origin, keeping the Tauri IPC / ACL intact.
+    //  - redirect (Tauri desktop, a native app's loopback listener, or when
+    //    popups are blocked): bounce the current window back to
+    //    `returnOrigin`. For Tauri that is the desktop app's own origin, which
+    //    keeps the Tauri IPC / ACL intact.
     const handoff = JSON.stringify({
       type: "gamevault:sso",
       access_token: tokenData.access_token,

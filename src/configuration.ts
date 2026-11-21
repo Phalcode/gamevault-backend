@@ -504,6 +504,14 @@ const configuration = {
       USERINFO_URL: resolveEnv("AUTH_OAUTH2_USERINFO_URL") || undefined,
       CLIENT_ID: resolveEnv("AUTH_OAUTH2_CLIENT_ID") || undefined,
       CLIENT_SECRET: resolveEnv("AUTH_OAUTH2_CLIENT_SECRET") || undefined,
+      // Lets a native app that opens the login in the system browser receive
+      // the result on a local listener (`client_origin=http://127.0.0.1:<port>`
+      // or `http://[::1]:<port>`) without being listed in
+      // SERVER_CORS_ALLOWED_ORIGINS. Does not affect CORS.
+      LOOPBACK_RETURN_ENABLED: parseBooleanEnvVariable(
+        resolveEnv("AUTH_OAUTH2_LOOPBACK_RETURN_ENABLED"),
+        true,
+      ),
       // Optional: when an issuer or a JWKS URL is configured, the id_token of
       // the identity provider can be verified instead of only being decoded.
       ISSUER_URL: resolveEnv("AUTH_OAUTH2_ISSUER_URL") || undefined,
