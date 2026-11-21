@@ -8,6 +8,7 @@
 - [#421](https://github.com/Phalcode/gamevault-backend/issues/421) Filtering games by unplayed state now applies to every page, so loading more results no longer starts showing games marked as played.
 - An incomplete OAuth2 configuration now fails with the names of the missing environment variables (e.g. `AUTH_OAUTH2_CALLBACK_URL`) instead of a generic "configure all necessary options" message.
 - Fixed changing a user's role from the Web UI not working
+- [#425](https://github.com/Phalcode/gamevault-backend/issues/425) OAuth2/SSO logins can now return to a native app that opens the login in the system browser and waits on a local port: `client_origin=http://127.0.0.1:<port>` and `http://[::1]:<port>` are accepted as return addresses without an entry in `SERVER_CORS_ALLOWED_ORIGINS`. CORS is not affected. You can turn it off with `AUTH_OAUTH2_LOOPBACK_RETURN_ENABLED=false`.
 
 ### Thanks
 
