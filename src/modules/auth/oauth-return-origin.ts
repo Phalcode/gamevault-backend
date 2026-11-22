@@ -36,7 +36,7 @@ function normalizeOrigin(raw: string): string | null {
  * `localhost` is deliberately not accepted: it is a name and may resolve to
  * something other than the loopback interface (RFC 8252, section 8.3).
  */
-function isLoopbackOrigin(origin: string): boolean {
+export function isLoopbackOrigin(origin: string): boolean {
   const { protocol, hostname } = new URL(origin);
   return (
     protocol === "http:" && (hostname === "127.0.0.1" || hostname === "[::1]")
@@ -55,7 +55,8 @@ function isLoopbackOrigin(origin: string): boolean {
  * - the fixed Tauri desktop origins above, or
  * - a loopback address (`http://127.0.0.1:<port>` or `http://[::1]:<port>`),
  *   unless `AUTH_OAUTH2_LOOPBACK_RETURN_ENABLED` is turned off. Only a process
- *   on the user's own device can receive such a redirect.
+ *   on the user's own device can receive such a redirect, and it receives a
+ *   one-time code instead of tokens.
  *
  * Anything else returns `null`, which makes the caller fall back to the
  * server's own origin. This prevents the endpoint from becoming an open

@@ -1,5 +1,6 @@
-import { Logger } from "@nestjs/common";
+import { BadRequestException, Logger } from "@nestjs/common";
 import type { Response } from "express";
+import { OAuth2LoginCodeService } from "../oauth2-login-code.service.js";
 import { OAuth2Controller } from "./oauth2.controller.js";
 
 vi.mock("../../../configuration.js", () => ({
@@ -21,6 +22,7 @@ interface MockResponse {
   status: ReturnType<typeof vi.fn>;
   contentType: ReturnType<typeof vi.fn>;
   send: ReturnType<typeof vi.fn>;
+  redirect: ReturnType<typeof vi.fn>;
 }
 
 function createResponse(): MockResponse {
@@ -29,6 +31,7 @@ function createResponse(): MockResponse {
     status: vi.fn(),
     contentType: vi.fn(),
     send: vi.fn(),
+    redirect: vi.fn(),
   };
   response.set.mockReturnValue(response);
   response.status.mockReturnValue(response);
@@ -37,9 +40,11 @@ function createResponse(): MockResponse {
   return response;
 }
 
-function createRequest(returnOrigin?: string) {
-  const session: { oauth2ReturnOrigin?: string } = {};
+function createRequest(returnOrigin?: string, codeChallenge?: string) {
+  const session: { oauth2ReturnOrigin?: string; oauth2CodeChallenge?: string } =
+    {};
   if (returnOrigin) session.oauth2ReturnOrigin = returnOrigin;
+  if (codeChallenge) session.oauth2CodeChallenge = codeChallenge;
   return {
     user: { id: 1, username: "player" },
     ip: "203.0.113.7",
@@ -66,7 +71,10 @@ async function renderHandoff(
         ? "refresh-token-value"
         : options.refreshToken,
   });
-  const controller = new OAuth2Controller({ login } as never);
+  const controller = new OAuth2Controller(
+    { login } as never,
+    new OAuth2LoginCodeService(),
+  );
   const res = createResponse();
 
   await controller.getAuthOauth2Login(
@@ -148,15 +156,6 @@ describe("OAuth2Controller handoff page", () => {
     expect(html).toContain('window.location.replace(target + "/" + query)');
   });
 
-  it("redirects a native app to its loopback listener", async () => {
-    const { html } = await renderHandoff({
-      returnOrigin: "http://127.0.0.1:49152",
-    });
-
-    expect(html).toContain('var returnOrigin = "http://127.0.0.1:49152";');
-    expect(html).toContain('window.location.replace(target + "/" + query)');
-  });
-
   it("ignores a return origin that was not validated", async () => {
     const { html } = await renderHandoff({
       returnOrigin: "https://evil.example",
@@ -177,5 +176,92 @@ describe("OAuth2Controller handoff page", () => {
     expect(res.set).toHaveBeenCalledWith("Cache-Control", "no-store");
     expect(res.set).toHaveBeenCalledWith("Referrer-Policy", "no-referrer");
     expect(res.status).toHaveBeenCalledWith(200);
+  });
+});
+
+describe("OAuth2Controller loopback login", () => {
+  // The verifier and challenge of RFC 7636, appendix B.
+  const codeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+  const codeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
+
+  function createController() {
+    const login = vi.fn().mockResolvedValue({
+      access_token: "access-token-value",
+      refresh_token: "refresh-token-value",
+    });
+    const controller = new OAuth2Controller(
+      { login } as never,
+      new OAuth2LoginCodeService(),
+    );
+    return { controller, login };
+  }
+
+  beforeEach(() => {
+    vi.spyOn(Logger.prototype, "log").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("redirects to the loopback listener with a code instead of tokens", async () => {
+    const { controller, login } = createController();
+    const res = createResponse();
+    const request = createRequest("http://127.0.0.1:49152", codeChallenge);
+
+    await controller.getAuthOauth2Login(
+      request as never,
+      res as unknown as Response,
+    );
+
+    expect(res.redirect).toHaveBeenCalledWith(
+      expect.stringMatching(/^http:\/\/127\.0\.0\.1:49152\/\?code=[\w-]{43}$/),
+    );
+    expect(res.send).not.toHaveBeenCalled();
+    expect(login).not.toHaveBeenCalled();
+    expect(res.set).toHaveBeenCalledWith("Cache-Control", "no-store");
+    expect(request.session).toEqual({});
+  });
+
+  it("exchanges the code and its verifier for tokens", async () => {
+    const { controller, login } = createController();
+    const res = createResponse();
+    await controller.getAuthOauth2Login(
+      createRequest("http://[::1]:49152", codeChallenge) as never,
+      res as unknown as Response,
+    );
+    const code = new URL(
+      res.redirect.mock.calls[0]![0] as string,
+    ).searchParams.get("code")!;
+
+    const tokens = await controller.postAuthOauth2Token(
+      { code, code_verifier: codeVerifier },
+      { ip: "198.51.100.4", headers: { "user-agent": "NativeApp/1.0" } },
+    );
+
+    expect(tokens).toEqual({
+      access_token: "access-token-value",
+      refresh_token: "refresh-token-value",
+    });
+    expect(login).toHaveBeenCalledWith(
+      expect.objectContaining({ username: "player" }),
+      "198.51.100.4",
+      "NativeApp/1.0",
+    );
+  });
+
+  it("refuses a loopback return without a stored code challenge", async () => {
+    const { controller, login } = createController();
+    const res = createResponse();
+
+    await expect(
+      controller.getAuthOauth2Login(
+        createRequest("http://127.0.0.1:49152") as never,
+        res as unknown as Response,
+      ),
+    ).rejects.toThrow(BadRequestException);
+    expect(res.redirect).not.toHaveBeenCalled();
+    expect(res.send).not.toHaveBeenCalled();
+    expect(login).not.toHaveBeenCalled();
   });
 });

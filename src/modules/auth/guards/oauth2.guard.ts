@@ -5,13 +5,21 @@ import { randomBytes } from "node:crypto";
 import { type AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
-import { resolveOAuthReturnOrigin } from "../oauth-return-origin.js";
+import {
+  isLoopbackOrigin,
+  resolveOAuthReturnOrigin,
+} from "../oauth-return-origin.js";
+import { requireCodeChallenge } from "../oauth2-login-code.service.js";
 import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 
 /** The subset of the Express request this guard relies on. */
 interface OAuth2Request {
   query?: Record<string, unknown>;
-  session?: { oauth2ReturnOrigin?: string; oauth2Nonce?: string };
+  session?: {
+    oauth2ReturnOrigin?: string;
+    oauth2CodeChallenge?: string;
+    oauth2Nonce?: string;
+  };
 }
 
 @Injectable()
@@ -61,12 +69,24 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
         request.query?.client_origin,
         this.config,
       );
+      // A loopback listener receives a one-time code instead of tokens, and
+      // has to prove with PKCE that it is the app that started this login.
+      const codeChallenge =
+        origin && isLoopbackOrigin(origin)
+          ? requireCodeChallenge(request.query)
+          : undefined;
+
       if (origin) {
         request.session.oauth2ReturnOrigin = origin;
       } else {
         // No (or an untrusted) return origin was requested: make sure a stale
         // value from a previous attempt can't leak into this flow.
         delete request.session.oauth2ReturnOrigin;
+      }
+      if (codeChallenge) {
+        request.session.oauth2CodeChallenge = codeChallenge;
+      } else {
+        delete request.session.oauth2CodeChallenge;
       }
     }
 
