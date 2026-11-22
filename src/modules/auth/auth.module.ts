@@ -13,6 +13,7 @@ import { ApiKeyGuard } from "./guards/api-key.guard.js";
 import { AuthenticationGuard } from "./guards/authentication.guard.js";
 import { AuthorizationGuard } from "./guards/authorization.guard.js";
 import { Oauth2Guard } from "./guards/oauth2.guard.js";
+import { OAuth2LoginCodeService } from "./oauth2-login-code.service.js";
 import { OidcTokenVerifierService } from "./oidc-token-verifier.service.js";
 import { Session } from "./session.entity.js";
 import { SessionsModule } from "./sessions.module.js";
@@ -64,7 +65,12 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy.js";
     },
     ...(configuration.AUTH.BASIC_AUTH.ENABLED ? [BasicAuthStrategy] : []),
     ...(configuration.AUTH.OAUTH2.ENABLED
-      ? [OAuth2Strategy, Oauth2Guard, OidcTokenVerifierService]
+      ? [
+          OAuth2Strategy,
+          Oauth2Guard,
+          OidcTokenVerifierService,
+          OAuth2LoginCodeService,
+        ]
       : []),
   ],
   exports: [AuthenticationService],
