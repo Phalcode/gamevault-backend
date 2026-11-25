@@ -1,6 +1,6 @@
 # GameVault Backend Server Changelog
 
-## 17.2.1
+## 17.3.0
 
 ### Changes
 
