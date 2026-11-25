@@ -5,10 +5,7 @@ import { randomBytes } from "node:crypto";
 import { type AppConfiguration } from "../../../configuration.js";
 import { InjectGamevaultConfig } from "../../../decorators/inject-gamevault-config.decorator.js";
 import { SKIP_GUARDS_KEY } from "../../../decorators/skip-guards.decorator.js";
-import {
-  isLoopbackOrigin,
-  resolveOAuthReturnOrigin,
-} from "../oauth-return-origin.js";
+import { resolveOAuthReturnTarget } from "../oauth-return-origin.js";
 import { requireCodeChallenge } from "../oauth2-login-code.service.js";
 import { OidcTokenVerifierService } from "../oidc-token-verifier.service.js";
 
@@ -65,19 +62,20 @@ export class Oauth2Guard extends AuthGuard("oauth2") {
     const isInitialRequest = typeof request?.query?.code !== "string";
 
     if (isInitialRequest && request?.session) {
-      const origin = resolveOAuthReturnOrigin(
+      const target = resolveOAuthReturnTarget(
         request.query?.client_origin,
         this.config,
       );
-      // A loopback listener receives a one-time code instead of tokens, and
-      // has to prove with PKCE that it is the app that started this login.
-      const codeChallenge =
-        origin && isLoopbackOrigin(origin)
-          ? requireCodeChallenge(request.query)
-          : undefined;
+      // A native loopback listener receives a one-time code instead of tokens,
+      // and has to prove with PKCE that it is the app that started this login.
+      // An explicitly allowed loopback origin (e.g. a CORS-listed local Web UI)
+      // keeps the historical token handoff instead.
+      const codeChallenge = target?.loopback
+        ? requireCodeChallenge(request.query)
+        : undefined;
 
-      if (origin) {
-        request.session.oauth2ReturnOrigin = origin;
+      if (target) {
+        request.session.oauth2ReturnOrigin = target.origin;
       } else {
         // No (or an untrusted) return origin was requested: make sure a stale
         // value from a previous attempt can't leak into this flow.

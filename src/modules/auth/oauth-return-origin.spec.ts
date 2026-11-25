@@ -1,5 +1,8 @@
 import type { AppConfiguration } from "../../configuration.js";
-import { resolveOAuthReturnOrigin } from "./oauth-return-origin.js";
+import {
+  resolveOAuthReturnOrigin,
+  resolveOAuthReturnTarget,
+} from "./oauth-return-origin.js";
 
 function buildConfig(options?: {
   callbackUrl?: string;
@@ -198,6 +201,67 @@ describe("resolveOAuthReturnOrigin", () => {
       );
       expect(
         resolveOAuthReturnOrigin("http://127.0.0.1:49152", disabled),
+      ).toBeNull();
+    });
+  });
+
+  describe("resolveOAuthReturnTarget", () => {
+    it("marks a switch-enabled loopback origin as the native flow", () => {
+      expect(
+        resolveOAuthReturnTarget("http://127.0.0.1:49152", config),
+      ).toEqual({
+        origin: "http://127.0.0.1:49152",
+        loopback: true,
+      });
+    });
+
+    it("keeps a CORS-listed loopback origin on the token handoff", () => {
+      const withCors = buildConfig({
+        corsOrigins: ["http://127.0.0.1:5173"],
+      });
+
+      expect(
+        resolveOAuthReturnTarget("http://127.0.0.1:5173", withCors),
+      ).toEqual({
+        origin: "http://127.0.0.1:5173",
+        loopback: false,
+      });
+    });
+
+    it("keeps a CORS-listed loopback origin on the token handoff when the switch is off", () => {
+      const disabled = buildConfig({
+        corsOrigins: ["http://127.0.0.1:5173"],
+        loopbackReturn: false,
+      });
+
+      expect(
+        resolveOAuthReturnTarget("http://127.0.0.1:5173", disabled),
+      ).toEqual({
+        origin: "http://127.0.0.1:5173",
+        loopback: false,
+      });
+    });
+
+    it("has no target for a loopback origin the switch does not allow", () => {
+      const disabled = buildConfig({ loopbackReturn: false });
+
+      expect(
+        resolveOAuthReturnTarget("http://127.0.0.1:49152", disabled),
+      ).toBeNull();
+    });
+
+    it("marks other explicitly allowed origins as the token handoff", () => {
+      expect(
+        resolveOAuthReturnTarget("https://demo.gamevau.lt", config),
+      ).toEqual({
+        origin: "https://demo.gamevau.lt",
+        loopback: false,
+      });
+    });
+
+    it("has no target for an untrusted origin", () => {
+      expect(
+        resolveOAuthReturnTarget("https://evil.example", config),
       ).toBeNull();
     });
   });

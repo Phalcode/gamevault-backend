@@ -29,10 +29,7 @@ import { AuthorizationGuard } from "../guards/authorization.guard.js";
 import { Oauth2Guard } from "../guards/oauth2.guard.js";
 import { OAuth2TokenRequestDto } from "../models/oauth2-token-request.dto.js";
 import { TokenPairDto } from "../models/token-pair.dto.js";
-import {
-  isLoopbackOrigin,
-  resolveOAuthReturnOrigin,
-} from "../oauth-return-origin.js";
+import { resolveOAuthReturnTarget } from "../oauth-return-origin.js";
 import { OAuth2LoginCodeService } from "../oauth2-login-code.service.js";
 
 /**
@@ -87,10 +84,11 @@ export class OAuth2Controller {
     // redirect to the identity provider. `null` means either nothing was
     // requested or the requested origin is not trusted, in which case we fall
     // back to the server's own origin (the historical behaviour).
-    const returnOrigin = resolveOAuthReturnOrigin(
+    const target = resolveOAuthReturnTarget(
       request.session?.oauth2ReturnOrigin,
       configuration,
     );
+    const returnOrigin = target?.origin ?? null;
     const codeChallenge = request.session?.oauth2CodeChallenge;
     if (request.session) {
       delete request.session.oauth2ReturnOrigin;
@@ -99,8 +97,10 @@ export class OAuth2Controller {
 
     // A native app's loopback listener never receives tokens in a URL. It gets
     // a one-time code and exchanges it, with its PKCE verifier, at
-    // `POST /api/auth/oauth2/token` (RFC 8252, section 6).
-    if (returnOrigin && isLoopbackOrigin(returnOrigin)) {
+    // `POST /api/auth/oauth2/token` (RFC 8252, section 6). Only loopback
+    // origins accepted through `AUTH_OAUTH2_LOOPBACK_RETURN_ENABLED` use this
+    // flow; an explicitly allowed loopback origin keeps the token handoff.
+    if (target?.loopback) {
       if (!codeChallenge) {
         throw new BadRequestException(
           "Authentication Failed: No PKCE code_challenge was stored for this login attempt.",
@@ -109,7 +109,7 @@ export class OAuth2Controller {
       const code = this.loginCodeService.issue(request.user, codeChallenge);
       res.set("Cache-Control", "no-store");
       res.set("Referrer-Policy", "no-referrer");
-      res.redirect(`${returnOrigin}/?code=${code}`);
+      res.redirect(`${target.origin}/?code=${code}`);
       return;
     }
 

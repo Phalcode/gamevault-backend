@@ -20,8 +20,12 @@ interface Session {
   oauth2CodeChallenge?: string;
 }
 
-function authenticate(query: Record<string, unknown>, session: Session = {}) {
-  const guard = new Oauth2Guard({} as never, config, {
+function authenticate(
+  query: Record<string, unknown>,
+  session: Session = {},
+  guardConfig = config,
+) {
+  const guard = new Oauth2Guard({} as never, guardConfig, {
     requireNonce: false,
   } as never);
   const context = {
@@ -63,6 +67,31 @@ describe("Oauth2Guard", () => {
         code_challenge_method: "plain",
       }),
     ).toThrow(BadRequestException);
+  });
+
+  it("keeps a CORS-listed loopback origin on the token handoff", () => {
+    const corsConfig = {
+      ...config,
+      SERVER: { CORS_ALLOWED_ORIGINS: ["http://127.0.0.1:5173"] },
+    } as unknown as AppConfiguration;
+
+    expect(
+      authenticate({ client_origin: "http://127.0.0.1:5173" }, {}, corsConfig),
+    ).toEqual({ oauth2ReturnOrigin: "http://127.0.0.1:5173" });
+  });
+
+  it("keeps a CORS-listed loopback origin on the token handoff when the switch is off", () => {
+    const corsConfig = {
+      ...config,
+      AUTH: {
+        OAUTH2: { ...config.AUTH.OAUTH2, LOOPBACK_RETURN_ENABLED: false },
+      },
+      SERVER: { CORS_ALLOWED_ORIGINS: ["http://127.0.0.1:5173"] },
+    } as unknown as AppConfiguration;
+
+    expect(
+      authenticate({ client_origin: "http://127.0.0.1:5173" }, {}, corsConfig),
+    ).toEqual({ oauth2ReturnOrigin: "http://127.0.0.1:5173" });
   });
 
   it("ignores a code challenge for every other return origin", () => {

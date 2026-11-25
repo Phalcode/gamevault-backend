@@ -13,7 +13,7 @@ vi.mock("../../../configuration.js", () => ({
         LOOPBACK_RETURN_ENABLED: true,
       },
     },
-    SERVER: { CORS_ALLOWED_ORIGINS: [] },
+    SERVER: { CORS_ALLOWED_ORIGINS: ["http://127.0.0.1:5173"] },
   },
 }));
 
@@ -154,6 +154,16 @@ describe("OAuth2Controller handoff page", () => {
 
     expect(html).toContain('var returnOrigin = "http://tauri.localhost";');
     expect(html).toContain('window.location.replace(target + "/" + query)');
+  });
+
+  it("keeps the token handoff for a loopback origin that is allowed in CORS", async () => {
+    const { html, res, login } = await renderHandoff({
+      returnOrigin: "http://127.0.0.1:5173",
+    });
+
+    expect(login).toHaveBeenCalled();
+    expect(res.redirect).not.toHaveBeenCalled();
+    expect(html).toContain('var returnOrigin = "http://127.0.0.1:5173";');
   });
 
   it("ignores a return origin that was not validated", async () => {
