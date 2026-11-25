@@ -14,6 +14,7 @@
 
 - @larva
 - @utlilb
+- @MoSattler
 
 ## 17.2.0
 
